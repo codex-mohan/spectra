@@ -16,7 +16,7 @@ A construction kit, not a pre-built house — ship only primitives that enable d
 
 ### Active
 
-- [ ] spectra-core: Rust agent loop with LLM client, tool engine, and streaming
+- [ ] spectra-core: Rust agent loop with LLM client, tool engine, streaming, and tool approval
 - [ ] spectra-rs: Rust SDK with ergonomic wrappers and builder patterns
 - [ ] spectra-ts: TypeScript/JavaScript SDK via napi-rs bindings
 - [ ] spectra-py: Python SDK via PyO3 bindings
@@ -26,7 +26,7 @@ A construction kit, not a pre-built house — ship only primitives that enable d
 
 - Sub-agents — build as extension from primitives
 - Plan mode — build as extension
-- Permission popups — build as extension
+- Permission popups — replaced by tool approval (CORE-09)
 - Automatic retry policies — wrap agent.prompt in your own retry loop
 - Built-in memory/vector stores — inject history yourself
 
@@ -51,6 +51,7 @@ Greenfield project. Full specification in USER_PROMPT.md. Monorepo with Turborep
 | Turborepo + Rust | Language-agnostic task orchestration, cached builds | — Pending |
 | Minimal API surface | KISS — getModel, Agent, agent.prompt only | — Pending |
 | Tool concurrent dispatch | All tool calls in a round run in parallel | — Pending |
+| Tool approval | Human-in-the-loop pause before execution | — Pending |
 
 ## Evolution
 
@@ -70,4 +71,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after initialization*
+*Last updated: 2026-04-08 after adding tool approval feature*

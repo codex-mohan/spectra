@@ -15,6 +15,7 @@
 - [ ] **CORE-06**: Message types (User, Assistant, ToolResult)
 - [ ] **CORE-07**: System prompt handling
 - [ ] **CORE-08**: Abort signal support for cancellation
+- [ ] **CORE-09**: Tool approval — pause before tool execution for human confirmation
 
 ### Rust SDK (spectra-rs)
 
@@ -69,7 +70,7 @@
 | Automatic retries | Anti-feature — opinionated, users implement their own |
 | Built-in memory stores | Anti-feature — one-size-fits-none, user injects history |
 | Plan mode | Anti-feature — opinionated, user builds if needed |
-| Permission popups | Anti-feature — opinionated |
+| Permission popups | Replaced by CORE-09 — tool approval is the right primitive |
 | WebSocket streaming | v2+ — SSE sufficient for most cases |
 | Metrics/telemetry | v2+ — tracing subscriber opt-in |
 
@@ -85,6 +86,7 @@
 | CORE-06 | Phase 1 | Pending |
 | CORE-07 | Phase 1 | Pending |
 | CORE-08 | Phase 1 | Pending |
+| CORE-09 | Phase 1 | Pending |
 | RUST-01 | Phase 2 | Pending |
 | RUST-02 | Phase 2 | Pending |
 | RUST-03 | Phase 2 | Pending |
@@ -107,8 +109,8 @@
 | BUILD-04 | Phase 3/4 | Pending |
 
 **Coverage:**
-- v1 requirements: 28 total
-- Mapped to phases: 28
+- v1 requirements: 29 total
+- Mapped to phases: 29
 - Unmapped: 0 ✓
 
 ---

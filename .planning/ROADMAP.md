@@ -8,7 +8,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 1 | spectra-core | Rust core with agent loop, LLM client, tool engine, error types | CORE-01 to CORE-08, BUILD-01 to BUILD-03 | 8 criteria |
+| 1 | spectra-core | Rust core with agent loop, LLM client, tool engine, error types, tool approval | CORE-01 to CORE-09, BUILD-01 to BUILD-03 | 9 criteria |
 | 2 | spectra-rs | Rust SDK with ergonomic wrappers | RUST-01 to RUST-04 | 4 criteria |
 | 3 | spectra-ts | TypeScript SDK via napi-rs | TS-01 to TS-06, BUILD-04 | 7 criteria |
 | 4 | spectra-py | Python SDK via PyO3 | PY-01 to PY-06 | 6 criteria |
@@ -28,6 +28,7 @@
 - CORE-06: Message types (User, Assistant, ToolResult)
 - CORE-07: System prompt handling
 - CORE-08: Abort signal support for cancellation
+- CORE-09: Tool approval — pause before tool execution for human confirmation
 
 ### Build Requirements
 - BUILD-01: Cargo workspace configuration
@@ -44,6 +45,7 @@
 6. Event stream emits: agent_start, turn_start, message_start, message_end, turn_end, agent_end, tool_execution_start, tool_execution_end
 7. History is maintained across turns
 8. AbortSignal cancels in-progress LLM calls and tool executions
+9. Tool approval pauses execution, emits pending event, waits for approval/rejection
 
 ### Phase 2 Dependency
 All subsequent phases depend on spectra-core.
@@ -129,6 +131,7 @@ All subsequent phases depend on spectra-core.
 | CORE-06 | Phase 1 |
 | CORE-07 | Phase 1 |
 | CORE-08 | Phase 1 |
+| CORE-09 | Phase 1 |
 | BUILD-01 | Phase 1 |
 | BUILD-02 | Phase 1 |
 | BUILD-03 | Phase 1 |
