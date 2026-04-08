@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "packages/core",
+    "crates/spectra-rs",
 ]
 
 [profile.release]
