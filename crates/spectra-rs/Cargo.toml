@@ -1,0 +1,19 @@
+[package]
+name = "spectra-rs"
+version = "0.1.0"
+edition = "2024"
+description = "Spectra agent framework — Rust SDK"
+license = "MIT"
+
+[dependencies]
+spectra-core = { path = "../../packages/core" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"
+
+[lib]
+path = "src/lib.rs"

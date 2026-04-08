@@ -21,6 +21,7 @@ async-trait = "0.1"
 dashmap = "6"
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
+toml = "0.8"
 
 [dev-dependencies]
 tokio-test = "0.4"

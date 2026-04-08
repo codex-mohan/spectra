@@ -1,0 +1,91 @@
+# Supported Models Configuration
+# Edit this file to add/update/remove models without rebuilding the crate.
+# Provider names are lowercase strings: anthropic, openai, groq
+
+[[models]]
+id = "claude-opus-4-5"
+provider = "anthropic"
+description = "Most capable model for complex tasks"
+context_window = 200000
+supports_vision = true
+supports_tools = true
+
+[[models]]
+id = "claude-sonnet-4-5"
+provider = "anthropic"
+description = "Balanced for speed and capability"
+context_window = 200000
+supports_vision = true
+supports_tools = true
+
+[[models]]
+id = "claude-haiku-3-5"
+provider = "anthropic"
+description = "Fast, efficient for simple tasks"
+context_window = 200000
+supports_vision = true
+supports_tools = true
+
+[[models]]
+id = "gpt-4o"
+provider = "openai"
+description = "GPT-4 Optimized"
+context_window = 128000
+supports_vision = true
+supports_tools = true
+
+[[models]]
+id = "gpt-4o-mini"
+provider = "openai"
+description = "Fast GPT-4"
+context_window = 128000
+supports_vision = true
+supports_tools = true
+
+[[models]]
+id = "gpt-4-turbo"
+provider = "openai"
+description = "GPT-4 Turbo"
+context_window = 128000
+supports_vision = true
+supports_tools = true
+
+[[models]]
+id = "o1"
+provider = "openai"
+description = "Reasoning model"
+context_window = 128000
+supports_vision = false
+supports_tools = true
+
+[[models]]
+id = "o1-mini"
+provider = "openai"
+description = "Fast reasoning"
+context_window = 128000
+supports_vision = false
+supports_tools = true
+
+[[models]]
+id = "o1-preview"
+provider = "openai"
+description = "Preview reasoning"
+context_window = 128000
+supports_vision = false
+supports_tools = true
+
+[[models]]
+id = "llama-3.1-70b-versatile"
+provider = "groq"
+description = "Fast Llama for quick responses"
+context_window = 128000
+supports_vision = false
+supports_tools = true
+
+[[models]]
+id = "mixtral-8x7b-32768"
+provider = "groq"
+description = "Fast Mixtral"
+context_window = 32768
+supports_vision = false
+supports_tools = true

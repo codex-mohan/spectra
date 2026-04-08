@@ -22,12 +22,22 @@ pub enum Provider {
 }
 
 impl Provider {
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             Provider::Anthropic => "anthropic",
             Provider::OpenAI => "openai",
             Provider::Groq => "groq",
             Provider::Custom => "custom",
+        }
+    }
+
+    #[allow(clippy::should_implement_trait)]
+    pub fn parse(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "anthropic" => Some(Provider::Anthropic),
+            "openai" => Some(Provider::OpenAI),
+            "groq" => Some(Provider::Groq),
+            _ => None,
         }
     }
 }
@@ -123,4 +133,113 @@ pub trait LlmClient: Send + Sync {
     async fn stream(&self, request: LlmRequest) -> Result<LlmStream>;
 
     fn provider(&self) -> Provider;
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModelInfo {
+    pub id: String,
+    pub provider: Provider,
+    pub description: Option<String>,
+    pub context_window: Option<u32>,
+    pub supports_vision: bool,
+    pub supports_tools: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct RawModelInfo {
+    id: String,
+    provider: String,
+    description: Option<String>,
+    context_window: Option<u32>,
+    #[serde(default)]
+    supports_vision: bool,
+    #[serde(default)]
+    supports_tools: bool,
+}
+
+impl RawModelInfo {
+    fn into_model_info(self) -> Option<ModelInfo> {
+        Some(ModelInfo {
+            id: self.id,
+            provider: Provider::parse(&self.provider)?,
+            description: self.description,
+            context_window: self.context_window,
+            supports_vision: self.supports_vision,
+            supports_tools: self.supports_tools,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct RawModelRegistry {
+    models: Vec<RawModelInfo>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ModelRegistry {
+    pub models: Vec<ModelInfo>,
+}
+
+impl ModelRegistry {
+    pub fn new() -> Self {
+        Self { models: Vec::new() }
+    }
+
+    pub fn from_json(json: &str) -> Result<Self> {
+        let raw: RawModelRegistry = serde_json::from_str(json)?;
+        
+        let models: Vec<ModelInfo> = raw.models
+            .into_iter()
+            .filter_map(|m| m.into_model_info())
+            .collect();
+        
+        Ok(Self { models })
+    }
+
+    pub fn from_toml(toml_str: &str) -> Result<Self> {
+        let raw: RawModelRegistry = match toml::from_str(toml_str) {
+            Ok(r) => r,
+            Err(e) => return Err(crate::error::SpectraError::Io(
+                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())
+            )),
+        };
+        
+        let models: Vec<ModelInfo> = raw.models
+            .into_iter()
+            .filter_map(|m| m.into_model_info())
+            .collect();
+        
+        Ok(Self { models })
+    }
+
+    pub fn get(&self, id: &str) -> Option<&ModelInfo> {
+        self.models.iter().find(|m| m.id == id)
+    }
+
+    pub fn by_provider(&self, provider: Provider) -> Vec<&ModelInfo> {
+        self.models.iter().filter(|m| m.provider == provider).collect()
+    }
+
+    pub fn load_from_file(path: &std::path::Path) -> Result<Self> {
+        let content = std::fs::read_to_string(path)?;
+        
+        let ext = path.extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("json");
+        
+        match ext.to_lowercase().as_str() {
+            "toml" => Self::from_toml(&content),
+            _ => Self::from_json(&content),
+        }
+    }
+}
+
+impl Default for ModelRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub fn load_models_from_file(path: &str) -> Result<ModelRegistry> {
+    ModelRegistry::load_from_file(std::path::Path::new(path))
 }
