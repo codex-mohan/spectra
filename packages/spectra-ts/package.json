@@ -1,0 +1,31 @@
+{
+  "name": "@spectra/sdk",
+  "version": "0.1.0",
+  "description": "Spectra agent framework - TypeScript SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc && node scripts/copy-native.js",
+    "build:native": "cargo build --release --package spectra-napi",
+    "test": "vitest run",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "@spectra/sdk-win32-x64": "0.1.0"
+  }
+}
