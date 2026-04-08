@@ -1,0 +1,31 @@
+[package]
+name = "spectra-core"
+version = "0.1.0"
+edition = "2024"
+description = "Spectra agent framework — ultra-fast Rust core"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures-core = "0.3"
+futures-util = "0.3"
+thiserror = "2"
+miette = { version = "7", features = ["fancy"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+async-trait = "0.1"
+dashmap = "6"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+wiremock = "0.6"
+insta = "1"
+
+[lib]
+path = "src/lib.rs"
