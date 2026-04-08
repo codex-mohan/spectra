@@ -1,0 +1,19 @@
+[package]
+name = "spectra-pyo3"
+version = "0.1.0"
+edition = "2024"
+description = "Spectra PyO3 bindings for Python"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+spectra-core = { path = "../../packages/core" }
+pyo3 = { version = "0.24", features = ["extension-module"] }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+
+[build-dependencies]
+pyo3-build-config = "0.24"
