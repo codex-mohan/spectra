@@ -1,62 +1,116 @@
 // spectra-rs example - run with: cargo run --example basic
 use std::sync::Arc;
 use spectra_rs::prelude::*;
+use tokio::io::{AsyncWriteExt, stdout};
 
 #[tokio::main]
 async fn main() {
     println!("=== Spectra Rust SDK Example ===\n");
 
-    // Load models from TOML (embedded in crate)
-    let models = load_builtin_models()
-        .expect("Failed to load models");
+    let api_key = std::env::var("ANTHROPIC_API_KEY")
+        .expect("ANTHROPIC_API_KEY not set");
 
-    println!("Loaded {} models:", models.models.len());
-    for model in &models.models {
-        println!("  - {} ({})", model.id, model.provider);
-    }
+    // Create the LLM client
+    let client = Arc::new(spectra_http::AnthropicClient::with_api_key(api_key));
+    println!("Created Anthropic client\n");
 
-    println!("\n=== Available Anthropic models ===");
-    let anthropic = models.by_provider(Provider::Anthropic);
-    for m in anthropic {
-        println!("  - {}: {}", m.id, m.description.as_deref().unwrap_or("N/A"));
-    }
-
-    // Create a model
-    let model = get_anthropic_model("claude-sonnet-4-5");
-    println!("\n=== Created model ===");
-    println!("  Provider: {}", model.provider);
-    println!("  ID: {}", model.id);
-
-    // Create tool registry
+    // Create tool registry with a simple tool
     let registry = Arc::new(ToolRegistry::new());
-    println!("\n=== Tool Registry ===");
-    println!("  Tools registered: {}", registry.len());
 
-    // Create agent config (without actual LLM client for demo)
-    let config = AgentConfig {
-        model,
-        system_prompt: Some("You are a helpful assistant.".to_string()),
-        tools: registry,
-    };
+    let read_tool = ToolBuilder::new("read_file")
+        .description("Read contents of a file")
+        .parameters(serde_json::json!({
+            "type": "object",
+            "properties": {
+                "path": { "type": "string" }
+            },
+            "required": ["path"]
+        }))
+        .execute(|_id, params| async move {
+            let path = params.get("path")
+                .and_then(|p| p.as_str())
+                .unwrap_or("unknown");
+            Ok(ToolResult::success(serde_json::json!({
+                "path": path,
+                "content": format!("Contents of {}", path)
+            })))
+        })
+        .build();
 
-    println!("\n=== Agent Config ===");
-    println!("  Model: {}", config.model.id);
-    println!("  System prompt: {}", config.system_prompt.as_deref().unwrap_or("None"));
+    registry.register(read_tool);
+    println!("Registered tools: {}", registry.len());
 
-    // Extension example
-    struct LoggingExtension;
-    impl Extension for LoggingExtension {
-        fn on_agent_start(&self) {
-            println!("[Extension] Agent started!");
-        }
-        fn on_agent_end(&self) {
-            println!("[Extension] Agent ended!");
+    // Build the agent
+    let agent = AgentBuilder::new(get_anthropic_model("claude-sonnet-4-20250514"))
+        .system_prompt("You are a helpful assistant. Use tools when needed.")
+        .tools(registry)
+        .build(client);
+
+    println!("\n=== Running Agent ===\n");
+
+    // Run the agent with streaming
+    let mut rx = agent.run("Read the file at /tmp/example.txt").await
+        .expect("Failed to start agent");
+
+    let mut stdout = stdout();
+
+    while let Some(event) = rx.recv().await {
+        match event {
+            Ok(StreamEvent::AgentStart) => {
+                println!("[Agent] Started\n");
+            }
+            Ok(StreamEvent::TurnStart) => {
+                println!("[Turn] Started");
+            }
+            Ok(StreamEvent::MessageStart { .. }) => {
+                print!("[Assistant] ");
+                let _ = stdout.flush().await;
+            }
+            Ok(StreamEvent::MessageUpdate { delta }) => {
+                match delta {
+                    ContentDelta::Text { delta: text } => {
+                        print!("{}", text);
+                        let _ = stdout.flush().await;
+                    }
+                    ContentDelta::ToolCallStart { id, name } => {
+                        print!("\n[Tool Call] {} ({})\n  ", name, id);
+                        let _ = stdout.flush().await;
+                    }
+                    ContentDelta::ToolCallDelta { args_delta, .. } => {
+                        print!("{}", args_delta);
+                        let _ = stdout.flush().await;
+                    }
+                    ContentDelta::ToolCallEnd { .. } => {
+                        println!();
+                    }
+                }
+            }
+            Ok(StreamEvent::ToolExecutionStart { tool_call }) => {
+                println!("[Executing Tool] {}", tool_call.name);
+            }
+            Ok(StreamEvent::ToolExecutionEnd { result, .. }) => {
+                println!("[Tool Result] {} (error: {})",
+                    result.tool_name, result.is_error);
+            }
+            Ok(StreamEvent::TurnEnd { .. }) => {
+                println!("\n[Turn] Ended");
+            }
+            Ok(StreamEvent::MessageEnd { .. }) => {
+                println!();
+            }
+            Ok(StreamEvent::AgentEnd { messages }) => {
+                println!("\n[Agent] Ended");
+                println!("  Total messages: {}", messages.len());
+            }
+            Ok(StreamEvent::Error { message }) => {
+                eprintln!("\n[Error] {}", message);
+            }
+            Ok(StreamEvent::ToolExecutionUpdate { .. }) => {}
+            Err(e) => {
+                eprintln!("\n[Error] {}", e);
+            }
         }
     }
-
-    println!("\n=== Extension ===");
-    println!("  LoggingExtension ready");
 
     println!("\n=== Example complete ===");
-    println!("Note: Full agent loop requires implementing LlmClient trait with actual API calls.");
 }
