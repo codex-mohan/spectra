@@ -112,6 +112,8 @@ impl OpenAIClient {
                 .post(&url)
                 .header("content-type", "application/json")
                 .header("authorization", format!("Bearer {}", api_key))
+                .header("HTTP-Referer", "https://github.com/spectra-ai/spectra")
+                .header("X-Title", "Spectra AI Agent")
                 .body(body)
                 .send()
                 .await
@@ -177,6 +179,13 @@ impl OpenAIClient {
 }
 
 fn content_to_json(content: &[Content]) -> serde_json::Value {
+    if content.len() == 1 {
+        if let Content::Text { text } = &content[0] {
+            if !text.is_empty() {
+                return serde_json::json!(text);
+            }
+        }
+    }
     let items: Vec<serde_json::Value> = content.iter().filter_map(|c| {
         match c {
             Content::Text { text } => {
