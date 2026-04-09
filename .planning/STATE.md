@@ -1,52 +1,91 @@
+---
+gsd_state_version: 1.0
+milestone: v0.2.0
+milestone_name: production-ready
+current_phase: "v0.2"
+status: in_progress
+last_updated: "2026-04-09T00:00:00.000Z"
+progress:
+  total_milestones: 5
+  completed_milestones: 1
+  percent: 40
+  context_complete: true
+  plan_complete: true
+  llm_clients: complete
+  ci_cd: complete
+---
+
 # State: Spectra
 
-**Last updated:** 2026-04-08 after Phase 1 planning
+**Last updated:** 2026-04-09 - v0.2.0 plan ready, starting execution
+
+# State: Spectra
+
+**Last updated:** 2026-04-09 - Starting v0.2.0 planning
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-08)
+See: `.planning/PROJECT.md`
 
 **Core value:** A construction kit, not a pre-built house — ship only primitives
 
-**Current phase:** Phase 1: spectra-core (Planning complete, ready for execution)
+---
 
-## Phase Status
+## Milestone Status
 
-| Phase | Status | Progress |
-|-------|--------|----------|
-| Phase 1: spectra-core | Planning complete | Ready to execute |
-| Phase 2: spectra-rs | Not started | 0% |
-| Phase 3: spectra-ts | Not started | 0% |
-| Phase 4: spectra-py | Not started | 0% |
+| Milestone | Status | Progress | Notes |
+|-----------|--------|----------|-------|
+| **v0.1.0: Core Primitives** | ✅ Complete | 100% | Agent trait, LLM trait, tool registry |
+| **v0.2.0: Production Ready** | 🔄 In Progress | 40% | LLM clients ✅, CI/CD ✅, native builds pending |
+| **v0.3.0: Feature Complete** | 🔲 Future | 0% | More providers, vision, retry |
+| **v0.4.0: Developer Experience** | 🔲 Future | 0% | CLI, REPL, debug mode |
+| **v0.5.0: Enterprise** | 🔲 Future | 0% | Multi-agent, persistence |
 
-## Phase 1 Plan Summary
+---
 
-**Tasks:** 8 task groups (~40 items)
-**Files to create:**
-- `Cargo.toml` (workspace)
-- `packages/core/Cargo.toml`
-- `packages/core/src/lib.rs`
-- `packages/core/src/messages.rs`
-- `packages/core/src/error.rs`
-- `packages/core/src/event.rs`
-- `packages/core/src/llm.rs`
-- `packages/core/src/tool.rs`
-- `packages/core/src/approval.rs`
-- `packages/core/src/agent.rs`
-- `pnpm-workspace.yaml`
-- `turbo.json`
-- `package.json`
+## v0.2.0 Requirements (Production Ready)
 
-## Next Action
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| LLM-01 | Anthropic HTTP client with streaming | Critical |
+| LLM-02 | OpenAI HTTP client with streaming | Critical |
+| LLM-03 | Connect agent.run() to LLM clients | Critical |
+| BUILD-05 | Configure napi-rs build | High |
+| BUILD-06 | Configure PyO3+maturin build | High |
+| CI-01 | GitHub Actions: build + test Rust | High |
+| CI-02 | GitHub Actions: build TypeScript package | Medium |
+| CI-03 | GitHub Actions: build Python wheels | Medium |
+| CI-04 | cargo-audit in CI | Medium |
+| TEST-01 | Integration tests with wiremock | High |
+| TEST-02 | Native binding smoke tests | Medium |
 
-Run `/gsd-execute-phase 1` to start Phase 1 implementation.
+---
+
+## Verification (v0.1.0 - 2026-04-09)
+
+- `cargo build --release` ✓
+- `cargo test -p spectra-core -p spectra-rs` ✓
+- Doctests pass ✓
+- Fixed: `ToolRegistry::register` accepts `Arc<dyn Tool>`
+- Fixed: `AgentBuilder::register_tool` accepts `Arc<dyn Tool>`
+
+---
+
+## What's Missing (Blocking v0.2.0)
+
+1. **No LLM implementations** - `impl LlmClient for` does not exist anywhere
+2. **Agent loop is stub** - `run_loop()` doesn't call LLM client
+3. **No native builds** - TS/Python bindings compile but not packaged
+4. **No CI/CD** - No GitHub Actions workflows
+5. **No integration tests** - 0 tests exist
+
+---
 
 ## Session Stats
 
 - **Started:** 2026-04-08
-- **Phases completed:** 0
-- **Requirements completed:** 0
-- **Plans created:** 1 (Phase 1)
+- **Milestones completed:** 1 of 5
+- **Current focus:** v0.2.0 planning
 
 ---
-*State updated: 2026-04-08 after Phase 1 planning*
+*State updated: 2026-04-09 - Ready to plan v0.2.0*

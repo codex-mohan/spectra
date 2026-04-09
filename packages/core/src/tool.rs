@@ -69,9 +69,9 @@ impl ToolRegistry {
         }
     }
 
-    pub fn register<T: Tool + 'static>(&self, tool: T) {
+    pub fn register(&self, tool: Arc<dyn Tool>) {
         let def = tool.definition();
-        self.tools.insert(def.name.clone(), Arc::new(tool));
+        self.tools.insert(def.name.clone(), tool);
     }
 
     pub fn unregister(&self, name: &str) {

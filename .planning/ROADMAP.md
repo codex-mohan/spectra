@@ -1,166 +1,209 @@
 # Roadmap: Spectra
 
 **Created:** 2026-04-08
+**Updated:** 2026-04-09
 **Granularity:** Coarse
-**Phases:** 4
+**Total Milestones:** 5 (v0.1.0-v0.5.0)
 
-## Phase Summary
+## Milestone Summary
 
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|-------|------|--------------|------------------|
-| 1 | spectra-core | Rust core with agent loop, LLM client, tool engine, error types, tool approval | CORE-01 to CORE-09, BUILD-01 to BUILD-03 | 9 criteria |
-| 2 | spectra-rs | Rust SDK with ergonomic wrappers | RUST-01 to RUST-04 | 4 criteria |
-| 3 | spectra-ts | TypeScript SDK via napi-rs | TS-01 to TS-06, BUILD-04 | 7 criteria |
-| 4 | spectra-py | Python SDK via PyO3 | PY-01 to PY-06 | 6 criteria |
+| Milestone | Goal | Status | Key Deliverables |
+|-----------|------|--------|------------------|
+| **v0.1.0** | Core Primitives | ✅ Complete | Agent trait, LLM trait, tool registry, typed errors, event stream, SDK wrappers |
+| **v0.2.0** | Production Ready | 🔲 Next | LLM implementations, native builds, CI/CD, integration tests |
+| **v0.3.0** | Feature Complete | 🔲 Future | More providers, vision, retry/rate-limit, token tracking |
+| **v0.4.0** | Developer Experience | 🔲 Future | CLI, REPL, debug mode, documentation |
+| **v0.5.0** | Enterprise | 🔲 Future | Multi-agent, persistence, budgets |
 
 ---
 
-## Phase 1: spectra-core
+## v0.1.0: Core Primitives ✅
 
-**Goal:** Rust core with agent loop, LLM client, tool engine, and error types
+**Completed:** 2026-04-09
+
+### What Was Built
+
+| Component | Files | Status |
+|-----------|-------|--------|
+| spectra-core | `packages/core/src/*.rs` | ✅ |
+| spectra-rs | `crates/spectra-rs/` | ✅ |
+| spectra-ts (types) | `packages/spectra-ts/` | ✅ |
+| spectra-py (types) | `packages/spectra-py/` | ✅ |
+
+### Success Criteria Met
+
+- [x] Agent loop with message history management
+- [x] LLM client abstraction trait (no implementations yet)
+- [x] Tool registry with concurrent dispatch
+- [x] Typed error system with miette diagnostics
+- [x] Event stream for real-time updates
+- [x] Message types (User, Assistant, ToolResult)
+- [x] System prompt handling
+- [x] Abort signal support
+- [x] Extension trait for hooks
+- [x] `spectra_rs::prelude::*` with all types
+
+### Verification
+
+```
+cargo build --release ✓
+cargo test -p spectra-core -p spectra-rs ✓
+Doctests pass ✓
+```
+
+---
+
+## v0.2.0: Production Ready 🔲
+
+**Goal:** Make Spectra actually usable - real LLM calls, native bindings work, CI/CD in place
 
 ### Requirements
-- CORE-01: Agent loop with message history management
-- CORE-02: LLM client abstraction trait with streaming support
-- CORE-03: Tool registry with concurrent tool dispatch
-- CORE-04: Typed error system with miette diagnostics
-- CORE-05: Event stream for real-time updates
-- CORE-06: Message types (User, Assistant, ToolResult)
-- CORE-07: System prompt handling
-- CORE-08: Abort signal support for cancellation
-- CORE-09: Tool approval — pause before tool execution for human confirmation
 
-### Build Requirements
-- BUILD-01: Cargo workspace configuration
-- BUILD-02: pnpm workspace with Turborepo
-- BUILD-03: Turborepo pipeline (build, test, lint tasks)
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| LLM-01 | Anthropic HTTP client with streaming | Critical |
+| LLM-02 | OpenAI HTTP client with streaming | Critical |
+| LLM-03 | Connect agent.run() to LLM clients | Critical |
+| BUILD-05 | Configure napi-rs build for Windows/macOS/Linux | High |
+| BUILD-06 | Configure PyO3+maturin build for wheels | High |
+| CI-01 | GitHub Actions: build + test Rust | High |
+| CI-02 | GitHub Actions: build TypeScript package | Medium |
+| CI-03 | GitHub Actions: build Python wheels | Medium |
+| CI-04 | cargo-audit in CI | Medium |
+| TEST-01 | Integration tests with wiremock | High |
+| TEST-02 | Native binding smoke tests | Medium |
 
 ### Success Criteria
 
-1. User can create an Agent with a model and tools
-2. Agent loop processes user messages and yields streaming events
-3. LLM client trait supports multiple providers (Anthropic, OpenAI)
-4. Tool calls execute concurrently when multiple are requested
-5. All errors are typed with miette diagnostics (no unwrap in library)
-6. Event stream emits: agent_start, turn_start, message_start, message_end, turn_end, agent_end, tool_execution_start, tool_execution_end
-7. History is maintained across turns
-8. AbortSignal cancels in-progress LLM calls and tool executions
-9. Tool approval pauses execution, emits pending event, waits for approval/rejection
+1. `spectra-core` can call Anthropic Claude API with streaming
+2. `spectra-core` can call OpenAI API with streaming
+3. Agent loop actually invokes LLM and processes responses
+4. `spectra-napi` builds as `.node` addon on all platforms
+5. `spectra-pyo3` builds as `.pyd/.so` wheel on all platforms
+6. GitHub Actions runs: `cargo build`, `cargo test`, `cargo clippy`, `cargo audit`
+7. Integration tests mock LLM responses with wiremock
+8. Native bindings can be installed and used from TS/Python
 
-### Phase 2 Dependency
-All subsequent phases depend on spectra-core.
+### Dependencies
+
+- **Blockers:** None
+- **Depends on:** v0.1.0 (complete)
 
 ---
 
-## Phase 2: spectra-rs
+## v0.3.0: Feature Complete 🔲
 
-**Goal:** Ergonomic Rust SDK with builder patterns and extension support
+**Goal:** Full feature parity with production agent frameworks
 
 ### Requirements
-- RUST-01: Re-export all spectra-core types
-- RUST-02: Agent builder pattern
-- RUST-03: Extension trait for hooks (before/after tool call)
-- RUST-04: getModel() factory function
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| LLM-04 | Groq client support | Medium |
+| LLM-05 | Ollama/local model support | Medium |
+| VISION-01 | Image/video input support for vision models | Medium |
+| RESILIENCE-01 | Retry logic with exponential backoff | High |
+| RESILIENCE-02 | Rate limiting per provider | Medium |
+| RESILIENCE-03 | Circuit breaker for failed providers | Low |
+| TRACKING-01 | Token usage tracking | Medium |
+| TRACKING-02 | Cost estimation | Low |
+| TOOLS-01 | Tool result caching | Low |
 
 ### Success Criteria
 
-1. `spectra_rs::prelude::*` provides all commonly used types
-2. AgentBuilder allows fluent configuration of agent
-3. Extension trait supports beforeToolCall and afterToolCall hooks
-4. getModel() creates Model instances for supported providers
+1. Groq models can be used as LLM provider
+2. Local Ollama models work via HTTP
+3. Vision models process image inputs
+4. Failed LLM calls retry automatically
+5. Rate limits are respected per provider
+6. Token usage is tracked and reported
 
 ---
 
-## Phase 3: spectra-ts
+## v0.4.0: Developer Experience 🔲
 
-**Goal:** TypeScript/JavaScript SDK via napi-rs bindings
+**Goal:** Make it easy to build with and debug Spectra
 
 ### Requirements
-- TS-01: TypeScript package with full type definitions
-- TS-02: NAPI bindings via napi-rs (.node addon)
-- TS-03: AsyncIterable stream interface
-- TS-04: Zod schema validation for tools
-- TS-05: SpectraError class hierarchy
-- TS-06: Agent class with prompt() method
-- BUILD-04: Native addon build scripts
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| CLI-01 | `spectra` CLI tool | High |
+| CLI-02 | Interactive REPL for testing | Medium |
+| DEBUG-01 | Debug logging mode | High |
+| DEBUG-02 | Structured tracing with tracing crate | High |
+| DOCS-01 | README with quick start | High |
+| DOCS-02 | API documentation (docs.rs) | High |
+| DOCS-03 | Examples for each language | Medium |
+| DX-01 | Comprehensive error messages | Medium |
 
 ### Success Criteria
 
-1. `@spectra/sdk` npm package with TypeScript types
-2. Native .node addon compiled from spectra-napi
-3. `for await (const event of agent.prompt())` works
-4. Tool schemas validated with Zod before dispatch
-5. All error variants extend SpectraError
-6. Agent.prompt() returns AsyncIterable<StreamEvent>
-7. Turborepo builds .node addon in correct order
+1. `cargo install spectra` installs CLI
+2. `spectra repl` opens interactive REPL
+3. `RUST_LOG=spectra=debug` enables verbose logging
+4. docs.rs has complete API docs
+5. Working examples in Rust, TypeScript, Python
 
 ---
 
-## Phase 4: spectra-py
+## v0.5.0: Enterprise 🔲
 
-**Goal:** Python SDK via PyO3/maturin bindings
+**Goal:** Features for production deployments
 
 ### Requirements
-- PY-01: Python package with type stubs
-- PY-02: PyO3 bindings via maturin (.pyd/.so)
-- PY-03: AsyncIterator stream interface
-- PY-04: Pydantic v2 schema validation for tools
-- PY-05: SpectraError class hierarchy
-- PY-06: Agent class with prompt() method
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| MULTI-01 | Multi-agent orchestration | High |
+| PERSIST-01 | Conversation persistence (file/DB) | Medium |
+| PERSIST-02 | Conversation import/export | Low |
+| BUDGET-01 | Token budget enforcement | Medium |
+| BUDGET-02 | Spending alerts | Low |
+| SEC-01 | API key rotation | Low |
+| SEC-02 | Audit logging | Low |
 
 ### Success Criteria
 
-1. `spectra-sdk` PyPI package
-2. Native .pyd/.so compiled from spectra-pyo3
-3. `async for event in agent.prompt()` works
-4. Tool schemas validated with Pydantic v2 before dispatch
-5. All error variants extend SpectraError
-6. Agent.prompt() returns AsyncIterator
+1. Multiple agents can communicate
+2. Conversations persist across restarts
+3. Budget limits prevent overspending
 
 ---
 
-## Traceability
+## Traceability Matrix
 
-| Requirement | Phase |
-|-------------|-------|
-| CORE-01 | Phase 1 |
-| CORE-02 | Phase 1 |
-| CORE-03 | Phase 1 |
-| CORE-04 | Phase 1 |
-| CORE-05 | Phase 1 |
-| CORE-06 | Phase 1 |
-| CORE-07 | Phase 1 |
-| CORE-08 | Phase 1 |
-| CORE-09 | Phase 1 |
-| BUILD-01 | Phase 1 |
-| BUILD-02 | Phase 1 |
-| BUILD-03 | Phase 1 |
-| RUST-01 | Phase 2 |
-| RUST-02 | Phase 2 |
-| RUST-03 | Phase 2 |
-| RUST-04 | Phase 2 |
-| BUILD-04 | Phase 3 |
-| TS-01 | Phase 3 |
-| TS-02 | Phase 3 |
-| TS-03 | Phase 3 |
-| TS-04 | Phase 3 |
-| TS-05 | Phase 3 |
-| TS-06 | Phase 3 |
-| PY-01 | Phase 4 |
-| PY-02 | Phase 4 |
-| PY-03 | Phase 4 |
-| PY-04 | Phase 4 |
-| PY-05 | Phase 4 |
-| PY-06 | Phase 4 |
+| Requirement | Milestone |
+|-------------|-----------|
+| CORE-01 to CORE-09 | v0.1.0 |
+| RUST-01 to RUST-04 | v0.1.0 |
+| TS-01, TS-03 to TS-06 | v0.1.0 |
+| PY-01, PY-03 to PY-06 | v0.1.0 |
+| LLM-01, LLM-02, LLM-03 | v0.2.0 |
+| BUILD-05, BUILD-06 | v0.2.0 |
+| CI-01 to CI-04 | v0.2.0 |
+| TEST-01, TEST-02 | v0.2.0 |
+| LLM-04, LLM-05 | v0.3.0 |
+| VISION-01 | v0.3.0 |
+| RESILIENCE-01 to RESILIENCE-03 | v0.3.0 |
+| TRACKING-01, TRACKING-02 | v0.3.0 |
+| CLI-01, CLI-02 | v0.4.0 |
+| DEBUG-01, DEBUG-02 | v0.4.0 |
+| DOCS-01 to DOCS-03 | v0.4.0 |
+| MULTI-01 | v0.5.0 |
+| PERSIST-01, PERSIST-02 | v0.5.0 |
+| BUDGET-01, BUDGET-02 | v0.5.0 |
 
 ---
 
-## Key Milestones
+## Key Decisions
 
-- **v0.1.0:** spectra-core (Phase 1 complete)
-- **v0.2.0:** spectra-rs (Phase 2 complete)
-- **v0.3.0:** spectra-ts (Phase 3 complete)
-- **v0.4.0:** spectra-py (Phase 4 complete)
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-04-08 | Zero unsafe policy | Memory safety is non-negotiable |
+| 2026-04-08 | rustls over OpenSSL | Avoid C dependencies and CVEs |
+| 2026-04-09 | Trait-based LLM abstraction | Enable provider flexibility |
 
 ---
-*Roadmap created: 2026-04-08*
+
+*Roadmap updated: 2026-04-09*

@@ -54,7 +54,7 @@ impl AgentBuilder {
         self
     }
 
-    pub fn register_tool<T: Tool + 'static>(mut self, tool: T) -> Self {
+    pub fn register_tool(mut self, tool: Arc<dyn Tool>) -> Self {
         Arc::make_mut(&mut self.tools).register(tool);
         self
     }

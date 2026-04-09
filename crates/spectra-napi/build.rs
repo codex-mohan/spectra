@@ -1,5 +1,3 @@
 fn main() {
-    napi_build::configure()
-        .build()
-        .expect("napi_build failed");
+    napi_build::setup();
 }

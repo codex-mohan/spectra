@@ -18,12 +18,9 @@
 //!
 //! ```rust,no_run
 //! use spectra_core::{
-//!     agent::Agent,
-//!     llm::{Model, LlmClient},
-//!     tool::{ToolRegistry, ToolBuilder},
+//!     tool::{ToolRegistry, ToolBuilder, ToolResult},
 //! };
 //!
-//! // Create tools
 //! let registry = ToolRegistry::new();
 //! registry.register(
 //!     ToolBuilder::new("read")
@@ -34,15 +31,13 @@
 //!                 "path": { "type": "string" }
 //!             }
 //!         }))
-//!         .execute(|_id, params| async move {
+//!         .execute(|_id, _params| async move {
 //!             Ok(ToolResult::success(serde_json::json!({
 //!                 "content": "file contents"
 //!             })))
 //!         })
 //!         .build()
 //! );
-//!
-//! // Agent is ready to run with tools
 //! ```
 
 pub mod agent;

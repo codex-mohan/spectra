@@ -3,6 +3,9 @@ resolver = "2"
 members = [
     "packages/core",
     "crates/spectra-rs",
+    "crates/spectra-napi",
+    "crates/spectra-pyo3",
+    "crates/spectra-http",
 ]
 
 [profile.release]

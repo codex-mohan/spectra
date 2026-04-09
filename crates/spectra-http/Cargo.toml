@@ -1,0 +1,25 @@
+[package]
+name = "spectra-http"
+version = "0.1.0"
+edition = "2021"
+authors = ["Spectra Team"]
+description = "HTTP LLM clients for Spectra (Anthropic, OpenAI)"
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "stream"], default-features = false }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures-core = "0.3"
+futures-util = "0.3"
+http = "1"
+thiserror = "2"
+tracing = "0.1"
+async-trait = "0.1"
+tokio-stream = "0.1"
+http-body-util = "0.1"
+spectra-core = { path = "../../packages/core" }
+
+[dev-dependencies]
+wiremock = "0.6"
+tokio-test = "0.4"
