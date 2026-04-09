@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+target/
+*.exe
+*.dll
+*.so
+*.pyd
+*.wasm
+*.node
+
+# Lock files (optional - some prefer to commit these)
+# pnpm-lock.yaml
+# Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+*.lcov
+coverage/
+
+# Rust
+.rustc_info.json
+.cargo/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Temporary
+*.tmp
+*.temp
+.tmp/
