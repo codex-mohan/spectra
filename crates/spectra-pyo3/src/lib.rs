@@ -47,6 +47,9 @@ fn get_api_key(provider: &str) -> Option<String> {
     match provider {
         "anthropic" => std::env::var("ANTHROPIC_API_KEY").ok(),
         "openai" => std::env::var("OPENAI_API_KEY").ok(),
+        "openrouter" => std::env::var("OPENAI_API_KEY")
+            .ok()
+            .or_else(|| std::env::var("OPENROUTER_API_KEY").ok()),
         "groq" => std::env::var("GROQ_API_KEY").ok(),
         _ => None,
     }
@@ -86,13 +89,27 @@ fn call_llm(config: &PyAgentConfig, messages: Vec<serde_json::Value>, tools: &[P
                 ("content-type", "application/json".to_string()),
             ]
         ),
-        "openai" => (
-            "https://api.openai.com/v1/chat/completions",
-            vec![
+        "openai" | "openrouter" => {
+            let url = if config.model.provider.as_str() == "openrouter" {
+                "https://openrouter.ai/api/v1/chat/completions"
+            } else {
+                "https://api.openai.com/v1/chat/completions"
+            };
+            let extra_headers = if config.model.provider.as_str() == "openrouter" {
+                vec![
+                    ("HTTP-Referer", "https://github.com/spectra-ai/spectra".to_string()),
+                    ("X-Title", "Spectra AI Agent".to_string()),
+                ]
+            } else {
+                vec![]
+            };
+            let mut headers = vec![
                 ("authorization", format!("Bearer {}", api_key)),
                 ("content-type", "application/json".to_string()),
-            ]
-        ),
+            ];
+            headers.extend(extra_headers);
+            (url, headers)
+        },
         "groq" => (
             "https://api.groq.com/openai/v1/chat/completions",
             vec![
@@ -269,7 +286,7 @@ fn get_version() -> String {
 }
 
 #[pymodule]
-fn spectra(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_version, m)?)?;
     m.add_function(wrap_pyfunction!(get_agents_py, m)?)?;
     m.add_class::<Agent>()?;

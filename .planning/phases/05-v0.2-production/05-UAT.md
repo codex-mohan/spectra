@@ -3,7 +3,7 @@ status: complete
 phase: 05-v0.2-production
 source: 05-SUMMARY.md
 started: 2026-04-09T18:00:00Z
-updated: 2026-04-09T18:30:00Z
+updated: 2026-04-09T20:30:00Z
 ---
 
 ## Current Test
@@ -55,10 +55,19 @@ result: pass
 notes: |
   Verified: rust-ci.yml, ts-ci.yml, py-ci.yml, release.yml all exist.
 
+### 7. Python SDK Native Binding Works
+expected: Python SDK can load native PyO3 bindings, create Agent, and make API calls.
+result: pass
+notes: |
+  PyO3 binding built successfully (spectra_pyo3.dll).
+  Python Agent class loads native module and calls LLM.
+  Fixed: module name mismatch (_native), removed extension-module feature.
+  Added OpenRouter support to PyO3 client.
+
 ## Summary
 
-total: 6
-passed: 5
+total: 7
+passed: 6
 issues: 0
 pending: 0
 skipped: 1
