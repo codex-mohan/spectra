@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Optional
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 try:
-    from ._native import Agent as _NativeAgent, get_version
+    from ._native import PySpectraAgent as _NativeAgent, get_version
 
     _NATIVE_AVAILABLE = True
 except ImportError:
@@ -67,10 +67,9 @@ class Agent:
         if self._agent is not None:
             import json
 
-            result = self._agent.run(user_input)
-            events = json.loads(result)
-            for event in events:
-                yield event
+            raw_events = self._agent.run_streaming(user_input)
+            for raw in raw_events:
+                yield json.loads(raw)
         else:
             yield {"type": "agent_start"}
             yield {
