@@ -1,7 +1,7 @@
 [package]
 name = "spectra-http"
 version = "0.2.0"
-edition = "2021"
+edition = "2024"
 authors = ["Spectra Team"]
 description = "HTTP LLM clients for Spectra (Anthropic, OpenAI)"
 

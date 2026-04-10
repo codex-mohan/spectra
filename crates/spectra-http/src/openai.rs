@@ -318,8 +318,8 @@ async fn parse_openai_event(
 
                                 if let Some(args) = func.arguments {
                                     let args_str = args.clone();
-                                    if let Some(ref mut tc) = current_tool {
-                                        if let serde_json::Value::String(ref mut s) = tc.arguments {
+                                    if let Some(tc) = current_tool.as_mut() {
+                                        if let serde_json::Value::String(s) = &mut tc.arguments {
                                             s.push_str(&args_str);
                                         } else {
                                             tc.arguments = serde_json::Value::String(args_str.clone());

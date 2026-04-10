@@ -273,8 +273,8 @@ async fn parse_event(
                 if let Some(delta) = event.delta {
                     if *in_tool {
                             if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str()) {
-                                if let Some(ref mut tc) = current_tool {
-                                    if let serde_json::Value::String(ref mut s) = tc.arguments {
+                                if let Some(tc) = current_tool.as_mut() {
+                                    if let serde_json::Value::String(s) = &mut tc.arguments {
                                         s.push_str(text);
                                     } else {
                                         tc.arguments = serde_json::Value::String(text.to_string());
