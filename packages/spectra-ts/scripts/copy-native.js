@@ -1,54 +1,73 @@
-const { existsSync, mkdirSync, copyFileSync, readdirSync } = require("fs");
-const { dirname, join } = require("path");
+const { existsSync, mkdirSync, copyFileSync, readdirSync, unlinkSync } = require("fs");
+const { join, extname } = require("path");
 
-const NATIVE_DIR = join(__dirname, "..", "native");
-const RELEASE = false;
+const ROOT = join(__dirname, "..", "..", "..");
+const DIST_NATIVE = join(__dirname, "..", "dist", "native");
+const SRC_NATIVE = join(__dirname, "..", "src", "native");
 
-const profile = RELEASE ? "release" : "debug";
-const targetDir = join(__dirname, "..", "..", "..", "target", profile);
-
-function findNativeBinary() {
-  const arches = [
-    "x86_64-pc-windows-msvc",
-    "aarch64-pc-windows-msvc",
-    "x86_64-unknown-linux-gnu",
-    "aarch64-unknown-linux-gnu",
-    "x86_64-apple-darwin",
-    "aarch64-apple-darwin",
-  ];
-
-  for (const arch of arches) {
-    const nativePath = join(targetDir, arch, "libspectra_napi.node");
-    if (existsSync(nativePath)) return nativePath;
-
-    const dllPath = join(targetDir, arch, "spectra_napi.dll");
-    if (existsSync(dllPath)) return dllPath;
+function findCargoOutput() {
+  const profiles = ["release", "debug"];
+  for (const profile of profiles) {
+    const targetDir = join(ROOT, "target", profile);
+    if (!existsSync(targetDir)) continue;
+    try {
+      const files = readdirSync(targetDir);
+      const candidates = files.filter((f) => {
+        if (!f.startsWith("spectra_napi")) return false;
+        const ext = extname(f);
+        return ext === ".dll" || ext === ".so" || ext === ".dylib";
+      });
+      for (const candidate of candidates) {
+        const candidatePath = join(targetDir, candidate);
+        if (existsSync(candidatePath)) return candidatePath;
+      }
+    } catch {
+      continue;
+    }
   }
-
-  const debugTargetDir = join(__dirname, "..", "..", "..", "target", "debug");
-  const debugBins = readdirSync(debugTargetDir).filter((f) =>
-    f.includes("spectra_napi")
-  );
-  for (const bin of debugBins) {
-    const binPath = join(debugTargetDir, bin);
-    if (existsSync(binPath)) return binPath;
-  }
-
   return null;
 }
 
-if (!existsSync(NATIVE_DIR)) {
-  mkdirSync(NATIVE_DIR, { recursive: true });
+function cleanStaleFiles(dir) {
+  if (!existsSync(dir)) return;
+  try {
+    const files = readdirSync(dir);
+    for (const f of files) {
+      if (f.startsWith("spectra_napi") && extname(f) !== ".node") {
+        const filePath = join(dir, f);
+        console.log(`[spectra] Removing stale file: ${filePath}`);
+        unlinkSync(filePath);
+      }
+    }
+  } catch {
+    // ignore
+  }
 }
 
-const binary = findNativeBinary();
-if (binary) {
-  const ext = process.platform === "win32" ? ".dll" : ".node";
-  const dest = join(NATIVE_DIR, `spectra_napi${ext}`);
-  copyFileSync(binary, dest);
-  console.log(`[spectra] Copied native addon: ${dest}`);
-} else {
-  console.warn(
-    `[spectra] Native addon not found in ${targetDir}. Run 'cargo build --package spectra-napi' first.`
-  );
+function copyToDir(src, destDir) {
+  if (!existsSync(destDir)) {
+    mkdirSync(destDir, { recursive: true });
+  }
+  const dest = join(destDir, "spectra_napi.node");
+  copyFileSync(src, dest);
+  return dest;
+}
+
+cleanStaleFiles(DIST_NATIVE);
+cleanStaleFiles(SRC_NATIVE);
+
+const binary = findCargoOutput();
+if (!binary) {
+  console.error("[spectra] Native addon not found in target/. Run 'cargo build --release --package spectra-napi' first.");
+  process.exit(1);
+}
+
+const distDest = copyToDir(binary, DIST_NATIVE);
+console.log(`[spectra] Copied native addon: ${distDest}`);
+
+try {
+  const srcDest = copyToDir(binary, SRC_NATIVE);
+  console.log(`[spectra] Copied native addon (dev): ${srcDest}`);
+} catch {
+  console.warn("[spectra] Could not copy to src/native/ (dev mode), continuing.");
 }

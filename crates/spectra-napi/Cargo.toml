@@ -6,10 +6,8 @@ description = "Spectra napi-rs bindings for TypeScript"
 license = "MIT"
 
 [lib]
-crate-type = ["cdylib"]
-
-[target.'cfg(windows)'.lib]
 name = "spectra_napi"
+crate-type = ["cdylib"]
 
 [build-dependencies]
 napi-build = "1"
