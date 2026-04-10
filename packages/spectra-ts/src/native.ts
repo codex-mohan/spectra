@@ -1,3 +1,41 @@
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import { existsSync } from "fs";
+
+function getNativeDir(): string {
+  const url = import.meta.url;
+  const filePath = fileURLToPath(url);
+  const fileDir = dirname(filePath);
+  const candidate = join(fileDir, "native");
+  if (existsSync(join(candidate, "spectra_napi.node"))) {
+    return candidate;
+  }
+  return join(fileDir, "..", "native");
+}
+
+function loadNative(): NativeModule {
+  if (loadAttempted) return native!;
+  loadAttempted = true;
+
+  const nativeDir = getNativeDir();
+  const nativePath = join(nativeDir, "spectra_napi.node");
+
+  try {
+    native = require(nativePath) as NativeModule;
+  } catch (e) {
+    nativeFailed = true;
+    native = {
+      getVersion: () => { throw new Error("Native addon not loaded. Run 'cargo build --release --package spectra-napi' and 'pnpm build' to compile."); },
+      createAgent: () => { throw new Error("Native addon not loaded. Run 'cargo build --release --package spectra-napi' and 'pnpm build' to compile."); },
+      runAgentWithInput: () => { throw new Error("Native addon not loaded. Run 'cargo build --release --package spectra-napi' and 'pnpm build' to compile."); },
+      getAgents: () => { throw new Error("Native addon not loaded. Run 'cargo build --release --package spectra-napi' and 'pnpm build' to compile."); },
+      deleteAgent: () => { throw new Error("Native addon not loaded. Run 'cargo build --release --package spectra-napi' and 'pnpm build' to compile."); },
+    };
+  }
+
+  return native!;
+}
+
 type NativeModule = {
   getVersion(): string;
   createAgent(configJson: string): string;
@@ -8,32 +46,11 @@ type NativeModule = {
 
 let native: NativeModule | null = null;
 let loadAttempted = false;
+let nativeFailed = false;
 
-function loadNative(): NativeModule {
-  if (loadAttempted) return native!;
-  loadAttempted = true;
-
-  try {
-    native = require("../native/spectra_napi.node") as NativeModule;
-  } catch {
-    try {
-      native = require("../native/spectra_napi") as NativeModule;
-    } catch {
-      console.warn("[spectra] Native addon not loaded.");
-      native = {
-        getVersion: () => "0.0.0",
-        createAgent: () => JSON.stringify({ error: "native_not_loaded" }),
-        runAgentWithInput: (_agentId: string, _userInput: string, callback: (e: string) => void) => {
-          callback(JSON.stringify({ type: "error", message: "Native addon not loaded" }));
-          return JSON.stringify({ status: "error" });
-        },
-        getAgents: () => "[]",
-        deleteAgent: () => false,
-      };
-    }
-  }
-
-  return native!;
+export function isNativeLoaded(): boolean {
+  loadNative();
+  return !nativeFailed;
 }
 
 export function getVersion(): string {
