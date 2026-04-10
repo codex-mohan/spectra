@@ -1,25 +1,14 @@
-import type { ZodType } from "zod";
-import { getVersion, createAgent, runAgent, getAgents } from "./native.js";
+import { createAgent, runAgentStream, deleteAgent, getAgents, getVersion } from "./native.js";
 import type { Model } from "./model.js";
+import type { ContentDelta, StreamEvent } from "./stream.js";
+import { SpectraError } from "./errors.js";
 
-export interface ToolDefinition<TInput = unknown> {
+export type { ContentDelta, StreamEvent };
+
+export interface ToolDefinition {
   name: string;
   description: string;
-  parameters: TInput;
-  schema?: ZodType<TInput>;
-}
-
-export function defineTool<TInput>(
-  name: string,
-  description: string,
-  schema: ZodType<TInput>
-): ToolDefinition<TInput> {
-  return {
-    name,
-    description,
-    parameters: undefined as TInput,
-    schema,
-  };
+  schema?: unknown;
 }
 
 export interface AgentConfig {
@@ -28,51 +17,82 @@ export interface AgentConfig {
   tools?: ToolDefinition[];
 }
 
-let nativeAgentId: string | null = null;
-
 export class Agent {
+  private nativeAgentId: string | null = null;
   private config: AgentConfig;
 
   constructor(config: AgentConfig) {
     this.config = config;
   }
 
-  async *prompt(userInput: string): AsyncIterable<StreamEvent> {
-    if (!nativeAgentId) {
-      const config = {
-        model: {
-          provider: this.config.model.provider,
-          id: this.config.model.id,
-          max_tokens: this.config.model.maxTokens,
-          temperature: this.config.model.temperature,
-        },
-        system_prompt: this.config.systemPrompt,
-        tools: this.config.tools?.map((t) => ({
-          name: t.name,
-          description: t.description,
-          parameters: {},
-        })),
-      };
+  private getOrCreateAgentId(): string {
+    if (this.nativeAgentId) return this.nativeAgentId;
 
-      nativeAgentId = createAgent(JSON.stringify(config));
+    const config = {
+      model: {
+        provider: this.config.model.provider,
+        id: this.config.model.id,
+        max_tokens: this.config.model.maxTokens,
+        temperature: this.config.model.temperature,
+      },
+      system_prompt: this.config.systemPrompt,
+      tools: this.config.tools?.map((t) => ({
+        name: t.name,
+        description: t.description,
+        parameters: t.schema ?? {},
+      })),
+    };
+
+    const result = createAgent(JSON.stringify(config));
+
+    let agentId: string;
+
+    try {
+      const parsed = JSON.parse(result);
+      if (parsed.error) {
+        throw new SpectraError("spectra::agent::create", `Failed to create agent: ${parsed.error}`);
+      }
+      agentId = parsed.agent_id ?? result;
+    } catch (e) {
+      if (e instanceof SpectraError) throw e;
+      if (result && !result.startsWith("{")) {
+        agentId = result;
+      } else {
+        throw new SpectraError("spectra::agent::create", `Failed to create agent: ${result}`);
+      }
     }
 
-    const result = runAgent(nativeAgentId, userInput);
+    this.nativeAgentId = agentId;
+    return agentId;
+  }
 
-    let parsed: { type: string; [key: string]: unknown }[];
-    try {
-      parsed = JSON.parse(result);
-    } catch {
-      yield { type: "error", message: "Failed to parse response" };
+  async *prompt(userInput: string): AsyncIterable<StreamEvent> {
+    const agentId = this.getOrCreateAgentId();
+    const { stream, status } = runAgentStream(agentId, userInput);
+
+    const statusParsed = JSON.parse(status);
+    if (statusParsed.error || statusParsed.status === "error") {
+      const msg = statusParsed.error ?? statusParsed.message ?? "Unknown error";
+      yield { type: "error", message: msg };
       return;
     }
 
-    for (const event of parsed) {
-      yield event as StreamEvent;
+    for await (const eventJson of stream) {
+      try {
+        const event = JSON.parse(eventJson) as StreamEvent;
+        yield event;
+      } catch {
+        yield { type: "error", message: `Failed to parse event: ${eventJson}` };
+      }
     }
   }
 
-  static tool = defineTool;
+  destroy() {
+    if (this.nativeAgentId) {
+      deleteAgent(this.nativeAgentId);
+      this.nativeAgentId = null;
+    }
+  }
 }
 
 export function createAgentFactory(config: AgentConfig): Agent {
@@ -86,16 +106,3 @@ export async function getNativeVersion(): Promise<string> {
 export async function listAgents(): Promise<string[]> {
   return getAgents();
 }
-
-type StreamEvent =
-  | { type: "agent_start" }
-  | { type: "turn_start" }
-  | { type: "message_start"; message: unknown }
-  | { type: "message_update"; delta: unknown }
-  | { type: "message_end"; message: unknown }
-  | { type: "turn_end"; toolResults: unknown[] }
-  | { type: "tool_execution_start"; toolCall: unknown }
-  | { type: "tool_execution_update"; partial: unknown }
-  | { type: "tool_execution_end"; result: unknown; isError: boolean }
-  | { type: "agent_end"; messages: unknown[] }
-  | { type: "error"; message: string };

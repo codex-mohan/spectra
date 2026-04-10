@@ -119,9 +119,6 @@ pub type LlmStream = Pin<Box<dyn Stream<Item = Result<LlmStreamEvent>> + Send>>;
 pub enum LlmStreamEvent {
     Start { partial: AssistantMessage },
     ContentDelta { delta: ContentDelta },
-    ToolCallStart { id: String, name: String },
-    ToolCallDelta { id: String, args_delta: String },
-    ToolCallEnd { id: String },
     Done { message: AssistantMessage },
     Error { message: String },
 }

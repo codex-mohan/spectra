@@ -8,6 +8,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY not set");
     
     let client = OpenAIClient::with_api_key(api_key)
+        .unwrap()
         .with_base_url("https://openrouter.ai/api/v1/chat/completions");
     
     let model = Model::openai("google/gemma-4-26b-a4b-it:free");

@@ -17,15 +17,19 @@ pub struct OpenAIClient {
 }
 
 impl OpenAIClient {
-    pub fn new(api_key: Option<String>) -> Self {
+    pub fn new(api_key: Option<String>) -> Result<Self> {
         let client = Client::builder()
             .use_rustls_tls()
             .build()
-            .expect("Failed to create HTTP client");
-        Self { client, api_key, base_url: None }
+            .map_err(|e| SpectraError::LlmError {
+                provider: "openai".into(),
+                message: format!("Failed to create HTTP client: {}", e),
+                source: Some(Box::new(e)),
+            })?;
+        Ok(Self { client, api_key, base_url: None })
     }
 
-    pub fn with_api_key(api_key: impl Into<String>) -> Self {
+    pub fn with_api_key(api_key: impl Into<String>) -> Result<Self> {
         Self::new(Some(api_key.into()))
     }
 
@@ -297,14 +301,17 @@ async fn parse_openai_event(
                                 if let Some(name) = func.name {
                                     if !*in_tool || current_tool.is_none() {
                                         *in_tool = true;
+                                        let id = tc.id.clone().unwrap_or_default();
                                         *current_tool = Some(ToolCall {
-                                            id: tc.id.clone().unwrap_or_default(),
-                                            name,
+                                            id: id.clone(),
+                                            name: name.clone(),
                                             arguments: serde_json::Value::Null,
                                         });
-                                        let _ = tx.send(Ok(LlmStreamEvent::ToolCallStart {
-                                            id: current_tool.as_ref().unwrap().id.clone(),
-                                            name: current_tool.as_ref().unwrap().name.clone(),
+                                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                            delta: spectra_core::event::ContentDelta::ToolCallStart {
+                                                id,
+                                                name,
+                                            },
                                         })).await;
                                     }
                                 }
@@ -317,9 +324,11 @@ async fn parse_openai_event(
                                         } else {
                                             tc.arguments = serde_json::Value::String(args_str.clone());
                                         }
-                                        let _ = tx.send(Ok(LlmStreamEvent::ToolCallDelta {
-                                            id: tc.id.clone(),
-                                            args_delta: args_str,
+                                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                            delta: spectra_core::event::ContentDelta::ToolCallDelta {
+                                                id: tc.id.clone(),
+                                                args_delta: args_str,
+                                            },
                                         })).await;
                                     }
                                 }
@@ -334,7 +343,11 @@ async fn parse_openai_event(
                     if reason == "tool_calls" && *in_tool {
                         if let Some(tc) = current_tool.take() {
                             msg.tool_calls.push(tc.clone());
-                            let _ = tx.send(Ok(LlmStreamEvent::ToolCallEnd { id: tc.id })).await;
+                            let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                delta: spectra_core::event::ContentDelta::ToolCallEnd {
+                                    id: tc.id,
+                                },
+                            })).await;
                         }
                         *in_tool = false;
                     }

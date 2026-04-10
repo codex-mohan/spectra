@@ -1,8 +1,16 @@
-use napi::{Env, Result, JsString, JsObject};
+use napi::threadsafe_function::ErrorStrategy::CalleeHandled;
+use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
+use napi::{CallContext, Env, JsFunction, JsObject, JsString, Status};
 use napi_derive::{module_exports, js_function};
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
+use spectra_core::agent::{Agent, AgentConfig};
+use spectra_core::event::{ContentDelta, StreamEvent};
+use spectra_core::llm::{LlmClient, Model, Provider};
+use spectra_core::tool::ToolRegistry;
+use spectra_http::{AnthropicClient, OpenAIClient};
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JsModel {
@@ -18,7 +26,7 @@ pub struct JsModel {
 pub struct JsTool {
     pub name: String,
     pub description: String,
-    pub parameters: serde_json::Value,
+    pub parameters: JsonValue,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,12 +38,176 @@ pub struct JsAgentConfig {
     pub tools: Vec<JsTool>,
 }
 
-struct AgentState {
-    config: JsAgentConfig,
-    history: Vec<serde_json::Value>,
+#[derive(Clone)]
+struct JsAgent {
+    agent: Arc<Agent>,
 }
 
-static AGENTS: Mutex<Option<HashMap<String, AgentState>>> = Mutex::new(None);
+impl JsAgent {
+    fn from_config(config: JsAgentConfig) -> napi::Result<Self> {
+        let client: Arc<dyn LlmClient> = match config.model.provider.as_str() {
+            "anthropic" => {
+                let c = AnthropicClient::with_api_key(
+                    std::env::var("ANTHROPIC_API_KEY")
+                        .unwrap_or_default(),
+                ).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+                Arc::new(c)
+            }
+            "openai" | "openai-compatible" | "groq" | "openrouter" => {
+                let c = OpenAIClient::with_api_key(
+                    std::env::var("OPENAI_API_KEY")
+                        .or_else(|_| std::env::var("OPENROUTER_API_KEY"))
+                        .or_else(|_| std::env::var("GROQ_API_KEY"))
+                        .unwrap_or_default(),
+                ).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+                Arc::new(c)
+            }
+            _ => {
+                return Err(napi::Error::new(
+                    Status::InvalidArg,
+                    format!("Unknown provider: {}", config.model.provider),
+                ))
+            }
+        };
+
+        let model = Model::new(
+            match config.model.provider.as_str() {
+                "anthropic" => Provider::Anthropic,
+                _ => Provider::OpenAI,
+            },
+            config.model.id.clone(),
+        );
+
+        let agent_config = AgentConfig {
+            model,
+            system_prompt: config.system_prompt,
+            tools: Arc::new(ToolRegistry::new()),
+        };
+
+        Ok(Self {
+            agent: Arc::new(Agent::new(client, agent_config)),
+        })
+    }
+
+    async fn run_with_callback(
+        &self,
+        user_input: String,
+        tsfn: ThreadsafeFunction<String>,
+    ) -> napi::Result<()> {
+        let (rx, _channel) = self.agent.run(user_input).await.map_err(|e| {
+            napi::Error::new(Status::GenericFailure, e.to_string())
+        })?;
+
+        tokio::pin!(rx);
+        while let Some(event_result) = rx.recv().await {
+            match event_result {
+                Ok(event) => {
+                    let json = serialize_stream_event(&event);
+                    let _ = tsfn.call(Ok(json), ThreadsafeFunctionCallMode::NonBlocking);
+                }
+                Err(e) => {
+                    let json = serde_json::json!({
+                        "type": "error",
+                        "message": e.to_string()
+                    });
+                    let _ = tsfn.call(Ok(json.to_string()), ThreadsafeFunctionCallMode::NonBlocking);
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+fn serialize_stream_event(event: &StreamEvent) -> String {
+    match event {
+        StreamEvent::AgentStart => {
+            serde_json::json!({ "type": "agent_start" }).to_string()
+        }
+        StreamEvent::TurnStart => {
+            serde_json::json!({ "type": "turn_start" }).to_string()
+        }
+        StreamEvent::MessageStart { message } => {
+            serde_json::json!({
+                "type": "message_start",
+                "message": message
+            }).to_string()
+        }
+        StreamEvent::MessageUpdate { delta } => {
+            serde_json::json!({
+                "type": "message_update",
+                "delta": serialize_content_delta(delta)
+            }).to_string()
+        }
+        StreamEvent::MessageEnd { message } => {
+            serde_json::json!({
+                "type": "message_end",
+                "message": message
+            }).to_string()
+        }
+        StreamEvent::TurnEnd { tool_results } => {
+            serde_json::json!({
+                "type": "turn_end",
+                "tool_results": tool_results
+            }).to_string()
+        }
+        StreamEvent::ToolExecutionStart { tool_call } => {
+            serde_json::json!({
+                "type": "tool_execution_start",
+                "tool_call": tool_call
+            }).to_string()
+        }
+        StreamEvent::ToolExecutionUpdate { partial } => {
+            serde_json::json!({
+                "type": "tool_execution_update",
+                "partial": partial
+            }).to_string()
+        }
+        StreamEvent::ToolExecutionEnd { result, is_error } => {
+            serde_json::json!({
+                "type": "tool_execution_end",
+                "result": result,
+                "is_error": is_error
+            }).to_string()
+        }
+        StreamEvent::AgentEnd { messages } => {
+            serde_json::json!({
+                "type": "agent_end",
+                "messages": messages
+            }).to_string()
+        }
+        StreamEvent::Error { message } => {
+            serde_json::json!({
+                "type": "error",
+                "message": message
+            }).to_string()
+        }
+    }
+}
+
+fn serialize_content_delta(delta: &ContentDelta) -> JsonValue {
+    match delta {
+        ContentDelta::Text { delta: text } => {
+            serde_json::json!({ "type": "text", "delta": text })
+        }
+        ContentDelta::ToolCallStart { id, name } => {
+            serde_json::json!({ "type": "tool_call_start", "id": id, "name": name })
+        }
+        ContentDelta::ToolCallDelta { id, args_delta } => {
+            serde_json::json!({ "type": "tool_call_delta", "id": id, "args_delta": args_delta })
+        }
+        ContentDelta::ToolCallEnd { id } => {
+            serde_json::json!({ "type": "tool_call_end", "id": id })
+        }
+    }
+}
+
+#[derive(Clone)]
+struct AgentState {
+    agent: JsAgent,
+}
+
+static AGENTS: std::sync::Mutex<Option<HashMap<String, AgentState>>> = std::sync::Mutex::new(None);
 
 fn init_agents() {
     let mut guard = AGENTS.lock().unwrap();
@@ -44,200 +216,109 @@ fn init_agents() {
     }
 }
 
-fn get_api_key(provider: &str) -> Option<String> {
-    match provider {
-        "anthropic" => std::env::var("ANTHROPIC_API_KEY").ok(),
-        "openai" => std::env::var("OPENAI_API_KEY").ok(),
-        "groq" => std::env::var("GROQ_API_KEY").ok(),
-        _ => None,
-    }
-}
-
-fn call_llm_sync(config: &JsAgentConfig, messages: Vec<serde_json::Value>, tools: &[JsTool]) -> Result<Vec<String>> {
-    let api_key = match get_api_key(&config.model.provider) {
-        Some(key) => key,
-        None => return Ok(vec![r#"{"type":"error","message":"Missing API key"}"#.to_string()]),
-    };
-
-    let max_tokens = config.model.max_tokens.unwrap_or(4096);
-    let temperature = config.model.temperature;
-
-    let body = serde_json::json!({
-        "model": config.model.id,
-        "max_tokens": max_tokens,
-        "messages": messages,
-        "tools": tools.iter().map(|t| {
-            serde_json::json!({
-                "name": t.name,
-                "description": t.description,
-                "input_schema": t.parameters
-            })
-        }).collect::<Vec<_>>(),
-        "temperature": temperature,
-    });
-
-    let (url, headers) = match config.model.provider.as_str() {
-        "anthropic" => (
-            "https://api.anthropic.com/v1/messages",
-            vec![
-                ("x-api-key", api_key),
-                ("anthropic-version", "2023-06-01".to_string()),
-                ("content-type", "application/json".to_string()),
-            ]
-        ),
-        "openai" => (
-            "https://api.openai.com/v1/chat/completions",
-            vec![
-                ("authorization", format!("Bearer {}", api_key)),
-                ("content-type", "application/json".to_string()),
-            ]
-        ),
-        "groq" => (
-            "https://api.groq.com/openai/v1/chat/completions",
-            vec![
-                ("authorization", format!("Bearer {}", api_key)),
-                ("content-type", "application/json".to_string()),
-            ]
-        ),
-        _ => return Ok(vec![r#"{"type":"error","message":"Unknown provider"}"#.to_string()]),
-    };
-
-    let client = reqwest::blocking::Client::new();
-    
-    let mut request = client.post(url);
-    
-    for (name, value) in headers {
-        request = request.header(name, &value);
-    }
-    
-    let request = request.json(&body);
-
-    match request.send() {
-        Ok(response) => {
-            if response.status().is_success() {
-                let data: serde_json::Value = response.json().unwrap_or_default();
-                
-                let content = if config.model.provider == "anthropic" {
-                    data.get("content")
-                        .and_then(|c| c.as_array())
-                        .map(|arr| {
-                            arr.iter()
-                                .filter_map(|c| c.get("text").and_then(|t| t.as_str()))
-                                .collect::<String>()
-                        })
-                        .unwrap_or_default()
-                } else {
-                    data.get("choices")
-                        .and_then(|c| c.as_array())
-                        .and_then(|arr| arr.first())
-                        .and_then(|choice| choice.get("message"))
-                        .and_then(|m| m.get("content"))
-                        .and_then(|c| c.as_str())
-                        .unwrap_or("")
-                        .to_string()
-                };
-                
-                Ok(vec![serde_json::json!({
-                    "type": "message_update",
-                    "delta": content
-                }).to_string()])
-            } else {
-                Ok(vec![serde_json::json!({
-                    "type": "error",
-                    "message": format!("API error: {}", response.status())
-                }).to_string()])
-            }
-        }
-        Err(e) => Ok(vec![serde_json::json!({
-            "type": "error",
-            "message": format!("Request failed: {}", e)
-        }).to_string()]),
-    }
-}
-
-#[js_function]
-fn get_version(_ctx: napi::CallContext) -> Result<String> {
-    Ok(env!("CARGO_PKG_VERSION").to_string())
-}
-
-#[js_function]
-fn create_agent(ctx: napi::CallContext) -> Result<String> {
+#[js_function(2)]
+fn create_agent(ctx: CallContext) -> napi::Result<String> {
     init_agents();
     let config_str = ctx.get::<JsString>(0)?;
     let config_str = config_str.into_utf8()?.as_str()?.to_string();
-    
+
     let config: JsAgentConfig = serde_json::from_str(&config_str)
-        .map_err(|e| napi::Error::new(
-            napi::Status::InvalidArg,
-            format!("Failed to parse config: {}", e)
-        ))?;
-    
+        .map_err(|e| napi::Error::new(Status::InvalidArg, format!("Failed to parse config: {}", e)))?;
+
+    let agent = JsAgent::from_config(config)?;
+
     let agent_id = format!("agent_{}", uuid::Uuid::new_v4());
-    
+
     let mut agents = AGENTS.lock().unwrap();
     if let Some(ref mut map) = *agents {
-        map.insert(agent_id.clone(), AgentState {
-            config,
-            history: Vec::new(),
-        });
+        map.insert(agent_id.clone(), AgentState { agent });
     }
-    
+
     Ok(agent_id)
 }
 
-#[js_function]
-fn run_agent(ctx: napi::CallContext) -> Result<String> {
+#[js_function(2)]
+fn run_agent(ctx: CallContext) -> napi::Result<String> {
     init_agents();
-    let agent_id = ctx.get::<JsString>(0)?;
-    let user_input = ctx.get::<JsString>(1)?;
-    
-    let id = agent_id.into_utf8()?.as_str()?.to_string();
-    let input = user_input.into_utf8()?.as_str()?.to_string();
-    
-    let mut agents = AGENTS.lock().unwrap();
+    let agent_id_str = ctx.get::<JsString>(0)?;
+    let agent_id = agent_id_str.into_utf8()?.as_str()?.to_string();
+    let callback_fn = ctx.get::<JsFunction>(1)?;
+
+    let tsfn: ThreadsafeFunction<String> = callback_fn
+        .create_threadsafe_function::<String, String, _, CalleeHandled>(256, |_ctx: napi::threadsafe_function::ThreadSafeCallContext<String>| {
+            Ok::<Vec<String>, napi::Error>(vec![])
+        })
+        .map_err(|e| napi::Error::new(Status::GenericFailure, format!("Failed to build threadsafe function: {}", e)))?;
+
+    let agents = AGENTS.lock().unwrap();
     let state = agents
-        .as_mut()
-        .and_then(|m| m.get_mut(&id))
-        .ok_or_else(|| napi::Error::new(
-            napi::Status::InvalidArg,
-            format!("Agent not found: {}", id)
-        ))?;
-    
-    let mut events = Vec::new();
-    
-    events.push(r#"{"type":"agent_start"}"#.to_string());
-    
-    let user_message = serde_json::json!({
-        "role": "user",
-        "content": input.clone()
+        .as_ref()
+        .and_then(|m| m.get(&agent_id))
+        .ok_or_else(|| napi::Error::new(Status::InvalidArg, format!("Agent not found: {}", agent_id)))?
+        .clone();
+    drop(agents);
+
+    let tsfn_clone = tsfn.clone();
+    let js_agent = state.agent.clone();
+    let tsfn_err = tsfn.clone();
+
+    napi::tokio::spawn(async move {
+        let user_input = "Hello".to_string();
+        if let Err(e) = js_agent.run_with_callback(user_input, tsfn_clone).await {
+            let json = serde_json::json!({
+                "type": "error",
+                "message": e.to_string()
+            });
+            let _ = tsfn_err.call(Ok(json.to_string()), ThreadsafeFunctionCallMode::NonBlocking);
+        }
     });
-    state.history.push(user_message.clone());
-    
-    let mut messages: Vec<serde_json::Value> = Vec::new();
-    
-    if let Some(ref system) = state.config.system_prompt {
-        messages.push(serde_json::json!({
-            "role": "system",
-            "content": system
-        }));
-    }
-    
-    messages.extend(state.history.clone());
-    
-    let llm_events = call_llm_sync(&state.config, messages, &state.config.tools)?;
-    
-    for event in llm_events {
-        events.push(event);
-    }
-    
-    events.push(r#"{"type":"message_end","content":"","stop_reason":"end_turn"}"#.to_string());
-    events.push(r#"{"type":"agent_end"}"#.to_string());
-    
-    Ok(format!("[{}]", events.join(",")))
+
+    Ok(serde_json::json!({ "status": "started" }).to_string())
 }
 
-#[js_function]
-fn get_agents(_ctx: napi::CallContext) -> Result<String> {
+#[js_function(2)]
+fn run_agent_with_input(ctx: CallContext) -> napi::Result<String> {
+    init_agents();
+    let agent_id_str = ctx.get::<JsString>(0)?;
+    let agent_id = agent_id_str.into_utf8()?.as_str()?.to_string();
+    let user_input_str = ctx.get::<JsString>(1)?;
+    let user_input = user_input_str.into_utf8()?.as_str()?.to_string();
+    let callback_fn = ctx.get::<JsFunction>(2)?;
+
+    let tsfn: ThreadsafeFunction<String> = callback_fn
+        .create_threadsafe_function::<String, String, _, CalleeHandled>(256, |_ctx: napi::threadsafe_function::ThreadSafeCallContext<String>| {
+            Ok::<Vec<String>, napi::Error>(vec![])
+        })
+        .map_err(|e| napi::Error::new(Status::GenericFailure, format!("Failed to build threadsafe function: {}", e)))?;
+
+    let agents = AGENTS.lock().unwrap();
+    let state = agents
+        .as_ref()
+        .and_then(|m| m.get(&agent_id))
+        .ok_or_else(|| napi::Error::new(Status::InvalidArg, format!("Agent not found: {}", agent_id)))?
+        .clone();
+    drop(agents);
+
+    let tsfn_clone = tsfn.clone();
+    let js_agent = state.agent.clone();
+    let tsfn_err = tsfn.clone();
+    let user_input_owned = user_input.clone();
+
+    napi::tokio::spawn(async move {
+        if let Err(e) = js_agent.run_with_callback(user_input_owned, tsfn_clone).await {
+            let json = serde_json::json!({
+                "type": "error",
+                "message": e.to_string()
+            });
+            let _ = tsfn_err.call(Ok(json.to_string()), ThreadsafeFunctionCallMode::NonBlocking);
+        }
+    });
+
+    Ok(serde_json::json!({ "status": "started" }).to_string())
+}
+
+#[js_function(1)]
+fn get_agents(_ctx: CallContext) -> napi::Result<String> {
     init_agents();
     let agents = AGENTS.lock().unwrap();
     let keys: Vec<String> = if let Some(ref map) = *agents {
@@ -245,15 +326,35 @@ fn get_agents(_ctx: napi::CallContext) -> Result<String> {
     } else {
         Vec::new()
     };
-    
     Ok(serde_json::to_string(&keys).unwrap_or_else(|_| "[]".to_string()))
 }
 
+#[js_function(1)]
+fn delete_agent(ctx: CallContext) -> napi::Result<bool> {
+    init_agents();
+    let agent_id_str = ctx.get::<JsString>(0)?;
+    let agent_id = agent_id_str.into_utf8()?.as_str()?.to_string();
+
+    let mut agents = AGENTS.lock().unwrap();
+    if let Some(ref mut map) = *agents {
+        Ok(map.remove(&agent_id).is_some())
+    } else {
+        Ok(false)
+    }
+}
+
+#[js_function]
+fn get_version(_ctx: CallContext) -> napi::Result<String> {
+    Ok(env!("CARGO_PKG_VERSION").to_string())
+}
+
 #[module_exports]
-fn init(mut exports: JsObject, _env: Env) -> Result<()> {
+fn init(mut exports: JsObject, _env: Env) -> napi::Result<()> {
     exports.create_named_method("getVersion", get_version)?;
     exports.create_named_method("createAgent", create_agent)?;
     exports.create_named_method("runAgent", run_agent)?;
+    exports.create_named_method("runAgentWithInput", run_agent_with_input)?;
     exports.create_named_method("getAgents", get_agents)?;
+    exports.create_named_method("deleteAgent", delete_agent)?;
     Ok(())
 }

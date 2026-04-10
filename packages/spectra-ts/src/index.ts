@@ -1,6 +1,7 @@
 export { Agent, createAgentFactory, getNativeVersion, listAgents } from "./agent.js";
-export { defineTool, type ToolDefinition } from "./agent.js";
-export { getModel, anthropic, openai, groq, type Model, type ModelConfig, type Provider } from "./model.js";
-export type { StreamEvent, StopReason, ContentDelta } from "./stream.js";
-export { SpectraError, type ProviderError, type ToolError, type StreamError } from "./errors.js";
-export type { AgentConfig } from "./agent.js";
+export type { AgentConfig, ToolDefinition, StreamEvent, ContentDelta } from "./agent.js";
+export { defineTool, dispatchTool } from "./tool.js";
+export type { ToolDefinition as TypedToolDefinition } from "./tool.js";
+export { getModel, anthropic, openai, groq } from "./model.js";
+export type { Model, ModelConfig, Provider } from "./model.js";
+export { SpectraError, ProviderError, ToolError, StreamError, SchemaError } from "./errors.js";

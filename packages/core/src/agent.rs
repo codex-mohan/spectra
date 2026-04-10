@@ -6,7 +6,6 @@ use crate::tool::{ToolRegistry, ToolResult};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use futures_util::StreamExt;
-use chrono::Utc;
 
 const MAX_TURN_COUNT: usize = 10;
 
@@ -40,30 +39,24 @@ impl Agent {
     pub async fn run(
         &self,
         user_input: impl Into<String>,
-    ) -> Result<mpsc::Receiver<Result<StreamEvent>>> {
+    ) -> Result<(mpsc::Receiver<Result<StreamEvent>>, EventChannel)> {
         let (tx, rx) = mpsc::channel(256);
+        let channel = EventChannel::new();
+        let channel_clone = channel.clone();
 
         let messages = vec![Message::User(UserMessage::text(user_input))];
         let messages = Arc::new(messages);
 
         let client = self.client.clone();
         let config = self.config.clone();
-        let tx_for_error = tx.clone();
-        let channel = EventChannel::new();
 
         tokio::spawn(async move {
-            if let Err(e) = run_agent_loop(
-                client,
-                config,
-                messages,
-                &channel,
-                tx,
-            ).await {
-                let _ = tx_for_error.send(Err(e)).await;
+            if let Err(e) = run_agent_loop(client, config, messages, &tx, &channel_clone).await {
+                let _ = tx.send(Err(e)).await;
             }
         });
 
-        Ok(rx)
+        Ok((rx, channel))
     }
 
     pub fn config(&self) -> &AgentConfig {
@@ -71,14 +64,26 @@ impl Agent {
     }
 }
 
+fn emit(
+    tx: &mpsc::Sender<Result<StreamEvent>>,
+    channel: &EventChannel,
+    event: StreamEvent,
+) -> Result<()> {
+    let _ = channel.emit(event.clone());
+    tx.try_send(Ok(event)).map_err(|_| crate::error::SpectraError::StreamError {
+        reason: "Receiver dropped".to_string(),
+    })?;
+    Ok(())
+}
+
 async fn run_agent_loop(
     client: Arc<dyn LlmClient>,
     config: AgentConfig,
     initial_messages: Arc<Vec<Message>>,
+    tx: &mpsc::Sender<Result<StreamEvent>>,
     channel: &EventChannel,
-    tx: mpsc::Sender<Result<StreamEvent>>,
 ) -> Result<()> {
-    channel.emit(StreamEvent::AgentStart)?;
+    emit(tx, channel, StreamEvent::AgentStart)?;
 
     let tools: Vec<LlmToolDef> = config.tools.list()
         .into_iter()
@@ -91,10 +96,9 @@ async fn run_agent_loop(
 
     let mut all_messages = (*initial_messages).clone();
     let mut turn_count = 0;
-    let mut final_message: Option<AssistantMessage> = None;
 
     while turn_count < MAX_TURN_COUNT {
-        channel.emit(StreamEvent::TurnStart)?;
+        emit(tx, channel, StreamEvent::TurnStart)?;
 
         let request = LlmRequest {
             model: config.model.clone(),
@@ -106,15 +110,14 @@ async fn run_agent_loop(
         let stream = match client.stream(request).await {
             Ok(s) => s,
             Err(e) => {
-                let _ = tx.send(Ok(StreamEvent::Error { message: e.to_string() })).await;
+                emit(tx, channel, StreamEvent::Error { message: e.to_string() })?;
                 break;
             }
         };
 
         let mut assistant_msg = AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
-        let mut tool_results: Vec<ToolResultMessage> = Vec::new();
 
-        channel.emit(StreamEvent::MessageStart {
+        emit(tx, channel, StreamEvent::MessageStart {
             message: assistant_msg.clone(),
         })?;
 
@@ -127,93 +130,52 @@ async fn run_agent_loop(
                         assistant_msg = partial;
                     }
                     LlmStreamEvent::ContentDelta { delta } => {
-                        match &delta {
-                            ContentDelta::Text { delta: text } => {
-                                assistant_msg.content.push(Content::Text {
-                                    text: text.clone()
-                                });
-                            }
-                            ContentDelta::ToolCallStart { id, name } => {
-                                assistant_msg.tool_calls.push(ToolCall {
-                                    id: id.clone(),
-                                    name: name.clone(),
-                                    arguments: serde_json::Value::Null,
-                                });
-                            }
-                            ContentDelta::ToolCallDelta { id, args_delta } => {
-                                if let Some(tc) = assistant_msg.tool_calls.iter_mut().find(|t| t.id == *id) {
-                                    match &mut tc.arguments {
-                                        serde_json::Value::Null => {
-                                            tc.arguments = serde_json::Value::String(args_delta.clone());
-                                        }
-                                        serde_json::Value::String(s) => {
-                                            s.push_str(args_delta);
-                                        }
-                                        _ => {}
-                                    }
-                                }
-                            }
-                            ContentDelta::ToolCallEnd { .. } => {}
-                        }
-
-                        channel.emit(StreamEvent::MessageUpdate { delta: delta.clone() })?;
-                    }
-                    LlmStreamEvent::ToolCallStart { id, name } => {
-                        let tool_call = ToolCall {
-                            id: id.clone(),
-                            name: name.clone(),
-                            arguments: serde_json::Value::Null,
-                        };
-                        channel.emit(StreamEvent::ToolExecutionStart { tool_call })?;
-                    }
-                    LlmStreamEvent::ToolCallDelta { id, args_delta } => {
-                        channel.emit(StreamEvent::MessageUpdate {
-                            delta: ContentDelta::ToolCallDelta {
-                                id,
-                                args_delta,
-                            }
-                        })?;
-                    }
-                    LlmStreamEvent::ToolCallEnd { id } => {
-                        channel.emit(StreamEvent::ToolExecutionEnd {
-                            result: ToolResultMessage {
-                                tool_call_id: id.clone(),
-                                tool_name: String::new(),
-                                content: serde_json::Value::Null,
-                                is_error: false,
-                                timestamp: Utc::now(),
-                            },
-                            is_error: false,
-                        })?;
+                        apply_delta(&mut assistant_msg, &delta);
+                        emit(tx, channel, StreamEvent::MessageUpdate { delta })?;
                     }
                     LlmStreamEvent::Done { message } => {
                         assistant_msg = message;
                         break;
                     }
                     LlmStreamEvent::Error { message } => {
-                        let _ = tx.send(Ok(StreamEvent::Error { message: message.clone() })).await;
-                        channel.emit(StreamEvent::Error { message })?;
+                        emit(tx, channel, StreamEvent::Error { message: message.clone() })?;
+                        emit(tx, channel, StreamEvent::MessageEnd {
+                            message: assistant_msg.clone(),
+                        })?;
+                        emit(tx, channel, StreamEvent::AgentEnd {
+                            messages: vec![assistant_msg.clone()],
+                        })?;
                         return Ok(());
                     }
                 },
                 Err(e) => {
-                    let _ = tx.send(Ok(StreamEvent::Error { message: e.to_string() })).await;
-                    channel.emit(StreamEvent::Error { message: e.to_string() })?;
+                    emit(tx, channel, StreamEvent::Error { message: e.to_string() })?;
+                    emit(tx, channel, StreamEvent::MessageEnd {
+                        message: assistant_msg.clone(),
+                    })?;
+                    emit(tx, channel, StreamEvent::AgentEnd {
+                        messages: vec![assistant_msg.clone()],
+                    })?;
                     return Ok(());
                 }
             }
         }
 
-        channel.emit(StreamEvent::MessageEnd {
+        emit(tx, channel, StreamEvent::MessageEnd {
             message: assistant_msg.clone(),
         })?;
 
-        final_message = Some(assistant_msg.clone());
         all_messages.push(Message::Assistant(assistant_msg.clone()));
 
         match assistant_msg.stop_reason {
             StopReason::ToolCalls => {
+                let mut tool_results: Vec<ToolResultMessage> = Vec::new();
+
                 for tool_call in &assistant_msg.tool_calls {
+                    emit(tx, channel, StreamEvent::ToolExecutionStart {
+                        tool_call: tool_call.clone(),
+                    })?;
+
                     let result = dispatch_tool(&config.tools, tool_call).await;
                     let tool_result_msg = match &result {
                         Ok(r) => ToolResultMessage {
@@ -221,7 +183,7 @@ async fn run_agent_loop(
                             tool_name: tool_call.name.clone(),
                             content: r.content.clone(),
                             is_error: r.is_error,
-                            timestamp: Utc::now(),
+                            timestamp: chrono::Utc::now(),
                         },
                         Err(e) => ToolResultMessage::error(
                             tool_call.id.clone(),
@@ -229,18 +191,24 @@ async fn run_agent_loop(
                             e.to_string(),
                         ),
                     };
-                    tool_results.push(tool_result_msg.clone());
 
-                    let tool_msg = Message::ToolResult(tool_result_msg);
-                    all_messages.push(tool_msg);
+                    emit(tx, channel, StreamEvent::ToolExecutionEnd {
+                        result: tool_result_msg.clone(),
+                        is_error: tool_result_msg.is_error,
+                    })?;
+
+                    tool_results.push(tool_result_msg.clone());
+                    all_messages.push(Message::ToolResult(tool_result_msg));
                 }
 
-                channel.emit(StreamEvent::TurnEnd { tool_results })?;
+                emit(tx, channel, StreamEvent::TurnEnd { tool_results })?;
             }
             StopReason::EndOfTurn | StopReason::MaxTokens => {
+                emit(tx, channel, StreamEvent::TurnEnd { tool_results: Vec::new() })?;
                 break;
             }
             _ => {
+                emit(tx, channel, StreamEvent::TurnEnd { tool_results: Vec::new() })?;
                 break;
             }
         }
@@ -248,11 +216,46 @@ async fn run_agent_loop(
         turn_count += 1;
     }
 
-    channel.emit(StreamEvent::AgentEnd {
-        messages: final_message.map(|m| vec![m]).unwrap_or_default(),
+    emit(tx, channel, StreamEvent::AgentEnd {
+        messages: all_messages.iter().filter_map(|m| {
+            if let Message::Assistant(a) = m { Some(a.clone()) } else { None }
+        }).collect(),
     })?;
 
     Ok(())
+}
+
+fn apply_delta(msg: &mut AssistantMessage, delta: &ContentDelta) {
+    match delta {
+        ContentDelta::Text { delta: text } => {
+            if let Some(Content::Text { text: last }) = msg.content.last_mut() {
+                last.push_str(text);
+            } else {
+                msg.content.push(Content::Text { text: text.clone() });
+            }
+        }
+        ContentDelta::ToolCallStart { id, name } => {
+            msg.tool_calls.push(ToolCall {
+                id: id.clone(),
+                name: name.clone(),
+                arguments: serde_json::Value::Null,
+            });
+        }
+        ContentDelta::ToolCallDelta { id, args_delta } => {
+            if let Some(tc) = msg.tool_calls.iter_mut().find(|t| t.id == *id) {
+                match &mut tc.arguments {
+                    serde_json::Value::Null => {
+                        tc.arguments = serde_json::Value::String(args_delta.clone());
+                    }
+                    serde_json::Value::String(s) => {
+                        s.push_str(args_delta);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        ContentDelta::ToolCallEnd { id: _ } => {}
+    }
 }
 
 async fn dispatch_tool(
@@ -263,7 +266,11 @@ async fn dispatch_tool(
     let name = tool_call.name.clone();
 
     let args = if let serde_json::Value::String(s) = &tool_call.arguments {
-        serde_json::from_str(s).unwrap_or(serde_json::Value::Null)
+        serde_json::from_str(s).map_err(|e| crate::error::SpectraError::SchemaValidation {
+            name: name.clone(),
+            detail: format!("Invalid JSON in tool arguments: {}", e),
+            source: Some(e),
+        })?
     } else {
         tool_call.arguments.clone()
     };

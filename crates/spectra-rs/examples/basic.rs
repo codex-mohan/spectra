@@ -11,7 +11,7 @@ async fn main() {
         .expect("ANTHROPIC_API_KEY not set");
 
     // Create the LLM client
-    let client = Arc::new(spectra_http::AnthropicClient::with_api_key(api_key));
+    let client = Arc::new(spectra_http::AnthropicClient::with_api_key(api_key).expect("Failed to create client"));
     println!("Created Anthropic client\n");
 
     // Create tool registry with a simple tool
@@ -49,7 +49,7 @@ async fn main() {
     println!("\n=== Running Agent ===\n");
 
     // Run the agent with streaming
-    let mut rx = agent.run("Read the file at /tmp/example.txt").await
+    let (mut rx, _channel) = agent.run("Read the file at /tmp/example.txt").await
         .expect("Failed to start agent");
 
     let mut stdout = stdout();

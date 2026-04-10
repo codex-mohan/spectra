@@ -17,15 +17,19 @@ pub struct AnthropicClient {
 }
 
 impl AnthropicClient {
-    pub fn new(api_key: Option<String>) -> Self {
+    pub fn new(api_key: Option<String>) -> Result<Self> {
         let client = Client::builder()
             .use_rustls_tls()
             .build()
-            .expect("Failed to create HTTP client");
-        Self { client, api_key, base_url: None }
+            .map_err(|e| SpectraError::LlmError {
+                provider: "anthropic".into(),
+                message: format!("Failed to create HTTP client: {}", e),
+                source: Some(Box::new(e)),
+            })?;
+        Ok(Self { client, api_key, base_url: None })
     }
 
-    pub fn with_api_key(api_key: impl Into<String>) -> Self {
+    pub fn with_api_key(api_key: impl Into<String>) -> Result<Self> {
         Self::new(Some(api_key.into()))
     }
 
@@ -249,30 +253,40 @@ async fn parse_event(
                 if let Some(block) = event.content_block {
                     if block.get("type").and_then(|t| t.as_str()) == Some("tool_use") {
                         *in_tool = true;
+                        let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
                         *current_tool = Some(ToolCall {
-                            id: block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                            name: block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                            id: id.clone(),
+                            name: name.clone(),
                             arguments: serde_json::Value::Null,
                         });
+                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                            delta: spectra_core::event::ContentDelta::ToolCallStart {
+                                id,
+                                name,
+                            },
+                        })).await;
                     }
                 }
             }
             "content_block_delta" => {
                 if let Some(delta) = event.delta {
                     if *in_tool {
-                        if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str()) {
-                            if let Some(ref mut tc) = current_tool {
-                                if let serde_json::Value::String(ref mut s) = tc.arguments {
-                                    s.push_str(text);
-                                } else {
-                                    tc.arguments = serde_json::Value::String(text.to_string());
+                            if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str()) {
+                                if let Some(ref mut tc) = current_tool {
+                                    if let serde_json::Value::String(ref mut s) = tc.arguments {
+                                        s.push_str(text);
+                                    } else {
+                                        tc.arguments = serde_json::Value::String(text.to_string());
+                                    }
+                                    let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                        delta: spectra_core::event::ContentDelta::ToolCallDelta {
+                                            id: tc.id.clone(),
+                                            args_delta: text.to_string(),
+                                        },
+                                    })).await;
                                 }
-                                let _ = tx.send(Ok(LlmStreamEvent::ToolCallDelta {
-                                    id: tc.id.clone(),
-                                    args_delta: text.to_string(),
-                                })).await;
                             }
-                        }
                     } else if let Some(text) = delta.get("text").and_then(|t| t.as_str()) {
                         msg.content.push(Content::Text { text: text.to_string() });
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
@@ -285,7 +299,11 @@ async fn parse_event(
                 if *in_tool {
                     if let Some(tc) = current_tool.take() {
                         msg.tool_calls.push(tc.clone());
-                        let _ = tx.send(Ok(LlmStreamEvent::ToolCallEnd { id: tc.id })).await;
+                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                            delta: spectra_core::event::ContentDelta::ToolCallEnd {
+                                id: tc.id.clone(),
+                            },
+                        })).await;
                     }
                     *in_tool = false;
                 }

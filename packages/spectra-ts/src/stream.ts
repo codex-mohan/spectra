@@ -5,7 +5,7 @@ export interface ContentDelta {
   delta?: string;
   id?: string;
   name?: string;
-  argsDelta?: string;
+  args_delta?: string;
 }
 
 export type StreamEvent =
@@ -14,10 +14,10 @@ export type StreamEvent =
   | { type: "message_start"; message: unknown }
   | { type: "message_update"; delta: ContentDelta }
   | { type: "message_end"; message: unknown }
-  | { type: "turn_end"; toolResults: unknown[] }
-  | { type: "tool_execution_start"; toolCall: unknown }
+  | { type: "turn_end"; tool_results: unknown[] }
+  | { type: "tool_execution_start"; tool_call: unknown }
   | { type: "tool_execution_update"; partial: unknown }
-  | { type: "tool_execution_end"; result: unknown; isError: boolean }
+  | { type: "tool_execution_end"; result: unknown; is_error: boolean }
   | { type: "agent_end"; messages: unknown[] }
   | { type: "error"; message: string };
 
