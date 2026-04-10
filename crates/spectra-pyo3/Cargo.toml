@@ -11,13 +11,15 @@ crate-type = ["cdylib"]
 [dependencies]
 spectra-core = { path = "../../packages/core" }
 spectra-http = { path = "../spectra-http" }
-pyo3 = { version = "0.20", features = ["auto-initialize"] }
-pyo3-asyncio = "0.20"
+pyo3 = { version = "0.24" }
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-futures = "0.3"
+futures-util = "0.3"
 uuid = { version = "1", features = ["v4"] }
 
 [build-dependencies]
-pyo3-build-config = "0.20"
+pyo3-build-config = "0.24"
+
+[env]
+PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1"
