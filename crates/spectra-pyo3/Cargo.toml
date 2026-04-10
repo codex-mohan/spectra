@@ -6,6 +6,7 @@ description = "Spectra PyO3 bindings for Python"
 license = "MIT"
 
 [lib]
+name = "spectra_pyo3"
 crate-type = ["cdylib"]
 
 [dependencies]
