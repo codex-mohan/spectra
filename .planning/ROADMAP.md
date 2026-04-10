@@ -204,6 +204,17 @@ Doctests pass ✓
 | 2026-04-08 | rustls over OpenSSL | Avoid C dependencies and CVEs |
 | 2026-04-09 | Trait-based LLM abstraction | Enable provider flexibility |
 
+### Phase 1: Fix native bridge loading
+
+**Goal:** Fix all compounding bugs in the native bridge so both TypeScript and Python SDKs can load and use the compiled Rust native extensions
+**Requirements**: BUILD-05, BUILD-06, TEST-02
+**Depends on:** v0.1.0 (complete)
+**Plans:** 2 plans
+
+Plans:
+- [ ] Plan 01: Fix napi-rs build configuration and TypeScript native bridge (Wave 1)
+- [ ] Plan 02: Fix PyO3/maturin build configuration and Python native bridge (Wave 1)
+
 ---
 
 *Roadmap updated: 2026-04-09*
