@@ -4,9 +4,9 @@ use reqwest::Client;
 use serde::Deserialize;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
-use spectra_core::error::{Result, SpectraError};
-use spectra_core::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmResponse, Provider};
-use spectra_core::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
+use spectra_rs::error::{Result, SpectraError};
+use spectra_rs::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmResponse, Provider};
+use spectra_rs::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
 
 const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
 
@@ -261,7 +261,7 @@ async fn parse_event(
                             arguments: serde_json::Value::Null,
                         });
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: spectra_core::event::ContentDelta::ToolCallStart {
+                            delta: spectra_rs::event::ContentDelta::ToolCallStart {
                                 id,
                                 name,
                             },
@@ -280,7 +280,7 @@ async fn parse_event(
                                         tc.arguments = serde_json::Value::String(text.to_string());
                                     }
                                     let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                                        delta: spectra_core::event::ContentDelta::ToolCallDelta {
+                                        delta: spectra_rs::event::ContentDelta::ToolCallDelta {
                                             id: tc.id.clone(),
                                             args_delta: text.to_string(),
                                         },
@@ -290,7 +290,7 @@ async fn parse_event(
                     } else if let Some(text) = delta.get("text").and_then(|t| t.as_str()) {
                         msg.content.push(Content::Text { text: text.to_string() });
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: spectra_core::event::ContentDelta::Text { delta: text.to_string() },
+                            delta: spectra_rs::event::ContentDelta::Text { delta: text.to_string() },
                         })).await;
                     }
                 }
@@ -300,7 +300,7 @@ async fn parse_event(
                     if let Some(tc) = current_tool.take() {
                         msg.tool_calls.push(tc.clone());
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: spectra_core::event::ContentDelta::ToolCallEnd {
+                            delta: spectra_rs::event::ContentDelta::ToolCallEnd {
                                 id: tc.id.clone(),
                             },
                         })).await;

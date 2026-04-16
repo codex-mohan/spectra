@@ -10,7 +10,7 @@
     "verifier": true,
     "nyquist_validation": false,
     "auto_advance": true,
-    "_auto_chain_active": true
+    "_auto_chain_active": false
   },
   "planning": {
     "project_name": "Spectra",

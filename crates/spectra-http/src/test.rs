@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::{AnthropicClient, OpenAIClient};
-    use spectra_core::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model};
-    use spectra_core::event::ContentDelta;
+    use spectra_rs::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model};
+    use spectra_rs::event::ContentDelta;
     use futures_util::StreamExt;
     use wiremock::{MockServer, Mock, ResponseTemplate};
     use wiremock::matchers::{method, path, header};
@@ -175,7 +175,7 @@ data: {"type":"message_stop"}
                 LlmStreamEvent::Done { message } => {
                     got_done = true;
                     let full_text: String = message.content.iter()
-                        .filter_map(|c| if let spectra_core::messages::Content::Text { text } = c { Some(text.as_str()) } else { None })
+                        .filter_map(|c| if let spectra_rs::messages::Content::Text { text } = c { Some(text.as_str()) } else { None })
                         .collect();
                     assert_eq!(full_text, "Hello World", "Text should be concatenated, not fragmented per chunk");
                 }

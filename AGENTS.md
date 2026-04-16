@@ -35,8 +35,7 @@ Spectra is a minimal, ultra-fast, multi-language AI agent framework with a Rust 
 | Technology | Purpose | Why Recommended |
 |------------|---------|-----------------|
 | napi-rs | TypeScript bindings | Fastest N-API Rust binding, first-class TypeScript support |
-| PyO3 | Python bindings | Rust-native Python extensions, maturin build tool |
-| maturin | Python build | Simplest PyO3 workflow, cross-platform builds |
+| PyO3 + maturin | Python bindings | PyO3 is the Rust library, maturin is the build tool - together they compile Rust to .pyd/.so |
 ### Schema Validation
 | Library | Language | Why Recommended |
 |---------|----------|-----------------|
@@ -71,14 +70,82 @@ Spectra is a minimal, ultra-fast, multi-language AI agent framework with a Rust 
 |-----------|-----------------|-------|
 | tokio 1.x | tokio-util 0.7.x | Compatible, uses semver |
 | napi-rs 3.x | Node 18+ | Native addon compatibility |
-| PyO3 0.22+ | Python 3.11+ | Required for stabilized features |
-| maturin 1.7+ | PyO3 0.22+ | Required for Python 3.11+ support |
+| PyO3 0.22+ + maturin 1.7+ | Python 3.11+ | Required for stabilized features |
 ## Sources
 - tokio.rs official documentation
 - napi-rs GitHub repository
 - PyO3 user guide
 - thiserror/miette crates documentation
 <!-- GSD:stack-end -->
+
+<!-- GSD:pi-mono-ref-start -->
+## Reference Implementation: pi-mono
+
+**Location:** `~/pi-mono-ref/` (cloned from https://github.com/badlogic/pi-mono)
+
+**Purpose:** Study pi-mono for patterns on:
+- LLM provider streaming implementations
+- Event stream architecture
+- Tool execution handling
+- Agent loop patterns
+
+### Key Files to Reference
+
+| File | Purpose |
+|------|---------|
+| `packages/ai/src/providers/anthropic.ts` | Anthropic Messages API + SSE streaming |
+| `packages/ai/src/providers/openai-completions.ts` | OpenAI Chat Completions + SSE streaming |
+| `packages/ai/src/providers/google-vertex.ts` | Google Vertex AI + streaming |
+| `packages/ai/src/utils/event-stream.ts` | AsyncIterable event stream class |
+| `packages/ai/src/types.ts` | Stream event types, StreamOptions |
+| `packages/ai/src/providers/simple-options.ts` | Options building helpers |
+
+### Provider Patterns
+
+All providers follow the same streaming pattern:
+
+1. **Create `AssistantMessageEventStream`** - the return value
+2. **Push `start` event** with partial message
+3. **Iterate SSE stream**, pushing deltas for each chunk type
+4. **Push completion event** (`done` or `error`)
+
+**Anthropic** (SSE events: `content_block_start`, `content_block_delta`, `content_block_stop`, `message_delta`)
+- Uses `@anthropic-ai/sdk` official SDK
+- Handles text, thinking, and tool call streaming
+- Supports prompt caching with `cacheControl`
+
+**OpenAI Completions** (SSE events: standard Chat Completions chunks)
+- Uses `openai` official SDK
+- Handles text deltas, reasoning (thinking), and tool call streaming
+- Supports `toolChoice`, `reasoningEffort` options
+
+**Google Vertex** (streaming via `@google/genai`)
+- Uses official Google GenAI SDK with Vertex-specific auth
+- Handles text, thinking, and tool call streaming
+- Supports thinking budgets, project/location configuration
+
+### pi-mono Streaming Pattern
+
+pi-mono uses a generic `EventStream<T, R>` class implementing `AsyncIterable<T>`:
+
+```typescript
+export class EventStream<T, R = T> implements AsyncIterable<T> {
+  push(event: T): void;     // Queue events for consumers
+  end(result?: R): void;    // Signal completion
+  result(): Promise<R>;     // Get final result
+  async *[Symbol.asyncIterator](): AsyncIterator<T>;  // Async iteration
+}
+```
+
+`AssistantMessageEventStream` extends this with message completion logic.
+
+### Key Insights from pi-mono
+
+1. **Provider functions** return `AssistantMessageEventStream` - consumers iterate async
+2. **StreamOptions** includes: signal (AbortSignal), apiKey, onPayload callback, headers
+3. **Built-in providers**: Anthropic, OpenAI, Google, Mistral, Bedrock, Groq, etc.
+4. **No tool streaming in core** - tools handled separately via extensions
+<!-- GSD:pi-mono-ref-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions

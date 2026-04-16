@@ -8,5 +8,5 @@ pub use openai::OpenAIClient;
 
 pub mod prelude {
     pub use super::{AnthropicClient, OpenAIClient};
-    pub use spectra_core::llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model};
+    pub use spectra_rs::llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model};
 }

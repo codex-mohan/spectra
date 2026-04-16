@@ -1,6 +1,7 @@
 use std::sync::Arc;
-use spectra_core::ToolCall;
-use spectra_core::ToolResult;
+
+use crate::messages::ToolCall;
+use crate::tool::ToolResult;
 
 pub trait Extension: Send + Sync {
     fn on_before_tool_call(&self, _tool_call: &ToolCall) {}

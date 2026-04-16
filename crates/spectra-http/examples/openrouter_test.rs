@@ -1,5 +1,5 @@
 use spectra_http::OpenAIClient;
-use spectra_core::llm::{LlmClient, LlmRequest, Model};
+use spectra_rs::llm::{LlmClient, LlmRequest, Model};
 use futures_util::StreamExt;
 
 #[tokio::main]
@@ -15,8 +15,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let request = LlmRequest {
             model,
             system_prompt: Some("You are a helpful coding assistant.".into()),
-            messages: vec![spectra_core::messages::Message::User(
-                spectra_core::messages::UserMessage::text("Write a Rust function that checks if a number is prime. Keep it under 10 lines.")
+            messages: vec![spectra_rs::messages::Message::User(
+                spectra_rs::messages::UserMessage::text("Write a Rust function that checks if a number is prime. Keep it under 10 lines.")
             )],
             tools: vec![],
         };
@@ -26,13 +26,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\nStreaming response:\n");
     while let Some(event) = stream.next().await {
         match event {
-            Ok(spectra_core::llm::LlmStreamEvent::ContentDelta { delta }) => {
+            Ok(spectra_rs::llm::LlmStreamEvent::ContentDelta { delta }) => {
                 match delta {
-                    spectra_core::event::ContentDelta::Text { delta: text } => print!("{text}"),
+                    spectra_rs::event::ContentDelta::Text { delta: text } => print!("{text}"),
                     _ => {}
                 }
             }
-            Ok(spectra_core::llm::LlmStreamEvent::Done { message }) => {
+            Ok(spectra_rs::llm::LlmStreamEvent::Done { message }) => {
                 println!("\n\n=== Done! ===");
                 println!("Content: {:?}", message.content);
             }

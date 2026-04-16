@@ -1,90 +1,73 @@
-use std::sync::Arc;
+//! # Spectra Core
+//!
+//! Ultra-fast Rust core for multi-language AI agent framework.
+//!
+//! ## Core Concepts
+//!
+//! - **Agent**: Orchestrates LLM calls, tool execution, and message history
+//! - **LLM Client**: Provider abstraction for LLM APIs (Anthropic, OpenAI, etc.)
+//! - **Tool Registry**: Register and dispatch tools for agent use
+//! - **Event Stream**: Real-time events for UI integration
+//!
+//! ## Extension Points
+//!
+//! Tool approval and other hooks are implemented as extensions. See docs/extensions.md for
+//! how to implement custom hooks like `beforeToolCall` and `afterToolCall`.
+//!
+//! ## Example
+//!
+//! ```rust,no_run
+//! use spectra_rs::{
+//!     tool::{ToolRegistry, ToolBuilder, ToolResult},
+//! };
+//!
+//! let registry = ToolRegistry::new();
+//! registry.register(
+//!     ToolBuilder::new("read")
+//!         .description("Read a file")
+//!         .parameters(serde_json::json!({
+//!             "type": "object",
+//!             "properties": {
+//!                 "path": { "type": "string" }
+//!             }
+//!         }))
+//!         .execute(|_id, _params| async move {
+//!             Ok(ToolResult::success(serde_json::json!({
+//!                 "content": "file contents"
+//!             })))
+//!         })
+//!         .build()
+//! );
+//! ```
 
+pub mod agent;
+pub mod error;
+pub mod event;
 pub mod extension;
-pub mod models;
+pub mod llm;
+pub mod messages;
+pub mod tool;
 
-pub use spectra_core::{
-    agent::{Agent, AgentConfig},
-    error::{Result, SpectraError},
-    event::{ContentDelta, EventChannel, EventSink, StreamEvent},
-    llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, ModelConfig, ModelId, Provider, ModelRegistry, ModelInfo},
-    messages::{
-        AssistantMessage, Content, ImageDetail, Message, StopReason, TokenUsage, ToolCall,
-        ToolResultMessage, UserMessage,
-    },
-    tool::{Tool, ToolBuilder, ToolDef, ToolRegistry, ToolResult},
-};
-
+pub use agent::{Agent, AgentBuilder, AgentConfig};
+pub use error::{Result, SpectraError};
+pub use event::{ContentDelta, EventChannel, EventSink, StreamEvent};
 pub use extension::{Extension, ExtensionManager};
-
-pub fn get_model(provider: Provider, model_id: impl Into<String>) -> Model {
-    Model::new(provider, model_id)
-}
-
-pub fn get_anthropic_model(model_id: impl Into<String>) -> Model {
-    Model::anthropic(model_id)
-}
-
-pub fn get_openai_model(model_id: impl Into<String>) -> Model {
-    Model::openai(model_id)
-}
-
-pub struct AgentBuilder {
-    model: Model,
-    system_prompt: Option<String>,
-    tools: Arc<ToolRegistry>,
-}
-
-impl AgentBuilder {
-    pub fn new(model: Model) -> Self {
-        Self {
-            model,
-            system_prompt: None,
-            tools: Arc::new(ToolRegistry::new()),
-        }
-    }
-
-    pub fn system_prompt(mut self, prompt: impl Into<String>) -> Self {
-        self.system_prompt = Some(prompt.into());
-        self
-    }
-
-    pub fn tools(mut self, registry: Arc<ToolRegistry>) -> Self {
-        self.tools = registry;
-        self
-    }
-
-    pub fn register_tool(mut self, tool: Arc<dyn Tool>) -> Self {
-        Arc::make_mut(&mut self.tools).register(tool);
-        self
-    }
-
-    pub fn build(self, client: Arc<dyn LlmClient>) -> Agent {
-        let config = AgentConfig {
-            model: self.model,
-            system_prompt: self.system_prompt,
-            tools: self.tools,
-        };
-        Agent::new(client, config)
-    }
-}
-
-impl Default for AgentBuilder {
-    fn default() -> Self {
-        Self::new(Model::anthropic("claude-sonnet-4-20250514"))
-    }
-}
+pub use llm::{
+    LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, ModelConfig, ModelId,
+    ModelInfo, ModelRegistry, Provider, ToolDef,
+};
+pub use messages::{
+    AssistantMessage, Content, ImageDetail, Message, StopReason, TokenUsage, ToolCall,
+    ToolResultMessage, UserMessage,
+};
+pub use tool::{Tool, ToolBuilder, ToolDef as ToolDefinition, ToolRegistry, ToolResult};
 
 pub mod prelude {
-    pub use super::{
-        extension::Extension,
-        get_anthropic_model, get_model, get_openai_model,
-        Agent, AgentBuilder, AgentConfig,
-        Content, ContentDelta, EventChannel, EventSink, LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent,
-        Message, Model, ModelConfig, ModelInfo, ModelRegistry, Provider,
-        Result, SpectraError, StopReason, StreamEvent,
-        Tool, ToolBuilder, ToolDef, ToolRegistry, ToolResult, ToolResultMessage,
-        UserMessage,
-    };
-    pub use super::models::{load_models, load_builtin_models, anthropic_models, openai_models, groq_models};
+    pub use super::agent::{Agent, AgentBuilder, AgentConfig};
+    pub use super::error::{Result, SpectraError};
+    pub use super::event::{ContentDelta, EventChannel, EventSink, StreamEvent};
+    pub use super::extension::{Extension, ExtensionManager};
+    pub use super::llm::{LlmClient, Model, ModelInfo, ModelRegistry, Provider};
+    pub use super::messages::{AssistantMessage, Content, Message, StopReason, ToolCall, ToolResultMessage, UserMessage};
+    pub use super::tool::{Tool, ToolBuilder, ToolRegistry, ToolResult};
 }

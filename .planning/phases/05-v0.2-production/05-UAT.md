@@ -59,10 +59,11 @@ notes: |
 expected: Python SDK can load native PyO3 bindings, create Agent, and make API calls.
 result: pass
 notes: |
-  PyO3 binding built successfully (spectra_pyo3.dll).
+  PyO3 binding built successfully (v0.2.0).
   Python Agent class loads native module and calls LLM.
-  Fixed: module name mismatch (_native), removed extension-module feature.
-  Added OpenRouter support to PyO3 client.
+  Live test successful with OpenRouter (google/gemma-4-26b-a4b-it:free).
+  Prompt: "Write a Rust function that checks if a number is prime."
+  Response streamed correctly with code example returned.
 
 ## Summary
 
