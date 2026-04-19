@@ -1,0 +1,11 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    name: Disabled
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI disabled until project is stable"

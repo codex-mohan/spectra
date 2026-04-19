@@ -1,0 +1,31 @@
+{
+  "name": "@spectra/agent",
+  "version": "0.1.0",
+  "description": "Spectra Agent — agent loop, tool dispatch, state management",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest --run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@spectra/ai": "workspace:*",
+    "zod": "^3.25.0",
+    "zod-to-json-schema": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "license": "MIT"
+}

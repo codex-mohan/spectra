@@ -2,12 +2,14 @@
   "name": "spectra",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.24.0",
   "scripts": {
-    "build": "cargo build --release",
-    "build:debug": "cargo build",
-    "test": "cargo test",
-    "lint": "cargo clippy -- -D warnings",
-    "fmt": "cargo fmt",
-    "clean": "cargo clean"
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "dev": "turbo dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
   }
 }

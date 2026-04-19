@@ -3,18 +3,15 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["target/release/**", "dist/**"],
-      "cache": true
+      "outputs": ["dist/**", "target/**"]
     },
     "test": {
-      "dependsOn": ["build"],
-      "cache": false
+      "dependsOn": ["build"]
     },
-    "lint": {
-      "cache": true
-    },
-    "clean": {
-      "cache": false
+    "lint": {},
+    "dev": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

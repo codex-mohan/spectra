@@ -1,0 +1,10 @@
+{
+  "name": "@spectra/rust",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "cargo build --release",
+    "test": "cargo test --workspace",
+    "lint": "cargo clippy --workspace -- -D warnings && cargo fmt --all -- --check"
+  }
+}
