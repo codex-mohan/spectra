@@ -6,6 +6,8 @@ export interface TextContent {
 export interface ThinkingContent {
   type: "thinking";
   thinking: string;
+  thinkingSignature?: string;
+  redacted?: boolean;
 }
 
 export interface ImageContent {
@@ -19,15 +21,24 @@ export interface ToolCall {
   id: string;
   name: string;
   arguments: Record<string, unknown>;
+  thinkingSignature?: string;
 }
 
 export type StopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
 
 export interface Usage {
-  inputTokens: number;
-  outputTokens: number;
-  cacheReadTokens: number;
-  cacheWriteTokens: number;
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  totalTokens: number;
+  cost?: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheWrite: number;
+    total: number;
+  };
 }
 
 export interface UserMessage {
@@ -41,6 +52,7 @@ export interface AssistantMessage {
   content: (TextContent | ThinkingContent | ToolCall)[];
   provider: string;
   model: string;
+  responseId?: string;
   usage: Usage;
   stopReason: StopReason;
   errorMessage?: string;
@@ -61,7 +73,12 @@ export type Message = UserMessage | AssistantMessage | ToolResultMessage;
 export interface Tool {
   name: string;
   description: string;
-  parameters: Record<string, unknown>;
+  parameters: {
+    type?: string;
+    properties?: Record<string, unknown>;
+    required?: string[];
+    [key: string]: unknown;
+  };
 }
 
 export interface Context {
@@ -74,15 +91,15 @@ export type AssistantMessageEvent =
   | { type: "start"; partial: AssistantMessage }
   | { type: "text_start"; contentIndex: number; partial: AssistantMessage }
   | { type: "text_delta"; contentIndex: number; delta: string; partial: AssistantMessage }
-  | { type: "text_end"; contentIndex: number; delta: string; partial: AssistantMessage }
+  | { type: "text_end"; contentIndex: number; content: string; partial: AssistantMessage }
   | { type: "thinking_start"; contentIndex: number; partial: AssistantMessage }
   | { type: "thinking_delta"; contentIndex: number; delta: string; partial: AssistantMessage }
-  | { type: "thinking_end"; contentIndex: number; delta: string; partial: AssistantMessage }
+  | { type: "thinking_end"; contentIndex: number; content: string; partial: AssistantMessage }
   | { type: "toolcall_start"; contentIndex: number; partial: AssistantMessage }
   | { type: "toolcall_delta"; contentIndex: number; delta: string; partial: AssistantMessage }
   | { type: "toolcall_end"; contentIndex: number; toolCall: ToolCall; partial: AssistantMessage }
-  | { type: "done"; reason: Extract<StopReason, "stop" | "length" | "toolUse">; message: AssistantMessage }
-  | { type: "error"; reason: Extract<StopReason, "aborted" | "error">; error: AssistantMessage };
+  | { type: "done"; reason: StopReason; message: AssistantMessage }
+  | { type: "error"; reason: StopReason; error: AssistantMessage };
 
 export interface StreamOptions {
   signal?: AbortSignal;
@@ -94,6 +111,11 @@ export interface StreamOptions {
 
 export interface Model {
   id: string;
+  name: string;
   provider: string;
   api: string;
+  baseUrl?: string;
+  reasoning?: boolean;
+  maxTokens?: number;
+  headers?: Record<string, string>;
 }

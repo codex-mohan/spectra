@@ -380,7 +380,7 @@ export class Agent {
       content: [],
       provider: this.model.provider,
       model: this.model.id,
-      usage: { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 },
+      usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
       stopReason: "error",
       errorMessage: err instanceof Error ? err.message : String(err),
       timestamp: Date.now(),
