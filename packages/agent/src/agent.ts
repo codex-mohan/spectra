@@ -21,6 +21,36 @@ import type {
 } from "./types.js";
 
 type EmitFn = (event: AgentEvent) => void | Promise<void>;
+type QueueMode = "all" | "one-at-a-time";
+
+class PendingMessageQueue {
+  private messages: Message[] = [];
+  constructor(public mode: QueueMode) {}
+
+  enqueue(message: Message): void {
+    this.messages.push(message);
+  }
+
+  hasItems(): boolean {
+    return this.messages.length > 0;
+  }
+
+  drain(): Message[] {
+    if (this.mode === "all") {
+      const drained = this.messages.slice();
+      this.messages = [];
+      return drained;
+    }
+    const first = this.messages[0];
+    if (!first) return [];
+    this.messages = this.messages.slice(1);
+    return [first];
+  }
+
+  clear(): void {
+    this.messages = [];
+  }
+}
 
 interface PreparedToolCall {
   toolCall: ToolCall;
@@ -63,8 +93,19 @@ export class Agent {
   private transformContextFn?: AgentConfig["transformContext"];
   private getApiKeyFn?: AgentConfig["getApiKey"];
   private streamOptions?: StreamOptions;
+  private steeringQueue: PendingMessageQueue;
+  private followUpQueue: PendingMessageQueue;
+  private convertToLlmFn?: (messages: Message[]) => Message[] | Promise<Message[]>;
+  private maxRetryDelayMs: number;
+  private retryCount = 0;
 
-  constructor(config: AgentConfig & { streamOptions?: StreamOptions }) {
+  constructor(config: AgentConfig & { 
+    streamOptions?: StreamOptions;
+    steeringMode?: QueueMode;
+    followUpMode?: QueueMode;
+    convertToLlm?: (messages: Message[]) => Message[] | Promise<Message[]>;
+    maxRetryDelayMs?: number;
+  }) {
     this.model = config.model;
     this.systemPrompt = config.systemPrompt;
     this.maxTurns = config.maxTurns ?? 10;
@@ -74,6 +115,10 @@ export class Agent {
     this.transformContextFn = config.transformContext;
     this.getApiKeyFn = config.getApiKey;
     this.streamOptions = config.streamOptions;
+    this.steeringQueue = new PendingMessageQueue(config.steeringMode ?? "one-at-a-time");
+    this.followUpQueue = new PendingMessageQueue(config.followUpMode ?? "one-at-a-time");
+    this.convertToLlmFn = config.convertToLlm;
+    this.maxRetryDelayMs = config.maxRetryDelayMs ?? 30000;
     for (const tool of config.tools ?? []) {
       this.tools.set(tool.name, tool);
     }
@@ -93,6 +138,20 @@ export class Agent {
     return () => {
       this.listeners = this.listeners.filter((l) => l !== listener);
     };
+  }
+
+  steer(message: string | Message): void {
+    const msg = typeof message === "string" 
+      ? { role: "user" as const, content: message, timestamp: Date.now() }
+      : message;
+    this.steeringQueue.enqueue(msg);
+  }
+
+  followUp(message: string | Message): void {
+    const msg = typeof message === "string"
+      ? { role: "user" as const, content: message, timestamp: Date.now() }
+      : message;
+    this.followUpQueue.enqueue(msg);
   }
 
   abort(): void { this.abortController?.abort(); }
@@ -200,12 +259,87 @@ export class Agent {
         : await this.executeToolCallsParallel(toolCalls, assistantMessage, emit);
 
       await emit({ type: "turn_end", message: assistantMessage, toolResults });
+
+      // Check steering queue after tool execution
+      const steeringMessages = this.steeringQueue.drain();
+      if (steeringMessages.length > 0) {
+        for (const msg of steeringMessages) {
+          this._messages.push(msg);
+          await emit({ type: "message_start", message: msg });
+          await emit({ type: "message_end", message: msg });
+        }
+        // Continue loop with steering messages
+        continue;
+      }
+
+      // Check follow-up queue before ending
+      const followUpMessages = this.followUpQueue.drain();
+      if (followUpMessages.length > 0) {
+        for (const msg of followUpMessages) {
+          this._messages.push(msg);
+          await emit({ type: "message_start", message: msg });
+          await emit({ type: "message_end", message: msg });
+        }
+        // Reset turns and continue with follow-up messages
+        turns = 0;
+        continue;
+      }
     }
 
     await emit({ type: "agent_end", messages: this._messages });
   }
 
   private async streamAssistantResponse(
+    context: Context,
+    opts: StreamOptions,
+    emit: EmitFn,
+  ): Promise<AssistantMessage> {
+    // Apply convertToLlm hook if provided
+    if (this.convertToLlmFn) {
+      context.messages = await this.convertToLlmFn(context.messages);
+    }
+
+    return this.streamWithRetry(context, opts, emit);
+  }
+
+  private async streamWithRetry(
+    context: Context,
+    opts: StreamOptions,
+    emit: EmitFn,
+  ): Promise<AssistantMessage> {
+    const maxRetries = 3;
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await this.doStream(context, opts, emit);
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        
+        // Don't retry if aborted
+        if (this.abortController?.signal.aborted) throw err;
+        
+        // Don't retry on 4xx errors (client errors)
+        if (lastError.message.includes("400") || lastError.message.includes("401") || 
+            lastError.message.includes("403") || lastError.message.includes("404")) {
+          throw err;
+        }
+
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), this.maxRetryDelayMs);
+          await this.sleep(delay);
+        }
+      }
+    }
+
+    throw lastError;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async doStream(
     context: Context,
     opts: StreamOptions,
     emit: EmitFn,
