@@ -89,6 +89,7 @@ export interface Orchestrator {
 }
 
 export interface Budget {
+  maxTurns?: number;
   maxTokens?: number;
   timeoutMs?: number;
 }

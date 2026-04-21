@@ -88,6 +88,7 @@ export interface AgentConfig {
   model: Model;
   systemPrompt?: string;
   tools?: AgentTool[];
+  maxTurns?: number;
   toolExecution?: ToolExecutionMode;
   beforeToolCall?: (context: BeforeToolCallContext, signal?: AbortSignal) => Promise<BeforeToolCallResult | undefined>;
   afterToolCall?: (context: AfterToolCallContext, signal?: AbortSignal) => Promise<AfterToolCallResult | undefined>;

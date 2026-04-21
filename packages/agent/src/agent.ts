@@ -86,6 +86,7 @@ export class Agent {
 
   private model: Model;
   private systemPrompt?: string;
+  private maxTurns?: number;
   private toolExecution: ToolExecutionMode;
   private beforeToolCallHook?: AgentConfig["beforeToolCall"];
   private afterToolCallHook?: AgentConfig["afterToolCall"];
@@ -107,6 +108,7 @@ export class Agent {
   }) {
     this.model = config.model;
     this.systemPrompt = config.systemPrompt;
+    this.maxTurns = config.maxTurns;
     this.toolExecution = config.toolExecution ?? "parallel";
     this.beforeToolCallHook = config.beforeToolCall;
     this.afterToolCallHook = config.afterToolCall;
@@ -211,6 +213,10 @@ export class Agent {
     let turns = 0;
 
     while (!this.abortController?.signal.aborted) {
+      // Check maxTurns limit only if configured
+      if (this.maxTurns !== undefined && turns >= this.maxTurns) {
+        break;
+      }
       if (turns > 0) {
         await emit({ type: "turn_start" });
       }
