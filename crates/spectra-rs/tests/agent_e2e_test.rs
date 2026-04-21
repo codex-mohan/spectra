@@ -109,7 +109,7 @@ async fn test_agent_simple_conversation() {
         .system_prompt("You are a helpful assistant.")
         .build(client);
 
-    let (mut rx, _channel) = agent.run("Hi there!").await.unwrap();
+    let (mut rx, _channel, _handle) = agent.run("Hi there!").await.unwrap();
     
     let mut events = Vec::new();
     while let Some(event) = rx.recv().await {
@@ -177,7 +177,7 @@ async fn test_agent_with_tool_call() {
         .tools(tool_registry)
         .build(client);
 
-    let (mut rx, _channel) = agent.run("What is 2+2?").await.unwrap();
+    let (mut rx, _channel, _handle) = agent.run("What is 2+2?").await.unwrap();
     
     let mut events = Vec::new();
     while let Some(event) = rx.recv().await {
@@ -221,7 +221,7 @@ async fn test_agent_streaming_events() {
     let model = Model::new(Provider::Custom, "test-model");
     let agent = AgentBuilder::new(model).build(client);
 
-    let (mut rx, channel) = agent.run("Test streaming").await.unwrap();
+    let (mut rx, channel, _handle) = agent.run("Test streaming").await.unwrap();
     
     // Also test the broadcast channel
     let mut broadcast_rx = channel.subscribe();
@@ -297,7 +297,7 @@ async fn test_agent_multiple_turns() {
         .tools(tool_registry)
         .build(client);
 
-    let (mut rx, _channel) = agent.run("Do multiple searches").await.unwrap();
+    let (mut rx, _channel, _handle) = agent.run("Do multiple searches").await.unwrap();
     
     let mut events = Vec::new();
     while let Some(event) = rx.recv().await {
@@ -354,7 +354,7 @@ async fn test_agent_tool_error_handling() {
         .tools(tool_registry)
         .build(client);
 
-    let (mut rx, _channel) = agent.run("Use failing tool").await.unwrap();
+    let (mut rx, _channel, _handle) = agent.run("Use failing tool").await.unwrap();
     
     let mut events = Vec::new();
     while let Some(event) = rx.recv().await {
@@ -398,9 +398,10 @@ async fn test_agent_max_turns_limit() {
     let model = Model::new(Provider::Custom, "test-model");
     let agent = AgentBuilder::new(model)
         .tools(tool_registry)
+        .max_turns(10)
         .build(client);
 
-    let (mut rx, _channel) = agent.run("This will loop").await.unwrap();
+    let (mut rx, _channel, _handle) = agent.run("This will loop").await.unwrap();
     
     let mut events = Vec::new();
     while let Some(event) = rx.recv().await {
@@ -409,7 +410,7 @@ async fn test_agent_max_turns_limit() {
 
     let turn_starts: Vec<_> = events.iter().filter(|e| matches!(e, StreamEvent::TurnStart)).collect();
     
-    // Should be limited to MAX_TURN_COUNT (10)
+    // Should be limited to max_turns (10)
     assert!(turn_starts.len() <= 10, "Should not exceed max turns limit");
 }
 
@@ -426,11 +427,11 @@ async fn test_agent_message_history() {
     let model = Model::new(Provider::Custom, "test-model");
     let agent = AgentBuilder::new(model).build(client);
 
-    let (mut rx, _channel) = agent.run("Message 1").await.unwrap();
+    let (mut rx, _channel, _handle) = agent.run("Message 1").await.unwrap();
     while rx.recv().await.is_some() {}
 
     // Run again - should have previous context
-    let (mut rx2, _channel2) = agent.run("Message 2").await.unwrap();
+    let (mut rx2, _channel2, _handle2) = agent.run("Message 2").await.unwrap();
     let mut events = Vec::new();
     while let Some(event) = rx2.recv().await {
         events.push(event.unwrap());

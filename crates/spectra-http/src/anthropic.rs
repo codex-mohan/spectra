@@ -9,6 +9,8 @@ use spectra_rs::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmRespo
 use spectra_rs::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
 
 const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
+const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
+const CONNECT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
 pub struct AnthropicClient {
     client: Client,
@@ -20,6 +22,9 @@ impl AnthropicClient {
     pub fn new(api_key: Option<String>) -> Result<Self> {
         let client = Client::builder()
             .use_rustls_tls()
+            .timeout(DEFAULT_TIMEOUT)
+            .connect_timeout(CONNECT_TIMEOUT)
+            .pool_max_idle_per_host(10)
             .build()
             .map_err(|e| SpectraError::LlmError {
                 provider: "anthropic".into(),
@@ -36,6 +41,21 @@ impl AnthropicClient {
     pub fn with_base_url(mut self, url: impl Into<String>) -> Self {
         self.base_url = Some(url.into());
         self
+    }
+
+    pub fn with_timeout(mut self, timeout: std::time::Duration) -> Result<Self> {
+        self.client = Client::builder()
+            .use_rustls_tls()
+            .timeout(timeout)
+            .connect_timeout(CONNECT_TIMEOUT)
+            .pool_max_idle_per_host(10)
+            .build()
+            .map_err(|e| SpectraError::LlmError {
+                provider: "anthropic".into(),
+                message: format!("Failed to create HTTP client: {}", e),
+                source: Some(Box::new(e)),
+            })?;
+        Ok(self)
     }
 
     fn get_api_key(&self) -> Result<String> {

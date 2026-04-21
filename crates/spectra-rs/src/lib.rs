@@ -48,7 +48,7 @@ pub mod llm;
 pub mod messages;
 pub mod tool;
 
-pub use agent::{Agent, AgentBuilder, AgentConfig};
+pub use agent::{Agent, AgentBuilder, AgentConfig, AgentHandle, ToolExecutionMode};
 pub use error::{Result, SpectraError};
 pub use event::{ContentDelta, EventChannel, EventSink, StreamEvent};
 pub use extension::{Extension, ExtensionManager};
