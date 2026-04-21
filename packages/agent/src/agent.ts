@@ -22,6 +22,14 @@ import type {
 
 type EmitFn = (event: AgentEvent) => void | Promise<void>;
 
+interface PreparedToolCall {
+  toolCall: ToolCall;
+  tool: AgentTool | null;
+  args: Record<string, unknown>;
+  blocked: boolean;
+  blockReason?: string;
+}
+
 class AgentEventStream extends EventStream<AgentEvent, Message[]> {
   constructor() {
     super(
@@ -176,8 +184,8 @@ export class Agent {
         return;
       }
 
-      this._messages.push(assistantMessage);
-      await emit({ type: "message_end", message: assistantMessage });
+      // Note: streamAssistantResponse already manages adding the assistant message to _messages
+      // and emits message_start/message_end events, so we don't duplicate here
 
       const toolCalls = assistantMessage.content.filter((c): c is ToolCall => c.type === "toolCall");
 
@@ -284,7 +292,125 @@ export class Agent {
     assistantMessage: AssistantMessage,
     emit: EmitFn,
   ): Promise<ToolResultMessage[]> {
-    return Promise.all(toolCalls.map((tc) => this.executeSingleToolCall(tc, assistantMessage, emit)));
+    // Phase 1: Prepare all tool calls sequentially (validation + hooks)
+    const prepared = await this.prepareToolCalls(toolCalls, assistantMessage, emit);
+    
+    // Phase 2: Execute all prepared tool calls in parallel
+    const executed = await Promise.all(
+      prepared.map((p) => this.executePreparedToolCall(p, assistantMessage, emit))
+    );
+    
+    return executed;
+  }
+
+  private async prepareToolCalls(
+    toolCalls: ToolCall[],
+    assistantMessage: AssistantMessage,
+    emit: EmitFn,
+  ): Promise<PreparedToolCall[]> {
+    const prepared: PreparedToolCall[] = [];
+    
+    for (const toolCall of toolCalls) {
+      if (this.abortController?.signal.aborted) break;
+      
+      await emit({ type: "tool_execution_start", toolCallId: toolCall.id, toolName: toolCall.name, args: toolCall.arguments });
+      this._pendingToolCalls.add(toolCall.id);
+
+      const tool = this.tools.get(toolCall.name);
+      if (!tool) {
+        prepared.push({
+          toolCall,
+          tool: null,
+          args: toolCall.arguments,
+          blocked: true,
+          blockReason: `Unknown tool "${toolCall.name}"`,
+        });
+        continue;
+      }
+
+      let args = toolCall.arguments;
+      if (tool.prepareArguments) {
+        try {
+          args = tool.prepareArguments(args);
+        } catch (err) {
+          prepared.push({
+            toolCall,
+            tool: null,
+            args,
+            blocked: true,
+            blockReason: `Argument validation failed: ${err instanceof Error ? err.message : String(err)}`,
+          });
+          continue;
+        }
+      }
+
+      if (this.beforeToolCallHook) {
+        const result = await this.beforeToolCallHook(
+          { assistantMessage, toolCall, args, context: this.buildContext() },
+          this.abortController?.signal
+        );
+        if (result?.block) {
+          prepared.push({
+            toolCall,
+            tool: null,
+            args,
+            blocked: true,
+            blockReason: result.reason ?? "Tool call blocked",
+          });
+          continue;
+        }
+      }
+
+      prepared.push({ toolCall, tool, args, blocked: false });
+    }
+    
+    return prepared;
+  }
+
+  private async executePreparedToolCall(
+    prepared: PreparedToolCall,
+    assistantMessage: AssistantMessage,
+    emit: EmitFn,
+  ): Promise<ToolResultMessage> {
+    const { toolCall, tool, args, blocked, blockReason } = prepared;
+    
+    if (blocked) {
+      this._pendingToolCalls.delete(toolCall.id);
+      return this.finalizeToolCall(
+        toolCall,
+        { content: [{ type: "text", text: blockReason ?? "Tool call blocked" }], isError: true },
+        true,
+        assistantMessage,
+        emit
+      );
+    }
+
+    let toolResult: ToolResult;
+    try {
+      const onUpdate: ToolUpdateCallback = (partial) => {
+        for (const listener of this.listeners) {
+          listener(
+            {
+              type: "tool_execution_update",
+              toolCallId: toolCall.id,
+              toolName: toolCall.name,
+              args,
+              partialResult: partial,
+            },
+            this.abortController?.signal
+          );
+        }
+      };
+      toolResult = await tool!.execute(toolCall.id, args, this.abortController?.signal, onUpdate);
+    } catch (err) {
+      toolResult = {
+        content: [{ type: "text", text: err instanceof Error ? err.message : String(err) }],
+        isError: true,
+      };
+    }
+
+    this._pendingToolCalls.delete(toolCall.id);
+    return this.finalizeToolCall(toolCall, toolResult, toolResult.isError ?? false, assistantMessage, emit);
   }
 
   private async executeSingleToolCall(
@@ -292,47 +418,9 @@ export class Agent {
     assistantMessage: AssistantMessage,
     emit: EmitFn,
   ): Promise<ToolResultMessage> {
-    await emit({ type: "tool_execution_start", toolCallId: toolCall.id, toolName: toolCall.name, args: toolCall.arguments });
-    this._pendingToolCalls.add(toolCall.id);
-
-    const tool = this.tools.get(toolCall.name);
-    if (!tool) {
-      this._pendingToolCalls.delete(toolCall.id);
-      return this.finalizeToolCall(toolCall, { content: [{ type: "text", text: `Unknown tool "${toolCall.name}"` }], isError: true }, true, assistantMessage, emit);
-    }
-
-    let args = toolCall.arguments;
-    if (tool.prepareArguments) {
-      try {
-        args = tool.prepareArguments(args);
-      } catch (err) {
-        this._pendingToolCalls.delete(toolCall.id);
-        return this.finalizeToolCall(toolCall, { content: [{ type: "text", text: `Argument validation failed: ${err instanceof Error ? err.message : String(err)}` }], isError: true }, true, assistantMessage, emit);
-      }
-    }
-
-    if (this.beforeToolCallHook) {
-      const result = await this.beforeToolCallHook({ assistantMessage, toolCall, args, context: this.buildContext() }, this.abortController?.signal);
-      if (result?.block) {
-        this._pendingToolCalls.delete(toolCall.id);
-        return this.finalizeToolCall(toolCall, { content: [{ type: "text", text: result.reason ?? "Tool call blocked" }], isError: true }, true, assistantMessage, emit);
-      }
-    }
-
-    let toolResult: ToolResult;
-    try {
-      const onUpdate: ToolUpdateCallback = (partial) => {
-        for (const listener of this.listeners) {
-          listener({ type: "tool_execution_update", toolCallId: toolCall.id, toolName: toolCall.name, args, partialResult: partial }, this.abortController?.signal);
-        }
-      };
-      toolResult = await tool.execute(toolCall.id, args, this.abortController?.signal, onUpdate);
-    } catch (err) {
-      toolResult = { content: [{ type: "text", text: err instanceof Error ? err.message : String(err) }], isError: true };
-    }
-
-    this._pendingToolCalls.delete(toolCall.id);
-    return this.finalizeToolCall(toolCall, toolResult, toolResult.isError ?? false, assistantMessage, emit);
+    // Sequential path: prepare then execute immediately
+    const [prepared] = await this.prepareToolCalls([toolCall], assistantMessage, emit);
+    return this.executePreparedToolCall(prepared, assistantMessage, emit);
   }
 
   private async finalizeToolCall(
@@ -355,6 +443,10 @@ export class Agent {
 
     const msg: ToolResultMessage = { role: "toolResult", toolCallId: toolCall.id, toolName: toolCall.name, content: result.content, isError, timestamp: Date.now() };
     this._messages.push(msg);
+
+    // Emit message events so consumers can track tool results in the transcript
+    await emit({ type: "message_start", message: msg });
+    await emit({ type: "message_end", message: msg });
 
     await emit({ type: "tool_execution_end", toolCallId: toolCall.id, toolName: toolCall.name, result, isError });
 

@@ -54,7 +54,12 @@ export function createOpenAICompletionsProvider() {
         try {
           const apiKey = options?.apiKey ?? getEnvApiKey(model.provider);
           if (!apiKey) {
-            throw new Error(`No API key for provider: ${model.provider}`);
+            output.stopReason = "error";
+            output.errorMessage = `No API key for provider: ${model.provider}`;
+            stream.push({ type: "start", partial: output });
+            stream.push({ type: "error", reason: "error", error: output });
+            stream.end();
+            return;
           }
 
           const client = new OpenAI({
