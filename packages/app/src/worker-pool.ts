@@ -59,7 +59,6 @@ export async function createAgentRunner(
         model: session.model,
         systemPrompt: session.config.systemPrompt,
         tools: session.config.tools,
-        maxTurns: session.config.maxTurns,
         toolExecution: session.config.toolExecution,
       });
 

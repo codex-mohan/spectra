@@ -86,7 +86,6 @@ export class Agent {
 
   private model: Model;
   private systemPrompt?: string;
-  private maxTurns: number;
   private toolExecution: ToolExecutionMode;
   private beforeToolCallHook?: AgentConfig["beforeToolCall"];
   private afterToolCallHook?: AgentConfig["afterToolCall"];
@@ -108,7 +107,6 @@ export class Agent {
   }) {
     this.model = config.model;
     this.systemPrompt = config.systemPrompt;
-    this.maxTurns = config.maxTurns ?? 10;
     this.toolExecution = config.toolExecution ?? "parallel";
     this.beforeToolCallHook = config.beforeToolCall;
     this.afterToolCallHook = config.afterToolCall;
@@ -212,7 +210,7 @@ export class Agent {
   private async runLoop(emit: EmitFn): Promise<void> {
     let turns = 0;
 
-    while (turns < this.maxTurns && !this.abortController?.signal.aborted) {
+    while (!this.abortController?.signal.aborted) {
       if (turns > 0) {
         await emit({ type: "turn_start" });
       }

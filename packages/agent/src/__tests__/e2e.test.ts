@@ -465,46 +465,6 @@ describe("Agent E2E - Advanced Features", () => {
     expect(afterHook).toHaveBeenCalled();
   });
 
-  it("should respect maxTurns limit", async () => {
-    // Provider that always returns tool calls
-    const mockProvider = createMockProvider("test-provider", [
-      [
-        createToolCallMessage([
-          {
-            type: "toolCall",
-            id: "call_1",
-            name: "loop_tool",
-            arguments: {},
-          },
-        ]),
-      ],
-    ]);
-    registerProvider(mockProvider);
-
-    const loopTool = defineTool({
-      name: "loop_tool",
-      description: "Causes loops",
-      parameters: z.object({}),
-      execute: async () => ({
-        content: [{ type: "text", text: "Loop" }],
-      }),
-    });
-
-    const agent = new Agent({
-      model: testModel,
-      tools: [loopTool],
-      maxTurns: 3,
-    });
-
-    const events: any[] = [];
-    for await (const event of agent.run("Loop test")) {
-      events.push(event);
-    }
-
-    const turnStarts = events.filter((e) => e.type === "turn_start");
-    expect(turnStarts.length).toBeLessThanOrEqual(3);
-  });
-
   it("should support sequential tool execution", async () => {
     const executionOrder: string[] = [];
     

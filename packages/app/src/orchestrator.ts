@@ -24,7 +24,6 @@ export class SimpleOrchestrator {
         model: agentConfig.model,
         systemPrompt: agentConfig.systemPrompt,
         tools: agentConfig.tools,
-        maxTurns: budget?.maxTurns ?? 5,
       });
 
       const events: any[] = [];
