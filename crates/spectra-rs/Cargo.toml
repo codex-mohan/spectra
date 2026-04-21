@@ -27,6 +27,7 @@ toml = "0.8"
 tokio-test = "0.4"
 wiremock = "0.6"
 insta = "1"
+tokio-stream = "0.1"
 
 [lib]
 path = "src/lib.rs"
