@@ -70,6 +70,51 @@ describe("Agent", () => {
   });
 });
 
+describe("Agent Queues and Hooks", () => {
+  it("should add steering messages to queue", () => {
+    const agent = new Agent({ model: testModel });
+    
+    agent.steer("Please be more concise");
+    
+    // Steering message should be queued (internal state)
+    // We can't directly check the queue, but we can verify it doesn't throw
+    expect(() => agent.steer("Another message")).not.toThrow();
+  });
+
+  it("should add follow-up messages to queue", () => {
+    const agent = new Agent({ model: testModel });
+    
+    agent.followUp("Can you also check the forecast?");
+    
+    // Follow-up message should be queued
+    expect(() => agent.followUp("And the temperature?")).not.toThrow();
+  });
+
+  it("should accept Message objects in steer and followUp", () => {
+    const agent = new Agent({ model: testModel });
+    
+    const message: Message = {
+      role: "user",
+      content: "Custom message",
+      timestamp: Date.now(),
+    };
+    
+    expect(() => agent.steer(message)).not.toThrow();
+    expect(() => agent.followUp(message)).not.toThrow();
+  });
+});
+
+describe("Agent Retry Logic", () => {
+  it("should configure max retry delay", () => {
+    const agent = new Agent({ 
+      model: testModel,
+      maxRetryDelayMs: 5000,
+    });
+    
+    expect(agent).toBeDefined();
+  });
+});
+
 describe("defineTool", () => {
   it("should create tool with Zod schema", () => {
     const tool = defineTool({

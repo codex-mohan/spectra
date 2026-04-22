@@ -1,0 +1,32 @@
+{
+  "name": "@spectra/app",
+  "version": "0.1.0",
+  "description": "Spectra App - Session management, concurrency, and orchestration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest --run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@spectra/ai": "workspace:*",
+    "@spectra/agent": "workspace:*",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0",
+    "@types/uuid": "^10.0.0"
+  },
+  "license": "MIT"
+}

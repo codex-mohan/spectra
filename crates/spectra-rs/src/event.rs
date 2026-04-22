@@ -1,14 +1,15 @@
 use crate::messages::{AssistantMessage, ToolCall, ToolResultMessage};
 use crate::error::Result;
+use crate::messages::Message;
 use tokio::sync::broadcast;
 
 #[derive(Debug, Clone)]
 pub enum StreamEvent {
     AgentStart,
     TurnStart,
-    MessageStart { message: AssistantMessage },
+    MessageStart { message: Message },
     MessageUpdate { delta: ContentDelta },
-    MessageEnd { message: AssistantMessage },
+    MessageEnd { message: Message },
     TurnEnd { tool_results: Vec<ToolResultMessage> },
     ToolExecutionStart { tool_call: ToolCall },
     ToolExecutionUpdate { partial: serde_json::Value },
