@@ -232,6 +232,9 @@ export function createOpenAICompletionsProvider() {
         } catch (error) {
           output.stopReason = options?.signal?.aborted ? "aborted" : "error";
           output.errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+          // Some providers via OpenRouter give additional information in this field.
+          const rawMetadata = (error as any)?.error?.metadata?.raw;
+          if (rawMetadata) output.errorMessage += `\n${rawMetadata}`;
           stream.push({ type: "error", reason: output.stopReason, error: output });
           stream.end();
         }
