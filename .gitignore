@@ -43,6 +43,10 @@ coverage/
 npm-debug.log*
 pnpm-debug.log*
 
+# Environment files
+.env*
+!.env.example
+
 # Temporary
 *.tmp
 *.temp
