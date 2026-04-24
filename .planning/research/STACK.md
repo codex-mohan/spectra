@@ -39,7 +39,7 @@
 | Tool | Purpose | Notes |
 |------|---------|-------|
 | Turborepo | Task orchestration | Language-agnostic, cached builds |
-| pnpm | Package manager | Fast, efficient workspace support |
+| bun | Package manager | Fast, efficient workspace support |
 | cargo-nextest | Test runner | Faster test execution, better output |
 | cargo-audit | Security audit | Catches vulnerable dependencies |
 

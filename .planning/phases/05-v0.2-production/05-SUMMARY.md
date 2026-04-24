@@ -36,7 +36,7 @@
 | Workflow | File | Coverage |
 |---------|------|----------|
 | Rust CI | `.github/workflows/rust-ci.yml` | ✓ build, test, clippy, audit on PR |
-| TypeScript CI | `.github/workflows/ts-ci.yml` | ✓ pnpm build, lint |
+| TypeScript CI | `.github/workflows/ts-ci.yml` | ✓ bun build, lint |
 | Python CI | `.github/workflows/py-ci.yml` | ✓ maturin build |
 | Release | `.github/workflows/release.yml` | ✓ Native builds on tags |
 

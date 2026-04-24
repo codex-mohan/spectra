@@ -62,7 +62,7 @@ Based on pi-mono patterns, the implementation follows:
 ```
 spectra/
 ├── Cargo.toml              # Workspace root
-├── pnpm-workspace.yaml     # pnpm monorepo
+├── package.json            # bun workspaces
 ├── turbo.json              # Turborepo config
 ├── packages/
 │   └── core/               # spectra-core crate
@@ -93,7 +93,7 @@ spectra/
   - tracing
   - dashmap
   - reqwest (with rustls)
-- [ ] Create `pnpm-workspace.yaml`
+- [ ] Configure `package.json` workspaces (bun)
 - [ ] Create `turbo.json` with pipeline: build, test, lint
 - [ ] Create root `package.json` with scripts
 

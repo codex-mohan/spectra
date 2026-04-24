@@ -187,26 +187,33 @@ export class Agent {
       this._messages.push(msg);
     }
 
-    try {
-      await emit({ type: "agent_start" });
-      for (const msg of userMessages) {
-        await emit({ type: "message_start", message: msg });
-        await emit({ type: "message_end", message: msg });
-      }
-      await emit({ type: "turn_start" });
-      await this.runLoop(emit);
-    } catch (err) {
-      this._errorMessage = err instanceof Error ? err.message : String(err);
-    } finally {
-      this._isStreaming = false;
-      this._streamingMessage = undefined;
-      this._pendingToolCalls = new Set();
-      this.abortController = null;
+    // Emit initial events synchronously before starting the loop
+    await emit({ type: "agent_start" });
+    for (const msg of userMessages) {
+      await emit({ type: "message_start", message: msg });
+      await emit({ type: "message_end", message: msg });
     }
+    await emit({ type: "turn_start" });
 
+    // Start runLoop fire-and-forget so we can yield events progressively
+    const runPromise = this.runLoop(emit)
+      .catch((err) => {
+        this._errorMessage = err instanceof Error ? err.message : String(err);
+      })
+      .finally(() => {
+        this._isStreaming = false;
+        this._streamingMessage = undefined;
+        this._pendingToolCalls = new Set();
+        this.abortController = null;
+      });
+
+    // Yield events to consumer as they arrive during streaming
     for await (const event of agentStream) {
       yield event;
     }
+
+    // Ensure runLoop has fully completed
+    await runPromise;
   }
 
   private async runLoop(emit: EmitFn): Promise<void> {

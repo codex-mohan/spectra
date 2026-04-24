@@ -9,7 +9,7 @@
 ### Workspace Foundation (BUILD-01, BUILD-02, BUILD-03)
 - Root `Cargo.toml` workspace with `packages/core`
 - `packages/core/Cargo.toml` with all dependencies (tokio, reqwest, thiserror, miette, etc.)
-- `pnpm-workspace.yaml` for pnpm monorepo
+- `package.json` workspaces for bun monorepo
 - `turbo.json` with build, test, lint pipeline
 - `package.json` with npm scripts
 
@@ -55,7 +55,7 @@ packages/core/src/event.rs
 packages/core/src/llm.rs
 packages/core/src/tool.rs
 packages/core/src/agent.rs
-pnpm-workspace.yaml
+package.json (bun workspaces)
 turbo.json
 package.json
 ```

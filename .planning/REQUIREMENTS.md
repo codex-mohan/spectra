@@ -45,7 +45,7 @@
 ### Build System
 
 - [ ] **BUILD-01**: Cargo workspace configuration
-- [ ] **BUILD-02**: pnpm workspace with Turborepo
+- [ ] **BUILD-02**: bun workspace with Turborepo
 - [ ] **BUILD-03**: Turborepo pipeline (build, test, lint tasks)
 - [ ] **BUILD-04**: Native addon build scripts
 

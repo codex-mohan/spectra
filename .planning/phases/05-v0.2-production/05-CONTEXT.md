@@ -40,7 +40,7 @@ Make Spectra actually usable: real LLM calls, native bindings work, CI/CD in pla
 ### D-05: CI/CD Scope
 - **Decision:** All language builds (Rust + TypeScript + Python)
 - **Rust CI:** `cargo build`, `cargo test`, `cargo clippy`, `cargo audit`
-- **TypeScript CI:** `pnpm build` (npm package)
+- **TypeScript CI:** `bun build` (npm package)
 - **Python CI:** `maturin build --release` (wheels)
 - **Native builds:** Built on release tags, not every PR (save CI time)
 

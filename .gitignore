@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-.pnpm-store/
 
 # Turborepo
 .turbo/
@@ -15,8 +14,7 @@ target/
 *.wasm
 *.node
 
-# Lock files (optional - some prefer to commit these)
-# pnpm-lock.yaml
+# Lock files
 # Cargo.lock
 
 # IDE
@@ -40,8 +38,6 @@ coverage/
 
 # Logs
 *.log
-npm-debug.log*
-pnpm-debug.log*
 
 # Environment files
 .env*

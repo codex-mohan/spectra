@@ -30,7 +30,7 @@ Minimal, ultra-fast, multi-language AI agent framework. Each SDK (Rust, TypeScri
 ### Constraints
 
 - **Architecture**: Independent native SDKs per language — no bindings, no FFI, no shared runtime
-- **Monorepo**: Turborepo orchestration, pnpm workspaces (TypeScript), Cargo workspace (Rust)
+- **Monorepo**: Turborepo orchestration, Bun workspaces (TypeScript), Cargo workspace (Rust)
 - **Rust zero unsafe policy**: No unsafe in core logic (FFI boundaries only, though none currently exist)
 - **Rust performance**: opt-level 3, thin LTO, codegen-units 1, strip symbols, panic=abort in release
 - **Dependencies**: No OpenSSL (rustls only), minimal deps, cargo audit required
@@ -77,7 +77,7 @@ Dev: typescript ^5.7, vitest ^3.2, tsx ^4.19
 | Tool | Purpose |
 |------|---------|
 | Turborepo | Task orchestration, cached builds across packages |
-| pnpm | Package manager with workspace support |
+| Bun | Package manager with native workspace support |
 | cargo | Rust workspace builds and tests |
 
 ### What NOT to Use
@@ -142,8 +142,7 @@ spectra/
 │   └── examples/                   # Example usage
 │       └── src/index.ts
 ├── Cargo.toml                      # Rust workspace root
-├── package.json                    # pnpm workspace root + turbo
-├── pnpm-workspace.yaml             # packages/*, apps/*
+├── package.json                    # Bun workspace root + turbo
 ├── turbo.json                      # Turborepo task config
 └── .github/workflows/              # CI/CD
 ```
@@ -185,6 +184,9 @@ spectra/
 - Rust: `cargo test --workspace` (unit + wiremock integration tests in spectra-http)
 - TypeScript: `vitest --run` in each package
 - No Python SDK tests yet (TODO)
+
+### Research Guidance
+- If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source=ARCHITECTURE.md -->

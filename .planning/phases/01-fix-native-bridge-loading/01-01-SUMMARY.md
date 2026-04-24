@@ -64,7 +64,7 @@ Native addon build pipeline fixed: cargo builds spectra_napi.dll on Windows, cop
 ## Verification Results
 
 - `cargo build --release --package spectra-napi` ✓
-- `pnpm build` (tsc + copy-native.js) ✓
+- `bun build` (tsc + copy-native.js) ✓
 - `require('./dist/native/spectra_napi.node').getVersion()` returns "0.2.0" ✓
 - All 6 exports accessible: createAgent, deleteAgent, getAgents, getVersion, runAgent, runAgentWithInput ✓
 - `npx vitest run` passes all 7 tests ✓

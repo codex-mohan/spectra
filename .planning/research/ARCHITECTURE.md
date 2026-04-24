@@ -51,9 +51,9 @@
 ```
 spectra/
 ├── Cargo.toml              # Workspace root
-├── package.json             # pnpm workspace root
+├── package.json             # bun workspace root
 ├── turbo.json               # Turborepo config
-├── pnpm-workspace.yaml       # Workspace globs
+├── package.json              # bun workspaces (no separate yaml)
 │
 ├── crates/                  # Rust crates
 │   ├── spectra-core/        # Core (agent loop, LLM, tools, errors)

@@ -339,7 +339,7 @@ Similar issues to napi:
 
 4. **`copy-native.js` is empty** — the TS build script `tsc && node scripts/copy-native.js` will run but copy nothing.
 
-5. **Missing `pnpm-lock.yaml`** — CI workflows reference `pnpm-lock.yaml` but it may not exist (would cause CI failure).
+5. **Missing `bun.lockb`** — CI workflows reference `bun.lockb` but it may not exist (would cause CI failure).
 
 6. **`models.toml` missing** — `load_builtin_models()` in `spectra-rs/src/models.rs` looks for `models.toml` in the crate root, but no such file exists. It silently returns an empty registry.
 

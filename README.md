@@ -30,7 +30,7 @@ Each SDK is a **complete, independent implementation** in its native language. S
 | **Rust SDK** | Rust 1.75+ · Tokio · Reqwest (rustls) · serde · thiserror · miette |
 | **TypeScript SDK** | TypeScript 5.x · Vitest · Zod |
 | **Python SDK** | Python 3.11+ · Pydantic |
-| **Tooling** | Turborepo · pnpm · cargo-nextest |
+| **Tooling** | Turborepo · Bun · cargo-nextest |
 
 ## Project Structure
 
@@ -66,7 +66,7 @@ spectra/
 ### Prerequisites
 
 - **Rust** 1.75+ (edition 2024)
-- **Node.js** 18+ and **pnpm** 9+ (for TypeScript SDK)
+- **Bun** 1.3+ (for TypeScript SDK)
 
 ### Rust
 
@@ -101,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### TypeScript
 
 ```bash
-pnpm add @spectra/ai @spectra/agent
+bun add @spectra/ai @spectra/agent
 ```
 
 ```typescript
@@ -218,8 +218,8 @@ Each SDK is a **complete, independent implementation**. No bindings, no shared r
 cargo test --workspace
 
 # TypeScript tests
-cd packages/ai && pnpm test
-cd packages/agent && pnpm test
+cd packages/ai && bun test
+cd packages/agent && bun test
 
 # Integration tests (wiremock)
 cargo test -p spectra-http
@@ -236,8 +236,8 @@ cd spectra
 cargo build --release
 
 # Build TypeScript SDKs
-cd packages/ai && pnpm install && pnpm build
-cd packages/agent && pnpm install && pnpm build
+cd packages/ai && bun install && bun run build
+cd packages/agent && bun install && bun run build
 ```
 
 ---

@@ -37,7 +37,7 @@ Greenfield project. Full specification in USER_PROMPT.md. Monorepo with Turborep
 ## Constraints
 
 - **Tech Stack**: Rust core (tokio async), TypeScript (napi-rs), Python (PyO3)
-- **Monorepo**: Turborepo orchestration, pnpm workspaces
+- **Monorepo**: Turborepo orchestration, bun workspaces
 - **Zero unsafe policy**: No unsafe in core logic (FFI boundaries only)
 - **Performance**: opt-level 3, thin LTO, panic=abort in release
 - **Dependencies**: No OpenSSL (rustls), minimal deps, cargo audit required
