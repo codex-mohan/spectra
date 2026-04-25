@@ -1,9 +1,11 @@
 /** @jsxImportSource @opentui/react */
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { createCliRenderer } from "@opentui/core"
+import { createCliRenderer, RGBA, SyntaxStyle } from "@opentui/core"
 import { createRoot, flushSync, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { Agent } from "@spectra/agent"
+import { defineTool } from "@spectra/agent"
+import { z } from "zod"
 import type { AssistantMessage, TextContent, ThinkingContent, ToolCall } from "@spectra/ai"
 import "dotenv/config"
 
@@ -36,6 +38,32 @@ const c = {
 }
 
 // ---------------------------------------------------------------------------
+// Markdown syntax style
+// ---------------------------------------------------------------------------
+
+const mdStyle = SyntaxStyle.fromStyles({
+  "markup.heading.1": { fg: RGBA.fromHex(c.accent), bold: true },
+  "markup.heading.2": { fg: RGBA.fromHex(c.accent), bold: true },
+  "markup.heading.3": { fg: RGBA.fromHex(c.accent), bold: true },
+  "markup.heading.4": { fg: RGBA.fromHex(c.accent) },
+  "markup.bold": { bold: true },
+  "markup.italic": { italic: true },
+  "markup.list": { fg: RGBA.fromHex(c.text) },
+  "markup.raw": { fg: RGBA.fromHex(c.thinking) },
+  "markup.link": { fg: RGBA.fromHex(c.user) },
+  "markup.quote": { fg: RGBA.fromHex(c.dim) },
+  "markup.table": { fg: RGBA.fromHex(c.text) },
+  "markup.table.header": { fg: RGBA.fromHex(c.accent), bold: true },
+  "keyword": { fg: RGBA.fromHex(c.accent) },
+  "string": { fg: RGBA.fromHex(c.success) },
+  "comment": { fg: RGBA.fromHex(c.dim), italic: true },
+  "number": { fg: RGBA.fromHex(c.tool) },
+  "function": { fg: RGBA.fromHex(c.user) },
+  "type": { fg: RGBA.fromHex(c.accent) },
+  default: { fg: RGBA.fromHex(c.text) },
+})
+
+// ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 
@@ -47,6 +75,38 @@ const MODEL = {
 }
 
 const SYSTEM_PROMPT = process.env.OPENROUTER_SYSTEM_PROMPT || "You are a helpful assistant."
+
+// ---------------------------------------------------------------------------
+// Tools
+// ---------------------------------------------------------------------------
+
+const tools = [
+  defineTool({
+    name: "calculate",
+    description: "Evaluate a mathematical expression",
+    parameters: z.object({ expression: z.string() }),
+    execute: async (args) => {
+      try {
+        const result = Function(`"use strict"; return (${args.expression})`)()
+        return { content: [{ type: "text", text: `${args.expression} = ${result}` }] }
+      } catch {
+        return { content: [{ type: "text", text: `Error evaluating: ${args.expression}` }] }
+      }
+    },
+  }),
+  defineTool({
+    name: "get_time",
+    description: "Get the current date and time",
+    parameters: z.object({}),
+    execute: async () => ({ content: [{ type: "text", text: new Date().toISOString() }] }),
+  }),
+  defineTool({
+    name: "echo",
+    description: "Echo back whatever the user says",
+    parameters: z.object({ text: z.string() }),
+    execute: async (args) => ({ content: [{ type: "text", text: `You said: ${args.text}` }] }),
+  }),
+]
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -155,21 +215,28 @@ function MessageContent(props: { msg: ChatMessage }) {
     if (msg.blocks.length === 0 && msg.streaming) {
       return <text fg={c.dim}>(waiting for first token...)</text>
     }
+
+    const nonText = msg.blocks.filter((b) => b.type !== "text")
+    const textBlocks = msg.blocks.filter((b) => b.type === "text")
+    const mdContent = textBlocks.map((b) => b.content).join("\n")
+
     return (
       <box flexDirection="column" gap={1}>
-        {msg.blocks.map((block, idx) => {
+        {nonText.map((block, idx) => {
           if (block.type === "thinking") {
-            return <ThinkingBlock key={idx} content={block.content} />
+            return <ThinkingBlock key={`think-${idx}`} content={block.content} />
           }
-          if (block.type === "toolCall") {
-            return <ToolCallBlock key={idx} name={block.name} args={block.args} />
-          }
-          return (
-            <box key={idx}>
-              <text fg={c.text}>{block.content}</text>
-            </box>
-          )
+          return <ToolCallBlock key={`tool-${idx}`} name={block.name!} args={block.args!} />
         })}
+        {mdContent && (
+          <markdown
+            content={mdContent}
+            syntaxStyle={mdStyle}
+            streaming={msg.streaming}
+            conceal={true}
+            width="100%"
+          />
+        )}
       </box>
     )
   }
@@ -177,11 +244,11 @@ function MessageContent(props: { msg: ChatMessage }) {
     return null
   }
   return (
-    <box marginLeft={0} marginRight={0}>
-      < text fg={msg.role === "error" ? c.error : c.text}>
+    <box>
+      <text fg={msg.role === "error" ? c.error : c.text}>
         {msg.content || " "}
       </text>
-    </box >
+    </box>
   )
 }
 
@@ -207,7 +274,7 @@ function App() {
 
   // -- refs --
   const agentRef = useRef(
-    new Agent({ model: MODEL, systemPrompt: SYSTEM_PROMPT, maxTurns: 10 }),
+    new Agent({ model: MODEL, systemPrompt: SYSTEM_PROMPT, tools }),
   )
   const streamingIdRef = useRef<string | null>(null)
   const assistantStartTimeRef = useRef<number | null>(null)

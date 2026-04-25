@@ -15,6 +15,7 @@
     "@opentui/core": "^0.1.103",
     "@opentui/react": "^0.1.103",
     "dotenv": "^16.4.0",
+    "zod": "^3.25.0",
     "ink": "^5.2.0",
     "ink-text-input": "^6.0.0",
     "react": "^19.0.0"

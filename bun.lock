@@ -20,6 +20,7 @@
         "ink": "^5.2.0",
         "ink-text-input": "^6.0.0",
         "react": "^19.0.0",
+        "zod": "^3.25.0",
       },
       "devDependencies": {
         "@types/node": "^22.0.0",
