@@ -1,12 +1,14 @@
 /** @jsxImportSource @opentui/react */
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { readFileSync, writeFileSync } from "fs"
+import { homedir } from "os"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import { createCliRenderer, RGBA, SyntaxStyle } from "@opentui/core"
 import { createRoot, flushSync, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { Agent } from "@spectra/agent"
 import { defineTool } from "@spectra/agent"
 import { z } from "zod"
-import type { AssistantMessage, TextContent, ThinkingContent, ToolCall } from "@spectra/ai"
+import type { AssistantMessage, TextContent, ThinkingContent, ToolCall, Message } from "@spectra/ai"
 import "dotenv/config"
 
 // ---------------------------------------------------------------------------
@@ -25,14 +27,13 @@ const c = {
   thinking: "#B4BEFE",
   tps: "#B4BEFE",
   debug: "#6C7086",
-  // backgrounds
   bgBar: "#181825",
   bgChat: "#1E1E2E",
   bgCard: "#252536",
   bgThink: "#232438",
   bgTool: "#272535",
   bgDebug: "#11111B",
-  // scrollbar
+  bgOverlay: "#11111BBB",
   sbThumb: "#45475A",
   sbTrack: "#313244",
 }
@@ -107,6 +108,68 @@ const tools = [
     execute: async (args) => ({ content: [{ type: "text", text: `You said: ${args.text}` }] }),
   }),
 ]
+
+// ---------------------------------------------------------------------------
+// Session storage
+// ---------------------------------------------------------------------------
+
+const MAX_SESSIONS = 20
+
+interface SavedSession {
+  id: string
+  title: string
+  date: string
+  messages: ChatMessage[]
+  agentMessages?: Message[]
+}
+
+function storagePath(): string {
+  return `${homedir()}/.spectra-sessions.json`
+}
+
+function loadSessions(): SavedSession[] {
+  try {
+    return JSON.parse(readFileSync(storagePath(), "utf-8"))
+  } catch {
+    return []
+  }
+}
+
+function persistSessions(sessions: SavedSession[]): void {
+  try {
+    writeFileSync(storagePath(), JSON.stringify(sessions.slice(0, MAX_SESSIONS)), "utf-8")
+  } catch {}
+}
+
+function sessionTitle(messages: ChatMessage[]): string {
+  const user = messages.find((m) => m.role === "user")
+  return user ? user.content.slice(0, 48).replace(/\n.*/, "") : "New session"
+}
+
+function toAgentMessages(chat: ChatMessage[]): Message[] {
+  const msgs: Message[] = []
+  for (const m of chat) {
+    if (m.role === "user") {
+      msgs.push({ role: "user", content: m.content, timestamp: Date.now() })
+    } else if (m.role === "assistant" && m.blocks) {
+      const blocks = m.blocks.map((b) => {
+        if (b.type === "text") return { type: "text" as const, text: b.content }
+        if (b.type === "thinking") return { type: "thinking" as const, thinking: b.content }
+        return { type: "toolCall" as const, id: "", name: b.name, arguments: { raw: b.args } }
+      })
+      msgs.push({
+        role: "assistant",
+        content: blocks,
+        provider: MODEL.provider,
+        model: MODEL.name,
+        usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
+        stopReason: "stop",
+        timestamp: Date.now(),
+      })
+    }
+  }
+  return msgs
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -215,11 +278,9 @@ function MessageContent(props: { msg: ChatMessage }) {
     if (msg.blocks.length === 0 && msg.streaming) {
       return <text fg={c.dim}>(waiting for first token...)</text>
     }
-
     const nonText = msg.blocks.filter((b) => b.type !== "text")
     const textBlocks = msg.blocks.filter((b) => b.type === "text")
     const mdContent = textBlocks.map((b) => b.content).join("\n")
-
     return (
       <box flexDirection="column" gap={1}>
         {nonText.map((block, idx) => {
@@ -229,13 +290,7 @@ function MessageContent(props: { msg: ChatMessage }) {
           return <ToolCallBlock key={`tool-${idx}`} name={block.name!} args={block.args!} />
         })}
         {mdContent && (
-          <markdown
-            content={mdContent}
-            syntaxStyle={mdStyle}
-            streaming={msg.streaming}
-            conceal={true}
-            width="100%"
-          />
+          <markdown content={mdContent} syntaxStyle={mdStyle} streaming={msg.streaming} conceal={true} width="100%" />
         )}
       </box>
     )
@@ -245,9 +300,64 @@ function MessageContent(props: { msg: ChatMessage }) {
   }
   return (
     <box>
-      <text fg={msg.role === "error" ? c.error : c.text}>
-        {msg.content || " "}
-      </text>
+      <text fg={msg.role === "error" ? c.error : c.text}>{msg.content || " "}</text>
+    </box>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Command menu
+// ---------------------------------------------------------------------------
+
+interface CmdItem {
+  id: string
+  label: string
+  desc: string
+  action: () => void
+}
+
+function CommandMenu(props: {
+  filter: string
+  selected: number
+  items: CmdItem[]
+  termWidth: number
+  termHeight: number
+}) {
+  const { filter, selected, items, termWidth, termHeight } = props
+  const mw = Math.min(56, termWidth - 4)
+  const ml = Math.floor((termWidth - mw) / 2)
+  const mh = Math.min(20, termHeight - 4)
+  const listH = mh - 4
+
+  return (
+    <box position="absolute" left={0} right={0} top={0} bottom={0}>
+      <box position="absolute" left={ml} top={2} width={mw} height={mh} backgroundColor={c.bgChat}>
+        {/* Search bar */}
+        <box paddingX={2} paddingTop={1} paddingBottom={1}>
+          <text fg={c.accent}>{">"}</text>
+          <text fg={c.text}> {filter}</text>
+        </box>
+        <box border />
+        {/* Items */}
+        <box flexDirection="column" height={listH} paddingLeft={1} paddingRight={1}>
+          {items.length === 0 ? (
+            <text fg={c.dim}>  No matching commands</text>
+          ) : (
+            items.slice(0, listH).map((item, i) => (
+              <box key={item.id} backgroundColor={i === selected ? c.bgThink : undefined}>
+                <text fg={i === selected ? c.accent : c.text}>
+                  {item.label.padEnd(12)}
+                </text>
+                <text fg={c.dim}>{item.desc}</text>
+              </box>
+            ))
+          )}
+        </box>
+        {/* Footer */}
+        <box paddingX={2} paddingTop={1}>
+          <text fg={c.dim}>{"\u2191\u2193"} navigate  {"\u23CE"} select  esc close</text>
+        </box>
+      </box>
     </box>
   )
 }
@@ -258,9 +368,9 @@ function MessageContent(props: { msg: ChatMessage }) {
 
 function App() {
   const renderer = useRenderer()
-  const { height: termHeight } = useTerminalDimensions()
+  const { width: termWidth, height: termHeight } = useTerminalDimensions()
 
-  // -- state --
+  // -- chat state --
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [status, setStatus] = useState("Ready")
@@ -272,6 +382,11 @@ function App() {
   const [elapsedMs, setElapsedMs] = useState<number | null>(null)
   const [submitCounter, setSubmitCounter] = useState(0)
 
+  // -- command palette state --
+  const [showCmd, setShowCmd] = useState(false)
+  const [cmdFilter, setCmdFilter] = useState("")
+  const [cmdSelected, setCmdSelected] = useState(0)
+
   // -- refs --
   const agentRef = useRef(
     new Agent({ model: MODEL, systemPrompt: SYSTEM_PROMPT, tools }),
@@ -279,6 +394,118 @@ function App() {
   const streamingIdRef = useRef<string | null>(null)
   const assistantStartTimeRef = useRef<number | null>(null)
   const assistantChunkCountRef = useRef(0)
+  const currentSessionIdRef = useRef<string>(generateId())
+  const agentMessagesRef = useRef<Message[] | null>(null)
+
+  // -- auto-save sessions (debounced) --
+  useEffect(() => {
+    if (messages.length === 0) return
+    const timer = setTimeout(() => {
+      const saved = loadSessions()
+      const id = currentSessionIdRef.current
+      const idx = saved.findIndex((s) => s.id === id)
+      const entry: SavedSession = {
+        id, title: sessionTitle(messages), date: new Date().toISOString(), messages,
+        agentMessages: agentMessagesRef.current ?? undefined,
+      }
+      if (idx >= 0) {
+        saved[idx] = entry
+      } else {
+        saved.push(entry)
+      }
+      persistSessions(saved)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [messages])
+
+  // -- commands --
+  const openCmd = useCallback(() => {
+    setSavedSessions(loadSessions())
+    setShowCmd(true)
+    setCmdFilter("")
+    setCmdSelected(0)
+  }, [])
+
+  const closeCmd = useCallback(() => {
+    setShowCmd(false)
+  }, [])
+
+  const execCmd = useCallback(
+    (action: () => void) => {
+      action()
+      closeCmd()
+    },
+    [closeCmd],
+  )
+
+  // -- sessions --
+  const [savedSessions, setSavedSessions] = useState<SavedSession[]>(() => loadSessions())
+
+  const currentSessions = useMemo(() => savedSessions, [savedSessions])
+
+  const cmdItems: CmdItem[] = useMemo(() => {
+    const items: CmdItem[] = [
+      { id: "new", label: "new", desc: "New session", action: () => {
+        setMessages([])
+        currentSessionIdRef.current = generateId()
+        setStatus("Ready")
+        setDebugLines([])
+        setTps(null)
+        setTpsIsFallback(false)
+        setElapsedMs(null)
+        agentRef.current.reset()
+      }},
+      { id: "clear", label: "clear", desc: "Clear conversation", action: () => {
+        setMessages([])
+        currentSessionIdRef.current = generateId()
+        setDebugLines([])
+        agentRef.current.reset()
+        setStatus("Cleared")
+      }},
+      { id: "debug", label: "debug", desc: "Toggle debug panel", action: () => setShowDebug((s) => !s) },
+      { id: "sessions", label: "sessions", desc: `Browse saved conversations (${currentSessions.length})`, action: () => {} },
+      { id: "help", label: "help", desc: "Keyboard shortcuts", action: () => {
+        setStatus("Esc quit  ·  Ctrl+L clear  ·  Ctrl+D debug  ·  Ctrl+P command palette  ·  PgUp/PgDn scroll")
+        setTimeout(() => { setStatus("Ready") }, 4000)
+      }},
+      { id: "quit", label: "quit", desc: "Quit Spectra Chat", action: () => renderer.destroy() },
+    ]
+    for (const s of currentSessions) {
+      items.push({
+        id: s.id,
+        label: `  ${s.date.slice(0, 10)}`,
+        desc: s.title,
+        action: () => {
+          currentSessionIdRef.current = s.id
+          agentRef.current.reset()
+          if (s.agentMessages && s.agentMessages.length > 0) {
+            agentRef.current.restoreHistory(s.agentMessages)
+          } else {
+            agentRef.current.restoreHistory(toAgentMessages(s.messages))
+          }
+          agentMessagesRef.current = s.agentMessages ?? null
+          setMessages(s.messages)
+          setStatus("Ready")
+        },
+      })
+    }
+    return items
+  }, [messages, currentSessions, renderer])
+
+  const filteredItems = useMemo(() => {
+    const q = cmdFilter.toLowerCase()
+    if (!q) return cmdItems
+    return cmdItems.filter(
+      (item) => item.label.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q),
+    )
+  }, [cmdItems, cmdFilter])
+
+  // clamp selection to valid range
+  useEffect(() => {
+    if (cmdSelected >= filteredItems.length && filteredItems.length > 0) {
+      setCmdSelected(filteredItems.length - 1)
+    }
+  }, [cmdSelected, filteredItems.length])
 
   // -- debug logger --
   const pushDebug = useCallback((line: string) => {
@@ -305,9 +532,52 @@ function App() {
 
   // -- keyboard --
   useKeyboard((key) => {
+    // When command palette is open, handle its keys
+    if (showCmd) {
+      if (key.name === "escape") {
+        closeCmd()
+        return
+      }
+      if (key.name === "return" || key.name === "enter") {
+        if (filteredItems.length > 0) {
+          execCmd(filteredItems[cmdSelected].action)
+        }
+        return
+      }
+      if (key.name === "up") {
+        setCmdSelected((p) => (p > 0 ? p - 1 : filteredItems.length - 1))
+        return
+      }
+      if (key.name === "down") {
+        setCmdSelected((p) => (p < filteredItems.length - 1 ? p + 1 : 0))
+        return
+      }
+      if (key.ctrl && key.name === "p") {
+        closeCmd()
+        return
+      }
+      // Text input for search
+      if (key.name === "backspace") {
+        setCmdFilter((p) => p.slice(0, -1))
+        setCmdSelected(0)
+        return
+      }
+      if (key.name.length === 1 && !key.ctrl && !key.meta) {
+        setCmdFilter((p) => p + key.name)
+        setCmdSelected(0)
+        return
+      }
+      return
+    }
+
+    // Normal mode keyboard
     if (key.name === "escape") {
       agentRef.current.abort()
       renderer.destroy()
+      return
+    }
+    if (key.ctrl && key.name === "p") {
+      openCmd()
       return
     }
     if (key.ctrl && key.name === "l") {
@@ -431,6 +701,7 @@ function App() {
               pushDebug(`[TURN_END] stopReason=${event.message.stopReason}`)
               break
             case "agent_end":
+              agentMessagesRef.current = event.messages
               setStatus("Ready")
               break
           }
@@ -489,7 +760,7 @@ function App() {
           <text fg={c.dim}>{MODEL.id}</text>
           <text fg={c.dim}>·</text>
           <text fg={statusColor}>{statusText}</text>
-          <text fg={c.dim}>· Ctrl+D debug</text>
+          <text fg={c.dim}>· Ctrl+P commands</text>
         </box>
       </box>
 
@@ -510,7 +781,7 @@ function App() {
           <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
             <text fg={c.dim}>Welcome to Spectra Chat</text>
             <text fg={c.dim}>Type a message and press Enter</text>
-            <text fg={c.dim}>Esc to quit  ·  Ctrl+L to clear  ·  Ctrl+D debug</text>
+            <text fg={c.dim}>Esc to quit  ·  Ctrl+L clear  ·  Ctrl+D debug  ·  Ctrl+P commands</text>
           </box>
         ) : null}
         {messages.map((msg) => (
@@ -563,12 +834,23 @@ function App() {
                 key={`msg-${submitCounter}`}
                 placeholder="Type a message..."
                 onSubmit={(v) => handleSubmit(String(v))}
-                focused={true}
+                focused={!showCmd}
               />
             </box>
           </box>
         )}
       </box>
+
+      {/* Command palette overlay */}
+      {showCmd && (
+        <CommandMenu
+          filter={cmdFilter}
+          selected={cmdSelected}
+          items={filteredItems}
+          termWidth={termWidth}
+          termHeight={termHeight}
+        />
+      )}
     </box>
   )
 }

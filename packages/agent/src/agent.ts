@@ -125,6 +125,10 @@ export class Agent {
   }
 
   get messages(): Message[] { return [...this._messages]; }
+
+  restoreHistory(messages: Message[]): void {
+    this._messages = [...messages];
+  }
   get isStreaming(): boolean { return this._isStreaming; }
   get streamingMessage(): AssistantMessage | undefined { return this._streamingMessage; }
   get pendingToolCalls(): ReadonlySet<string> { return this._pendingToolCalls; }
