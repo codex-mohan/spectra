@@ -331,18 +331,18 @@ function CommandMenu(props: {
   const mw = Math.min(56, termWidth - 4)
   const ml = Math.floor((termWidth - mw) / 2)
   const mh = Math.min(20, termHeight - 4)
+  const mt = Math.max(1, Math.floor((termHeight - mh) / 2))
   const listH = mh - 4
 
   return (
-    <box position="absolute" left={0} right={0} top={0} bottom={0}>
-      <box position="absolute" left={ml} top={2} width={mw} height={mh} backgroundColor={c.bgChat}>
+    <box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
+      <box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgChat}>
         {/* Search bar */}
         <box paddingX={2} paddingTop={1} paddingBottom={1}>
           {prefix && <text fg={c.accent}>{prefix}</text>}
           <text fg={c.accent}>{">"}</text>
           <text fg={c.text}> {filter}</text>
         </box>
-        <box border />
         {/* Items */}
         <box flexDirection="column" height={listH} paddingLeft={1} paddingRight={1}>
           {items.length === 0 ? (
@@ -675,6 +675,11 @@ function App() {
               break
             case "message_start":
               if (event.message.role === "assistant") {
+                if (!streamingIdRef.current) {
+                  const newId = generateId()
+                  streamingIdRef.current = newId
+                  addMessage({ id: newId, role: "assistant", content: "", blocks: [], streaming: true })
+                }
                 pushDebug(`[MSG_START] usage=${JSON.stringify(event.message.usage)}`)
               }
               break
