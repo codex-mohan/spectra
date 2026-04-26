@@ -2,6 +2,7 @@
 
 import { readFileSync, writeFileSync } from "fs"
 import { homedir } from "os"
+import clipboard from "clipboardy"
 import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import { createCliRenderer, RGBA, SyntaxStyle } from "@opentui/core"
 import { createRoot, flushSync, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
@@ -391,6 +392,7 @@ function App() {
   const [cmdFilter, setCmdFilter] = useState("")
   const [cmdSelected, setCmdSelected] = useState(0)
   const [cmdView, setCmdView] = useState<"main" | "sessions">("main")
+  const [copiedMsg, setCopiedMsg] = useState(false)
 
   // -- refs --
   const agentRef = useRef(
@@ -540,6 +542,23 @@ function App() {
       renderer.dropLive()
     }
   }, [isLoading, renderer])
+
+  // -- auto-copy selected text after 2s via OpenTUI selection event --
+  useEffect(() => {
+    const handler = (selection: { getSelectedText: () => string }) => {
+      const text = selection.getSelectedText()
+      if (!text) return
+      setTimeout(() => {
+        try {
+          clipboard.writeSync(text)
+          setCopiedMsg(true)
+          setTimeout(() => setCopiedMsg(false), 2500)
+        } catch {}
+      }, 2000)
+    }
+    renderer.on("selection", handler)
+    return () => { renderer.off?.("selection", handler) }
+  }, [renderer])
 
   // -- layout --
   const debugHeight = showDebug ? Math.max(Math.floor(termHeight * 0.3), 8) : 0
@@ -769,6 +788,7 @@ function App() {
       >
         <box flexDirection="row" gap={1}>
           <text fg={c.accent}><strong>Spectra Chat</strong></text>
+          {copiedMsg && <text fg={c.success}>[Copied!]</text>}
           {tps !== null && (
             <text fg={c.tps}>{tps.toFixed(1)} {tpsIsFallback ? "chunks/s" : "tok/s"}</text>
           )}
