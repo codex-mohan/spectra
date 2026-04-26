@@ -314,6 +314,7 @@ interface CmdItem {
   label: string
   desc: string
   action: () => void
+  navigate?: boolean
 }
 
 function CommandMenu(props: {
@@ -322,8 +323,10 @@ function CommandMenu(props: {
   items: CmdItem[]
   termWidth: number
   termHeight: number
+  prefix?: string
+  footerHint?: string
 }) {
-  const { filter, selected, items, termWidth, termHeight } = props
+  const { filter, selected, items, termWidth, termHeight, prefix, footerHint } = props
   const mw = Math.min(56, termWidth - 4)
   const ml = Math.floor((termWidth - mw) / 2)
   const mh = Math.min(20, termHeight - 4)
@@ -334,6 +337,7 @@ function CommandMenu(props: {
       <box position="absolute" left={ml} top={2} width={mw} height={mh} backgroundColor={c.bgChat}>
         {/* Search bar */}
         <box paddingX={2} paddingTop={1} paddingBottom={1}>
+          {prefix && <text fg={c.accent}>{prefix}</text>}
           <text fg={c.accent}>{">"}</text>
           <text fg={c.text}> {filter}</text>
         </box>
@@ -341,7 +345,7 @@ function CommandMenu(props: {
         {/* Items */}
         <box flexDirection="column" height={listH} paddingLeft={1} paddingRight={1}>
           {items.length === 0 ? (
-            <text fg={c.dim}>  No matching commands</text>
+            <text fg={c.dim}>  No matching items</text>
           ) : (
             items.slice(0, listH).map((item, i) => (
               <box key={item.id} backgroundColor={i === selected ? c.bgThink : undefined}>
@@ -355,7 +359,7 @@ function CommandMenu(props: {
         </box>
         {/* Footer */}
         <box paddingX={2} paddingTop={1}>
-          <text fg={c.dim}>{"\u2191\u2193"} navigate  {"\u23CE"} select  esc close</text>
+          <text fg={c.dim}>{"\u2191\u2193"} navigate  {"\u23CE"} {footerHint || "select"}  esc {prefix ? "back" : "close"}</text>
         </box>
       </box>
     </box>
@@ -386,6 +390,7 @@ function App() {
   const [showCmd, setShowCmd] = useState(false)
   const [cmdFilter, setCmdFilter] = useState("")
   const [cmdSelected, setCmdSelected] = useState(0)
+  const [cmdView, setCmdView] = useState<"main" | "sessions">("main")
 
   // -- refs --
   const agentRef = useRef(
@@ -422,6 +427,7 @@ function App() {
   const openCmd = useCallback(() => {
     setSavedSessions(loadSessions())
     setShowCmd(true)
+    setCmdView("main")
     setCmdFilter("")
     setCmdSelected(0)
   }, [])
@@ -431,9 +437,9 @@ function App() {
   }, [])
 
   const execCmd = useCallback(
-    (action: () => void) => {
-      action()
-      closeCmd()
+    (item: CmdItem) => {
+      item.action()
+      if (!item.navigate) closeCmd()
     },
     [closeCmd],
   )
@@ -444,7 +450,7 @@ function App() {
   const currentSessions = useMemo(() => savedSessions, [savedSessions])
 
   const cmdItems: CmdItem[] = useMemo(() => {
-    const items: CmdItem[] = [
+    return [
       { id: "new", label: "new", desc: "New session", action: () => {
         setMessages([])
         currentSessionIdRef.current = generateId()
@@ -463,42 +469,50 @@ function App() {
         setStatus("Cleared")
       }},
       { id: "debug", label: "debug", desc: "Toggle debug panel", action: () => setShowDebug((s) => !s) },
-      { id: "sessions", label: "sessions", desc: `Browse saved conversations (${currentSessions.length})`, action: () => {} },
+      { id: "sessions", label: "sessions", desc: `Browse saved conversations (${currentSessions.length})`, navigate: true, action: () => {
+        setCmdView("sessions")
+        setCmdFilter("")
+        setCmdSelected(0)
+      }},
       { id: "help", label: "help", desc: "Keyboard shortcuts", action: () => {
         setStatus("Esc quit  ·  Ctrl+L clear  ·  Ctrl+D debug  ·  Ctrl+P command palette  ·  PgUp/PgDn scroll")
         setTimeout(() => { setStatus("Ready") }, 4000)
       }},
       { id: "quit", label: "quit", desc: "Quit Spectra Chat", action: () => renderer.destroy() },
     ]
-    for (const s of currentSessions) {
-      items.push({
-        id: s.id,
-        label: `  ${s.date.slice(0, 10)}`,
-        desc: s.title,
-        action: () => {
-          currentSessionIdRef.current = s.id
-          agentRef.current.reset()
-          if (s.agentMessages && s.agentMessages.length > 0) {
-            agentRef.current.restoreHistory(s.agentMessages)
-          } else {
-            agentRef.current.restoreHistory(toAgentMessages(s.messages))
-          }
-          agentMessagesRef.current = s.agentMessages ?? null
-          setMessages(s.messages)
-          setStatus("Ready")
-        },
-      })
-    }
-    return items
-  }, [messages, currentSessions, renderer])
+  }, [currentSessions, renderer])
+
+  const sessionItems: CmdItem[] = useMemo(() => {
+    return currentSessions.map((s) => ({
+      id: s.id,
+      label: `${s.date.slice(0, 10)}`,
+      desc: s.title,
+      action: () => {
+        currentSessionIdRef.current = s.id
+        agentRef.current.reset()
+        if (s.agentMessages && s.agentMessages.length > 0) {
+          agentRef.current.restoreHistory(s.agentMessages)
+        } else {
+          agentRef.current.restoreHistory(toAgentMessages(s.messages))
+        }
+        agentMessagesRef.current = s.agentMessages ?? null
+        setMessages(s.messages)
+        setStatus("Ready")
+      },
+    }))
+  }, [currentSessions])
+
+  const displayItems = useMemo(() => {
+    return cmdView === "sessions" ? sessionItems : cmdItems
+  }, [cmdView, cmdItems, sessionItems])
 
   const filteredItems = useMemo(() => {
     const q = cmdFilter.toLowerCase()
-    if (!q) return cmdItems
-    return cmdItems.filter(
+    if (!q) return displayItems
+    return displayItems.filter(
       (item) => item.label.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q),
     )
-  }, [cmdItems, cmdFilter])
+  }, [displayItems, cmdFilter])
 
   // clamp selection to valid range
   useEffect(() => {
@@ -535,12 +549,18 @@ function App() {
     // When command palette is open, handle its keys
     if (showCmd) {
       if (key.name === "escape") {
-        closeCmd()
+        if (cmdView === "sessions") {
+          setCmdView("main")
+          setCmdFilter("")
+          setCmdSelected(0)
+        } else {
+          closeCmd()
+        }
         return
       }
       if (key.name === "return" || key.name === "enter") {
         if (filteredItems.length > 0) {
-          execCmd(filteredItems[cmdSelected].action)
+          execCmd(filteredItems[cmdSelected])
         }
         return
       }
@@ -849,6 +869,8 @@ function App() {
           items={filteredItems}
           termWidth={termWidth}
           termHeight={termHeight}
+          prefix={cmdView === "sessions" ? "Sessions / " : undefined}
+          footerHint={cmdView === "sessions" ? "load  esc back to commands" : "select"}
         />
       )}
     </box>
