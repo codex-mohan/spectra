@@ -173,7 +173,11 @@ export class Agent {
     const emit: EmitFn = async (event) => {
       agentStream.push(event);
       for (const listener of this.listeners) {
-        await listener(event, this.abortController?.signal);
+        try {
+          await listener(event, this.abortController?.signal);
+        } catch {
+          // Isolate listener errors so one failing subscriber doesn't break others
+        }
       }
       if (event.type === "agent_end") {
         agentStream.end(event.messages);
@@ -494,17 +498,28 @@ export class Agent {
       }
 
       if (this.beforeToolCallHook) {
-        const result = await this.beforeToolCallHook(
-          { assistantMessage, toolCall, args, context: this.buildContext() },
-          this.abortController?.signal
-        );
-        if (result?.block) {
+        try {
+          const result = await this.beforeToolCallHook(
+            { assistantMessage, toolCall, args, context: this.buildContext() },
+            this.abortController?.signal
+          );
+          if (result?.block) {
+            prepared.push({
+              toolCall,
+              tool: null,
+              args,
+              blocked: true,
+              blockReason: result.reason ?? "Tool call blocked",
+            });
+            continue;
+          }
+        } catch (err) {
           prepared.push({
             toolCall,
             tool: null,
             args,
             blocked: true,
-            blockReason: result.reason ?? "Tool call blocked",
+            blockReason: `beforeToolCall hook error: ${err instanceof Error ? err.message : String(err)}`,
           });
           continue;
         }
@@ -537,18 +552,13 @@ export class Agent {
     let toolResult: ToolResult;
     try {
       const onUpdate: ToolUpdateCallback = (partial) => {
-        for (const listener of this.listeners) {
-          listener(
-            {
-              type: "tool_execution_update",
-              toolCallId: toolCall.id,
-              toolName: toolCall.name,
-              args,
-              partialResult: partial,
-            },
-            this.abortController?.signal
-          );
-        }
+        emit({
+          type: "tool_execution_update",
+          toolCallId: toolCall.id,
+          toolName: toolCall.name,
+          args,
+          partialResult: partial,
+        });
       };
       toolResult = await tool!.execute(toolCall.id, args, this.abortController?.signal, onUpdate);
     } catch (err) {
@@ -580,13 +590,17 @@ export class Agent {
     emit: EmitFn,
   ): Promise<ToolResultMessage> {
     if (this.afterToolCallHook) {
-      const override = await this.afterToolCallHook(
-        { assistantMessage, toolCall, args: toolCall.arguments, result, isError, context: this.buildContext() },
-        this.abortController?.signal,
-      );
-      if (override) {
-        if (override.content) result = { ...result, content: override.content };
-        if (override.isError !== undefined) isError = override.isError;
+      try {
+        const override = await this.afterToolCallHook(
+          { assistantMessage, toolCall, args: toolCall.arguments, result, isError, context: this.buildContext() },
+          this.abortController?.signal,
+        );
+        if (override) {
+          if (override.content) result = { ...result, content: override.content };
+          if (override.isError !== undefined) isError = override.isError;
+        }
+      } catch {
+        // Hook errors should not break tool execution
       }
     }
 

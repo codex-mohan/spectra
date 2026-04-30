@@ -604,6 +604,234 @@ describe("Agent E2E - Advanced Features", () => {
     unsubscribe();
   });
 
+  it("should handle beforeToolCall hook that throws without hanging", async () => {
+    const tool = defineTool({
+      name: "normal_tool",
+      description: "A normal tool",
+      parameters: z.object({}),
+      execute: async () => ({
+        content: [{ type: "text", text: "Done" }],
+      }),
+    });
+
+    const mockProvider = createMockProvider("test-provider", [
+      [
+        createToolCallMessage([
+          {
+            type: "toolCall",
+            id: "call_1",
+            name: "normal_tool",
+            arguments: {},
+          },
+        ]),
+      ],
+      [createTextMessage("Recovered")],
+    ]);
+    registerProvider(mockProvider);
+
+    const agent = new Agent({
+      model: testModel,
+      tools: [tool],
+      beforeToolCall: () => {
+        throw new Error("Hook crash!");
+      },
+    });
+
+    const events: any[] = [];
+    for await (const event of agent.run("Test")) {
+      events.push(event);
+    }
+
+    // Must finish without hanging
+    const agentEnd = events.find((e) => e.type === "agent_end");
+    expect(agentEnd).toBeDefined();
+
+    // The tool should be marked as blocked with the hook error
+    const toolEnd = events.find((e) => e.type === "tool_execution_end");
+    expect(toolEnd).toBeDefined();
+    expect(toolEnd.isError).toBe(true);
+  });
+
+  it("should handle afterToolCall hook that throws without hanging", async () => {
+    const tool = defineTool({
+      name: "normal_tool",
+      description: "A normal tool",
+      parameters: z.object({}),
+      execute: async () => ({
+        content: [{ type: "text", text: "Done" }],
+      }),
+    });
+
+    const mockProvider = createMockProvider("test-provider", [
+      [
+        createToolCallMessage([
+          {
+            type: "toolCall",
+            id: "call_1",
+            name: "normal_tool",
+            arguments: {},
+          },
+        ]),
+      ],
+      [createTextMessage("Recovered")],
+    ]);
+    registerProvider(mockProvider);
+
+    const agent = new Agent({
+      model: testModel,
+      tools: [tool],
+      afterToolCall: () => {
+        throw new Error("Hook crash!");
+      },
+    });
+
+    const events: any[] = [];
+    for await (const event of agent.run("Test")) {
+      events.push(event);
+    }
+
+    // Must finish without hanging
+    const agentEnd = events.find((e) => e.type === "agent_end");
+    expect(agentEnd).toBeDefined();
+
+    // The tool result should still be the original (not overridden by failed hook)
+    const toolEnd = events.find((e) => e.type === "tool_execution_end");
+    expect(toolEnd).toBeDefined();
+    expect(toolEnd.isError).toBe(false);
+    expect(toolEnd.result.content[0].text).toBe("Done");
+  });
+
+  it("should isolate listener errors so one failing subscriber does not break others", async () => {
+    const mockProvider = createMockProvider("test-provider", [
+      [createTextMessage("Hello")],
+    ]);
+    registerProvider(mockProvider);
+
+    const agent = new Agent({
+      model: testModel,
+    });
+
+    const goodEvents: any[] = [];
+    const badListener = vi.fn().mockImplementation(() => {
+      throw new Error("Listener crash!");
+    });
+    const goodListener = vi.fn().mockImplementation((event) => {
+      goodEvents.push(event);
+    });
+
+    agent.subscribe(badListener);
+    agent.subscribe(goodListener);
+
+    for await (const _ of agent.run("Test")) {
+      // consume
+    }
+
+    // Bad listener should have been called and thrown
+    expect(badListener).toHaveBeenCalled();
+    // Good listener should still have received events despite bad listener crashing
+    expect(goodListener).toHaveBeenCalled();
+    expect(goodEvents.some((e) => e.type === "agent_start")).toBe(true);
+    expect(goodEvents.some((e) => e.type === "agent_end")).toBe(true);
+  });
+
+  it("should emit tool_execution_update events to generator consumers", async () => {
+    const updatingTool = defineTool({
+      name: "progress_tool",
+      description: "Reports progress via onUpdate",
+      parameters: z.object({}),
+      execute: async (_args, { onUpdate }) => {
+        if (onUpdate) {
+          onUpdate({ content: [{ type: "text", text: "25%" }] });
+          onUpdate({ content: [{ type: "text", text: "50%" }] });
+          onUpdate({ content: [{ type: "text", text: "75%" }] });
+        }
+        return { content: [{ type: "text", text: "100%" }] };
+      },
+    });
+
+    const mockProvider = createMockProvider("test-provider", [
+      [
+        createToolCallMessage([
+          {
+            type: "toolCall",
+            id: "call_1",
+            name: "progress_tool",
+            arguments: {},
+          },
+        ]),
+      ],
+      [createTextMessage("All done")],
+    ]);
+    registerProvider(mockProvider);
+
+    const agent = new Agent({
+      model: testModel,
+      tools: [updatingTool],
+    });
+
+    const events: any[] = [];
+    for await (const event of agent.run("Run progress tool")) {
+      events.push(event);
+    }
+
+    const updateEvents = events.filter((e) => e.type === "tool_execution_update");
+    expect(updateEvents.length).toBe(3);
+    expect(updateEvents[0].partialResult.content[0].text).toBe("25%");
+    expect(updateEvents[1].partialResult.content[0].text).toBe("50%");
+    expect(updateEvents[2].partialResult.content[0].text).toBe("75%");
+
+    const agentEnd = events.find((e) => e.type === "agent_end");
+    expect(agentEnd).toBeDefined();
+  });
+
+  it("should also emit tool_execution_update events to subscriber listeners", async () => {
+    const updatingTool = defineTool({
+      name: "progress_tool",
+      description: "Reports progress via onUpdate",
+      parameters: z.object({}),
+      execute: async (_args, { onUpdate }) => {
+        if (onUpdate) {
+          onUpdate({ content: [{ type: "text", text: "step 1" }] });
+        }
+        return { content: [{ type: "text", text: "done" }] };
+      },
+    });
+
+    const mockProvider = createMockProvider("test-provider", [
+      [
+        createToolCallMessage([
+          {
+            type: "toolCall",
+            id: "call_1",
+            name: "progress_tool",
+            arguments: {},
+          },
+        ]),
+      ],
+      [createTextMessage("All done")],
+    ]);
+    registerProvider(mockProvider);
+
+    const agent = new Agent({
+      model: testModel,
+      tools: [updatingTool],
+    });
+
+    const subscriberUpdates: any[] = [];
+    agent.subscribe((event) => {
+      if (event.type === "tool_execution_update") {
+        subscriberUpdates.push(event);
+      }
+    });
+
+    for await (const _ of agent.run("Run progress tool")) {
+      // consume
+    }
+
+    expect(subscriberUpdates.length).toBe(1);
+    expect(subscriberUpdates[0].partialResult.content[0].text).toBe("step 1");
+  });
+
   it("should support transformContext hook", async () => {
     const mockProvider = createMockProvider("test-provider", [
       [createTextMessage("Transformed")],
@@ -611,7 +839,6 @@ describe("Agent E2E - Advanced Features", () => {
     registerProvider(mockProvider);
 
     const transformFn = vi.fn().mockImplementation((messages: Message[]) => {
-      // Add a system message
       return [
         ...messages,
         {
