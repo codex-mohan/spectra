@@ -4,7 +4,6 @@
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-000000?style=for-the-badge&logo=rust&logoColor=white&labelColor=0D0D0D)](https://www.rust-lang.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-0.2.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0D0D0D)](https://www.typescriptlang.org)
-[![Python](https://img.shields.io/badge/Python-TODO-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=0D0D0D)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-MIT-00B140?style=for-the-badge&labelColor=0D0D0D)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-V0.2.0-FE7D37?style=for-the-badge&labelColor=0D0D0D)]()
 
@@ -27,7 +26,6 @@ A construction kit, not a pre-built house — ship only primitives that enable d
 |-----------|-------------|
 | **Rust SDK** | Rust 1.75+ · Tokio · Reqwest (rustls) · serde · thiserror · miette |
 | **TypeScript SDK** | TypeScript 5.x · Vitest · Zod |
-| **Python SDK** | Python 3.11+ · Pydantic |
 | **Tooling** | Turborepo · Bun · cargo-nextest |
 
 ## Project Structure
@@ -45,6 +43,14 @@ spectra/
 │       └── src/
 │           ├── agent.ts        # Agent implementation
 │           └── define-tool.ts  # Tool definition builder
+├── apps/
+│   └── examples/               # @singularity-ai/spectra-examples — demo apps
+├── packages/
+│   └── app/                    # @singularity-ai/spectra-app — orchestration & sessions
+│       └── src/
+│           ├── orchestrator.ts # Multi-agent orchestration
+│           ├── session-manager.ts
+│           └── worker-pool.ts
 ├── crates/
 │   ├── spectra-rs/             # Rust SDK (complete implementation)
 │   │   └── src/
@@ -125,25 +131,6 @@ for await (const event of agent.prompt("What is Rust?")) {
 }
 ```
 
-### Python (TODO)
-
-```bash
-pip install spectra-sdk
-```
-
-```python
-from spectra import Agent, openai
-
-agent = Agent({
-    "model": {"provider": "openai", "id": "gpt-4o"},
-    "system_prompt": "You are a helpful assistant.",
-    "tools": [],
-})
-
-async for event in agent.prompt("Hello!"):
-    print(event)
-```
-
 ## Supported Providers
 
 | Provider | TypeScript | Rust | Streaming | Tool Use |
@@ -154,21 +141,26 @@ async for event in agent.prompt("Hello!"):
 ## Architecture
 
 ```
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│   TypeScript      │  │     Python        │  │      Rust        │
-│                  │  │                  │  │                  │
-│  ┌────────────────┐  │  │  ┌────────────┐  │  │  │  ┌────────────┐  │  │
-│  │ @singularity-  │  │  │  │            │  │  │  │  │            │  │  │
-│  │ ai/spectra-ai  │  │  │  │ spectra-sdk│  │  │  │  │spectra-rs  │  │  │
-│  │ (providers)    │  │  │  │ (complete) │  │  │  │  │ (complete) │  │  │
-│  └────────────────┘  │  │  │            │  │  │  │  │            │  │  │
-│  ┌────────────────┐  │  │  │            │  │  │  │  ┌────────────┐  │  │
-│  │ @singularity-  │  │  │  │            │  │  │  │  │spectra-http│  │  │
-│  │ ai/spectra-    │  │  │  │            │  │  │  │  │ (clients)  │  │  │
-│  │ agent          │  │  │  │            │  │  │  │  └────────────┘  │  │
-│  └────────────────┘  │  │  └────────────┘  │  │  │                  │  │
-└──────────────────┘  └──────────────────┘  └──────────────────┘
-      active                active                active
+┌──────────────────┐  ┌──────────────────┐
+│   TypeScript      │  │      Rust        │
+│                  │  │                  │
+│  ┌────────────────┐  │  │  ┌────────────┐  │
+│  │ @singularity-  │  │  │  │            │  │
+│  │ ai/spectra-ai  │  │  │  │spectra-rs  │  │
+│  │ (providers)    │  │  │  │ (complete) │  │
+│  └────────────────┘  │  │  │            │  │
+│  ┌────────────────┐  │  │  ┌────────────┐  │
+│  │ @singularity-  │  │  │  │spectra-http│  │
+│  │ ai/spectra-    │  │  │  │ (clients)  │  │
+│  │ agent          │  │  │  └────────────┘  │
+│  └────────────────┘  │  │                  │
+│  ┌────────────────┐  │  │                  │
+│  │ @singularity-  │  │  │                  │
+│  │ ai/spectra-app │  │  │                  │
+│  │ (orchestrator) │  │  │                  │
+│  └────────────────┘  │  │                  │
+└──────────────────┘  └──────────────────┘
+      active                active
 ```
 ## API Surface
 
