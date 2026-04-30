@@ -554,6 +554,30 @@ describe("Agent E2E - Advanced Features", () => {
     expect(agent.isStreaming).toBe(false);
   });
 
+  it("should not hang when transformContext hook throws unexpectedly", async () => {
+    const mockProvider = createMockProvider("test-provider", [
+      [createTextMessage("Response")],
+    ]);
+    registerProvider(mockProvider);
+
+    const agent = new Agent({
+      model: testModel,
+      transformContext: () => {
+        throw new Error("Unexpected transformation failure");
+      },
+    });
+
+    const events: any[] = [];
+    for await (const event of agent.run("Test")) {
+      events.push(event);
+    }
+
+    // Must have completed without hanging
+    const agentEnd = events.find((e) => e.type === "agent_end");
+    expect(agentEnd).toBeDefined();
+    expect(agent.isStreaming).toBe(false);
+  });
+
   it("should reset state correctly", async () => {
     const mockProvider = createMockProvider("test-provider", [
       [createTextMessage("Response")],

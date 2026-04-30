@@ -205,8 +205,10 @@ export class Agent {
 
     // Start runLoop fire-and-forget so we can yield events progressively
     const runPromise = this.runLoop(emit)
-      .catch((err) => {
+      .catch(async (err) => {
         this._errorMessage = err instanceof Error ? err.message : String(err);
+        // Safety net: always emit agent_end so the generator doesn't hang
+        await emit({ type: "agent_end", messages: this._messages });
       })
       .finally(() => {
         this._isStreaming = false;
