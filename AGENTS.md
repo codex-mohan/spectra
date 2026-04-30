@@ -180,6 +180,11 @@ spectra/
 - Package namespaces: `@spectra/ai`, `@spectra/agent`, `spectra-rs`, `spectra-http`
 - Provider names in registry: `"anthropic"`, `"openai-completions"`, `"openai-responses"`
 
+### Commit Messages
+- Keep messages concise and focused on the "why"
+- Do NOT reference pi-mono, "pi-mono inspired", or similar in commit messages or code comments
+- Spectra is an independent project — credit external projects in PR descriptions if needed, not commits
+
 ### Testing
 - Rust: `cargo test --workspace` (unit + wiremock integration tests in spectra-http)
 - TypeScript: `vitest --run` in each package
