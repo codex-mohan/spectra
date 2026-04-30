@@ -21,5 +21,10 @@
     "turbo": "^2.5.0",
     "typedoc": "^0.28.19",
     "vitepress": "^1.6.4"
+  },
+  "dependencies": {
+    "uuid": "^14.0.0",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
   }
 }

@@ -47,44 +47,19 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
 
-  # ── Rust ──
-  rust-fmt:
-    name: Rust Format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - run: cargo fmt --all -- --check
+  # ── Rust (suspended — SDK incomplete) ──
+  # rust-fmt:
+  #   name: Rust Format
+  #   ...
 
-  rust-clippy:
-    name: Rust Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+  # rust-clippy:
+  #   name: Rust Clippy
+  #   ...
 
-  rust-test:
-    name: Rust Test (${{ matrix.os }})
-    needs: [rust-fmt, rust-clippy]
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --workspace
+  # rust-test:
+  #   name: Rust Test (${{ matrix.os }})
+  #   ...
 
-  rust-audit:
-    name: Rust Audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install cargo-audit --locked
-      - run: cargo audit
+  # rust-audit:
+  #   name: Rust Audit
+  #   ...

@@ -2,6 +2,7 @@
 name = "spectra-http"
 version = "0.2.0"
 edition = "2024"
+rust-version = "1.86"
 authors = ["Spectra Team"]
 description = "HTTP LLM clients for Spectra (Anthropic, OpenAI)"
 
