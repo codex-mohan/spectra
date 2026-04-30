@@ -167,10 +167,8 @@ data: {"type":"message_stop"}
         while let Some(event_result) = stream.next().await {
             match event_result.unwrap() {
                 LlmStreamEvent::Start { .. } => { got_start = true; }
-                LlmStreamEvent::ContentDelta { delta } => {
-                    if let ContentDelta::Text { delta: text } = delta {
-                        text_deltas.push(text);
-                    }
+                LlmStreamEvent::ContentDelta { delta: ContentDelta::Text { delta: text } } => {
+                    text_deltas.push(text);
                 }
                 LlmStreamEvent::Done { message } => {
                     got_done = true;

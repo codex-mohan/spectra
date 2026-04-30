@@ -175,7 +175,7 @@ impl AnthropicClient {
                                     if !s.starts_with("data: ") || s.len() <= 6 { continue; }
                                     let data = &s[6..];
                                     if data == "[DONE]" { break; }
-                                    parse_event(&data, &mut assistant_msg, &mut current_tool, &mut in_tool, &tx).await;
+                                    parse_event(data, &mut assistant_msg, &mut current_tool, &mut in_tool, &tx).await;
                                 }
                                 _ => line.push(byte),
                             }
@@ -220,11 +220,10 @@ fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> se
     let mut items: Vec<serde_json::Value> = Vec::new();
 
     for c in content {
-        if let &Content::Text { ref text } = c {
-            if !text.is_empty() {
+        if let Content::Text { text } = c
+            && !text.is_empty() {
                 items.push(serde_json::json!({ "type": "text", "text": text }));
             }
-        }
     }
 
     for tc in tool_calls {
@@ -249,6 +248,7 @@ fn parse_stop_reason(reason: &str) -> StopReason {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct SSEEvent {
     #[serde(rename = "type")]
     event_type: String,
@@ -270,8 +270,8 @@ async fn parse_event(
     if let Ok(event) = serde_json::from_str::<SSEEvent>(data) {
         match event.event_type.as_str() {
             "content_block_start" => {
-                if let Some(block) = event.content_block {
-                    if block.get("type").and_then(|t| t.as_str()) == Some("tool_use") {
+                if let Some(block) = event.content_block
+                    && block.get("type").and_then(|t| t.as_str()) == Some("tool_use") {
                         *in_tool = true;
                         let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
                         let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
@@ -287,13 +287,12 @@ async fn parse_event(
                             },
                         })).await;
                     }
-                }
             }
             "content_block_delta" => {
                 if let Some(delta) = event.delta {
                     if *in_tool {
-                            if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str()) {
-                                if let Some(tc) = current_tool.as_mut() {
+                            if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str())
+                                && let Some(tc) = current_tool.as_mut() {
                                     if let serde_json::Value::String(s) = &mut tc.arguments {
                                         s.push_str(text);
                                     } else {
@@ -306,7 +305,6 @@ async fn parse_event(
                                         },
                                     })).await;
                                 }
-                            }
                     } else if let Some(text) = delta.get("text").and_then(|t| t.as_str()) {
                         msg.content.push(Content::Text { text: text.to_string() });
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
@@ -329,11 +327,10 @@ async fn parse_event(
                 }
             }
             "message_delta" => {
-                if let Some(delta) = event.delta {
-                    if let Some(reason) = delta.get("stop_reason").and_then(|r| r.as_str()) {
+                if let Some(delta) = event.delta
+                    && let Some(reason) = delta.get("stop_reason").and_then(|r| r.as_str()) {
                         msg.stop_reason = parse_stop_reason(reason);
                     }
-                }
             }
             _ => {}
         }

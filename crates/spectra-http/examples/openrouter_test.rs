@@ -26,12 +26,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\nStreaming response:\n");
     while let Some(event) = stream.next().await {
         match event {
-            Ok(spectra_rs::llm::LlmStreamEvent::ContentDelta { delta }) => {
-                match delta {
-                    spectra_rs::event::ContentDelta::Text { delta: text } => print!("{text}"),
-                    _ => {}
-                }
+            Ok(spectra_rs::llm::LlmStreamEvent::ContentDelta { delta: spectra_rs::event::ContentDelta::Text { delta: text } }) => {
+                print!("{text}");
             }
+            Ok(spectra_rs::llm::LlmStreamEvent::ContentDelta { .. }) => {}
             Ok(spectra_rs::llm::LlmStreamEvent::Done { message }) => {
                 println!("\n\n=== Done! ===");
                 println!("Content: {:?}", message.content);

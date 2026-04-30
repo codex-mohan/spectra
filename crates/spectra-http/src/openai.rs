@@ -178,7 +178,7 @@ impl OpenAIClient {
                                     if !s.starts_with("data: ") || s.len() <= 6 { continue; }
                                     let data = &s[6..];
                                     if data == "[DONE]" { break; }
-                                    parse_openai_event(&data, &mut assistant_msg, &mut current_tool, &mut in_tool, &tx).await;
+                                    parse_openai_event(data, &mut assistant_msg, &mut current_tool, &mut in_tool, &tx).await;
                                 }
                                 _ => line.push(byte),
                             }
@@ -203,13 +203,11 @@ impl OpenAIClient {
 }
 
 fn content_to_json(content: &[Content]) -> serde_json::Value {
-    if content.len() == 1 {
-        if let Content::Text { text } = &content[0] {
-            if !text.is_empty() {
+    if content.len() == 1
+        && let Content::Text { text } = &content[0]
+            && !text.is_empty() {
                 return serde_json::json!(text);
             }
-        }
-    }
     let items: Vec<serde_json::Value> = content.iter().filter_map(|c| {
         match c {
             Content::Text { text } => {
@@ -230,11 +228,10 @@ fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> se
     let mut items: Vec<serde_json::Value> = Vec::new();
 
     for c in content {
-        if let Content::Text { text } = c {
-            if !text.is_empty() {
+        if let Content::Text { text } = c
+            && !text.is_empty() {
                 items.push(serde_json::json!({ "type": "text", "text": text }));
             }
-        }
     }
 
     for tc in tool_calls {
@@ -261,12 +258,14 @@ fn parse_stop_reason(reason: Option<&str>) -> StopReason {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct OpenAIChunk {
     id: Option<String>,
     choices: Option<Vec<OpenAIChoice>>,
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct OpenAIChoice {
     index: Option<u32>,
     delta: Option<OpenAIDelta>,
@@ -274,6 +273,7 @@ struct OpenAIChoice {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct OpenAIDelta {
     role: Option<String>,
     content: Option<String>,
@@ -281,6 +281,7 @@ struct OpenAIDelta {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct OpenAIToolCall {
     index: Option<u32>,
     id: Option<String>,
@@ -302,24 +303,23 @@ async fn parse_openai_event(
     in_tool: &mut bool,
     tx: &mpsc::Sender<std::result::Result<LlmStreamEvent, SpectraError>>,
 ) {
-    if let Ok(chunk) = serde_json::from_str::<OpenAIChunk>(data) {
-        if let Some(choices) = chunk.choices {
+    if let Ok(chunk) = serde_json::from_str::<OpenAIChunk>(data)
+        && let Some(choices) = chunk.choices {
             for choice in choices {
                 if let Some(delta) = choice.delta {
-                    if let Some(content) = delta.content {
-                        if !content.is_empty() {
+                    if let Some(content) = delta.content
+                        && !content.is_empty() {
                             msg.content.push(Content::Text { text: content.clone() });
                             let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
                                 delta: spectra_rs::event::ContentDelta::Text { delta: content },
                             })).await;
                         }
-                    }
 
                     if let Some(tool_calls) = delta.tool_calls {
                         for tc in tool_calls {
                             if let Some(func) = tc.function {
-                                if let Some(name) = func.name {
-                                    if !*in_tool || current_tool.is_none() {
+                                if let Some(name) = func.name
+                                    && (!*in_tool || current_tool.is_none()) {
                                         *in_tool = true;
                                         let id = tc.id.clone().unwrap_or_default();
                                         *current_tool = Some(ToolCall {
@@ -334,7 +334,6 @@ async fn parse_openai_event(
                                             },
                                         })).await;
                                     }
-                                }
 
                                 if let Some(args) = func.arguments {
                                     let args_str = args.clone();
@@ -374,7 +373,6 @@ async fn parse_openai_event(
                 }
             }
         }
-    }
 }
 
 #[async_trait]

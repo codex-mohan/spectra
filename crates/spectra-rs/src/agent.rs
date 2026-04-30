@@ -184,6 +184,7 @@ fn emit(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn run_agent_loop(
     client: Arc<dyn LlmClient>,
     config: AgentConfig,
@@ -222,10 +223,10 @@ async fn run_agent_loop(
         }
 
         // Check max_turns limit only if configured
-        if let Some(max) = config.max_turns {
-            if turn_count >= max {
-                break;
-            }
+        if let Some(max) = config.max_turns
+            && turn_count >= max
+        {
+            break;
         }
 
         emit(tx, channel, StreamEvent::TurnStart)?;
@@ -250,7 +251,7 @@ async fn run_agent_loop(
             tools: tools.clone(),
         };
 
-        let mut assistant_msg = match stream_with_retry(
+        let assistant_msg = match stream_with_retry(
             client.clone(),
             request,
             tx,

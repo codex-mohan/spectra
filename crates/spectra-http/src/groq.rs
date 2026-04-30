@@ -147,7 +147,7 @@ impl GroqClient {
             body.insert("tools".into(), serde_json::Value::Array(tools));
         }
 
-        serde_json::to_string(&body).map_err(|e| SpectraError::Serialization(e))
+        serde_json::to_string(&body).map_err(SpectraError::Serialization)
     }
 
     pub async fn stream_request(&self, request: LlmRequest) -> Result<LlmStream> {
@@ -205,14 +205,13 @@ impl GroqClient {
                             let line = buffer[..pos].trim().to_string();
                             buffer = buffer[pos + 1..].to_string();
                             
-                            if line.starts_with("data: ") {
-                                let data = &line[6..];
+                            if let Some(data) = line.strip_prefix("data: ") {
                                 if data == "[DONE]" {
                                     continue;
                                 }
                                 
                                 if let Ok(chunk) = serde_json::from_str::<GroqChunk>(data) {
-                                    if let Some(delta) = chunk.choices.get(0).and_then(|c| c.delta.as_ref()) {
+                                    if let Some(delta) = chunk.choices.first().and_then(|c| c.delta.as_ref()) {
                                         if let Some(content) = &delta.content {
                                             let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
                                                 delta: ContentDelta::Text { delta: content.clone() },
@@ -246,8 +245,8 @@ impl GroqClient {
                                         }
                                     }
 
-                                    if let Some(finish_reason) = chunk.choices.get(0).and_then(|c| c.finish_reason.as_ref()) {
-                                        if finish_reason == "tool_calls" {
+                                    if let Some(finish_reason) = chunk.choices.first().and_then(|c| c.finish_reason.as_ref())
+                                        && finish_reason == "tool_calls" {
                                             assistant_msg.stop_reason = StopReason::ToolCalls;
                                             for (i, tc) in current_tool_calls.iter_mut().enumerate() {
                                                 if let Ok(args) = serde_json::from_str(&tool_call_args[i]) {
@@ -258,7 +257,6 @@ impl GroqClient {
                                             }
                                             assistant_msg.tool_calls = current_tool_calls.clone();
                                         }
-                                    }
                                 }
                             }
                         }
@@ -305,7 +303,7 @@ impl GroqClient {
             });
         }
 
-        let response_text = response.text().await.map_err(|e| SpectraError::HttpError {
+        let response_text = response.text().await.map_err(|_e| SpectraError::HttpError {
             status: 0,
             url: url.clone(),
         })?;
@@ -329,6 +327,7 @@ impl GroqClient {
         }
 
         #[derive(Deserialize)]
+        #[allow(dead_code)]
         struct GroqToolCall {
             id: String,
             #[serde(rename = "type")]
@@ -349,7 +348,7 @@ impl GroqClient {
         }
 
         let groq_response: GroqResponse = serde_json::from_str(&response_text)
-            .map_err(|e| SpectraError::Serialization(e))?;
+            .map_err(SpectraError::Serialization)?;
 
         let choice = groq_response.choices.into_iter().next()
             .ok_or_else(|| SpectraError::LlmError {
@@ -419,6 +418,7 @@ struct GroqDelta {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct GroqDeltaToolCall {
     index: Option<u32>,
     id: Option<String>,

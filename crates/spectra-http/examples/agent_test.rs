@@ -1,6 +1,5 @@
 use spectra_http::OpenAIClient;
 use spectra_rs::llm::{LlmClient, LlmRequest, Model};
-use spectra_rs::event::{EventSink, StreamEvent};
 use futures_util::StreamExt;
 
 #[tokio::main]
@@ -32,12 +31,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     spectra_rs::llm::LlmStreamEvent::Start { partial } => {
                         println!("[Start] Partial: {:?}", partial.content);
                     }
-                    spectra_rs::llm::LlmStreamEvent::ContentDelta { delta } => {
-                        match delta {
-                            spectra_rs::event::ContentDelta::Text { delta: text } => print!("{text}"),
-                            _ => {}
-                        }
+                    spectra_rs::llm::LlmStreamEvent::ContentDelta { delta: spectra_rs::event::ContentDelta::Text { delta: text } } => {
+                        print!("{text}");
                     }
+                    spectra_rs::llm::LlmStreamEvent::ContentDelta { .. } => {}
                     spectra_rs::llm::LlmStreamEvent::Done { message } => {
                         println!("\n\n=== Done! ===");
                         println!("Final content: {:?}", message.content);
