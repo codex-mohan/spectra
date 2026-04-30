@@ -1,4 +1,4 @@
-import { Agent } from "@spectra/agent";
+import { Agent } from "@singularity-ai/spectra-agent";
 import type { Budget, DelegationResult, TaskConfig } from "./types.js";
 
 export class SimpleOrchestrator {

@@ -7,8 +7,8 @@ import {
   SimpleWorkerPool,
   createAgentRunner
 } from "../index.js";
-import { Agent } from "@spectra/agent";
-import type { Model, Message } from "@spectra/ai";
+import { Agent } from "@singularity-ai/spectra-agent";
+import type { Model, Message } from "@singularity-ai/spectra-ai";
 
 const testModel: Model = {
   id: "test-model",

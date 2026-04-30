@@ -1,5 +1,5 @@
 {
-  "name": "@spectra/app",
+  "name": "@singularity-ai/spectra-app",
   "version": "0.2.0",
   "description": "Spectra App - Session management, concurrency, and orchestration",
   "type": "module",
@@ -19,8 +19,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@spectra/ai": "workspace:*",
-    "@spectra/agent": "workspace:*",
+    "@singularity-ai/spectra-ai": "workspace:*",
+    "@singularity-ai/spectra-agent": "workspace:*",
     "uuid": "^14.0.0"
   },
   "devDependencies": {

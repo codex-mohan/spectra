@@ -13,16 +13,16 @@ Minimal, ultra-fast, multi-language AI agent framework. Each SDK (Rust, TypeScri
 ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
 │   TypeScript      │  │     Python        │  │      Rust        │
 │                  │  │                  │  │                  │
-│  ┌────────────┐  │  │  ┌────────────┐  │  │  ┌────────────┐  │
-│  │ @spectra/  │  │  │  │            │  │  │  │            │  │
-│  │ ai         │  │  │  │ spectra-sdk│  │  │  │spectra-rs  │  │
-│  │ (providers)│  │  │  │ (complete) │  │  │  │ (complete) │  │
-│  └────────────┘  │  │  │            │  │  │  │            │  │
-│  ┌────────────┐  │  │  │            │  │  │  ┌────────────┐  │
-│  │ @spectra/  │  │  │  │            │  │  │  │spectra-http│  │
-│  │ agent      │  │  │  │            │  │  │  │ (clients)  │  │
-│  │ (agent+   )│  │  │  │            │  │  │  └────────────┘  │
-│  └────────────┘  │  │  └────────────┘  │  │                  │
+│  ┌────────────────┐  │  │  ┌────────────┐  │  │  ┌────────────┐  │
+│  │ @singularity-  │  │  │  │            │  │  │  │            │  │
+│  │ ai/spectra-ai  │  │  │  │ spectra-sdk│  │  │  │spectra-rs  │  │
+│  │ (providers)    │  │  │  │ (complete) │  │  │  │ (complete) │  │
+│  └────────────────┘  │  │  │            │  │  │  │            │  │
+│  ┌────────────────┐  │  │  │            │  │  │  ┌────────────┐  │
+│  │ @singularity-  │  │  │  │            │  │  │  │spectra-http│  │
+│  │ ai/spectra-    │  │  │  │            │  │  │  │ (clients)  │  │
+│  │ agent          │  │  │  │            │  │  │  └────────────┘  │
+│  └────────────────┘  │  │  └────────────┘  │  │                  │
 └──────────────────┘  └──────────────────┘  └──────────────────┘
       active                TODO                  active
 ```
@@ -121,7 +121,7 @@ spectra/
 │           ├── openai.rs           # OpenAI Chat Completions SSE streaming via reqwest
 │           └── test.rs             # Wiremock integration tests
 ├── packages/
-│   ├── ai/                         # @spectra/ai — TypeScript LLM provider layer
+│   ├── ai/                         # @singularity-ai/spectra-ai — TypeScript LLM provider layer
 │   │   └── src/
 │   │       ├── types.ts            # Core types: Message, AssistantMessage, ToolCall, StopReason, Model, etc.
 │   │       ├── event-stream.ts     # EventStream<T,R> / AssistantMessageEventStream (AsyncIterable)
@@ -132,7 +132,7 @@ spectra/
 │   │           ├── openai-responses.ts     # OpenAI Responses API provider
 │   │           ├── shared.ts            # sanitizeSurrogates, parseStreamingJson
 │   │           └── register-builtins.ts   # Auto-registers all providers
-│   └── agent/                      # @spectra/agent — TypeScript agent + tool system
+│   └── agent/                      # @singularity-ai/spectra-agent — TypeScript agent + tool system
 │       └── src/
 │           ├── agent.ts            # Agent class with run loop, tool dispatch, streaming
 │           ├── types.ts            # AgentTool, ToolResult, AgentEvent, AgentConfig, hooks
@@ -177,7 +177,7 @@ spectra/
 ### Naming Conventions
 - Rust: snake_case for functions/variables, PascalCase for types, module files are snake_case
 - TypeScript: camelCase for functions/variables, PascalCase for types/classes
-- Package namespaces: `@spectra/ai`, `@spectra/agent`, `spectra-rs`, `spectra-http`
+- Package namespaces: `@singularity-ai/spectra-ai`, `@singularity-ai/spectra-agent`, `spectra-rs`, `spectra-http`
 - Provider names in registry: `"anthropic"`, `"openai-completions"`, `"openai-responses"`
 
 ### Commit Messages

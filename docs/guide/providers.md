@@ -5,7 +5,7 @@ Spectra provides built-in LLM providers. Register custom ones via the provider r
 ## Built-in Providers
 
 ```typescript
-import { initProviders } from "@spectra/ai";
+import { initProviders } from "@singularity-ai/spectra-ai";
 
 initProviders(); // registers anthropic, openai-completions, openai-responses
 ```
@@ -26,7 +26,7 @@ const agent = new Agent({
 ## Custom Providers
 
 ```typescript
-import { registerProvider } from "@spectra/ai";
+import { registerProvider } from "@singularity-ai/spectra-ai";
 
 registerProvider({
   name: "my-provider",

@@ -1,4 +1,4 @@
-import type { TextContent, ImageContent } from "@spectra/ai";
+import type { TextContent, ImageContent } from "@singularity-ai/spectra-ai";
 import type { AgentTool, ToolResult, ToolUpdateCallback } from "./types.js";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";

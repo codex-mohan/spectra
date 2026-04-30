@@ -6,8 +6,8 @@ import type {
   AssistantMessage,
   ToolCall,
   ToolResultMessage,
-} from "@spectra/ai";
-import { stream, EventStream } from "@spectra/ai";
+} from "@singularity-ai/spectra-ai";
+import { stream, EventStream } from "@singularity-ai/spectra-ai";
 import type {
   AgentTool,
   ToolResult,

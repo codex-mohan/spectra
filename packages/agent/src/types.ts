@@ -8,9 +8,9 @@ import type {
   ImageContent,
   Model,
   Context,
-} from "@spectra/ai";
+} from "@singularity-ai/spectra-ai";
 
-export type { Context } from "@spectra/ai";
+export type { Context } from "@singularity-ai/spectra-ai";
 
 export interface AgentTool {
   name: string;

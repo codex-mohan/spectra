@@ -1,5 +1,5 @@
 {
-  "name": "@spectra/ai",
+  "name": "@singularity-ai/spectra-ai",
   "version": "0.2.0",
   "description": "Spectra AI — LLM provider layer with streaming",
   "type": "module",

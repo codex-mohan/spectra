@@ -3,14 +3,14 @@
 ## Installation
 
 ```bash
-bun add @spectra/ai @spectra/agent
+bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
 ```
 
 ## Quick Start
 
 ```typescript
-import { Agent } from "@spectra/agent";
-import { anthropic } from "@spectra/ai";
+import { Agent } from "@singularity-ai/spectra-agent";
+import { anthropic } from "@singularity-ai/spectra-ai";
 
 const agent = new Agent({
   model: anthropic("claude-sonnet-4-20250514"),

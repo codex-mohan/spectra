@@ -1,4 +1,4 @@
-import { Agent } from "@spectra/agent";
+import { Agent } from "@singularity-ai/spectra-agent";
 import type { Session, WorkerJob, WorkerResult } from "./types.js";
 import { SessionManager } from "./session-manager.js";
 

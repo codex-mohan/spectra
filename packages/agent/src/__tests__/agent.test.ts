@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Agent } from "../agent.js";
 import { defineTool } from "../define-tool.js";
 import { z } from "zod";
-import type { Model, Message } from "@spectra/ai";
+import type { Model, Message } from "@singularity-ai/spectra-ai";
 
 const testModel: Model = { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic", api: "anthropic-messages" };
 

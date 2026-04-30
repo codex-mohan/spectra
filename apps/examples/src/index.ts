@@ -1,4 +1,4 @@
-import { Agent } from "@spectra/agent";
+import { Agent } from "@singularity-ai/spectra-agent";
 
 const agent = new Agent({
   model: { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "anthropic", api: "anthropic-messages" },

@@ -1,5 +1,5 @@
-import type { AgentConfig } from "@spectra/agent";
-import type { Model, Message, Usage } from "@spectra/ai";
+import type { AgentConfig } from "@singularity-ai/spectra-agent";
+import type { Model, Message, Usage } from "@singularity-ai/spectra-ai";
 
 export interface Session {
   id: string;

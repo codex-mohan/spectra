@@ -14,4 +14,4 @@ export type {
   AgentState,
   AgentConfig,
 } from "./types.js";
-export type { AssistantMessageEvent } from "@spectra/ai";
+export type { AssistantMessageEvent } from "@singularity-ai/spectra-ai";

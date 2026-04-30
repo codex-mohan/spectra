@@ -2,10 +2,10 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": true,
-  "fixed": [["@spectra/ai", "@spectra/agent"]],
+  "fixed": [["@singularity-ai/spectra-ai", "@singularity-ai/spectra-agent"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@spectra/examples"]
+  "ignore": ["@singularity-ai/spectra-examples"]
 }

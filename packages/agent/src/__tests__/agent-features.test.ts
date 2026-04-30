@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { Agent } from "../agent.js";
-import type { Model, Message } from "@spectra/ai";
+import type { Model, Message } from "@singularity-ai/spectra-ai";
 
 const testModel: Model = {
   id: "test-model",

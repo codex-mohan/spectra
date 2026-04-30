@@ -5,7 +5,7 @@ The `Agent` class orchestrates multi-turn conversations with automatic tool disp
 ## Creating an Agent
 
 ```typescript
-import { Agent } from "@spectra/agent";
+import { Agent } from "@singularity-ai/spectra-agent";
 
 const agent = new Agent({
   model: { id: "gpt-4o", name: "GPT-4o", provider: "openai", api: "openai-completions" },

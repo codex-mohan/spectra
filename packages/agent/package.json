@@ -1,5 +1,5 @@
 {
-  "name": "@spectra/agent",
+  "name": "@singularity-ai/spectra-agent",
   "version": "0.2.0",
   "description": "Spectra Agent — agent loop, tool dispatch, state management",
   "type": "module",
@@ -19,7 +19,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@spectra/ai": "workspace:*",
+    "@singularity-ai/spectra-ai": "workspace:*",
     "zod": "^3.25.0",
     "zod-to-json-schema": "^3.24.0"
   },

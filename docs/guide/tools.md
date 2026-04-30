@@ -5,7 +5,7 @@ Define tools with Zod schemas for automatic argument validation.
 ## Creating a Tool
 
 ```typescript
-import { defineTool } from "@spectra/agent";
+import { defineTool } from "@singularity-ai/spectra-agent";
 import { z } from "zod";
 
 const weatherTool = defineTool({
