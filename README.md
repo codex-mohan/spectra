@@ -4,7 +4,7 @@
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-000000?style=for-the-badge&logo=rust&logoColor=white&labelColor=0D0D0D)](https://www.rust-lang.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-0.2.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0D0D0D)](https://www.typescriptlang.org)
-[![Python](https://img.shields.io/badge/Python-0.2.0-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=0D0D0D)](https://www.python.org)
+[![Python](https://img.shields.io/badge/Python-TODO-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=0D0D0D)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-MIT-00B140?style=for-the-badge&labelColor=0D0D0D)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-V0.2.0-FE7D37?style=for-the-badge&labelColor=0D0D0D)]()
 
@@ -12,14 +12,12 @@
 
 A construction kit, not a pre-built house — ship only primitives that enable developers to build anything beyond the core without fighting the framework.
 
-Each SDK is a **complete, independent implementation** in its native language. Same API surface, same behavior, no shared runtime, no bindings.
-
 ## Key Features
 
 - **Streaming-First** — All LLM providers stream SSE by default. Event-driven architecture with real-time updates.
-- **Multi-Language** — Rust, TypeScript, Python. Same API surface, same behavior. Each implemented natively — not bindings over a shared core.
-- **Provider Abstraction** — Built-in Anthropic, OpenAI support. Each provider implemented per-language.
-- **Tool System** — Each SDK defines tools in its native language. No cross-language tool definitions.
+- **Multi-Language** — Rust and TypeScript SDKs supported.
+- **Provider Abstraction** — Built-in Anthropic, OpenAI support.
+- **Tool System** — Define tools in native language with Zod schemas (TS) or trait implementations (Rust).
 - **Agent Loop** — Multi-turn with automatic tool dispatch, delta accumulation, and event streaming.
 - **Extension Hooks** — Before/after tool calls, agent/turn lifecycle. Composable middleware pattern.
 
@@ -170,11 +168,8 @@ async for event in agent.prompt("Hello!"):
 │  │ (agent+   )│  │  │  │            │  │  │  └────────────┘  │
 │  └────────────┘  │  │  └────────────┘  │  │                  │
 └──────────────────┘  └──────────────────┘  └──────────────────┘
-      (TODO)                  (TODO)
+      active                active                active
 ```
-
-Each SDK is a **complete, independent implementation**. No bindings, no shared runtime, no FFI. They share the same API design and behavior patterns.
-
 ## API Surface
 
 ### Core Concepts
