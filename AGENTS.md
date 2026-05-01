@@ -240,8 +240,33 @@ User → agent.run(input)
 <!-- GSD:skills-start source=skills/ -->
 ## Project Skills
 
-No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
+No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
 <!-- GSD:skills-end -->
+
+## Version Management & Release Workflow
+
+### Tooling
+
+- **Changesets** (`@changesets/cli`) for TypeScript package versioning and npm publishing
+- **Fixed versioning**: `@singularity-ai/spectra-ai`, `@singularity-ai/spectra-agent`, and `@singularity-ai/spectra-app` always share the same version
+- **Changelog**: `@changesets/changelog-github` generates changelogs with PR/commit links (repo: `codex-mohan/spectra`)
+
+### Release Process (TypeScript)
+
+1. **Make a change** → run `bun run changeset`, select affected packages, choose bump type (patch/minor/major), write a summary
+2. **Commit** the `.changeset/*.md` file along with your code changes
+3. **Push to main** → the Release workflow auto-creates a "chore: version packages" PR with version bumps + CHANGELOGs
+4. **Merge the version PR** → the workflow publishes to npm, creates a unified `vX.Y.Z` Git tag, and creates a GitHub Release with npm links
+
+### Rules
+
+- **Never edit `package.json` versions manually** — always use changesets
+- **Never create Git tags manually** — the release workflow handles `vX.Y.Z` tags and GitHub Releases
+- **Never publish to npm manually** — the release workflow handles `npm publish`
+- **All 3 TS packages must stay at the same version** — the changeset `fixed` group enforces this
+- **Escape `@` in release notes** — scoped package names like `@singularity-ai/spectra-ai` must be escaped (`\@` or backtick-wrapped) in GitHub Release notes to prevent GitHub from interpreting them as user mentions
+- **Rust crates**: No automated release yet. When ready, use [release-plz](https://release-plz.ieni.dev/) in a separate workflow. Do **not** try to keep Rust and TS versions in lockstep — they will diverge independently
+- **`commit: false`** in changeset config — the GitHub Action handles the version commit via its own PR
 
 <!-- GSD:workflow-start source=GSD defaults -->
 ## GSD Workflow Enforcement
@@ -262,3 +287,13 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 > Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
 > This section is managed by `generate-claude-profile` -- do not edit manually.
 <!-- GSD:profile-end -->
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)

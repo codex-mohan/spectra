@@ -36,6 +36,48 @@ jobs:
           publish: bun run release
           commit: "chore: version packages"
           title: "chore: version packages"
+          provenance: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ── Create GitHub Release when packages are published ──
+      # Scoped npm packages like @singularity-ai/spectra-ai contain '@' which
+      # GitHub renders as user mentions in release notes. Double-backtick code
+      # spans (``like this``) prevent @ from being parsed as a mention.
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          # Extract version from the first published package (all are fixed-versioned)
+          VERSION=$(echo "$PUBLISHED" | jq -r '.[0].version')
+          TAG="v${VERSION}"
+
+          # Build release body — use double-backtick code spans to prevent @ mentions
+          {
+            echo "## Published Packages"
+            echo ""
+            for row in $(echo "$PUBLISHED" | jq -r '.[] | @base64'); do
+              PKG_NAME=$(echo "$row" | base64 -d | jq -r '.name')
+              VER=$(echo "$row" | base64 -d | jq -r '.version')
+              echo "- \`\`${PKG_NAME}@${VER}\`\` — [npm](https://www.npmjs.com/package/${PKG_NAME}/v/${VER})"
+            done
+            echo ""
+            echo "## Install"
+            echo ""
+            echo '```sh'
+            echo "bun add @singularity-ai/spectra-ai@${VERSION}"
+            echo '```'
+          } > /tmp/release-body.md
+
+          # Create git tag for the unified release (vX.Y.Z)
+          git tag "$TAG" || true
+          git push origin "$TAG" || true
+
+          # Create the GitHub Release
+          gh release create "$TAG" \
+            --title "Spectra $TAG" \
+            --notes-file /tmp/release-body.md \
+            --latest

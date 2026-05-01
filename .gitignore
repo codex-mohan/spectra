@@ -50,3 +50,7 @@ coverage/
 
 # Planning (local only)
 .planning/
+
+# graphify (knowledge graph output)
+graphify-out/
+.graphify_*
