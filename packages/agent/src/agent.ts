@@ -304,10 +304,8 @@ export class Agent {
 
 			if (toolCalls.length === 0) {
 				await emit({ type: 'turn_end', message: assistantMessage, toolResults: [] });
-				if (await this.drainQueuedMessages(this.steeringQueue, emit)) {
-					continue;
-				}
-				if (await this.drainQueuedMessages(this.followUpQueue, emit)) {
+				const drained = await this.drainEndOfTurnQueues(emit);
+				if (drained) {
 					turns = 0;
 					continue;
 				}
@@ -322,11 +320,8 @@ export class Agent {
 
 			await emit({ type: 'turn_end', message: assistantMessage, toolResults });
 
-			if (await this.drainQueuedMessages(this.steeringQueue, emit)) {
-				continue;
-			}
-
-			if (await this.drainQueuedMessages(this.followUpQueue, emit)) {
+			const drained = await this.drainEndOfTurnQueues(emit);
+			if (drained) {
 				turns = 0;
 				continue;
 			}
@@ -344,6 +339,22 @@ export class Agent {
 			await emit({ type: 'message_end', message: msg });
 		}
 		return true;
+	}
+
+	private async drainEndOfTurnQueues(emit: EmitFn): Promise<boolean> {
+		// Drain any queued messages that were already submitted.
+		if (await this.drainQueuedMessages(this.steeringQueue, emit)) return true;
+		if (await this.drainQueuedMessages(this.followUpQueue, emit)) return true;
+
+		// Yield to let pending steer()/followUp() calls that were triggered during
+		// this turn enqueue their messages before we commit to ending the turn.
+		await Promise.resolve();
+
+		// Final drain check for messages that arrived during the yield.
+		if (await this.drainQueuedMessages(this.steeringQueue, emit)) return true;
+		if (await this.drainQueuedMessages(this.followUpQueue, emit)) return true;
+
+		return false;
 	}
 
 	private async streamAssistantResponse(

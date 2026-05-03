@@ -196,6 +196,99 @@ describe('Agent Queues and Hooks', () => {
 		expect(seenContexts[1].map((message) => message.role)).toEqual(['user', 'assistant', 'user']);
 	});
 
+	it('should let steering start a new assistant response when maxTurns is one', async () => {
+		let callIndex = 0;
+		const seenContexts: Message[][] = [];
+		registerProvider({
+			name: testModel.provider,
+			stream(_model, context) {
+				const stream = new AssistantMessageEventStream();
+				seenContexts.push([...(context.messages as Message[])]);
+				const message: AssistantMessage = {
+					role: 'assistant',
+					content: [{ type: 'text', text: callIndex === 0 ? 'First response' : 'Steered response' }],
+					provider: testModel.provider,
+					model: testModel.id,
+					usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+					stopReason: 'stop',
+					timestamp: Date.now(),
+				};
+				callIndex++;
+				setTimeout(() => {
+					stream.push({ type: 'done', reason: 'stop', message });
+					stream.end(message);
+				}, 0);
+				return stream;
+			},
+		});
+		const agent = new Agent({ model: testModel, maxTurns: 1 });
+		agent.steer('Steer now');
+
+		const assistantMessages: string[] = [];
+		for await (const event of agent.run('Initial')) {
+			if (event.type === 'message_end' && event.message.role === 'assistant') {
+				const message = event.message as AssistantMessage;
+				const text = message.content
+					.filter((block): block is { type: 'text'; text: string } => block.type === 'text')
+					.map((block) => block.text)
+					.join('');
+				assistantMessages.push(text);
+			}
+		}
+
+		expect(assistantMessages).toEqual(['First response', 'Steered response']);
+		expect(seenContexts).toHaveLength(2);
+		expect(seenContexts[1].map((message) => message.role)).toEqual(['user', 'assistant', 'user']);
+	});
+
+	it('should trigger a new assistant response when steering is sent after assistant message_end', async () => {
+		let callIndex = 0;
+		const seenContexts: Message[][] = [];
+		registerProvider({
+			name: testModel.provider,
+			stream(_model, context) {
+				const stream = new AssistantMessageEventStream();
+				seenContexts.push([...(context.messages as Message[])]);
+				const message: AssistantMessage = {
+					role: 'assistant',
+					content: [{ type: 'text', text: callIndex === 0 ? 'First response' : 'Steered response' }],
+					provider: testModel.provider,
+					model: testModel.id,
+					usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+					stopReason: 'stop',
+					timestamp: Date.now(),
+				};
+				callIndex++;
+				stream.push({ type: 'start', partial: message });
+				setTimeout(() => {
+					stream.push({ type: 'done', reason: 'stop', message });
+					stream.end(message);
+				}, 10);
+				return stream;
+			},
+		});
+		const agent = new Agent({ model: testModel });
+		const assistantMessages: string[] = [];
+		let steered = false;
+		for await (const event of agent.run('Initial')) {
+			if (event.type === 'message_end' && event.message.role === 'assistant') {
+				assistantMessages.push(
+					event.message.content.filter((c): c is { type: 'text'; text: string } => c.type === 'text').map((c) => c.text).join(''),
+				);
+				// Simulate the UI race: user submits steering right after the assistant
+				// response finishes, before agent_end is emitted.
+				if (!steered) {
+					steered = true;
+					agent.steer('Steer now');
+				}
+			}
+		}
+
+		expect(assistantMessages).toEqual(['First response', 'Steered response']);
+		expect(seenContexts).toHaveLength(2);
+		expect(seenContexts[1].map((message) => message.role)).toEqual(['user', 'assistant', 'user']);
+	});
+
 describe('Agent Retry Logic', () => {
 	it('should configure max retry delay', () => {
 		const agent = new Agent({

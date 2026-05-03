@@ -533,7 +533,57 @@ Enable users to attach files (images, audio, video, text, PDFs, etc.) directly i
 - `packages/llm/src/schema/messages.ts` — `MediaPart` schema
 - `packages/llm/src/protocols/shared.ts` — `IMAGE_MIMES`, `validateMedia()`
 
-## 15. Future deferred
+## 15. Oh My Pi reference adoption
+
+Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
+
+**Tool parity candidates:**
+- [ ] Tool registry: separate always-on tools from gated/hidden tools, with settings-based activation
+- [ ] Tool discovery: BM25 search over hidden tools so agents can activate specialized tools mid-session
+- [ ] Code intelligence: add LSP tool support for diagnostics, references, rename, code actions, symbols, hover, and definitions
+- [ ] Debugger integration: add DAP tool support for launch/attach, breakpoints, stepping, stack, scopes, variables, and evaluation
+- [ ] Browser automation: add Puppeteer/CDP tab control for web and desktop-app automation
+- [ ] Structured ask tool: model-triggered option picker that routes ambiguity through UI instead of prose
+- [ ] Background job tool: async shell/task handles with wait/cancel and completion injection
+- [ ] IRC coordination: short live messages between parent and child agents
+- [ ] Output artifacts: persist truncated tool output behind stable `artifact://` references
+- [ ] Internal URL schemes: resolve `agent://`, `artifact://`, `issue://`, `pr://`, `skill://`, and related schemes through read/search-shaped tools
+- [ ] Image tools: inspect images with vision models and generate/edit images via configured image providers
+- [ ] Memory tools: split durable memory into retain, recall, reflect, edit/learn/manage flows instead of one generic memory tool
+- [ ] Checkpoint/rewind: conversation-state collapse points for pruning exploratory context while keeping a report
+- [ ] Replace string-match edit with hashline-style anchored patching: `[path#tag]`, tight line ops, content-hash freshness checks, and fresh tags after every edit
+- [ ] Record file snapshots from read/search output so edit anchors prove the model saw the target lines
+- [ ] Add stale-edit recovery: replay intended edits against cached snapshots and 3-way merge onto current file only when anchors safely remap
+- [ ] Add syntax-aware block operations for whole functions/classes/Markdown sections, backed by tree-sitter where available
+- [ ] Preflight multi-file/multi-section edits before writing so parse/stale/no-op failures do not partially apply
+- [ ] Integrate edit writes with LSP formatting/diagnostics and surface deferred diagnostics in the transcript
+- [ ] Add no-op edit loop detection so repeated byte-identical patches become hard failures instead of silent cycles
+- [ ] Startup/onboarding polish: animated ASCII splash, gradient logo/welcome card, provider setup wizard scenes, and animated provider sign-in feedback
+
+**Subscription and quota tracking from Oh My Pi:**
+- [ ] Normalize provider usage into `UsageReport`, `UsageLimit`, `UsageWindow`, `UsageAmount`, and `UsageScope` types
+- [ ] Add usage providers for OpenAI Codex, OpenCode Go, Claude/Anthropic, Gemini CLI, GitHub Copilot, Kimi Code, MiniMax Code, GLM/Z.AI, and Alibaba/Qwen plans
+- [ ] Track OpenCode Go with observed request cost windows: `$12/5h`, `$30/week`, `$60/month`
+- [ ] Track OpenAI Codex `/wham/usage` windows, plan type, additional limits such as Spark, and saved reset credits
+- [ ] Store usage snapshots and render `usage --history` trends by provider/account/window
+- [ ] Record per-request cost history for providers without upstream usage APIs
+- [ ] Rank and rotate multiple credentials by live usage: prefer less-used windows, avoid exhausted accounts, respect retry/reset times
+- [ ] Parse usage-limit errors separately from transient 429s so exhausted accounts rotate instead of retry-looping
+- [ ] Surface usage in CLI/TUI with redacted account identities, status bars, reset times, and aggregate capacity
+- [ ] Thread service-tier settings through model requests: OpenAI `auto/default/flex/scale/priority`, Anthropic `priority`, Google `flex/priority`
+
+**Reference files:**
+- `packages/coding-agent/src/tools/builtin-names.ts` — built-in tool names and legacy aliases
+- `packages/coding-agent/src/tools/index.ts` — tool registry, gated tools, task/tool session contract
+- `packages/coding-agent/src/tool-discovery/tool-index.ts` — hidden tool search index
+- `packages/ai/src/usage.ts` — normalized usage schema
+- `packages/ai/src/auth-storage.ts` — credential ranking, rotation, usage cache, usage-limit handling
+- `packages/ai/src/usage/openai-codex.ts` — OpenAI Codex usage windows and reset credits
+- `packages/ai/src/usage/opencode-go.ts` — OpenCode Go observed spend windows
+- `packages/coding-agent/src/cli/usage-cli.ts` — usage CLI, redaction, status bars, history rendering
+- `packages/coding-agent/src/config/service-tier.ts` — per-family service-tier settings
+
+## 16. Future deferred
 
 The following are deferred until the core system is stable and functional:
 
