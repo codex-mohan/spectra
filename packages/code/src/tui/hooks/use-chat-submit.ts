@@ -20,6 +20,7 @@ import { loadConfig } from '../../services/config.js';
 import { enqueuePendingSkill } from '../../services/pending-skills.js';
 import { synthesizeSkillWithAgent } from '../../services/skill-synth.js';
 import { loadAllEvolvingSkills, saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
+import { recordUsageCost } from '../../services/usage-store.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
 
@@ -103,6 +104,12 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		promptHistoryService,
 	} = deps;
 
+interface QueuedSteeringDisplay {
+	content: string;
+	attachments: PromptSubmitPayload['attachments'];
+	model: string;
+}
+
 	const shownToolCalls = useRef(new Set<string>());
 	const toolMsgMap = useRef(new Map<string, string>());
 	const toolArgsMap = useRef(new Map<string, unknown>());
@@ -112,7 +119,8 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const titleGeneratedRef = useRef(false);
 	const firstUserMessageRef = useRef<string | null>(null);
 	const steeringMessagesRef = useRef(new Set<Message>());
-	const steeringMessageIdsRef = useRef(new Map<Message, string>());
+	const steeringDisplaysRef = useRef(new Map<Message, QueuedSteeringDisplay>());
+	const steeringUiIdsRef = useRef(new Map<number, string>());
 
 
 	function persistMessage(targetSessionId: string, sdkMsg: Message) {
@@ -275,18 +283,18 @@ Return ONLY the title text, nothing else.`;
 						metadata: { steeringStatus: 'queued' },
 					};
 					const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
-					const uid = genId();
+					const steeringUiId = genId();
 					steeringMessagesRef.current.add(userMsg);
-					steeringMessageIdsRef.current.set(userMsg, uid);
-					persistMessage(currentSessionId, userMsg);
+					steeringDisplaysRef.current.set(userMsg, { content: displayContent, attachments, model: selectedModel });
 					sessionState.addMessageTo(currentSessionId, {
-						id: uid,
+						id: steeringUiId,
 						role: 'user',
 						content: displayContent,
 						attachments,
 						model: selectedModel,
 						steeringStatus: 'queued',
 					});
+					steeringUiIdsRef.current.set(userMsg.timestamp, steeringUiId);
 					agent.steer(userMsg);
 					if (trimmed) promptHistoryService.current.append(trimmed);
 					setDraftText('');
@@ -417,11 +425,15 @@ Return ONLY the title text, nothing else.`;
 				for await (const ev of agent.run(attachments.length > 0 ? { ...userMsg, content: userContent } : promptInputText)) {
 					if (ev.type === 'message_end' && ev.message.role === 'user' && steeringMessagesRef.current.has(ev.message)) {
 						steeringMessagesRef.current.delete(ev.message);
-						updatePersistedMessageMetadata(runSessionId, ev.message, { steeringStatus: 'sent' });
-						const queuedId = steeringMessageIdsRef.current.get(ev.message);
-						if (queuedId) {
-							steeringMessageIdsRef.current.delete(ev.message);
-							sessionState.updateMessageIn(runSessionId, queuedId, { steeringStatus: 'sent' });
+						steeringDisplaysRef.current.delete(ev.message);
+						const steeringUiId = steeringUiIdsRef.current.get(ev.message.timestamp);
+						steeringUiIdsRef.current.delete(ev.message.timestamp);
+						// Update persisted message status from 'queued' to 'sent'
+						const sentMessage: Message = { ...ev.message, metadata: { ...ev.message.metadata, steeringStatus: 'sent' } };
+						persistMessage(runSessionId, sentMessage);
+						// Update the existing UI message (already displayed from steering path)
+						if (steeringUiId) {
+							sessionState.updateMessageIn(runSessionId, steeringUiId, { steeringStatus: 'sent' });
 						}
 						sessionState.setStatusIn(runSessionId, 'Steering sent to model');
 					}
@@ -514,6 +526,15 @@ Return ONLY the title text, nothing else.`;
 						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: Math.max(p.input, m.usage.input), output: p.output + ot }));
 						const turnCost = calculateCost(selectedModel, { input: m.usage.input, output: m.usage.output });
 						if (turnCost.total > 0) sessionState.addCostIn(runSessionId, turnCost.total);
+						recordUsageCost({
+							recordedAt: Date.now(),
+							provider,
+							model: selectedModel,
+							sessionId: runSessionId,
+							inputTokens: m.usage.input,
+							outputTokens: m.usage.output,
+							costUsd: turnCost.total,
+						});
 						currentAssistantId = null;
 						streamingIdRef.current = null;
 
@@ -681,12 +702,40 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 				}
 			}
 			} catch (err) {
+				const message = err instanceof Error ? err.message : String(err);
 				const errId = currentAssistantId || genId();
-				sessionState.updateMessageIn(runSessionId, errId, {
-					content: `Error: ${err instanceof Error ? err.message : String(err)}`,
-					streaming: false,
-					role: 'error',
-				});
+				const errorAssistant: AssistantMessage = {
+					role: 'assistant',
+					content: [],
+					provider,
+					model: selectedModel,
+					usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
+					stopReason: 'error',
+					errorMessage: message,
+					timestamp: Date.now(),
+					metadata: { turnStatus: 'error' },
+				};
+				if (!currentAssistantId) {
+					sessionState.addMessageTo(runSessionId, {
+						id: errId,
+						role: 'assistant',
+						content: `[error] ${message}`,
+						blocks: [{ type: 'text', content: `[error] ${message}` }],
+						streaming: false,
+						model: selectedModel,
+						agent: selectedAgent,
+						turnStatus: 'error',
+					});
+				} else {
+					sessionState.updateMessageIn(runSessionId, errId, {
+						content: `[error] ${message}`,
+						blocks: [{ type: 'text', content: `[error] ${message}` }],
+						streaming: false,
+						role: 'assistant',
+						turnStatus: 'error',
+					});
+				}
+				persistMessage(runSessionId, errorAssistant);
 				if (currentTurnMsgIdRef.current) {
 					sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error', streaming: false });
 				}
