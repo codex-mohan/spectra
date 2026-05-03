@@ -43,6 +43,11 @@ export const PROVIDER_META: Record<string, ProviderMeta> = {
 		popular: true,
 		apiKeyUrl: 'https://platform.openai.com',
 	},
+	'openai-codex': {
+		name: 'OpenAI Codex',
+		desc: 'Codex models via ChatGPT OAuth',
+		popular: true,
+	},
 	openrouter: {
 		name: 'OpenRouter',
 		desc: 'Multi-model gateway',
@@ -191,6 +196,30 @@ export const PROVIDER_META: Record<string, ProviderMeta> = {
 		popular: true,
 		apiKeyUrl: 'https://kimi.com/code',
 	},
+	'kimi-code': {
+		name: 'Kimi Code',
+		desc: 'Kimi OAuth plan',
+		popular: true,
+		apiKeyUrl: 'https://kimi.com/code',
+	},
+	'minimax-code': {
+		name: 'MiniMax Token Plan',
+		desc: 'MiniMax models',
+		popular: true,
+		apiKeyUrl: 'https://platform.minimax.io/subscribe/token-plan',
+	},
+	'minimax-code-cn': {
+		name: 'MiniMax Token Plan (CN)',
+		desc: 'MiniMax models',
+		popular: true,
+		apiKeyUrl: 'https://platform.minimaxi.com/subscribe/token-plan',
+	},
+	'zhipu-coding-plan': {
+		name: 'Zhipu Coding Plan',
+		desc: 'GLM models',
+		popular: false,
+		apiKeyUrl: 'https://bigmodel.cn/coding-plan/personal/overview',
+	},
 	'opencode-zen': {
 		name: 'OpenCode Zen',
 		desc: 'Multi-model pay-as-you-go',
@@ -210,6 +239,38 @@ export const PROVIDER_META: Record<string, ProviderMeta> = {
 			{ id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' },
 			{ id: 'kimi-k2', name: 'Kimi K2' },
 		],
+	},
+
+	// ── Local OpenAI-compatible runtimes ────────────────────────────────────────
+	ollama: {
+		name: 'Ollama',
+		desc: 'Local models',
+		popular: true,
+		apiKeyUrl: 'https://github.com/ollama/ollama/blob/main/docs/openai.md',
+	},
+	'lm-studio': {
+		name: 'LM Studio',
+		desc: 'Local models',
+		popular: true,
+		apiKeyUrl: 'https://lmstudio.ai/docs/app/api/endpoints/openai',
+	},
+	'llama-cpp': {
+		name: 'llama.cpp',
+		desc: 'Local server',
+		popular: false,
+		apiKeyUrl: 'https://github.com/ggml-org/llama.cpp/tree/master/tools/server',
+	},
+	vllm: {
+		name: 'vLLM',
+		desc: 'Local/OpenAI server',
+		popular: false,
+		apiKeyUrl: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html',
+	},
+	sglang: {
+		name: 'SGLang',
+		desc: 'Local/OpenAI server',
+		popular: false,
+		apiKeyUrl: 'https://docs.sglang.ai/backend/openai_api_completions.html',
 	},
 };
 

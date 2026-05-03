@@ -1,9 +1,31 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback, type ReactNode } from 'react';
 import { c } from '../theme.js';
 import { write, type ApiCredential } from '../../services/auth-store.js';
 import { listProviders, getModels } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { PROVIDER_META, resolveMetaKey, getApiKeyDesc } from '../utils/provider-meta.js';
+import { loginKimiCode, loginCodexDevice, type AuthInfo } from '../../services/provider-auth.js';
+
+interface KeyEvent {
+	name: string;
+	ctrl?: boolean;
+	meta?: boolean;
+}
+
+type KeyHandler = (key: KeyEvent) => void;
+
+interface ScrollChild {
+	id?: string;
+	y: number;
+}
+
+interface ScrollBoxHandle {
+	y?: number;
+	height?: number;
+	scrollChildIntoView?: (id: string) => void;
+	scrollBy?: (offset: number) => void;
+	getChildren?: () => ScrollChild[];
+}
 
 // ── Shared select list ──
 
@@ -14,7 +36,7 @@ function SelectDialog(props: {
 	onCancel: () => void;
 	termWidth: number;
 	termHeight: number;
-	registerHandler: (fn: ((key: any) => void) | null) => void;
+	registerHandler: (fn: KeyHandler | null) => void;
 }) {
 	const { items, placeholder, onSelect, onCancel, termWidth, termHeight, registerHandler } = props;
 	const mw = Math.min(64, termWidth - 4);
@@ -24,7 +46,7 @@ function SelectDialog(props: {
 	const listH = mh - 5;
 	const [filter, setFilter] = useState('');
 	const [sel, setSel] = useState(0);
-	const scrollRef = useRef<any>(null);
+	const scrollRef = useRef<ScrollBoxHandle | null>(null);
 
 	const filtered = useMemo(() => {
 		const q = filter.toLowerCase();
@@ -38,7 +60,7 @@ function SelectDialog(props: {
 		if (typeof el.scrollChildIntoView === 'function') {
 			el.scrollChildIntoView(filtered[sel].id);
 		} else {
-			const child = el.getChildren?.()?.find?.((ch: any) => ch.id === filtered[sel].id);
+			const child = el.getChildren?.()?.find?.((ch) => ch.id === filtered[sel].id);
 			if (child) {
 				const y = child.y - (el.y || 0);
 				if (y >= (el.height || listH)) el.scrollBy?.(y - (el.height || listH) + 1);
@@ -48,7 +70,7 @@ function SelectDialog(props: {
 	}, [sel, filtered, listH]);
 
 	useEffect(() => {
-		registerHandler((key: any) => {
+		registerHandler((key) => {
 			if (key.name === 'escape') {
 				onCancel();
 				return;
@@ -88,7 +110,7 @@ function SelectDialog(props: {
 	}, [filtered, sel, onSelect, onCancel, registerHandler]);
 
 	// Build rows — items are pre-sorted by category so each header appears once.
-	const rows: any[] = [];
+	const rows: ReactNode[] = [];
 	let prevCat = '';
 	for (let i = 0; i < filtered.length; i++) {
 		const it = filtered[i];
@@ -156,7 +178,7 @@ function SelectDialog(props: {
 					<text fg={c.border}>{'─'.repeat(mw - 4)}</text>
 				</box>
 				<scrollbox
-					ref={(r: any) => {
+					ref={(r: ScrollBoxHandle | null) => {
 						scrollRef.current = r;
 					}}
 					paddingX={1}
@@ -184,6 +206,20 @@ function SelectDialog(props: {
 	);
 }
 
+const OPTIONAL_AUTH_PROVIDER_IDS: Record<string, string> = {
+	ollama: 'ollama-local',
+	'lm-studio': 'lm-studio-local',
+	'llama-cpp': 'llama-cpp-local',
+	vllm: 'vllm-local',
+	sglang: 'sglang-local',
+};
+
+const OAUTH_PROVIDER_IDS: Record<string, 'kimi' | 'codex'> = {
+	'kimi-code': 'kimi',
+	'kimi-coding-plan': 'kimi',
+	'openai-codex': 'codex',
+};
+
 // ── API key input ──
 
 function ApiKeyDialog(props: {
@@ -193,9 +229,11 @@ function ApiKeyDialog(props: {
 	onCancel: () => void;
 	termWidth: number;
 	termHeight: number;
-	registerHandler: (fn: ((key: any) => void) | null) => void;
+	registerHandler: (fn: KeyHandler | null) => void;
+	allowEmpty?: boolean;
+	defaultKey?: string;
 }) {
-	const { providerName, providerId, onSubmit, onCancel, termWidth, termHeight, registerHandler } = props;
+	const { providerName, providerId, onSubmit, onCancel, termWidth, termHeight, registerHandler, allowEmpty, defaultKey } = props;
 	const mw = Math.min(64, termWidth - 4);
 	const ml = Math.floor((termWidth - mw) / 2);
 	const mh = 10;
@@ -206,7 +244,7 @@ function ApiKeyDialog(props: {
 	const keyDoneRef = useRef(false);
 
 	useEffect(() => {
-		registerHandler((key: any) => {
+		registerHandler((key) => {
 			if (key.name === 'escape' && !keyDoneRef.current) {
 				onCancel();
 				return;
@@ -217,13 +255,14 @@ function ApiKeyDialog(props: {
 
 	const handleSubmit = (value: string) => {
 		const val = String(value).trim();
-		if (!val || keyDoneRef.current) return;
+		const savedKey = val || (allowEmpty ? defaultKey || `${providerId}-local` : '');
+		if (!savedKey || keyDoneRef.current) return;
 		keyDoneRef.current = true;
 		setBusy(true);
 		try {
-			write(providerId, { type: 'api', key: val } as ApiCredential);
+			write(providerId, { type: 'api', key: savedKey } as ApiCredential);
 			setDone(true);
-			setTimeout(() => onSubmit(val), 400);
+			setTimeout(() => onSubmit(savedKey), 400);
 		} catch (e) {
 			setErr(String(e));
 			setBusy(false);
@@ -247,13 +286,13 @@ function ApiKeyDialog(props: {
 				<text fg={c.accent} attributes={1}>
 					{providerName} API Key
 				</text>
-				<text fg={c.dim}>{getApiKeyDesc(providerId, providerName)}</text>
+				<text fg={c.dim}>{allowEmpty ? `${getApiKeyDesc(providerId, providerName)} — leave empty for local no-auth mode` : getApiKeyDesc(providerId, providerName)}</text>
 				<box flexDirection="row" alignItems="center" gap={1}>
 					<text fg={c.accent}>›</text>
 					<box flexGrow={1}>
 						<input
 							key="apikey-input"
-							placeholder="sk-..."
+							placeholder={defaultKey || 'sk-...'}
 							onSubmit={(v) => handleSubmit(String(v))}
 							focused={true}
 						/>
@@ -267,6 +306,77 @@ function ApiKeyDialog(props: {
 	);
 }
 
+function OAuthLoginDialog(props: {
+	providerName: string;
+	providerId: string;
+	onSuccess: () => void;
+	onCancel: () => void;
+	termWidth: number;
+	termHeight: number;
+	registerHandler: (fn: KeyHandler | null) => void;
+}) {
+	const { providerName, providerId, onSuccess, onCancel, termWidth, termHeight, registerHandler } = props;
+	const mw = Math.min(72, termWidth - 4);
+	const mh = 14;
+	const ml = Math.floor((termWidth - mw) / 2);
+	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
+	const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null);
+	const [status, setStatus] = useState('Starting login...');
+	const [err, setErr] = useState('');
+	const startedRef = useRef(false);
+
+	useEffect(() => {
+		registerHandler((key) => {
+			if (key.name === 'escape') onCancel();
+		});
+		return () => registerHandler(null);
+	}, [onCancel, registerHandler]);
+
+	useEffect(() => {
+		if (startedRef.current) return;
+		startedRef.current = true;
+		const loginFn = OAUTH_PROVIDER_IDS[providerId] === 'codex' ? loginCodexDevice : loginKimiCode;
+		loginFn({
+			onAuth: setAuthInfo,
+			onProgress: setStatus,
+		}).then((credential) => {
+			write(providerId, credential);
+			setStatus('Saved');
+			setTimeout(onSuccess, 400);
+		}).catch((error: unknown) => {
+			setErr(error instanceof Error ? error.message : String(error));
+		});
+	}, [onSuccess, providerId]);
+
+	return (
+		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
+			<box
+				position="absolute"
+				left={ml}
+				top={mt}
+				width={mw}
+				height={mh}
+				backgroundColor={c.bgCard}
+				padding={2}
+				flexDirection="column"
+				gap={1}
+			>
+				<text fg={c.accent} attributes={1}>{providerName} OAuth</text>
+				{authInfo ? (
+					<>
+						<text fg={c.text}>{authInfo.instructions ?? 'Open this authorization URL:'}</text>
+						<text fg={c.accent}>{authInfo.url}</text>
+					</>
+				) : (
+					<text fg={c.dim}>Requesting authorization URL...</text>
+				)}
+				<text fg={err ? c.error : c.dim}>{err || status}</text>
+				<text fg={c.dim}>esc cancel</text>
+			</box>
+		</box>
+	);
+}
+
 // ── Manual model ID input ──
 
 function ModelInputDialog(props: {
@@ -275,7 +385,7 @@ function ModelInputDialog(props: {
 	onCancel: () => void;
 	termWidth: number;
 	termHeight: number;
-	registerHandler: (fn: ((key: any) => void) | null) => void;
+	registerHandler: (fn: KeyHandler | null) => void;
 }) {
 	const { providerName, onSubmit, onCancel, termWidth, termHeight, registerHandler } = props;
 	const mw = Math.min(64, termWidth - 4);
@@ -284,7 +394,7 @@ function ModelInputDialog(props: {
 	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
 
 	useEffect(() => {
-		registerHandler((key: any) => {
+		registerHandler((key) => {
 			if (key.name === 'escape') {
 				onCancel();
 			}
@@ -336,12 +446,13 @@ export interface ProviderDialogProps {
 	termHeight: number;
 	onModelSelected: (modelId: string, providerId: string) => void;
 	onClose: () => void;
-	keyHandlerRef: { current: ((key: any) => void) | null };
+	keyHandlerRef: { current: KeyHandler | null };
 }
 
 type Step =
 	| { phase: 'provider-list' }
 	| { phase: 'api-key'; id: string; name: string }
+	| { phase: 'oauth-login'; id: string; name: string }
 	| { phase: 'model-select'; id: string; name: string }
 	| { phase: 'model-input'; id: string; name: string };
 
@@ -351,7 +462,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 	const [models, setModels] = useState<{ id: string; name: string }[] | null>(null);
 
 	const registerHandler = useCallback(
-		(fn: ((key: any) => void) | null) => {
+		(fn: KeyHandler | null) => {
 			keyHandlerRef.current = fn;
 		},
 		[keyHandlerRef],
@@ -401,7 +512,24 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				placeholder="Search providers..."
 				termWidth={termWidth}
 				termHeight={termHeight}
-				onSelect={(id, name) => setStep({ phase: 'api-key', id, name })}
+				onSelect={(id, name) => {
+					const oauthKind = OAUTH_PROVIDER_IDS[id];
+					setStep({ phase: oauthKind ? 'oauth-login' : 'api-key', id, name });
+				}}
+				onCancel={onClose}
+				registerHandler={registerHandler}
+			/>
+		);
+	}
+
+	if (step.phase === 'oauth-login') {
+		return (
+			<OAuthLoginDialog
+				providerName={step.name}
+				providerId={step.id}
+				termWidth={termWidth}
+				termHeight={termHeight}
+				onSuccess={() => setStep({ phase: 'model-select', id: step.id, name: step.name })}
 				onCancel={onClose}
 				registerHandler={registerHandler}
 			/>
@@ -432,6 +560,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 		if (models === null) {
 			getModels(step.id).then((m) => setModels(m));
 		}
+		const optionalDefaultKey = OPTIONAL_AUTH_PROVIDER_IDS[step.id];
 		return (
 			<ApiKeyDialog
 				providerName={step.name}
@@ -441,6 +570,8 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				onSubmit={() => setStep({ phase: 'model-select', id: step.id, name: step.name })}
 				onCancel={onClose}
 				registerHandler={registerHandler}
+				allowEmpty={optionalDefaultKey !== undefined}
+				defaultKey={optionalDefaultKey}
 			/>
 		);
 	}

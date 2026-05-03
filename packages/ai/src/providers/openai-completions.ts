@@ -16,6 +16,14 @@ import type {
 import { AssistantMessageEventStream } from '../event-stream.js';
 import { sanitizeSurrogates, parseStreamingJson } from './shared.js';
 
+const LOCAL_NO_AUTH_PROVIDERS: Record<string, string> = {
+	ollama: 'ollama-local',
+	'lm-studio': 'lm-studio-local',
+	'llama-cpp': 'llama-cpp-local',
+	vllm: 'vllm-local',
+	sglang: 'sglang-local',
+};
+
 function getEnvApiKey(provider: string): string | undefined {
 	const keys: Record<string, string | undefined> = {
 		openai: process.env.OPENAI_API_KEY,
@@ -25,8 +33,13 @@ function getEnvApiKey(provider: string): string | undefined {
 		azure: process.env.AZURE_OPENAI_API_KEY,
 		cerebras: process.env.CEREBRAS_API_KEY,
 		xai: process.env.XAI_API_KEY,
+		ollama: process.env.OLLAMA_API_KEY,
+		'lm-studio': process.env.LM_STUDIO_API_KEY,
+		'llama-cpp': process.env.LLAMA_CPP_API_KEY,
+		vllm: process.env.VLLM_API_KEY,
+		sglang: process.env.SGLANG_API_KEY,
 	};
-	return keys[provider];
+	return keys[provider] ?? LOCAL_NO_AUTH_PROVIDERS[provider];
 }
 
 function extractBase64FromDataUrl(url: string): string {

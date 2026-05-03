@@ -16,6 +16,14 @@ function resolveApiKey(providerId: string, configApiKey?: string): string | unde
 	return undefined;
 }
 
+export function normalizeOpenAIBaseUrl(baseUrl: string): string {
+	const trimmed = baseUrl.trim().replace(/\/+$/, '');
+	for (const suffix of ['/chat/completions', '/responses', '/completions']) {
+		if (trimmed.endsWith(suffix)) return trimmed.slice(0, -suffix.length);
+	}
+	return trimmed;
+}
+
 function parseStreamingJson(raw: string): Record<string, unknown> {
 	try {
 		return JSON.parse(raw);
@@ -95,7 +103,7 @@ export function registerCustomProvider(id: string, config: CustomProviderConfig)
 					const { default: OpenAI } = await import('@mohanscodex/spectra-ai').then(() => import('openai'));
 					const client = new OpenAI({
 						apiKey,
-						baseURL: config.baseUrl,
+						baseURL: normalizeOpenAIBaseUrl(config.baseUrl),
 						dangerouslyAllowBrowser: true,
 						...(config.headers ? { defaultHeaders: config.headers } : {}),
 					});

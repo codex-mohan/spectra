@@ -24,9 +24,19 @@ export function loadSavedConfig(): { model: string | null; provider: string | nu
 	}
 }
 
+const LOCAL_NO_AUTH_KEYS: Record<string, string> = {
+	ollama: 'ollama-local',
+	'lm-studio': 'lm-studio-local',
+	'llama-cpp': 'llama-cpp-local',
+	vllm: 'vllm-local',
+	sglang: 'sglang-local',
+};
+
 export function getAuthKey(providerId: string): string | undefined {
 	const cred = readAll()[providerId];
-	return cred?.type === 'api' ? cred.key : undefined;
+	if (cred?.type === 'api') return cred.key;
+	if (cred?.type === 'oauth' && cred.expires > Date.now()) return cred.access;
+	return LOCAL_NO_AUTH_KEYS[providerId];
 }
 
 export function saveModelConfig(modelId: string, providerId: string) {

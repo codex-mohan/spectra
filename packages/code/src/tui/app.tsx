@@ -27,6 +27,7 @@ import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
 import { UpdateDialog } from './ui/update-dialog.js';
 import { CostDialog } from './ui/cost-dialog.js';
+import { UsageDialog } from './ui/usage-dialog.js';
 import { MemoryDialog } from './ui/memory-dialog.js';
 import { SettingsDialog } from './ui/settings-dialog.js';
 import { SkillsDialog } from './ui/skills-dialog.js';
@@ -1184,6 +1185,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					tokenUsage={tokenUsage}
 					onClose={() => setDialogStep(null)}
 					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'usage' && (
+				<UsageDialog
+					termWidth={termWidth}
+					termHeight={termHeight}
+					activeProvider={provider}
+					onClose={() => setDialogStep(null)}
+					registerHandler={(fn) => {
 						dialogKeyHandler.current = fn;
 					}}
 				/>

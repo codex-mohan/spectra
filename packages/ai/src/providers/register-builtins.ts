@@ -7,6 +7,10 @@ import type { Model, Context } from '../types.js';
 import type { Provider } from '../registry.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
 
+function envBaseUrl(envName: string, fallback: string): string {
+	return process.env[envName]?.replace(/\/+$/, '') || fallback;
+}
+
 function wrapOpenAIProvider(name: string, baseUrl: string): Provider {
 	const inner = createOpenAICompletionsProvider();
 	return {
@@ -60,6 +64,7 @@ export function initProviders(): void {
 	registerProvider(wrapOpenAIProvider('mistral', 'https://api.mistral.ai/v1'));
 	registerProvider(wrapOpenAIProvider('cerebras', 'https://api.cerebras.ai/v1'));
 	registerProvider(wrapOpenAIProvider('google', 'https://generativelanguage.googleapis.com/v1beta/openai'));
+	registerProvider(wrapOpenAIProvider('openai-codex', 'https://api.openai.com/v1'));
 	registerProvider(wrapOpenAIProvider('fireworks-ai', 'https://api.fireworks.ai/inference/v1'));
 	registerProvider(wrapOpenAIProvider('togetherai', 'https://api.together.xyz/v1'));
 	registerProvider(wrapOpenAIProvider('perplexity', 'https://api.perplexity.ai'));
@@ -81,7 +86,18 @@ export function initProviders(): void {
 	registerProvider(wrapOpenAIProviderWithLiveModels('zai-coding-plan', 'https://api.z.ai/api/coding/paas/v4'));
 	registerProvider(wrapOpenAIProviderWithLiveModels('zhipuai-coding-plan', 'https://open.bigmodel.cn/api/paas/v4'));
 	registerProvider(wrapOpenAIProviderWithLiveModels('kimi-coding-plan', 'https://api.kimi.com/coding/v1'));
+	registerProvider(wrapOpenAIProviderWithLiveModels('kimi-code', 'https://api.kimi.com/coding/v1'));
+	registerProvider(wrapOpenAIProviderWithLiveModels('minimax-code', 'https://api.minimax.io/v1'));
+	registerProvider(wrapOpenAIProviderWithLiveModels('minimax-code-cn', 'https://api.minimaxi.com/v1'));
+	registerProvider(wrapOpenAIProviderWithLiveModels('zhipu-coding-plan', 'https://open.bigmodel.cn/api/coding/paas/v4'));
 	registerProvider(wrapOpenAIProviderWithLiveModels('opencode-zen', 'https://opencode.ai/zen/v1'));
+
+	// Local OpenAI-compatible runtimes
+	registerProvider(wrapOpenAIProviderWithLiveModels('ollama', envBaseUrl('OLLAMA_BASE_URL', 'http://127.0.0.1:11434/v1')));
+	registerProvider(wrapOpenAIProviderWithLiveModels('lm-studio', envBaseUrl('LM_STUDIO_BASE_URL', 'http://127.0.0.1:1234/v1')));
+	registerProvider(wrapOpenAIProviderWithLiveModels('llama-cpp', envBaseUrl('LLAMA_CPP_BASE_URL', 'http://127.0.0.1:8080/v1')));
+	registerProvider(wrapOpenAIProviderWithLiveModels('vllm', envBaseUrl('VLLM_BASE_URL', 'http://127.0.0.1:8000/v1')));
+	registerProvider(wrapOpenAIProviderWithLiveModels('sglang', envBaseUrl('SGLANG_BASE_URL', 'http://127.0.0.1:30000/v1')));
 }
 
 initProviders();

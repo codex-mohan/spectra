@@ -241,6 +241,7 @@ export function buildCmdItems(opts: {
 			| { type: 'toggle-mcp' }
 			| { type: 'debug' }
 			| { type: 'cost' }
+			| { type: 'usage' }
 			| { type: 'theme' }
 			| { type: 'permissions' }
 			| { type: 'settings' }
@@ -917,6 +918,16 @@ export function buildCmdItems(opts: {
 			slashName: 'cost',
 			action: () => {
 				setDialogStep({ type: 'cost' });
+			},
+		},
+		{
+			id: 'usage',
+			label: 'Show Usage',
+			desc: 'Coding plan quota windows',
+			cat: 'Observability',
+			slashName: 'usage',
+			action: () => {
+				setDialogStep({ type: 'usage' });
 			},
 		},
 		{
