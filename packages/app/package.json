@@ -1,6 +1,6 @@
 {
   "name": "@singularity-ai/spectra-app",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Spectra App - Session management, concurrency, and orchestration",
   "type": "module",
   "main": "./dist/index.js",
