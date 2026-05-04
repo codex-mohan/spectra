@@ -27,6 +27,9 @@ jobs:
 
       - run: bun run build
 
+      - name: Resolve workspace protocol dependencies for publishing
+        run: bun run resolve-workspace-deps
+
       - name: Setup npm auth
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 

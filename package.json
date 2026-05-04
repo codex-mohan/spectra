@@ -12,8 +12,9 @@
     "test": "turbo test",
     "lint": "turbo lint",
     "dev": "turbo dev",
-    "version": "changeset version && bun install --frozen-lockfile",
-    "release": "changeset publish",
+    "version": "changeset version && bun install",
+    "release": "bun run resolve-workspace-deps && changeset publish",
+    "resolve-workspace-deps": "node scripts/resolve-workspace-deps.mjs",
     "changeset": "changeset"
   },
   "devDependencies": {
