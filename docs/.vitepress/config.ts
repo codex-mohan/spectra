@@ -21,6 +21,8 @@ export default defineConfig({
             { text: "Tools", link: "/guide/tools" },
             { text: "Providers", link: "/guide/providers" },
             { text: "Events", link: "/guide/events" },
+            { text: "Session Management", link: "/guide/sessions" },
+            { text: "Orchestration & Concurrency", link: "/guide/orchestration" },
           ],
         },
       ],
@@ -32,6 +34,7 @@ export default defineConfig({
             { text: "Tools", link: "/api/tools" },
             { text: "Events", link: "/api/events" },
             { text: "Providers", link: "/api/providers" },
+            { text: "App (Sessions, Orchestration)", link: "/api/app" },
           ],
         },
         {
