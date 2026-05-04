@@ -190,6 +190,80 @@ spectra/
 - TypeScript: `vitest --run` in each package
 - No Python SDK tests yet (TODO)
 
+### Pre-Publish Import Verification
+
+**Never publish without running this first.** It validates that packages resolve and import correctly in an isolated project outside the monorepo (catches `workspace:*` leaks, missing exports, broken transitive deps).
+
+```sh
+# 1. Full build
+bun run build
+
+# 2. Simulate CI — replace workspace:* with real versions
+bun run resolve-workspace-deps
+
+# 3. Pack tarballs (exact artifact npm publish would produce)
+npm pack --pack-destination /tmp/spectra-verify packages/ai
+npm pack --pack-destination /tmp/spectra-verify packages/agent
+npm pack --pack-destination /tmp/spectra-verify packages/app
+
+# 4. Set up isolated test project OUTSIDE the repo
+mkdir -p /tmp/spectra-verify
+cat > /tmp/spectra-verify/package.json <<- 'EOF'
+{
+  "name": "spectra-verify",
+  "private": true,
+  "type": "module"
+}
+EOF
+
+# 5. Install from tarballs (use npm, not bun — bun's file: protocol auto-detects workspaces)
+cd /tmp/spectra-verify
+npm install ./singularity-ai-spectra-ai-*.tgz
+npm install ./singularity-ai-spectra-agent-*.tgz
+npm install ./singularity-ai-spectra-app-*.tgz
+
+# 6. Import test — verify all packages, exports, constructors, and Zod validation
+node --input-type=module -e '
+import { EventStream, stream } from "@singularity-ai/spectra-ai";
+import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { SessionManager } from "@singularity-ai/spectra-app";
+import { z } from "zod";
+
+// Verify each package loads
+new EventStream();
+console.assert(typeof stream === "function", "stream must be a function");
+
+const tool = defineTool({
+  name: "greet", description: "test",
+  parameters: z.object({ name: z.string() }),
+  execute: async ({ name }) => ({ content: [{ type: "text", text: `Hi ${name}` }] }),
+});
+console.assert(tool.name === "greet", "tool name mismatch");
+tool.prepareArguments({ name: "x" });  // Zod validation
+
+new Agent({ name: "a", instructions: "i", model: "m", tools: [tool] });
+new SessionManager({ model: "anthropic/claude-3-haiku-20240307" });
+
+console.log("✓ All imports verified — ready to publish");
+'
+
+# 7. Clean up — restore workspace:* in source files
+cd /path/to/spectra && git checkout packages/*/package.json
+rm -rf /tmp/spectra-verify
+```
+
+**Or use the convenience script** (handles everything above automatically):
+```sh
+bun run test:import
+```
+
+**Checklist:**
+- [ ] `bun run build` succeeds
+- [ ] `bun run resolve-workspace-deps` replaces all `workspace:*` entries
+- [ ] Import test passes all assertions in isolated project
+- [ ] `git checkout packages/*/package.json` restores source files
+- [ ] `bun run test` still passes after restore
+
 ### Research Guidance
 - If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.
 <!-- GSD:conventions-end -->
@@ -253,6 +327,7 @@ No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills
 
 ### Release Process (TypeScript)
 
+0. **Pre-publish verification** — run `bun run test:import` (imports packages in an isolated project; see Pre-Publish Import Verification below)
 1. **Make a change** → run `bun run changeset`, select affected packages, choose bump type (patch/minor/major), write a summary
 2. **Commit** the `.changeset/*.md` file along with your code changes
 3. **Push to main** → the Release workflow auto-creates a "chore: version packages" PR with version bumps + CHANGELOGs

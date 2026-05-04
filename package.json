@@ -15,6 +15,7 @@
     "version": "changeset version && bun install",
     "release": "bun run resolve-workspace-deps && changeset publish",
     "resolve-workspace-deps": "node scripts/resolve-workspace-deps.mjs",
+    "test:import": "node scripts/test-import.mjs",
     "changeset": "changeset"
   },
   "devDependencies": {
