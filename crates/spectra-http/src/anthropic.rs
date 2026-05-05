@@ -5,8 +5,11 @@ use serde::Deserialize;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use spectra_rs::error::{Result, SpectraError};
+use spectra_rs::event::ContentDelta;
 use spectra_rs::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmResponse, Provider};
-use spectra_rs::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
+use spectra_rs::messages::{
+    AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall,
+};
 
 const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
 const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
@@ -75,6 +78,10 @@ impl AnthropicClient {
         body.insert("max_tokens".into(), serde_json::Value::Number(request.model.config.max_tokens.into()));
         body.insert("stream".into(), serde_json::Value::Bool(true));
 
+        if let Some(temp) = request.model.config.temperature {
+            body.insert("temperature".into(), serde_json::json!(temp));
+        }
+
         let messages: Vec<serde_json::Value> = request.messages.iter().map(|msg| {
             match msg {
                 Message::User(u) => serde_json::json!({
@@ -122,8 +129,13 @@ impl AnthropicClient {
         let client = self.client.clone();
         let url = self.base_url.clone().unwrap_or_else(|| ANTHROPIC_API_URL.to_string());
 
+        let model_id = request.model.id.clone();
+        let provider_name = "anthropic".to_string();
+
         tokio::spawn(async move {
             let mut assistant_msg = AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
+            assistant_msg.provider = provider_name;
+            assistant_msg.model = model_id;
             let mut current_tool: Option<ToolCall> = None;
             let mut in_tool = false;
 
@@ -192,6 +204,14 @@ impl AnthropicClient {
                 }
             }
 
+            for tc in &mut assistant_msg.tool_calls {
+                if let serde_json::Value::String(s) = &tc.arguments {
+                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(s) {
+                        tc.arguments = parsed;
+                    }
+                }
+            }
+
             let _ = tx.send(Ok(LlmStreamEvent::Done { message: assistant_msg })).await;
         });
 
@@ -211,13 +231,14 @@ fn user_content_to_json(content: &[Content]) -> serde_json::Value {
                 "type": "image",
                 "source": { "type": "url", "url": url },
             })),
+            Content::Thinking { .. } => None,
         }
     }).collect();
     if items.len() == 1 { items.into_iter().next().unwrap() } else { serde_json::json!(items) }
 }
 
 fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> serde_json::Value {
-    let mut items: Vec<serde_json::Value> = Vec::new();
+    let mut items: Vec<serde_json::Value> = Vec::with_capacity(content.len() + tool_calls.len());
 
     for c in content {
         if let Content::Text { text } = c
@@ -258,6 +279,8 @@ struct SSEEvent {
     delta: Option<serde_json::Value>,
     #[serde(default)]
     content_block: Option<serde_json::Value>,
+    #[serde(default)]
+    message: Option<serde_json::Value>,
 }
 
 async fn parse_event(
@@ -269,46 +292,78 @@ async fn parse_event(
 ) {
     if let Ok(event) = serde_json::from_str::<SSEEvent>(data) {
         match event.event_type.as_str() {
-            "content_block_start" => {
-                if let Some(block) = event.content_block
-                    && block.get("type").and_then(|t| t.as_str()) == Some("tool_use") {
-                        *in_tool = true;
-                        let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        *current_tool = Some(ToolCall {
-                            id: id.clone(),
-                            name: name.clone(),
-                            arguments: serde_json::Value::Null,
-                        });
-                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: spectra_rs::event::ContentDelta::ToolCallStart {
-                                id,
-                                name,
-                            },
-                        })).await;
+            "message_start" => {
+                if let Some(msg_data) = &event.message {
+                    if let Some(id) = msg_data.get("id").and_then(|v| v.as_str()) {
+                        msg.response_id = Some(id.to_string());
                     }
+                }
+            }
+            "content_block_start" => {
+                if let Some(block) = event.content_block {
+                    match block.get("type").and_then(|t| t.as_str()) {
+                        Some("tool_use") => {
+                            *in_tool = true;
+                            let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            *current_tool = Some(ToolCall {
+                                id: id.clone(),
+                                name: name.clone(),
+                                arguments: serde_json::Value::Null,
+                                thinking_signature: None,
+                            });
+                            let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                delta: ContentDelta::ToolCallStart { id, name },
+                            })).await;
+                        }
+                        Some("thinking") => {
+                            let thinking = block.get("thinking").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let signature = block.get("signature").and_then(|v| v.as_str()).map(|s| s.to_string());
+                            msg.content.push(Content::Thinking {
+                                thinking: thinking.clone(),
+                                signature: signature.clone(),
+                                redacted: false,
+                            });
+                            let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                delta: ContentDelta::Thinking { delta: thinking, signature },
+                            })).await;
+                        }
+                        _ => {}
+                    }
+                }
             }
             "content_block_delta" => {
                 if let Some(delta) = event.delta {
                     if *in_tool {
-                            if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str())
-                                && let Some(tc) = current_tool.as_mut() {
-                                    if let serde_json::Value::String(s) = &mut tc.arguments {
-                                        s.push_str(text);
-                                    } else {
-                                        tc.arguments = serde_json::Value::String(text.to_string());
-                                    }
-                                    let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                                        delta: spectra_rs::event::ContentDelta::ToolCallDelta {
-                                            id: tc.id.clone(),
-                                            args_delta: text.to_string(),
-                                        },
-                                    })).await;
+                        if let Some(text) = delta.get("partial_json").and_then(|t| t.as_str()) {
+                            if let Some(tc) = current_tool.as_mut() {
+                                if let serde_json::Value::String(s) = &mut tc.arguments {
+                                    s.push_str(text);
+                                } else {
+                                    tc.arguments = serde_json::Value::String(text.to_string());
                                 }
+                                let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                                    delta: ContentDelta::ToolCallDelta {
+                                        id: tc.id.clone(),
+                                        args_delta: text.to_string(),
+                                    },
+                                })).await;
+                            }
+                        }
                     } else if let Some(text) = delta.get("text").and_then(|t| t.as_str()) {
                         msg.content.push(Content::Text { text: text.to_string() });
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: spectra_rs::event::ContentDelta::Text { delta: text.to_string() },
+                            delta: ContentDelta::Text { delta: text.to_string() },
+                        })).await;
+                    } else if let Some(thinking_delta) = delta.get("thinking").and_then(|t| t.as_str()) {
+                        let sig = delta.get("signature").and_then(|v| v.as_str()).map(|s| s.to_string());
+                        msg.content.push(Content::Thinking {
+                            thinking: thinking_delta.to_string(),
+                            signature: sig.clone(),
+                            redacted: false,
+                        });
+                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
+                            delta: ContentDelta::Thinking { delta: thinking_delta.to_string(), signature: sig },
                         })).await;
                     }
                 }
@@ -318,19 +373,33 @@ async fn parse_event(
                     if let Some(tc) = current_tool.take() {
                         msg.tool_calls.push(tc.clone());
                         let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: spectra_rs::event::ContentDelta::ToolCallEnd {
-                                id: tc.id.clone(),
-                            },
+                            delta: ContentDelta::ToolCallEnd { id: tc.id.clone() },
                         })).await;
                     }
                     *in_tool = false;
                 }
             }
             "message_delta" => {
-                if let Some(delta) = event.delta
-                    && let Some(reason) = delta.get("stop_reason").and_then(|r| r.as_str()) {
+                if let Some(delta) = event.delta {
+                    if let Some(reason) = delta.get("stop_reason").and_then(|r| r.as_str()) {
                         msg.stop_reason = parse_stop_reason(reason);
                     }
+                    if let Some(usage) = delta.get("usage") {
+                        msg.usage.input_tokens = usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        msg.usage.output_tokens = usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        msg.usage.cache_read_tokens = usage.get("cache_read_input_tokens").and_then(|v| v.as_u64()).map(|v| v as u32);
+                        msg.usage.cache_write_tokens = usage.get("cache_creation_input_tokens").and_then(|v| v.as_u64()).map(|v| v as u32);
+                    }
+                }
+            }
+            "message_stop" => {
+                for tc in &mut msg.tool_calls {
+                    if let serde_json::Value::String(s) = &tc.arguments {
+                        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(s) {
+                            tc.arguments = parsed;
+                        }
+                    }
+                }
             }
             _ => {}
         }

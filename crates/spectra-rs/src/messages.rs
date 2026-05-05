@@ -22,6 +22,10 @@ pub struct AssistantMessage {
     pub tool_calls: Vec<ToolCall>,
     pub stop_reason: StopReason,
     pub timestamp: DateTime<Utc>,
+    pub provider: String,
+    pub model: String,
+    pub response_id: Option<String>,
+    pub usage: TokenUsage,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +42,7 @@ pub struct ToolResultMessage {
 pub enum Content {
     Text { text: String },
     Image { url: String, detail: ImageDetail },
+    Thinking { thinking: String, signature: Option<String>, redacted: bool },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -53,6 +58,7 @@ pub struct ToolCall {
     pub id: String,
     pub name: String,
     pub arguments: Value,
+    pub thinking_signature: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -83,6 +89,16 @@ pub struct TokenUsage {
     pub output_tokens: u32,
     pub cache_read_tokens: Option<u32>,
     pub cache_write_tokens: Option<u32>,
+    pub cost: Option<TokenCost>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenCost {
+    pub input: f64,
+    pub output: f64,
+    pub cache_read: f64,
+    pub cache_write: f64,
+    pub total: f64,
 }
 
 impl UserMessage {
@@ -99,12 +115,41 @@ impl UserMessage {
 }
 
 impl AssistantMessage {
-    pub fn new(content: Vec<Content>, tool_calls: Vec<ToolCall>, stop_reason: StopReason) -> Self {
+    pub fn new(
+        content: Vec<Content>,
+        tool_calls: Vec<ToolCall>,
+        stop_reason: StopReason,
+    ) -> Self {
         Self {
             content,
             tool_calls,
             stop_reason,
             timestamp: Utc::now(),
+            provider: String::new(),
+            model: String::new(),
+            response_id: None,
+            usage: TokenUsage::default(),
+        }
+    }
+
+    pub fn with_metadata(
+        content: Vec<Content>,
+        tool_calls: Vec<ToolCall>,
+        stop_reason: StopReason,
+        provider: impl Into<String>,
+        model: impl Into<String>,
+        response_id: Option<String>,
+        usage: TokenUsage,
+    ) -> Self {
+        Self {
+            content,
+            tool_calls,
+            stop_reason,
+            timestamp: Utc::now(),
+            provider: provider.into(),
+            model: model.into(),
+            response_id,
+            usage,
         }
     }
 }

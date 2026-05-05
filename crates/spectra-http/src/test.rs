@@ -33,12 +33,8 @@ data: {"type":"message_stop"}
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let response = client.complete(request).await;
         if let Err(e) = &response {
@@ -71,12 +67,8 @@ data: [DONE]
             .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
         let model = Model::openai("gpt-4o");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let response = client.complete(request).await;
         if let Err(e) = &response {
@@ -109,12 +101,8 @@ data: {"type":"message_stop"}
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let response = client.complete(request).await;
         if let Err(e) = &response {
@@ -152,12 +140,8 @@ data: {"type":"message_stop"}
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let mut stream = client.stream(request).await.unwrap();
         let mut text_deltas: Vec<String> = Vec::new();
@@ -213,12 +197,8 @@ data: {"type":"message_stop"}
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let mut stream = client.stream(request).await.unwrap();
         let mut tool_call_start: Option<(String, String)> = None;
@@ -293,12 +273,8 @@ data: [DONE]
             .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
         let model = Model::openai("gpt-4o");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let response = client.complete(request).await;
         assert!(response.is_ok());
@@ -324,12 +300,8 @@ data: [DONE]
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
         
-        let request = LlmRequest {
-            model,
-            system_prompt: None,
-            messages: vec![],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = None;
 
         let result = client.complete(request).await;
         assert!(result.is_err(), "Should return error for 429 response");

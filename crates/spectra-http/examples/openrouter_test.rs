@@ -12,14 +12,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let model = Model::openai("google/gemma-4-31b-it:free");
     
-        let request = LlmRequest {
-            model,
-            system_prompt: Some("You are a helpful coding assistant.".into()),
-            messages: vec![spectra_rs::messages::Message::User(
-                spectra_rs::messages::UserMessage::text("Write a Rust function that checks if a number is prime. Keep it under 10 lines.")
-            )],
-            tools: vec![],
-        };
+        let mut request = LlmRequest::new(model);
+        request.system_prompt = Some("You are a helpful coding assistant.".into());
+        request.messages = vec![spectra_rs::messages::Message::User(
+            spectra_rs::messages::UserMessage::text("Write a Rust function that checks if a number is prime. Keep it under 10 lines.")
+        )];
 
     println!("Calling OpenRouter...");
     let mut stream = client.stream(request).await?;

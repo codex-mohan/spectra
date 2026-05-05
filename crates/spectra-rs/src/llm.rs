@@ -98,11 +98,44 @@ pub struct ToolDef {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ToolChoice {
+    Auto,
+    None,
+    Required,
+    Specific { name: String },
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum ReasoningEffort {
+    #[serde(rename = "low")]
+    Low,
+    #[serde(rename = "medium")]
+    Medium,
+    #[serde(rename = "high")]
+    High,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LlmRequest {
     pub model: Model,
     pub system_prompt: Option<String>,
     pub messages: Vec<Message>,
     pub tools: Vec<ToolDef>,
+    pub tool_choice: Option<ToolChoice>,
+    pub reasoning_effort: Option<ReasoningEffort>,
+}
+
+impl LlmRequest {
+    pub fn new(model: Model) -> Self {
+        Self {
+            model,
+            system_prompt: None,
+            messages: Vec::new(),
+            tools: Vec::new(),
+            tool_choice: None,
+            reasoning_effort: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -184,28 +217,32 @@ impl ModelRegistry {
 
     pub fn from_json(json: &str) -> Result<Self> {
         let raw: RawModelRegistry = serde_json::from_str(json)?;
-        
-        let models: Vec<ModelInfo> = raw.models
+
+        let models: Vec<ModelInfo> = raw
+            .models
             .into_iter()
             .filter_map(|m| m.into_model_info())
             .collect();
-        
+
         Ok(Self { models })
     }
 
     pub fn from_toml(toml_str: &str) -> Result<Self> {
         let raw: RawModelRegistry = match toml::from_str(toml_str) {
             Ok(r) => r,
-            Err(e) => return Err(crate::error::SpectraError::Io(
-                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())
-            )),
+            Err(e) => {
+                return Err(crate::error::SpectraError::Io(
+                    std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
+                ))
+            }
         };
-        
-        let models: Vec<ModelInfo> = raw.models
+
+        let models: Vec<ModelInfo> = raw
+            .models
             .into_iter()
             .filter_map(|m| m.into_model_info())
             .collect();
-        
+
         Ok(Self { models })
     }
 
@@ -214,16 +251,20 @@ impl ModelRegistry {
     }
 
     pub fn by_provider(&self, provider: Provider) -> Vec<&ModelInfo> {
-        self.models.iter().filter(|m| m.provider == provider).collect()
+        self.models
+            .iter()
+            .filter(|m| m.provider == provider)
+            .collect()
     }
 
     pub fn load_from_file(path: &std::path::Path) -> Result<Self> {
         let content = std::fs::read_to_string(path)?;
-        
-        let ext = path.extension()
+
+        let ext = path
+            .extension()
             .and_then(|e| e.to_str())
             .unwrap_or("json");
-        
+
         match ext.to_lowercase().as_str() {
             "toml" => Self::from_toml(&content),
             _ => Self::from_json(&content),

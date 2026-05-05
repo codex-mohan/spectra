@@ -6,6 +6,12 @@ use futures_util::StreamExt;
 use wiremock::{MockServer, Mock, ResponseTemplate};
 use wiremock::matchers::{method, path, header};
 
+fn make_request(model: Model) -> LlmRequest {
+    let mut req = LlmRequest::new(model);
+    req.system_prompt = None;
+    req
+}
+
 #[tokio::test]
 async fn test_anthropic_full_conversation_flow() {
     let mock_server = MockServer::start().await;
@@ -34,17 +40,13 @@ data: {"type":"message_stop"}
     
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: Some("You are a helpful assistant.".to_string()),
-        messages: vec![spectra_rs::messages::Message::User(
-            spectra_rs::messages::UserMessage::text("Hello!")
-        )],
-        tools: vec![],
-    };
+    let mut request = LlmRequest::new(model);
+    request.system_prompt = Some("You are a helpful assistant.".to_string());
+    request.messages = vec![spectra_rs::messages::Message::User(
+        spectra_rs::messages::UserMessage::text("Hello!")
+    )];
 
-    // Test complete
-    let response = client.complete(request.clone()).await;
+    let response = client.complete(request).await;
     assert!(response.is_ok(), "Complete should succeed");
     
     let resp = response.unwrap();
@@ -83,14 +85,10 @@ data: [DONE]
     
     let model = Model::openai("gpt-4o");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![spectra_rs::messages::Message::User(
-            spectra_rs::messages::UserMessage::text("Hi!")
-        )],
-        tools: vec![],
-    };
+    let mut request = LlmRequest::new(model);
+    request.messages = vec![spectra_rs::messages::Message::User(
+        spectra_rs::messages::UserMessage::text("Hi!")
+    )];
 
     let response = client.complete(request).await;
     assert!(response.is_ok(), "Complete should succeed");
@@ -130,21 +128,17 @@ data: {"type":"message_stop"}
     
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![spectra_rs::llm::ToolDef {
-            name: "get_weather".to_string(),
-            description: "Get weather information".to_string(),
-            parameters: serde_json::json!({
-                "type": "object",
-                "properties": {
-                    "location": { "type": "string" }
-                }
-            }),
-        }],
-    };
+    let mut request = LlmRequest::new(model);
+    request.tools = vec![spectra_rs::llm::ToolDef {
+        name: "get_weather".to_string(),
+        description: "Get weather information".to_string(),
+        parameters: serde_json::json!({
+            "type": "object",
+            "properties": {
+                "location": { "type": "string" }
+            }
+        }),
+    }];
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
@@ -155,7 +149,6 @@ data: {"type":"message_stop"}
     assert_eq!(resp.message.tool_calls[0].name, "get_weather");
     assert_eq!(resp.message.tool_calls[0].id, "tool_123");
     
-    // Verify arguments were parsed correctly (arguments are stored as JSON string)
     let args = &resp.message.tool_calls[0].arguments;
     let args_str = match args {
         serde_json::Value::String(s) => s.clone(),
@@ -196,22 +189,18 @@ data: [DONE]
     
     let model = Model::openai("gpt-4o");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![spectra_rs::llm::ToolDef {
-            name: "calculate".to_string(),
-            description: "Calculate something".to_string(),
-            parameters: serde_json::json!({
-                "type": "object",
-                "properties": {
-                    "x": { "type": "number" },
-                    "y": { "type": "number" }
-                }
-            }),
-        }],
-    };
+    let mut request = LlmRequest::new(model);
+    request.tools = vec![spectra_rs::llm::ToolDef {
+        name: "calculate".to_string(),
+        description: "Calculate something".to_string(),
+        parameters: serde_json::json!({
+            "type": "object",
+            "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+            }
+        }),
+    }];
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
@@ -221,7 +210,6 @@ data: [DONE]
     assert_eq!(resp.message.tool_calls.len(), 1);
     assert_eq!(resp.message.tool_calls[0].name, "calculate");
     
-    // Verify arguments were assembled from fragments (arguments are stored as JSON string)
     let args = &resp.message.tool_calls[0].arguments;
     let args_str = match args {
         serde_json::Value::String(s) => s.clone(),
@@ -260,12 +248,7 @@ data: {"type":"message_stop"}
     
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![],
-    };
+    let request = make_request(model);
 
     let mut stream = client.stream(request).await.unwrap();
     
@@ -309,12 +292,7 @@ async fn test_error_handling_anthropic() {
     
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![],
-    };
+    let request = make_request(model);
 
     let result = client.complete(request).await;
     assert!(result.is_err(), "Should return error for 401");
@@ -341,12 +319,7 @@ async fn test_error_handling_openai() {
     
     let model = Model::openai("gpt-4o");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![],
-    };
+    let request = make_request(model);
 
     let result = client.complete(request).await;
     assert!(result.is_err(), "Should return error for 500");
@@ -377,27 +350,23 @@ data: {"type":"message_stop"}
     
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
     
-    // Simulate conversation with history
-    let request = LlmRequest {
-        model,
-        system_prompt: Some("You are a helpful assistant.".to_string()),
-        messages: vec![
-            spectra_rs::messages::Message::User(
-                spectra_rs::messages::UserMessage::text("What is my name?")
-            ),
-            spectra_rs::messages::Message::Assistant(
-                spectra_rs::messages::AssistantMessage::new(
-                    vec![Content::Text { text: "Your name is Alice.".to_string() }],
-                    vec![],
-                    StopReason::EndOfTurn,
-                )
-            ),
-            spectra_rs::messages::Message::User(
-                spectra_rs::messages::UserMessage::text("What did you say my name is?")
-            ),
-        ],
-        tools: vec![],
-    };
+    let mut request = LlmRequest::new(model);
+    request.system_prompt = Some("You are a helpful assistant.".to_string());
+    request.messages = vec![
+        spectra_rs::messages::Message::User(
+            spectra_rs::messages::UserMessage::text("What is my name?")
+        ),
+        spectra_rs::messages::Message::Assistant(
+            spectra_rs::messages::AssistantMessage::new(
+                vec![Content::Text { text: "Your name is Alice.".to_string() }],
+                vec![],
+                StopReason::EndOfTurn,
+            )
+        ),
+        spectra_rs::messages::Message::User(
+            spectra_rs::messages::UserMessage::text("What did you say my name is?")
+        ),
+    ];
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
@@ -434,12 +403,7 @@ data: [DONE]
     
     let model = Model::openai("gpt-4o");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![],
-    };
+    let request = make_request(model);
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
@@ -483,12 +447,7 @@ data: {"type":"message_stop"}
     
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
     
-    let request = LlmRequest {
-        model,
-        system_prompt: None,
-        messages: vec![],
-        tools: vec![],
-    };
+    let request = make_request(model);
 
     let response = client.complete(request).await;
     assert!(response.is_ok());

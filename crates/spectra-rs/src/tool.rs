@@ -4,9 +4,11 @@ use dashmap::DashMap;
 use serde_json::Value;
 use std::pin::Pin;
 use std::sync::Arc;
+use tokio::sync::mpsc;
+use tokio::sync::watch;
 
 type ToolFuture = Pin<Box<dyn std::future::Future<Output = Result<ToolResult>> + Send>>;
-type ToolFn = Box<dyn Fn(String, Value) -> ToolFuture + Send + Sync>;
+type ToolFn = Box<dyn Fn(ToolContext) -> ToolFuture + Send + Sync>;
 
 #[derive(Debug, Clone)]
 pub struct ToolDef {
@@ -25,7 +27,45 @@ impl ToolDef {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct ToolContext {
+    pub tool_call_id: String,
+    pub params: Value,
+    pub signal: Option<watch::Receiver<bool>>,
+    pub progress_tx: Option<mpsc::UnboundedSender<ToolResult>>,
+}
+
+impl ToolContext {
+    pub fn new(tool_call_id: String, params: Value) -> Self {
+        Self {
+            tool_call_id,
+            params,
+            signal: None,
+            progress_tx: None,
+        }
+    }
+
+    pub fn with_signal(tool_call_id: String, params: Value, signal: watch::Receiver<bool>) -> Self {
+        Self {
+            tool_call_id,
+            params,
+            signal: Some(signal),
+            progress_tx: None,
+        }
+    }
+
+    pub fn is_aborted(&self) -> bool {
+        self.signal.as_ref().is_some_and(|s| *s.borrow())
+    }
+
+    pub fn report_progress(&self, result: ToolResult) {
+        if let Some(tx) = &self.progress_tx {
+            let _ = tx.send(result);
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ToolResult {
     pub content: Value,
     pub is_error: bool,
@@ -51,11 +91,7 @@ impl ToolResult {
 pub trait Tool: Send + Sync {
     fn definition(&self) -> &ToolDef;
 
-    async fn execute(
-        &self,
-        id: String,
-        params: Value,
-    ) -> Result<ToolResult>;
+    async fn execute(&self, ctx: ToolContext) -> Result<ToolResult>;
 }
 
 pub struct ToolRegistry {
@@ -90,14 +126,24 @@ impl ToolRegistry {
         self.list()
     }
 
-    pub async fn dispatch(&self, name: &str, id: String, params: Value) -> Result<ToolResult> {
+    pub async fn dispatch(&self, name: &str, ctx: ToolContext) -> Result<ToolResult> {
         let tool = self
             .get(name)
             .ok_or_else(|| SpectraError::ToolNotFound {
                 name: name.to_string(),
             })?;
 
-        tool.execute(id, params).await
+        tool.execute(ctx).await
+    }
+
+    pub async fn dispatch_by_name(&self, name: &str, ctx: ToolContext) -> Result<ToolResult> {
+        let tool = self
+            .get(name)
+            .ok_or_else(|| SpectraError::ToolNotFound {
+                name: name.to_string(),
+            })?;
+
+        tool.execute(ctx).await
     }
 
     pub fn contains(&self, name: &str) -> bool {
@@ -157,12 +203,10 @@ impl ToolBuilder {
 
     pub fn execute<F, Fut>(mut self, f: F) -> Self
     where
-        F: Fn(String, Value) -> Fut + Send + Sync + 'static,
+        F: Fn(ToolContext) -> Fut + Send + Sync + 'static,
         Fut: std::future::Future<Output = Result<ToolResult>> + Send + 'static,
     {
-        self.executor = Some(Box::new(move |id, params| {
-            Box::pin(f(id, params))
-        }));
+        self.executor = Some(Box::new(move |ctx| Box::pin(f(ctx))));
         self
     }
 
@@ -188,7 +232,7 @@ impl Tool for BuiltTool {
         &self.def
     }
 
-    async fn execute(&self, id: String, params: Value) -> Result<ToolResult> {
-        (self.executor)(id, params).await
+    async fn execute(&self, ctx: ToolContext) -> Result<ToolResult> {
+        (self.executor)(ctx).await
     }
 }

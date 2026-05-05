@@ -1,6 +1,5 @@
-use crate::messages::{AssistantMessage, ToolCall, ToolResultMessage};
 use crate::error::Result;
-use crate::messages::Message;
+use crate::messages::{AssistantMessage, Message, ToolCall, ToolResultMessage};
 use tokio::sync::broadcast;
 
 #[derive(Debug, Clone)]
@@ -21,6 +20,7 @@ pub enum StreamEvent {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum ContentDelta {
     Text { delta: String },
+    Thinking { delta: String, signature: Option<String> },
     ToolCallStart { id: String, name: String },
     ToolCallDelta { id: String, args_delta: String },
     ToolCallEnd { id: String },
