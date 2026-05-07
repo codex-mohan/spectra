@@ -1,6 +1,7 @@
 {
   "name": "@singularity-ai/spectra-tui",
   "version": "0.1.0",
+  "private": true,
   "description": "Minimal terminal UI framework with differential rendering for flicker-free interactive CLI applications",
   "type": "module",
   "main": "./dist/index.js",
