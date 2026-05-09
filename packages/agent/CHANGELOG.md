@@ -1,5 +1,14 @@
 # @singularity-ai/spectra-agent
 
+## 0.2.3
+
+### Patch Changes
+
+- [`1ec3278`](https://github.com/codex-mohan/spectra/commit/1ec3278a8611daa3707ae49b1e7fcacb4e227c92) Thanks [@codex-mohan](https://github.com/codex-mohan)! - fix: resolve workspace:_ protocol before publishing to npm - prevents workspace:_ from leaking into tarballs and breaking consumers
+
+- Updated dependencies [[`1ec3278`](https://github.com/codex-mohan/spectra/commit/1ec3278a8611daa3707ae49b1e7fcacb4e227c92)]:
+  - @singularity-ai/spectra-ai@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes
