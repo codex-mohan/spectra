@@ -12,25 +12,28 @@ import type {
 
 export type { Context } from "@singularity-ai/spectra-ai";
 
-export interface AgentTool {
+export interface AgentTool<TDetails = unknown> {
   name: string;
+  label?: string;
   description: string;
   parameters: Record<string, unknown>;
+  promptGuidelines?: string[];
   prepareArguments?: (args: unknown) => Record<string, unknown>;
   execute: (
     toolCallId: string,
     args: Record<string, unknown>,
     signal?: AbortSignal,
-    onUpdate?: ToolUpdateCallback,
-  ) => Promise<ToolResult>;
+    onUpdate?: ToolUpdateCallback<TDetails>,
+  ) => Promise<ToolResult<TDetails>>;
 }
 
-export interface ToolResult {
+export interface ToolResult<TDetails = unknown> {
   content: (TextContent | ImageContent)[];
+  details?: TDetails;
   isError?: boolean;
 }
 
-export type ToolUpdateCallback = (partial: ToolResult) => void;
+export type ToolUpdateCallback<TDetails = unknown> = (partial: ToolResult<TDetails>) => void;
 
 export type ToolExecutionMode = "sequential" | "parallel";
 
@@ -53,6 +56,9 @@ export interface AfterToolCallContext {
 export interface BeforeToolCallResult {
   block?: boolean;
   reason?: string;
+  transform?: {
+    modifiedArgs: Record<string, unknown>;
+  };
 }
 
 export interface AfterToolCallResult {

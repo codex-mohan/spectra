@@ -515,6 +515,9 @@ export class Agent {
             });
             continue;
           }
+          if (result?.transform) {
+            args = result.transform.modifiedArgs;
+          }
         } catch (err) {
           prepared.push({
             toolCall,
