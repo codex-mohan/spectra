@@ -1,0 +1,35 @@
+{
+  "name": "@singularity-ai/spectra-code",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spectra Code — coding tools, session management, and agent orchestration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest --run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@singularity-ai/spectra-agent": "workspace:*",
+    "@singularity-ai/spectra-ai": "workspace:*",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "license": "MIT"
+}

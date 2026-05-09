@@ -1,5 +1,5 @@
 {
-  "name": "@singularity-ai/spectra-code",
+  "name": "spectra-code-app",
   "version": "0.1.0",
   "private": true,
   "type": "module",
