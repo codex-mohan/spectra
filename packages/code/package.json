@@ -1,6 +1,6 @@
 {
   "name": "@singularity-ai/spectra-code",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Spectra Code — coding tools, session management, and agent orchestration",
   "type": "module",
