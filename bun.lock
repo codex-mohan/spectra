@@ -19,7 +19,7 @@
     },
     "apps/code": {
       "name": "spectra-code-app",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "spectra": "dist/cli.js",
       },
@@ -62,7 +62,7 @@
     },
     "packages/agent": {
       "name": "@singularity-ai/spectra-agent",
-      "version": "0.2.2",
+      "version": "0.2.4",
       "dependencies": {
         "@singularity-ai/spectra-ai": "workspace:*",
         "zod": "^3.25.0",
@@ -75,7 +75,7 @@
     },
     "packages/ai": {
       "name": "@singularity-ai/spectra-ai",
-      "version": "0.2.2",
+      "version": "0.2.4",
       "dependencies": {
         "@anthropic-ai/sdk": "^0.32.0",
         "openai": "^5.3.0",
@@ -87,11 +87,10 @@
     },
     "packages/app": {
       "name": "@singularity-ai/spectra-app",
-      "version": "0.2.2",
+      "version": "0.2.4",
       "dependencies": {
         "@singularity-ai/spectra-agent": "workspace:*",
         "@singularity-ai/spectra-ai": "workspace:*",
-        "better-sqlite3": "^12.9.0",
         "uuid": "^14.0.0",
       },
       "devDependencies": {
@@ -100,10 +99,13 @@
         "typescript": "^5.7.0",
         "vitest": "^3.2.0",
       },
+      "optionalDependencies": {
+        "better-sqlite3": "^12.9.0",
+      },
     },
     "packages/code": {
       "name": "@singularity-ai/spectra-code",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "dependencies": {
         "@singularity-ai/spectra-agent": "workspace:*",
         "@singularity-ai/spectra-ai": "workspace:*",

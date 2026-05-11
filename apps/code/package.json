@@ -1,6 +1,6 @@
 {
   "name": "spectra-code-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Spectra Code — TUI coding agent with read, write, edit, and bash tools",
