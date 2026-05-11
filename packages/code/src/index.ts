@@ -7,6 +7,12 @@ export { stripBom, detectLineEnding, normalizeToLF, restoreLineEndings, fuzzyFin
 export type { Edit } from "./utils/edit-diff.js";
 export { getShellConfig, getShellEnv, killProcessTree, waitForChildProcess } from "./utils/shell.js";
 
+export { EventBus, ExtensionApiImpl, ExtensionLoader } from "./extensions/index.js";
+export type { Extension, ExtensionApi, ExtensionEventListener, ExtensionHook, ExtensionLogger, ExtensionLoaderLogger, ResolvedExtension } from "./extensions/index.js";
+
+export { loadConfig, discoverConfigDir, resolveConfigPath, discoverContextFiles, mergeContextContents, buildSystemContext } from "./config/index.js";
+export type { SpectraConfig, ContextConfig, SessionConfig, ContextFile } from "./config/index.js";
+
 export type {
   BashOperations, BashToolDetails, BashToolOptions,
   ReadOperations, ReadToolDetails, ReadToolOptions,
@@ -15,4 +21,5 @@ export type {
   GrepOperations, GrepToolOptions, GrepToolDetails,
   FindOperations, FindToolOptions, FindToolDetails,
   LsToolDetails,
+  WebFetchOperations, WebFetchToolDetails, WebFetchToolOptions,
 } from "./types.js";

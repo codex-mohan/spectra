@@ -1,10 +1,55 @@
 import type { AgentConfig } from "@singularity-ai/spectra-agent";
 import type { Model, Message, Usage } from "@singularity-ai/spectra-ai";
 
+export interface SessionEntryBase {
+  id: string;
+  parentId: string | null;
+  timestamp: number;
+}
+
+export interface MessageEntry extends SessionEntryBase {
+  type: "message";
+  message: Message;
+}
+
+export interface ModelChangeEntry extends SessionEntryBase {
+  type: "model_change";
+  provider: string;
+  modelId: string;
+}
+
+export interface AuditEntry extends SessionEntryBase {
+  type: "audit";
+  eventType: string;
+  details: Record<string, unknown>;
+}
+
+export interface CustomEntry extends SessionEntryBase {
+  type: "custom";
+  customType: string;
+  data: unknown;
+}
+
+export type SessionEntry =
+  | MessageEntry
+  | ModelChangeEntry
+  | AuditEntry
+  | CustomEntry;
+
+export interface SessionTreeNode {
+  entry: SessionEntry;
+  children: SessionTreeNode[];
+}
+
+export interface SessionContext {
+  messages: Message[];
+  model: Model;
+}
+
 export interface Session {
   id: string;
   model: Model;
-  messages: Message[];
+  entries: SessionEntry[];
   config: SessionConfig;
   metadata: SessionMetadata;
 }

@@ -21,14 +21,18 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@singularity-ai/spectra-ai": "workspace:*",
     "@singularity-ai/spectra-agent": "workspace:*",
+    "@singularity-ai/spectra-ai": "workspace:*",
     "uuid": "^14.0.0"
   },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.9.0"
+  },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/uuid": "^10.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.2.0",
-    "@types/uuid": "^10.0.0"
+    "vitest": "^3.2.0"
   },
   "license": "MIT"
 }

@@ -47,6 +47,14 @@ export interface LsToolDetails {
   totalEntries: number;
 }
 
+export interface WebFetchToolDetails {
+  url: string;
+  status: number;
+  contentType: string;
+  contentLength: number;
+  truncated: boolean;
+}
+
 export interface Edit {
   oldText: string;
   newText: string;
@@ -121,6 +129,15 @@ export interface FindOperations {
 
 export interface FindToolOptions {
   operations?: FindOperations;
+}
+
+export interface WebFetchOperations {
+  fetch(url: string, options: { signal?: AbortSignal; timeout?: number }): Promise<{ status: number; headers: Record<string, string>; body: string }>;
+}
+
+export interface WebFetchToolOptions {
+  operations?: WebFetchOperations;
+  maxLength?: number;
 }
 
 export type ToolResultWithDetails<T> = ToolResult<T>;

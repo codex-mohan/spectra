@@ -5,6 +5,7 @@ export { createWriteTool } from "./write.js";
 export { createGrepTool } from "./grep.js";
 export { createFindTool } from "./find.js";
 export { createLsTool } from "./ls.js";
+export { createWebFetchTool } from "./web.js";
 
 import { createBashTool } from "./bash.js";
 import { createReadTool } from "./read.js";
@@ -13,6 +14,7 @@ import { createWriteTool } from "./write.js";
 import { createGrepTool } from "./grep.js";
 import { createFindTool } from "./find.js";
 import { createLsTool } from "./ls.js";
+import { createWebFetchTool } from "./web.js";
 import type { AgentTool } from "@singularity-ai/spectra-agent";
 
 export function createAllTools(cwd: string): AgentTool[] {
@@ -24,5 +26,6 @@ export function createAllTools(cwd: string): AgentTool[] {
     createGrepTool(cwd),
     createFindTool(cwd),
     createLsTool(cwd),
+    createWebFetchTool(),
   ];
 }

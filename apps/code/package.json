@@ -18,24 +18,21 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
-    "chat:tui": "bun run src/cli.ts --interactive",
+    "start": "tsx src/cli.ts",
+    "spectra:help": "tsx src/cli.ts --help",
     "test": "vitest --run",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.103",
-    "@opentui/react": "^0.1.103",
-    "@singularity-ai/spectra-agent": "^0.2.2",
-    "@singularity-ai/spectra-ai": "^0.2.2",
-    "@singularity-ai/spectra-app": "^0.2.2",
-    "clipboardy": "^5.3.1",
+    "@singularity-ai/spectra-agent": "workspace:*",
+    "@singularity-ai/spectra-ai": "workspace:*",
+    "@singularity-ai/spectra-code": "workspace:*",
+    "@singularity-ai/spectra-tui": "workspace:*",
     "dotenv": "^16.4.0",
-    "react": "^19.0.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
     "typescript": "^5.7.0",
     "tsx": "^4.19.0",
     "vitest": "^3.2.0"

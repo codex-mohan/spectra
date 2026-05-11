@@ -67,8 +67,10 @@ export async function createAgentRunner(
         events.push(event);
       }
 
-      // Update session with final messages
-      session.messages = agent.messages;
+      // Update session with final messages as entries
+      for (const msg of agent.messages) {
+        sessionManager.appendMessage(session, msg);
+      }
       await sessionManager.save(session);
 
       return {

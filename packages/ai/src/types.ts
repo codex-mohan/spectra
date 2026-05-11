@@ -66,6 +66,13 @@ export interface ToolResultMessage {
   content: (TextContent | ImageContent)[];
   isError: boolean;
   timestamp: number;
+  provenance?: {
+    blockedBy?: string;
+    blockReason?: string;
+    transformedBy?: string;
+    retryCount?: number;
+    hookDetails?: Record<string, unknown>;
+  };
 }
 
 export type Message = UserMessage | AssistantMessage | ToolResultMessage;

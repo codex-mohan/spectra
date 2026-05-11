@@ -26,6 +26,9 @@
     "@singularity-ai/spectra-ai": "workspace:*",
     "zod": "^3.25.0"
   },
+  "optionalDependencies": {
+    "jiti": "^2.4.0"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0",
