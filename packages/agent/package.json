@@ -1,6 +1,6 @@
 {
   "name": "@singularity-ai/spectra-agent",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Spectra Agent — agent loop, tool dispatch, state management",
   "type": "module",
   "main": "./dist/index.js",
