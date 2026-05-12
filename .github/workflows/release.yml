@@ -46,11 +46,10 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ── Create GitHub Release when packages are published ──
-      # Scoped npm packages like @singularity-ai/spectra-ai contain '@' which
-      # GitHub renders as user mentions in release notes. Double-backtick code
-      # spans (``like this``) prevent @ from being parsed as a mention.
+      # Uses publishedPackages output directly instead of the `published` flag,
+      # which is unreliable with --no-git-tag in some changesets/action versions.
       - name: Create GitHub Release
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.changesets.outputs.publishedPackages != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
