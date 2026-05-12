@@ -179,6 +179,8 @@ spectra/
 - TypeScript: camelCase for functions/variables, PascalCase for types/classes
 - Package namespaces: `@singularity-ai/spectra-ai`, `@singularity-ai/spectra-agent`, `spectra-rs`, `spectra-http`
 - Provider names in registry: `"anthropic"`, `"openai-completions"`, `"openai-responses"`
+- **Implementation naming**: Name classes by their behavior or storage mechanism, not by capability level. Avoid `Simple` prefix. Prefer descriptive names (e.g., `MemoryRateLimiter` over `SimpleRateLimiter`, `SequentialWorkerPool` over `SimpleWorkerPool`, `AgentRegistry` over `SimpleOrchestrator`). Interface names should describe capability (`Orchestrator`, `RateLimiter`, `WorkerPool`).
+- **Limitations belong in docs, not names**: If an implementation has tradeoffs (in-memory only, single-threaded), document them in JSDoc and README — don't encode them in the class name.
 
 ### Commit Messages
 - Keep messages concise and focused on the "why"
@@ -189,6 +191,44 @@ spectra/
 - Rust: `cargo test --workspace` (unit + wiremock integration tests in spectra-http)
 - TypeScript: `vitest --run` in each package
 - No Python SDK tests yet (TODO)
+
+### Pre-Commit CI Verification
+
+**Always run before committing to prevent CI failures.** The CI pipeline runs lint → test → build on every push to `main`.
+
+```sh
+# Full CI simulation — run all three stages
+bun run lint    # tsc --noEmit across all TS packages
+bun run test    # vitest --run across all TS packages
+bun run build   # tsc build across all TS packages
+
+# Or use turbo to run all at once
+bun run lint; if ($?) { bun run test }; if ($?) { bun run build }
+```
+
+**Checklist before `git commit`:**
+- [ ] `bun run lint` passes (no type errors in any TS package)
+- [ ] `bun run test` passes (all vitest suites green)
+- [ ] `bun run build` passes (all packages compile to dist/)
+
+### Pre-Commit CI Verification
+
+**Always run before committing to prevent CI failures.** The CI pipeline runs lint → test → build on every push to `main`.
+
+```sh
+# Full CI simulation — run all three stages
+bun run lint    # tsc --noEmit across all TS packages
+bun run test    # vitest --run across all TS packages
+bun run build   # tsc build across all TS packages
+
+# Or use turbo to run all at once
+bun run lint; if ($?) { bun run test }; if ($?) { bun run build }
+```
+
+**Checklist before `git commit`:**
+- [ ] `bun run lint` passes (no type errors in any TS package)
+- [ ] `bun run test` passes (all vitest suites green)
+- [ ] `bun run build` passes (all packages compile to dist/)
 
 ### Pre-Publish Import Verification
 
