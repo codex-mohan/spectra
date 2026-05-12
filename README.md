@@ -218,7 +218,7 @@ spectra/
 ├── packages/
 │   ├── ai/              # @singularity-ai/spectra-ai — LLM providers
 │   ├── agent/           # @singularity-ai/spectra-agent — Agent + tools
-│   ├── app/             # @singularity-ai/spectra-app — Sessions + orchestration
+│   ├── app/             # @singularity-ai/spectra-app — SessionEngine + rate limiting + SSE bridge
 │   ├── code/            # @singularity-ai/spectra-code — Coding tools
 │   └── tui/             # @singularity-ai/spectra-tui — Terminal UI components
 ├── apps/
