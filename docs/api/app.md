@@ -190,3 +190,189 @@ interface DelegationResult {
   error?: string;
 }
 ```
+
+## SessionEngine
+
+```typescript
+class SessionEngine {
+  constructor(config: SessionEngineConfig);
+
+  readonly lifecycle: EngineLifecycle;          // "starting" | "running" | "draining" | "stopped"
+  readonly activeSessionCount: number;
+
+  start(): void;
+  stop(drain?: boolean): Promise<void>;
+  attachBridge(bridge: ConnectionBridge): void;
+  abortSession(sessionId: string): void;
+  health(): Promise<HealthStatus>;
+
+  run(
+    userId: string,
+    input: string,
+    sessionId?: string,
+    options?: {
+      tenantId?: string;
+      streamOptions?: StreamOptions;
+      tools?: AgentTool[];
+      model?: Model;
+    }
+  ): Promise<SessionEngineResult>;
+
+  runStreaming(
+    userId: string,
+    input: string,
+    sessionId?: string,
+    options?: { ... }
+  ): Promise<AsyncGenerator<AgentEvent>>;
+}
+
+interface SessionEngineConfig {
+  sessionManager: SessionManager;
+  rateLimiter?: RateLimiter;
+  tenantResolver?: TenantResolver;
+  circuitBreaker?: CircuitBreaker;
+  engineId?: string;
+  defaultStreamOptions?: StreamOptions;
+  maxConcurrentSessions?: number;
+  sessionTimeoutMs?: number;
+}
+
+interface SessionEngineResult {
+  sessionId: string;
+  events: AgentEvent[];
+  finalMessage: string;
+  tokenUsage: Usage;
+}
+```
+
+Orchestrates the full request lifecycle: session load → rate limit check → concurrency cap → agent loop → persist → stream results.
+
+## RedisRateLimiter
+
+```typescript
+class RedisRateLimiter implements RateLimiter {
+  constructor(redis: RedisClient, config?: Partial<RedisRateLimiterConfig>);
+
+  checkLimit(userId: string): Promise<RateLimitResult>;
+}
+
+interface RedisRateLimiterConfig {
+  requestsPerWindow: number;  // default: 60
+  windowMs: number;           // default: 60000
+  keyPrefix: string;          // default: "rl"
+  burstAllowance?: number;    // default: 0
+}
+```
+
+Distributed sliding window rate limiter using Redis sorted sets. Survives process restarts, shared across pods.
+
+## CompositeRateLimiter
+
+```typescript
+class CompositeRateLimiter implements RateLimiter {
+  constructor(limits: CompositeLimit[]);
+
+  addLimit(limiter: RateLimiter, key: string): void;
+  checkLimit(userId: string): Promise<RateLimitResult>;
+}
+
+interface CompositeLimit {
+  limiter: RateLimiter;
+  key: string;
+}
+```
+
+Chains multiple rate limiters with composite keys (e.g., `tenant:userId`, `provider:userId`). Blocks if any sub-limiter denies. All must pass.
+
+## RedisSessionStore
+
+```typescript
+class RedisSessionStore implements SessionStore {
+  constructor(redis: RedisClient, config?: Partial<RedisSessionStoreConfig>);
+
+  create(session: Session): Promise<Session>;
+  load(id: string): Promise<Session | null>;
+  save(session: Session): Promise<void>;
+  delete(id: string): Promise<void>;
+  list(filter?: SessionFilter): Promise<Session[]>;
+}
+
+interface RedisSessionStoreConfig {
+  ttlSeconds: number;     // default: 3600
+  keyPrefix: string;      // default: "session"
+  coldStore?: SessionStore;  // optional fallback (Postgres, SQLite)
+}
+```
+
+Redis as hot cache with TTL expiry. Falls back to cold store on cache miss. Enables session portability across pods.
+
+## CircuitBreaker
+
+```typescript
+class DefaultCircuitBreaker implements CircuitBreaker {
+  constructor(config?: Partial<CircuitBreakerConfig>);
+
+  readonly state: CircuitBreakerState;     // "CLOSED" | "OPEN" | "HALF_OPEN"
+  readonly failureCount: number;
+
+  call<T>(fn: () => Promise<T>): Promise<T>;
+  recordSuccess(): void;
+  recordFailure(): void;
+}
+
+interface CircuitBreakerConfig {
+  failureThreshold: number;      // default: 5
+  resetTimeoutMs: number;        // default: 30000
+  halfOpenMaxRequests: number;   // default: 3
+}
+```
+
+State machine: CLOSED (passes through) → OPEN (fails fast) after N consecutive failures → HALF_OPEN (probes) after timeout → CLOSED on success.
+
+## SseBridge
+
+```typescript
+class SseBridge implements ConnectionBridge {
+  constructor(config?: ConnectionConfig);
+
+  readonly transport: ConnectionTransport;   // "sse"
+
+  addClient(clientId: string): SseWriter;
+  removeClient(clientId: string): void;
+  attach(handler: (event: EngineEvent) => void): void;
+  detach(handler: (event: EngineEvent) => void): void;
+  send(event: EngineEvent): void;
+  close(): Promise<void>;
+
+  serializeEvent(event: EngineEvent): string;
+  getReconnectInfo(): { timeout: number; maxAttempts: number };
+}
+
+function createSseResponse(
+  bridge: SseBridge,
+  request: { headers: { get(name: string): string | null } }
+): { body: ReadableStream<Uint8Array>; headers: Record<string, string>; status: number } | null;
+```
+
+SSE connection management with heartbeat, per-client routing, and reconnection info. `createSseResponse()` returns a spec-compliant SSE response for server frameworks. Interface designed for future WebSocket adapter.
+
+## HealthProbe
+
+```typescript
+class HealthProbe {
+  registerCheck(name: string, check: () => Promise<{ status: "ok" | "error"; message?: string }>): void;
+
+  health(lifecycle: EngineLifecycle, activeSessions: number): Promise<HealthStatus>;
+}
+
+interface HealthStatus {
+  status: "healthy" | "degraded" | "unhealthy";
+  uptime: number;
+  activeSessions: number;
+  engineState: EngineLifecycle;
+  checks: Record<string, { status: "ok" | "error"; message?: string }>;
+}
+```
+
+K8s-compatible health checks. Returns aggregate status across registered checks. `degraded` when any check fails, `unhealthy` when engine not running.
+```

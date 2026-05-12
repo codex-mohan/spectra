@@ -66,20 +66,39 @@ const completedSessions = await sessions.list({ status: "completed" });
 
 ## Pluggable Store
 
-`SessionStore` is an interface — swap in any backend:
+`SessionStore` is an interface — swap in any backend. Built-in implementations:
+
+| Store | Use case |
+|-------|----------|
+| `InMemorySessionStore` | Development, testing, single-process |
+| `FileSystemSessionStore` | Local persistence via JSON files |
+| `SQLiteSessionStore` | Embedded database, survives restarts |
+| `RedisSessionStore` | Production — distributed hot cache with TTL, optional cold store fallback |
+
+```typescript
+import { RedisSessionStore } from "@singularity-ai/spectra-app";
+import Redis from "ioredis";
+
+// Redis as hot cache, SQLite as cold storage
+const store = new RedisSessionStore(new Redis(), {
+  ttlSeconds: 3600,
+  coldStore: new SQLiteSessionStore("./sessions.db"),
+});
+const sessions = new SessionManager(store);
+```
+
+For custom backends, implement the `SessionStore` interface:
 
 ```typescript
 import type { SessionStore } from "@singularity-ai/spectra-app";
 
-class RedisSessionStore implements SessionStore {
-  async create(session) { /* ... */ }
-  async load(id) { /* ... */ }
-  async save(session) { /* ... */ }
-  async delete(id) { /* ... */ }
-  async list(filter?) { /* ... */ }
+class PostgresSessionStore implements SessionStore {
+  async create(session) { /* INSERT ... */ }
+  async load(id) { /* SELECT ... */ }
+  async save(session) { /* UPSERT ... */ }
+  async delete(id) { /* DELETE ... */ }
+  async list(filter?) { /* SELECT ... WHERE ... */ }
 }
-
-const sessions = new SessionManager(new RedisSessionStore());
 ```
 
 The `InMemorySessionStore` works for development and single-process deployments.

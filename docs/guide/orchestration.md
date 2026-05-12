@@ -1,6 +1,72 @@
 # Orchestration & Concurrency
 
-The `@singularity-ai/spectra-app` package provides tools for running agents at scale: worker pools for job processing, rate limiting for API protection, and an agent registry for delegating tasks across specialist agents.
+The `@singularity-ai/spectra-app` package provides tools for running agents at any scale: the `SessionEngine` for full lifecycle orchestration, worker pools for job processing, rate limiting for API protection, and an agent registry for delegating tasks across specialist agents.
+
+## SessionEngine
+
+The central orchestration unit — wraps session load, rate limiting, agent execution, and persistence into a single `run()` call. Works identically from local dev to distributed clusters:
+
+```typescript
+import {
+  SessionEngine,
+  SessionManager,
+  InMemorySessionStore,
+  CompositeRateLimiter,
+  LocalRateLimiter,
+} from "@singularity-ai/spectra-app";
+
+const engine = new SessionEngine({
+  sessionManager: new SessionManager(new InMemorySessionStore()),
+  rateLimiter: new CompositeRateLimiter([
+    { limiter: new LocalRateLimiter(60, 60000), key: "tenant" },
+    { limiter: new LocalRateLimiter(15, 60000), key: "user" },
+  ]),
+  maxConcurrentSessions: 100,
+});
+
+engine.start();
+
+// Blocking — returns when agent loop completes
+const result = await engine.run("user-123", "What is Rust?", undefined, {
+  model: { id: "gpt-4o", name: "GPT-4o", provider: "openai-completions", api: "openai" },
+});
+console.log(result.finalMessage);
+console.log(result.tokenUsage);
+
+// Streaming — yields events as they happen
+const stream = await engine.runStreaming("user-456", "Explain Kubernetes", existingSessionId, {
+  model: { id: "claude-sonnet-4-20250514", name: "Claude", provider: "anthropic", api: "anthropic-messages" },
+});
+for await (const event of stream) {
+  console.log(event.type, event);
+}
+
+// Graceful drain
+await engine.stop(true);
+```
+
+At scale, swap in Redis backends:
+
+```typescript
+import { RedisSessionStore, RedisRateLimiter } from "@singularity-ai/spectra-app";
+import Redis from "ioredis";
+
+const redis = new Redis();
+
+const engine = new SessionEngine({
+  sessionManager: new SessionManager(
+    new RedisSessionStore(redis, { ttlSeconds: 3600, coldStore: pgStore })
+  ),
+  rateLimiter: new CompositeRateLimiter([
+    { limiter: new RedisRateLimiter(redis, { keyPrefix: "rl:tenant", requestsPerWindow: 1000 }), key: "tenant" },
+    { limiter: new RedisRateLimiter(redis, { keyPrefix: "rl:user", requestsPerWindow: 30 }), key: "user" },
+    { limiter: new RedisRateLimiter(redis, { keyPrefix: "rl:provider", requestsPerWindow: 500 }), key: "provider" },
+  ]),
+  maxConcurrentSessions: 5000,
+});
+```
+
+Session state lives in Redis — any pod in the cluster can pick up any session. No sticky sessions required.
 
 ## Worker Pool
 
