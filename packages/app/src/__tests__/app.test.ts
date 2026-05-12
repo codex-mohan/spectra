@@ -7,9 +7,9 @@ import {
   InMemorySessionStore,
   FileSystemSessionStore,
   SQLiteSessionStore,
-  SimpleOrchestrator,
-  SimpleRateLimiter,
-  SimpleWorkerPool,
+  AgentRegistry,
+  LocalRateLimiter,
+  SequentialWorkerPool,
   createAgentRunner,
 } from "../index.js";
 import { Agent } from "@singularity-ai/spectra-agent";
@@ -496,9 +496,9 @@ describe("SQLiteSessionStore", () => {
   });
 });
 
-describe("SimpleRateLimiter", () => {
+describe("LocalRateLimiter", () => {
   it("should allow requests within limit", async () => {
-    const limiter = new SimpleRateLimiter(10, 60000);
+    const limiter = new LocalRateLimiter(10, 60000);
 
     const result = await limiter.checkLimit("user1");
 
@@ -508,7 +508,7 @@ describe("SimpleRateLimiter", () => {
   });
 
   it("should track remaining requests accurately", async () => {
-    const limiter = new SimpleRateLimiter(5, 60000);
+    const limiter = new LocalRateLimiter(5, 60000);
 
     // Use 3 requests
     await limiter.checkLimit("user1");
@@ -521,7 +521,7 @@ describe("SimpleRateLimiter", () => {
   });
 
   it("should block requests over limit", async () => {
-    const limiter = new SimpleRateLimiter(2, 60000);
+    const limiter = new LocalRateLimiter(2, 60000);
 
     await limiter.checkLimit("user1");
     await limiter.checkLimit("user1");
@@ -532,7 +532,7 @@ describe("SimpleRateLimiter", () => {
   });
 
   it("should track different users independently", async () => {
-    const limiter = new SimpleRateLimiter(2, 60000);
+    const limiter = new LocalRateLimiter(2, 60000);
 
     await limiter.checkLimit("user1");
     await limiter.checkLimit("user1");
@@ -544,9 +544,9 @@ describe("SimpleRateLimiter", () => {
   });
 });
 
-describe("SimpleOrchestrator", () => {
+describe("AgentRegistry", () => {
   it("should register and list agent types", () => {
-    const orchestrator = new SimpleOrchestrator();
+    const orchestrator = new AgentRegistry();
 
     orchestrator.registerAgent("researcher", {
       model: testModel,
@@ -562,7 +562,7 @@ describe("SimpleOrchestrator", () => {
   });
 
   it("should return error for unknown agent type", async () => {
-    const orchestrator = new SimpleOrchestrator();
+    const orchestrator = new AgentRegistry();
 
     const result = await orchestrator.delegate("unknown", "test task");
 
@@ -571,7 +571,7 @@ describe("SimpleOrchestrator", () => {
   });
 
   it("should execute tasks in parallel", async () => {
-    const orchestrator = new SimpleOrchestrator();
+    const orchestrator = new AgentRegistry();
 
     // Even with unknown agents, should not throw
     const results = await orchestrator.executeParallel([
@@ -589,7 +589,7 @@ describe("WorkerPool", () => {
   it("should enqueue and process jobs", async () => {
     const store = new InMemorySessionStore();
     const manager = new SessionManager(store);
-    const pool = new SimpleWorkerPool(manager);
+    const pool = new SequentialWorkerPool(manager);
 
     const session = await manager.create({ model: testModel });
     const jobId = await pool.enqueue(session.id, "Test input");
@@ -601,7 +601,7 @@ describe("WorkerPool", () => {
   it("should process jobs with custom handler", async () => {
     const store = new InMemorySessionStore();
     const manager = new SessionManager(store);
-    const pool = new SimpleWorkerPool(manager);
+    const pool = new SequentialWorkerPool(manager);
 
     const session = await manager.create({ model: testModel });
     await pool.enqueue(session.id, "job1");
@@ -623,7 +623,7 @@ describe("WorkerPool", () => {
   it("should stop gracefully", async () => {
     const store = new InMemorySessionStore();
     const manager = new SessionManager(store);
-    const pool = new SimpleWorkerPool(manager);
+    const pool = new SequentialWorkerPool(manager);
 
     await pool.stop();
     expect(pool).toBeDefined();

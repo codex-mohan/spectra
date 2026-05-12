@@ -1,7 +1,7 @@
 import { Agent } from "@singularity-ai/spectra-agent";
 import type { Budget, DelegationResult, TaskConfig } from "./types.js";
 
-export class SimpleOrchestrator {
+export class AgentRegistry {
   private agents: Map<string, any> = new Map();
 
   registerAgent(agentType: string, config: any): void {

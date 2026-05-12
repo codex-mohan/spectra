@@ -1,6 +1,6 @@
 # Orchestration & Concurrency
 
-The `@singularity-ai/spectra-app` package provides tools for running agents at scale: worker pools for job processing, rate limiting for API protection, and orchestration for delegating tasks across specialist agents.
+The `@singularity-ai/spectra-app` package provides tools for running agents at scale: worker pools for job processing, rate limiting for API protection, and an agent registry for delegating tasks across specialist agents.
 
 ## Worker Pool
 
@@ -10,7 +10,7 @@ Queue and process agent jobs sequentially:
 import {
   SessionManager,
   InMemorySessionStore,
-  SimpleWorkerPool,
+  SequentialWorkerPool,
   createAgentRunner,
 } from "@singularity-ai/spectra-app";
 
@@ -23,7 +23,7 @@ const session = await sessions.create({
 // Create a runner bound to this session
 const runner = createAgentRunner(sessions, session);
 
-const pool = new SimpleWorkerPool(sessions);
+const pool = new SequentialWorkerPool(sessions);
 
 // Enqueue jobs
 await pool.enqueue(session.id, "Research quantum computing");
@@ -36,16 +36,16 @@ await pool.process(runner);
 await pool.stop();
 ```
 
-`createAgentRunner` returns a handler that runs the `Agent`, persists all messages back to the session, and returns the full event list.
+`createAgentRunner` returns a handler that runs the `Agent`, persists all messages as entries to the session, and returns the full event list.
 
 ## Rate Limiting
 
 Sliding-window rate limiter — per-user, configurable:
 
 ```typescript
-import { SimpleRateLimiter } from "@singularity-ai/spectra-app";
+import { LocalRateLimiter } from "@singularity-ai/spectra-app";
 
-const limiter = new SimpleRateLimiter(60, 60000); // 60 requests per minute
+const limiter = new LocalRateLimiter(60, 60000); // 60 requests per minute
 
 async function handleRequest(userId: string) {
   const { allowed, remaining, resetAt } = await limiter.checkLimit(userId);
@@ -58,16 +58,16 @@ async function handleRequest(userId: string) {
 }
 ```
 
-Rate limits are tracked independently per user ID. The window slides — old requests expire naturally.
+Rate limits are tracked independently per user ID. The window slides — old requests expire naturally. For distributed deployments, swap in a Redis-backed `RateLimiter` implementation.
 
-## Multi-Agent Orchestration
+## Agent Registry
 
 Register specialist agents and delegate tasks:
 
 ```typescript
-import { SimpleOrchestrator } from "@singularity-ai/spectra-app";
+import { AgentRegistry } from "@singularity-ai/spectra-app";
 
-const orchestrator = new SimpleOrchestrator();
+const orchestrator = new AgentRegistry();
 
 orchestrator.registerAgent("researcher", {
   model: { id: "gpt-4o", name: "GPT-4o", provider: "openai-completions", api: "openai" },
@@ -100,4 +100,4 @@ for (const r of results) {
 }
 ```
 
-Each task runs independently. Results include `success`, `result`, and optional `error` fields.
+Each task runs independently. Results include `success`, `result`, and optional `error` and `usage` fields.

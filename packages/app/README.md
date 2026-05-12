@@ -6,12 +6,12 @@ Builds on `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent` to pr
 
 ## Features
 
-- **Session management** — Create, load, save, delete, fork, and list sessions. Tracks turn count, token usage, timestamps, and user identity per session.
-- **Pluggable session store** — `InMemorySessionStore` included. Swap in Redis, SQL, or any database via the `SessionStore` interface.
-- **Worker pool** — Enqueue agent jobs, process with a handler, stop gracefully. Built-in `createAgentRunner()` ties agent execution to session persistence.
-- **Rate limiting** — Sliding-window rate limiter per user. Configurable requests-per-minute and window duration.
-- **Orchestration** — Register specialist agents and delegate tasks. Execute tasks in parallel across agent types.
-- **Session forking** — Branch a session at any message index for A/B testing, rollback, or experimentation.
+- **Session management** — Create, load, save, delete, fork, and list sessions. Supports tree-structured entries with audit trails and provenance tracking.
+- **Pluggable session stores** — `InMemorySessionStore`, `FileSystemSessionStore` (JSON), and `SQLiteSessionStore` (SQLite). Swap in Redis or any database via the `SessionStore` interface.
+- **Worker pool** — Enqueue agent jobs, process sequentially. Built-in `createAgentRunner()` ties agent execution to session persistence.
+- **Rate limiting** — Sliding-window rate limiter per user. In-memory implementation; swap in Redis for distributed deployments.
+- **Agent registry** — Register specialist agents and delegate tasks. Execute tasks in parallel across agent types.
+- **Session forking** — Branch a session from any entry point in the tree-structured timeline.
 
 ## Installation
 
@@ -27,10 +27,12 @@ Depends on `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent` (aut
 import {
   SessionManager,
   InMemorySessionStore,
-  SimpleRateLimiter,
-  SimpleWorkerPool,
+  FileSystemSessionStore,
+  SQLiteSessionStore,
+  LocalRateLimiter,
+  SequentialWorkerPool,
   createAgentRunner,
-  SimpleOrchestrator,
+  AgentRegistry,
 } from "@singularity-ai/spectra-app";
 
 // Session management
@@ -51,16 +53,16 @@ const loaded = await sessions.load(session.id);
 const fork = await sessions.fork(session.id, 0);
 
 // Rate limiting
-const limiter = new SimpleRateLimiter(60, 60000); // 60 req/min
+const limiter = new LocalRateLimiter(60, 60000); // 60 req/min
 const { allowed, remaining } = await limiter.checkLimit("user-123");
 
 // Worker pool with agent runner
-const pool = new SimpleWorkerPool(sessions);
+const pool = new SequentialWorkerPool(sessions);
 const runner = createAgentRunner(sessions, session);
 pool.process(runner);
 
 // Orchestration
-const orchestrator = new SimpleOrchestrator();
+const orchestrator = new AgentRegistry();
 orchestrator.registerAgent("researcher", {
   model: { id: "gpt-4o", name: "GPT-4o", provider: "openai-completions", api: "openai" },
   systemPrompt: "You are a research specialist.",
@@ -121,7 +123,7 @@ const all = await manager.list(filter?);
 const fork = await manager.fork(sourceId, branchFromIndex?);
 ```
 
-`Session` carries `id`, `model`, `messages`, `config`, and `metadata` (timestamps, turnCount, tokenUsage, isStreaming, userId, parentSessionId).
+`Session` carries `id`, `model`, `entries` (tree-structured timeline), `config`, and `metadata` (timestamps, turnCount, tokenUsage, isStreaming, userId, parentSessionId).
 
 ### SessionStore Interface
 
@@ -137,10 +139,10 @@ interface SessionStore {
 }
 ```
 
-### SimpleWorkerPool
+### SequentialWorkerPool
 
 ```typescript
-const pool = new SimpleWorkerPool(sessionManager);
+const pool = new SequentialWorkerPool(sessionManager);
 
 const jobId = await pool.enqueue(sessionId, "input text");
 await pool.process(handler);       // processes queue sequentially
@@ -157,20 +159,20 @@ const runner = createAgentRunner(sessionManager, session);
 // Runs the Agent, persists messages back to session, returns events
 ```
 
-### SimpleRateLimiter
+### LocalRateLimiter
 
 ```typescript
-const limiter = new SimpleRateLimiter(requestsPerMinute = 60, windowMs = 60000);
+const limiter = new LocalRateLimiter(requestsPerMinute = 60, windowMs = 60000);
 const result = await limiter.checkLimit(userId);
 // result: { allowed: boolean, remaining: number, resetAt: Date }
 ```
 
 Uses a sliding window counter per user. Independent across users.
 
-### SimpleOrchestrator
+### AgentRegistry
 
 ```typescript
-const orchestrator = new SimpleOrchestrator();
+const orchestrator = new AgentRegistry();
 orchestrator.registerAgent("researcher", agentConfig);
 
 const result = await orchestrator.delegate("researcher", "task", budget?);

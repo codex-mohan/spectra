@@ -11,7 +11,18 @@ class SessionManager {
   save(session: Session): Promise<void>;
   delete(id: string): Promise<void>;
   list(filter?: SessionFilter): Promise<Session[]>;
-  fork(sourceId: string, branchFromIndex?: number): Promise<Session>;
+  fork(sourceId: string, entryId?: string): Promise<Session>;
+
+  appendEntry(session: Session, entry: NewSessionEntry): SessionEntry;
+  appendMessage(session: Session, message: Message): MessageEntry;
+  appendAudit(session: Session, eventType: string, details: Record<string, unknown>): AuditEntry;
+  appendCustom(session: Session, customType: string, data: unknown): CustomEntry;
+  appendModelChange(session: Session, model: Model): ModelChangeEntry;
+
+  getBranch(session: Session, entryId?: string): SessionEntry[];
+  getTree(session: Session): SessionTreeNode[];
+  getLeafId(session: Session): string | null;
+  buildContext(session: Session, entryId?: string): SessionContext;
 }
 ```
 
@@ -21,10 +32,12 @@ class SessionManager {
 interface Session {
   id: string;
   model: Model;
-  messages: Message[];
+  entries: SessionEntry[];
   config: SessionConfig;
   metadata: SessionMetadata;
 }
+
+type SessionEntry = MessageEntry | ModelChangeEntry | AuditEntry | CustomEntry;
 
 interface SessionConfig extends AgentConfig {
   maxTokens?: number;
@@ -65,19 +78,37 @@ interface SessionStore {
 }
 ```
 
-## InMemorySessionStore
+### InMemorySessionStore
 
 ```typescript
 class InMemorySessionStore implements SessionStore {
   // In-memory Map-based implementation
-  // Supports filtering by userId and status
 }
 ```
 
-## SimpleWorkerPool
+### FileSystemSessionStore
 
 ```typescript
-class SimpleWorkerPool {
+class FileSystemSessionStore implements SessionStore {
+  constructor(sessionsDir: string);
+  // JSON file per session. Survives restarts.
+}
+```
+
+### SQLiteSessionStore
+
+```typescript
+class SQLiteSessionStore implements SessionStore {
+  constructor(dbPath: string);
+  close(): void;
+  // SQLite via better-sqlite3 (optionalDependency). Indexed queries.
+}
+```
+
+## SequentialWorkerPool
+
+```typescript
+class SequentialWorkerPool {
   constructor(sessionManager: SessionManager);
 
   enqueue(sessionId: string, input: string): Promise<string>;
@@ -110,12 +141,12 @@ function createAgentRunner(
 ): (job: WorkerJob) => Promise<WorkerResult>;
 ```
 
-Returns a job handler that creates an `Agent` from session config, runs the input, persists messages to the session, and returns the event list.
+Creates an `Agent` from session config, runs the input, persists messages as entries to the session, and returns the event list.
 
-## SimpleRateLimiter
+## LocalRateLimiter
 
 ```typescript
-class SimpleRateLimiter implements RateLimiter {
+class LocalRateLimiter implements RateLimiter {
   constructor(requestsPerMinute?: number, windowMs?: number);
 
   checkLimit(userId: string): Promise<RateLimitResult>;
@@ -130,10 +161,10 @@ interface RateLimitResult {
 
 Default: 60 requests per minute, 60-second sliding window.
 
-## SimpleOrchestrator
+## AgentRegistry
 
 ```typescript
-class SimpleOrchestrator implements Orchestrator {
+class AgentRegistry {
   registerAgent(agentType: string, config: AgentConfig): void;
   delegate(agentType: string, task: string, budget?: Budget): Promise<DelegationResult>;
   executeParallel(tasks: TaskConfig[]): Promise<DelegationResult[]>;

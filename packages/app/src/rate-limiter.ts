@@ -1,6 +1,6 @@
 import type { RateLimiter, RateLimitResult } from "./types.js";
 
-export class SimpleRateLimiter implements RateLimiter {
+export class LocalRateLimiter implements RateLimiter {
   private requests = new Map<string, number[]>();
 
   constructor(
