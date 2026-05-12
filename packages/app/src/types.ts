@@ -1,5 +1,5 @@
-import type { AgentConfig } from "@singularity-ai/spectra-agent";
-import type { Model, Message, Usage } from "@singularity-ai/spectra-ai";
+import type { AgentConfig, AgentTool, AgentEvent } from "@singularity-ai/spectra-agent";
+import type { Model, Message, Usage, StreamOptions } from "@singularity-ai/spectra-ai";
 
 export interface SessionEntryBase {
   id: string;
@@ -95,6 +95,17 @@ export interface SessionManager {
   delete(id: string): Promise<void>;
   list(filter?: SessionFilter): Promise<Session[]>;
   fork(sourceId: string, branchFromIndex?: number): Promise<Session>;
+  appendMessage(session: Session, message: Message): MessageEntry;
+  appendAudit(session: Session, eventType: string, details: Record<string, unknown>): AuditEntry;
+  appendCustom(session: Session, customType: string, data: unknown): CustomEntry;
+  appendModelChange(session: Session, model: Model): ModelChangeEntry;
+  appendEntry(
+    session: Session,
+    entry: Omit<MessageEntry, "id" | "parentId" | "timestamp">
+      | Omit<ModelChangeEntry, "id" | "parentId" | "timestamp">
+      | Omit<AuditEntry, "id" | "parentId" | "timestamp">
+      | Omit<CustomEntry, "id" | "parentId" | "timestamp">
+  ): SessionEntry;
 }
 
 export interface WorkerPool {
@@ -151,4 +162,107 @@ export interface DelegationResult {
   result: string;
   usage?: Usage;
   error?: string;
+}
+
+export interface RedisClient {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, mode?: "EX", ttl?: number): Promise<"OK" | null>;
+  del(...keys: string[]): Promise<number>;
+  zadd(key: string, score: number, member: string): Promise<number>;
+  zremrangebyscore(key: string, min: number, max: number): Promise<number>;
+  zcard(key: string): Promise<number>;
+  expire(key: string, seconds: number): Promise<number>;
+  ping(): Promise<string>;
+  quit(): Promise<void>;
+}
+
+export type CircuitBreakerState = "CLOSED" | "OPEN" | "HALF_OPEN";
+
+export interface CircuitBreakerConfig {
+  failureThreshold: number;
+  resetTimeoutMs: number;
+  halfOpenMaxRequests: number;
+}
+
+export interface CircuitBreaker {
+  readonly state: CircuitBreakerState;
+  readonly failureCount: number;
+  call<T>(fn: () => Promise<T>): Promise<T>;
+  recordSuccess(): void;
+  recordFailure(): void;
+}
+
+export type EngineLifecycle = "starting" | "running" | "draining" | "stopped";
+
+export interface TenantContext {
+  tenantId: string;
+  quota: {
+    maxConcurrentSessions: number;
+    maxTokensPerDay: number;
+    maxSessions: number;
+  };
+  rateLimiter: RateLimiter;
+  getApiKey(provider: string): Promise<string | undefined>;
+}
+
+export interface TenantResolver {
+  resolve(tenantId: string): Promise<TenantContext | null>;
+}
+
+export type ConnectionTransport = "sse" | "websocket";
+
+export interface ConnectionConfig {
+  transport: ConnectionTransport;
+  heartbeatIntervalMs?: number;
+  reconnectTimeoutMs?: number;
+  maxReconnectAttempts?: number;
+  cors?: { origin: string | string[] };
+}
+
+export interface EngineEvent {
+  type: "engine_start" | "engine_stop" | "connection_open" | "connection_close" | "reconnect" | "agent_event" | "error";
+  data?: unknown;
+  timestamp: number;
+}
+
+export interface SessionEngineConfig {
+  sessionManager: SessionManager;
+  rateLimiter?: RateLimiter;
+  tenantResolver?: TenantResolver;
+  circuitBreaker?: CircuitBreaker;
+  engineId?: string;
+  defaultStreamOptions?: StreamOptions;
+  maxConcurrentSessions?: number;
+  sessionTimeoutMs?: number;
+}
+
+export interface SessionEngineResult {
+  sessionId: string;
+  events: AgentEvent[];
+  finalMessage: string;
+  tokenUsage: Usage;
+}
+
+export interface HealthStatus {
+  status: "healthy" | "degraded" | "unhealthy";
+  uptime: number;
+  activeSessions: number;
+  engineState: EngineLifecycle;
+  checks: Record<string, { status: "ok" | "error"; message?: string }>;
+}
+
+export interface ConnectionBridge {
+  readonly transport: ConnectionTransport;
+  attach(handler: (event: EngineEvent) => void): void;
+  detach(handler: (event: EngineEvent) => void): void;
+  send(event: EngineEvent): void;
+  close(): Promise<void>;
+}
+
+export interface JobQueue {
+  enqueue<T = unknown>(queue: string, payload: T): Promise<string>;
+  dequeue<T = unknown>(queue: string, timeoutMs?: number): Promise<{ id: string; payload: T } | null>;
+  ack(queue: string, id: string): Promise<void>;
+  nack(queue: string, id: string, retryDelayMs?: number): Promise<void>;
+  size(queue: string): Promise<number>;
 }
