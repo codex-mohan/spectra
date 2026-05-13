@@ -19,7 +19,6 @@ new Agent(config: AgentConfig)
 | `afterToolCall` | `AfterToolCallHook` | undefined | Called after tool execution |
 | `transformContext` | `TransformContextHook` | undefined | Transform messages before LLM call |
 | `getApiKey` | `GetApiKeyHook` | undefined | Dynamic API key resolution |
-| `streamOptions` | `StreamOptions` | undefined | API key, headers, maxTokens, temperature |
 
 ## Methods
 

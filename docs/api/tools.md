@@ -23,25 +23,28 @@ function defineTool<T extends z.ZodType>(schema: {
 ## `AgentTool` Interface
 
 ```typescript
-interface AgentTool {
+interface AgentTool<TDetails = unknown> {
   name: string;
+  label?: string;
   description: string;
   parameters: Record<string, unknown>;  // JSON Schema
+  promptGuidelines?: string[];
   prepareArguments?: (args: unknown) => Record<string, unknown>;
   execute: (
     toolCallId: string,
     args: Record<string, unknown>,
     signal?: AbortSignal,
-    onUpdate?: ToolUpdateCallback
-  ) => Promise<ToolResult>;
+    onUpdate?: ToolUpdateCallback<TDetails>
+  ) => Promise<ToolResult<TDetails>>;
 }
 ```
 
 ## `ToolResult`
 
 ```typescript
-interface ToolResult {
+interface ToolResult<TDetails = unknown> {
   content: (TextContent | ImageContent)[];
+  details?: TDetails;
   isError?: boolean;
 }
 ```
