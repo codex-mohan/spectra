@@ -4,6 +4,7 @@ export interface CmdItem {
   id: string
   label: string
   desc: string
+  cat?: string
   action: () => void
 }
 
