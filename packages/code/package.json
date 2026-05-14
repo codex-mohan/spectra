@@ -31,18 +31,21 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@opentui/core": ">=0.2.6",
+    "@opentui/react": "^0.2.10",
     "@singularity-ai/spectra-agent": "workspace:*",
     "@singularity-ai/spectra-ai": "workspace:*",
-    "@opentui/core": ">=0.2.6",
+    "react": "^19.2.6",
     "yargs": "^18.0.0",
-    "zod": "^3.25.0",
-    "get-east-asian-width": "^1.3.0"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@types/yargs": "^17.0.0",
-    "typescript": "^5.7.0",
     "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
     "vitest": "^3.2.0"
   },
   "license": "MIT"
