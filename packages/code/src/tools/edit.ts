@@ -1,81 +1,60 @@
-import { constants } from "node:fs";
-import { access as fsAccess, readFile as fsReadFile, writeFile as fsWriteFile } from "node:fs/promises";
 import { z } from "zod";
-import { defineTool } from "@singularity-ai/spectra-agent";
-import { applyEditsToNormalizedContent, detectLineEnding, normalizeToLF, restoreLineEndings, stripBom, generateDiffString } from "../utils/edit-diff.js";
-import { withFileMutationQueue } from "../utils/file-mutation-queue.js";
-import { resolveToCwd } from "../utils/path.js";
-import type { EditOperations, EditToolDetails } from "../types.js";
+import type { SpectraTool } from "./types.js";
+import { errorResult, textResult } from "./utils.js";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { resolve, relative } from "path";
 
-const defaultEditOperations: EditOperations = {
-  readFile: (path) => fsReadFile(path),
-  writeFile: (path, content) => fsWriteFile(path, content, "utf-8"),
-  access: (path) => fsAccess(path, constants.R_OK | constants.W_OK),
+export const editTool: SpectraTool = {
+  name: "edit",
+  description: `Edit a file by finding and replacing text.
+The tool finds the exact old string in the file and replaces it with the new string.
+For best results:
+- Include enough surrounding context in the old string for a unique match
+- Use exact text including whitespace
+- If the old string appears multiple times, include more context to disambiguate
+Prefer the write tool for large or new files.`,
+  displayName: (args: { path: string }) => relative(process.cwd(), resolve(args.path)),
+  parameters: z.object({
+    path: z.string().describe("Absolute or relative path to the file to edit"),
+    oldString: z.string().describe("The exact text to find and replace"),
+    newString: z.string().describe("The replacement text"),
+  }),
+  execute: async ({ path, oldString, newString }) => {
+    const resolved = resolve(process.cwd(), path);
+    if (!existsSync(resolved)) {
+      return errorResult(`File not found: ${resolved}`);
+    }
+
+    const content = readFileSync(resolved, "utf-8");
+    if (!content.includes(oldString)) {
+      return errorResult(`Could not find the specified text in ${relative(process.cwd(), resolved)}.
+The text may have different whitespace or formatting. Try reading the file first.`);
+    }
+
+    const newContent = content.replace(oldString, newString);
+    if (newContent === content) {
+      return errorResult("No changes made - the replacement didn't modify the file.");
+    }
+
+    writeFileSync(resolved, newContent, "utf-8");
+    return textResult(`Applied edit to ${relative(process.cwd(), resolved)}
+
+Changes made (showing context):
+${showDiff(content, newString, oldString)}`);
+  },
 };
 
-export interface EditToolOptions {
-  operations?: EditOperations;
+function showDiff(original: string, newStr: string, oldStr: string): string {
+  const idx = original.indexOf(oldStr);
+  if (idx < 0) return "";
+  const before = original.slice(Math.max(0, idx - 40), idx);
+  const after = original.slice(idx + oldStr.length, idx + oldStr.length + 40);
+  return [
+    "...",
+    before ? `${before}` : "",
+    `- ${oldStr.slice(0, 80)}`,
+    `+ ${newStr.slice(0, 80)}`,
+    after ? `${after}` : "",
+    "...",
+  ].filter(Boolean).join("\n");
 }
-
-export const createEditTool = (cwd: string, options?: EditToolOptions) => {
-  const ops = options?.operations ?? defaultEditOperations;
-
-  return defineTool({
-    name: "edit",
-    label: "Edit",
-    description:
-      "Edit a file using exact text replacement. Each edit's oldText must match a unique, non-overlapping region of the original file. For multiple changes in one file, use the edits array instead of multiple edit calls.",
-    promptGuidelines: [
-      "Use edit for precise changes (oldText must match exactly)",
-      "For multiple separate changes in one file, use one edit call with multiple entries in edits array",
-      "Each edits[].oldText is matched against the original file, not after earlier edits are applied",
-      "Keep oldText as small as possible while still being unique in the file",
-    ],
-    parameters: z.object({
-      path: z.string().describe("Path to the file to edit (relative or absolute)"),
-      edits: z.array(z.object({
-        oldText: z.string().describe("Exact text to find in the file. Must be unique and non-overlapping."),
-        newText: z.string().describe("Replacement text"),
-      })).describe("Array of text replacements to apply"),
-    }),
-    execute: async (args, { signal }) => {
-      const absolutePath = resolveToCwd(args.path, cwd);
-
-      return withFileMutationQueue(absolutePath, async () => {
-        if (signal?.aborted) throw new Error("Operation aborted");
-
-        try {
-          await ops.access(absolutePath);
-        } catch {
-          throw new Error(`File not found: ${args.path}`);
-        }
-
-        const buffer = await ops.readFile(absolutePath);
-        const rawContent = buffer.toString("utf-8");
-        const { bom, text: content } = stripBom(rawContent);
-        const originalEnding = detectLineEnding(content);
-        const normalizedContent = normalizeToLF(content);
-
-        const { baseContent, newContent } = applyEditsToNormalizedContent(
-          normalizedContent,
-          args.edits,
-          args.path,
-        );
-
-        const finalContent = bom + restoreLineEndings(newContent, originalEnding);
-        await ops.writeFile(absolutePath, finalContent);
-
-        const diffResult = generateDiffString(baseContent, newContent, args.path);
-        const details: EditToolDetails = {
-          diff: diffResult.diff,
-          firstChangedLine: diffResult.firstChangedLine,
-        };
-
-        return {
-          content: [{ type: "text" as const, text: `Successfully replaced ${args.edits.length} block(s) in ${args.path}.` }],
-          details,
-        };
-      });
-    },
-  });
-};

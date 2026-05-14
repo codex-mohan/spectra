@@ -1,15 +1,22 @@
 {
   "name": "@singularity-ai/spectra-code",
-  "version": "0.1.3",
+  "version": "0.1.0",
   "private": true,
-  "description": "Spectra Code — coding tools, session management, and agent orchestration",
   "type": "module",
+  "description": "Spectra Code — TUI coding agent with CLI commands, tools, and LLM integration",
+  "bin": {
+    "spectra": "dist/cli.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "files": [
@@ -17,21 +24,25 @@
   ],
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
+    "dev": "bun src/cli.ts",
+    "start": "bun src/cli.ts",
+    "spectra:help": "tsx src/cli.ts --help",
     "test": "vitest --run",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@singularity-ai/spectra-agent": "workspace:*",
     "@singularity-ai/spectra-ai": "workspace:*",
-    "zod": "^3.25.0"
-  },
-  "optionalDependencies": {
-    "jiti": "^2.4.0"
+    "@opentui/core": ">=0.2.6",
+    "yargs": "^18.0.0",
+    "zod": "^3.25.0",
+    "get-east-asian-width": "^1.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/yargs": "^17.0.0",
     "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
     "vitest": "^3.2.0"
   },
   "license": "MIT"

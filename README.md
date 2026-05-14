@@ -46,8 +46,6 @@ graph TB
 | `@singularity-ai/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
 | `@singularity-ai/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
 | `@singularity-ai/spectra-app` | **Infrastructure** | Production runtime — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). |
-| `@singularity-ai/spectra-code` | **Tools** | Pre-built coding tools — bash, read, write, edit, grep, find, web fetch. |
-| `@singularity-ai/spectra-tui` | **UI** | Terminal UI components for building agent CLIs. |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic, OpenAI, Groq, OpenRouter. |
 
@@ -219,10 +217,8 @@ spectra/
 │   ├── ai/              # @singularity-ai/spectra-ai — LLM providers
 │   ├── agent/           # @singularity-ai/spectra-agent — Agent + tools
 │   ├── app/             # @singularity-ai/spectra-app — SessionEngine + rate limiting + SSE bridge
-│   ├── code/            # @singularity-ai/spectra-code — Coding tools
-│   └── tui/             # @singularity-ai/spectra-tui — Terminal UI components
 ├── apps/
-│   └── code/            # spectra-code-app — TUI coding agent
+│   └── examples/        # Example usage
 ├── crates/
 │   ├── spectra-rs/      # Rust SDK core
 │   └── spectra-http/    # Rust HTTP clients

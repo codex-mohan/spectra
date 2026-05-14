@@ -1,31 +1,46 @@
-export { createBashTool } from "./bash.js";
-export { createReadTool } from "./read.js";
-export { createEditTool } from "./edit.js";
-export { createWriteTool } from "./write.js";
-export { createGrepTool } from "./grep.js";
-export { createFindTool } from "./find.js";
-export { createLsTool } from "./ls.js";
-export { createWebFetchTool } from "./web.js";
+import type { SpectraTool } from "./types.js";
+import { shellTool } from "./shell.js";
+import { readTool } from "./read.js";
+import { writeTool } from "./write.js";
+import { editTool } from "./edit.js";
+import { grepTool } from "./grep.js";
+import { globTool } from "./glob.js";
+import { webFetchTool } from "./web-fetch.js";
+import type { AgentTool, ToolResult } from "@singularity-ai/spectra-agent";
+import { defineTool } from "@singularity-ai/spectra-agent";
+import { textResult } from "./utils.js";
 
-import { createBashTool } from "./bash.js";
-import { createReadTool } from "./read.js";
-import { createEditTool } from "./edit.js";
-import { createWriteTool } from "./write.js";
-import { createGrepTool } from "./grep.js";
-import { createFindTool } from "./find.js";
-import { createLsTool } from "./ls.js";
-import { createWebFetchTool } from "./web.js";
-import type { AgentTool } from "@singularity-ai/spectra-agent";
+export { type SpectraTool } from "./types.js";
 
-export function createAllTools(cwd: string): AgentTool[] {
-  return [
-    createBashTool(cwd),
-    createReadTool(cwd),
-    createEditTool(cwd),
-    createWriteTool(cwd),
-    createGrepTool(cwd),
-    createFindTool(cwd),
-    createLsTool(cwd),
-    createWebFetchTool(),
-  ];
+export const builtinTools: SpectraTool[] = [
+  shellTool,
+  readTool,
+  writeTool,
+  editTool,
+  grepTool,
+  globTool,
+  webFetchTool,
+];
+
+export function spectraToolToAgentTool(specTool: SpectraTool): AgentTool {
+  return defineTool({
+    name: specTool.name,
+    label: typeof specTool.displayName === "string" ? specTool.displayName : undefined,
+    description: specTool.description,
+    parameters: specTool.parameters,
+    promptGuidelines: specTool.promptGuidelines,
+    execute: async (args, ctx) => {
+      return specTool.execute(args, ctx);
+    },
+  });
+}
+
+export function createAllTools(): SpectraTool[] {
+  return [...builtinTools];
+}
+
+export function getToolDisplayName(tool: SpectraTool, args: unknown, result?: ToolResult): string {
+  if (!tool.displayName) return tool.name;
+  if (typeof tool.displayName === "string") return tool.displayName;
+  return tool.displayName(args, result as ToolResult);
 }
