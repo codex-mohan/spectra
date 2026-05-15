@@ -49,7 +49,7 @@ jobs:
       # Uses publishedPackages output directly instead of the `published` flag,
       # which is unreliable with --no-git-tag in some changesets/action versions.
       - name: Create GitHub Release
-        if: steps.changesets.outputs.publishedPackages != ''
+        if: steps.changesets.outputs.publishedPackages != '' && steps.changesets.outputs.publishedPackages != '[]'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
