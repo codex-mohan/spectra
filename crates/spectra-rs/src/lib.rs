@@ -1,4 +1,5 @@
 pub mod agent;
+pub mod circuit_breaker;
 pub mod error;
 pub mod event;
 pub mod extension;
@@ -18,6 +19,7 @@ pub use messages::{
     AssistantMessage, Content, ImageDetail, Message, StopReason, TokenCost, TokenUsage, ToolCall,
     ToolResultMessage, UserMessage,
 };
+pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState};
 pub use tool::{Tool, ToolBuilder, ToolContext, ToolDef as ToolDefinition, ToolRegistry, ToolResult};
 
 pub mod prelude {
