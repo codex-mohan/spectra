@@ -8,7 +8,7 @@ import { SessionStore } from "../services/session-store.js"
 import type { AssistantMessage, TextContent, ThinkingContent, ToolCall } from "@singularity-ai/spectra-ai"
 
 export function App({ renderer }: { renderer: CliRenderer }) {
-  const { height: termHeight } = useTerminalDimensions()
+  const { width: termWidth, height: termHeight } = useTerminalDimensions()
   const [route, setRoute] = useState<"home" | "chat">("home")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -141,76 +141,81 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
   useEffect(() => { if (cmdSelected >= cmdFiltered.length && cmdFiltered.length > 0) setCmdSelected(cmdFiltered.length - 1) }, [cmdSelected, cmdFiltered.length])
 
-  const statusColor = status === "Error" ? c.error : status === "Ready" ? c.success : c.warn
-
   return (
     <box flexDirection="column" height={termHeight} backgroundColor={c.bg}>
       {/* === HOME === */}
       {route === "home" ? (
         <>
-          {/* Spacer */}
+          {/* Top spacer */}
           <box flexGrow={1} />
 
-          {/* Greeting */}
-          <box flexDirection="column" alignItems="center">
-            <text fg={c.accent}><strong>Spectra Code</strong></text>
-            <text fg={c.dim}>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text>
-          </box>
+          {/* Center content */}
+          <box flexDirection="column" alignItems="center" flexGrow={2}>
+            {/* ASCII Banner */}
+            <ascii-font text="SPECTRA" font="block" color={c.accent} />
 
-          <box height={2} />
+            <box height={3} />
 
-          {/* Stats */}
-          <box flexDirection="row" gap={6} justifyContent="center">
-            {[
-              { val: String(sessionStore.current.list().length), label: "sessions" },
-              { val: "3", label: "agents" },
-              { val: "7", label: "tools" },
-              { val: String(mcpCount), label: "MCP" },
-            ].map((s) => (
-              <box key={s.label} flexDirection="column" alignItems="center">
-                <text fg={c.text}>{s.val}</text>
-                <text fg={c.dim}>{s.label}</text>
+            {/* Shared prompt bar */}
+            <box marginTop={1} marginBottom={1}>
+              <PromptBar
+                isLoading={isLoading}
+                spinnerFrame={spinnerFrame}
+                submitKey={submitKey}
+                placeholder="Ask anything..."
+                onSubmit={handleSubmit}
+                agent={selectedAgent}
+                model={selectedModel}
+                provider={provider}
+                width={Math.min(68, termWidth - 8)}
+              />
+            </box>
+
+            <box height={2} />
+
+            {/* Hints */}
+            <box flexDirection="row" gap={4}>
+              <text fg={c.dim}>tab agents</text>
+              <text fg={c.dim}>ctrl+p commands</text>
+            </box>
+
+            <box height={2} />
+
+            {/* Stats with icons */}
+            <box flexDirection="row" gap={4} alignItems="center">
+              <box flexDirection="row" gap={1} alignItems="center">
+                <text fg={c.accent}>◈</text>
+                <text fg={c.dim}>{sessionStore.current.list().length} sessions</text>
               </box>
-            ))}
+              <box flexDirection="row" gap={1} alignItems="center">
+                <text fg={c.accent}>◉</text>
+                <text fg={c.dim}>3 agents</text>
+              </box>
+              <box flexDirection="row" gap={1} alignItems="center">
+                <text fg={c.accent}>◆</text>
+                <text fg={c.dim}>7 tools</text>
+              </box>
+              <box flexDirection="row" gap={1} alignItems="center">
+                <text fg={c.accent}>⬢</text>
+                <text fg={c.dim}>{mcpCount} MCP</text>
+              </box>
+            </box>
           </box>
 
-          {/* Fill space before input */}
           <box flexGrow={1} />
 
-          {/* Input area — fixed at bottom */}
-          <box flexDirection="column">
-            <UnderConstructionInput />
+          {/* Tip row */}
+          <box flexDirection="row" justifyContent="center" alignItems="center" gap={1} height={1}>
+            <text fg={c.warn}>●</text>
+            <text fg={c.dim}>Tip: Press ctrl+p to open commands</text>
+          </box>
 
-            <box backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={0}
-              flexDirection="row" alignItems="center" height={3}>
-              {isLoading ? (
-                <text fg={c.warn}>{SPINNER[spinnerFrame]}  Thinking...</text>
-              ) : (
-                <box flexDirection="row" flexGrow={1} alignItems="center">
-                  <text fg={c.accent}>›</text>
-                  <box marginLeft={1} flexGrow={1}>
-                    <input key={`h-${submitKey}`} placeholder="Type a message..." onSubmit={(v) => handleSubmit(String(v))} focused={true} />
-                  </box>
-                </box>
-              )}
-            </box>
+          <box height={1} />
 
-            <box backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={0} paddingBottom={1}
-              flexDirection="row" justifyContent="space-between" height={2}>
-              <box flexDirection="row" gap={2} alignItems="center">
-                <text fg={c.accent}>{selectedAgent}</text>
-                <text fg={c.dim}>{selectedModel}</text>
-                <text fg={c.subtext}>{provider}</text>
-              </box>
-              <text fg={c.dim}>{mcpCount} MCP</text>
-            </box>
-
-            {/* Footer */}
-            <box backgroundColor={c.bg} paddingLeft={2} paddingRight={2} height={1}
-              flexDirection="row" justifyContent="space-between">
-              <text fg={c.dim}>{process.cwd()}</text>
-              <text fg={c.dim}>Ctrl+P: commands</text>
-            </box>
+          {/* Bottom status bar */}
+          <box flexDirection="row" justifyContent="space-between" paddingLeft={2} paddingRight={2} height={1} marginBottom={1}>
+            <text fg={c.dim}>~  {mcpCount} MCP /status</text>
+            <text fg={c.dim}>Spectra Code</text>
           </box>
         </>
       ) : (
@@ -221,42 +226,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             <ChatArea messages={messages} />
           </box>
 
-          {/* Input — 2 rows + footer at bottom */}
-          <box flexDirection="column">
-            <box backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={0}
-              flexDirection="row" alignItems="center" height={3}>
-              {isLoading ? (
-                <text fg={c.warn}>{SPINNER[spinnerFrame]}  Thinking...</text>
-              ) : (
-                <box flexDirection="row" flexGrow={1} alignItems="center">
-                  <text fg={c.accent}>›</text>
-                  <box marginLeft={1} flexGrow={1}>
-                    <input key={`c-${submitKey}`} placeholder="Reply..." onSubmit={(v) => handleSubmit(String(v))} focused={true} />
-                  </box>
-                </box>
-              )}
-            </box>
-
-            {/* Row 2: agent left, tokens right */}
-            <box backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={0} paddingBottom={1}
-              flexDirection="row" justifyContent="space-between" height={2}>
-              <box flexDirection="row" gap={2} alignItems="center">
-                <text fg={c.accent}>{selectedAgent}</text>
-                <text fg={c.dim}>{selectedModel}</text>
-                <text fg={c.subtext}>{provider}</text>
-              </box>
-              <box flexDirection="row" gap={1}>
-                {elapsedMs !== null && <text fg={c.dim}>{(elapsedMs / 1000).toFixed(1)}s</text>}
-                <text fg={c.dim}>↑{tokenUsage.input} ↓{tokenUsage.output}</text>
-              </box>
-            </box>
-
-            {/* Footer */}
-            <box backgroundColor={c.bg} paddingLeft={2} paddingRight={2} height={1}
-              flexDirection="row" justifyContent="space-between">
-              <text fg={c.dim}>{process.cwd()}</text>
-              <text fg={c.dim}>↑{tokenUsage.input + tokenUsage.output} context</text>
-            </box>
+          {/* Shared prompt bar */}
+          <box marginTop={1} marginBottom={1}>
+            <PromptBar
+              isLoading={isLoading}
+              spinnerFrame={spinnerFrame}
+              submitKey={submitKey}
+              placeholder="Reply..."
+              onSubmit={handleSubmit}
+              agent={selectedAgent}
+              model={selectedModel}
+              provider={provider}
+              elapsedMs={elapsedMs}
+              tokenUsage={tokenUsage}
+            />
           </box>
         </>
       )}
@@ -264,14 +247,73 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       {/* Command palette overlay */}
       {showCmd && (
         <CommandPalette filter={cmdFilter} selected={cmdSelected} items={cmdFiltered}
-          termWidth={100} termHeight={termHeight} />
+          termWidth={termWidth} termHeight={termHeight} />
       )}
     </box>
   )
 }
 
-function UnderConstructionInput() {
-  return null
+/* ------------------------------------------------------------------ */
+/* Shared Prompt Bar — used by both home and chat                     */
+/* ------------------------------------------------------------------ */
+
+interface PromptBarProps {
+  isLoading: boolean
+  spinnerFrame: number
+  submitKey: number
+  placeholder: string
+  onSubmit: (text: string) => void
+  agent: string
+  model: string
+  provider: string
+  width?: number
+  elapsedMs?: number | null
+  tokenUsage?: { input: number; output: number }
+}
+
+function PromptBar(props: PromptBarProps) {
+  const { isLoading, spinnerFrame, submitKey, placeholder, onSubmit, agent, model, provider, width, elapsedMs, tokenUsage } = props
+
+  return (
+    <box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={1} paddingRight={2} paddingTop={1} paddingBottom={1} width={width}>
+      {/* Left accent bar */}
+      <box width={1} backgroundColor={c.accent} height={3} />
+
+      <box flexDirection="column" flexGrow={1} paddingLeft={1}>
+        {/* Input row */}
+        <box flexDirection="row" alignItems="center" height={1}>
+          {isLoading ? (
+            <text fg={c.warn}>{SPINNER[spinnerFrame]}  Thinking...</text>
+          ) : (
+            <box flexDirection="row" flexGrow={1} alignItems="center" gap={1}>
+              <text fg={c.accent}>›</text>
+              <box flexGrow={1}>
+                <input key={submitKey} placeholder={placeholder} onSubmit={(v) => onSubmit(String(v))} focused={true} />
+              </box>
+            </box>
+          )}
+        </box>
+
+        {/* Spacer between input and meta */}
+        <box height={1} />
+
+        {/* Meta row */}
+        <box flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
+          <box flexDirection="row" gap={2} alignItems="center">
+            <text fg={c.accent}>{agent}</text>
+            <text fg={c.dim}>{model}</text>
+            <text fg={c.subtext}>{provider}</text>
+          </box>
+          {tokenUsage && (
+            <box flexDirection="row" gap={1}>
+              {elapsedMs !== null && elapsedMs !== undefined && <text fg={c.dim}>{(elapsedMs / 1000).toFixed(1)}s</text>}
+              <text fg={c.dim}>↑{tokenUsage.input} ↓{tokenUsage.output}</text>
+            </box>
+          )}
+        </box>
+      </box>
+    </box>
+  )
 }
 
 function genId(): string { return Math.random().toString(36).slice(2, 9) }

@@ -1,31 +1,33 @@
 import { RGBA, SyntaxStyle } from "@opentui/core"
 
-// Catppuccin Mocha palette — purple-forward like opencode
+// Spectra Void — deep dark bg with a soft spectral teal accent.
+// Comfortable for long sessions; no harsh purples.
 export const c = {
-  text: "#CDD6F4",
-  subtext: "#BAC2DE",
-  dim: "#6C7086",
-  accent: "#CBA6F7",
-  purple: "#B4BEFE",
-  success: "#A6E3A1",
-  warn: "#F9E2AF",
-  error: "#F38BA8",
-  user: "#89B4FA",
-  tool: "#FAB387",
-  thinking: "#B4BEFE",
-  info: "#74C7EC",
+  text: "#D5D8E0",
+  subtext: "#9CA3B0",
+  dim: "#5A6070",
+  accent: "#6EC8D0",
+  purple: "#7EC8D0",
+  success: "#A3D9A0",
+  warn: "#E0C8A0",
+  error: "#E0A0A8",
+  user: "#7AA8F0",
+  tool: "#E0B890",
+  thinking: "#90C0D8",
+  info: "#7EC8D0",
 
-  bg: "#1E1E2E",
+  bg: "#0C0C12",
   bgBar: "#181825",
-  bgCard: "#252536",
-  bgThink: "#232438",
-  bgTool: "#272535",
-  bgInput: "#1A1A2E",
-  bgOverlay: "#11111BBB",
+  bgCard: "#1E1E2E",
+  bgThink: "#1A1A2A",
+  bgTool: "#222232",
+  bgInput: "#12121A",
+  bgOverlay: "#08080ECC",
+  bgSelect: "#2E2E50",
 
-  sbThumb: "#45475A",
-  sbTrack: "#313244",
-  border: "#313244",
+  sbThumb: "#2A2A3A",
+  sbTrack: "#181822",
+  border: "#2A2A3A",
 }
 
 export const mdStyle = SyntaxStyle.fromStyles({
