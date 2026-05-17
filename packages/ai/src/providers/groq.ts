@@ -21,6 +21,7 @@ export interface GroqOptions extends StreamOptions {
 export function createGroqProvider() {
   return {
     name: "groq",
+    listModels: () => import("../models.js").then((m) => m.getProviderModels("groq")),
     stream(model: Model, context: Context, options?: GroqOptions): AssistantMessageEventStream {
       const stream = new AssistantMessageEventStream();
 

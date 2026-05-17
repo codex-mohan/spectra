@@ -158,6 +158,7 @@ function mapStopReason(reason: string): "stop" | "length" | "toolUse" | "error" 
 export function createAnthropicProvider() {
   return {
     name: "anthropic",
+    listModels: () => import("../models.js").then((m) => m.getProviderModels("anthropic")),
     stream(model: Model, context: Context, options?: StreamOptions): AssistantMessageEventStream {
       const stream = new AssistantMessageEventStream();
 

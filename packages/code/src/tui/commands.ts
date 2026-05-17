@@ -13,7 +13,7 @@ export function buildCmdItems(opts: {
   setStatus: (s: string) => void
   setElapsedMs: (v: null) => void
   setTokPerSec: (v: null) => void
-  setDialogStep: (v: { type: "provider" } | null) => void
+  setDialogStep: (v: { type: "provider" } | { type: "session-list" } | null) => void
   sessionIdRef: { current: string | null }
 }): CmdItem[] {
   const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, mcpCount, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setDialogStep } = opts
@@ -24,7 +24,7 @@ export function buildCmdItems(opts: {
       setStatus(`Current: ${selectedModel}`); setTimeout(() => setStatus("Ready"), 3000)
     } },
     { id: "new", label: "new session", desc: "Start fresh", cat: "Session", action: () => { setMessages(() => []); sessionIdRef.current = null; setRoute("home"); setStatus("Ready"); setElapsedMs(null); setTokPerSec(null) } },
-    { id: "sessions", label: "list sessions", desc: "Browse saved", cat: "Session", action: () => { const l = s.list(); setStatus(l.length ? `${l.length} sessions` : "No sessions"); setTimeout(() => setStatus("Ready"), 3000) } },
+    { id: "sessions", label: "list sessions", desc: "Browse saved sessions", cat: "Session", action: () => { setDialogStep({ type: "session-list" }) } },
     { id: "clear", label: "clear", desc: "Clear conversation", cat: "Session", action: () => { setMessages(() => []); setStatus("Cleared") } },
     { id: "home", label: "go home", desc: "Return to home", cat: "Navigation", action: () => { setRoute("home") } },
     { id: "doctor", label: "doctor", desc: "Run health check", cat: "System", action: () => { renderer.destroy(); import("../commands/doctor.js").then((m) => m.doctorCommand.handler({} as never)) } },

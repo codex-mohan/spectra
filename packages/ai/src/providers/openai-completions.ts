@@ -36,6 +36,7 @@ export interface OpenAICompletionsOptions extends StreamOptions {
 export function createOpenAICompletionsProvider() {
   return {
     name: "openai-completions",
+    listModels: () => import("../models.js").then((m) => m.getProviderModels("openai")),
     stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
       const stream = new AssistantMessageEventStream();
 

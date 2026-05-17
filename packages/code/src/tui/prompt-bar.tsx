@@ -1,22 +1,25 @@
+import { useRef } from "react"
 import { c, SPINNER } from "./theme.js"
 
 export interface PromptBarProps {
   isLoading: boolean
   spinnerFrame: number
-  submitKey: number
+  inputKey: string | number
   placeholder: string
   onSubmit: (text: string) => void
   hasModel: boolean
   agent: string
   model: string
   provider: string
+  initialValue?: string
   width?: number | "auto"
   elapsedMs?: number | null
   tokenUsage?: { input: number; output: number }
 }
 
 export function PromptBar(props: PromptBarProps) {
-  const { isLoading, spinnerFrame, submitKey, placeholder, onSubmit, hasModel, agent, model, provider, width, elapsedMs, tokenUsage } = props
+  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, initialValue, width, elapsedMs, tokenUsage } = props
+  const textareaRef = useRef<any>(null)
 
   if (!hasModel && !isLoading) {
     return (
@@ -41,15 +44,23 @@ export function PromptBar(props: PromptBarProps) {
         paddingLeft={1} paddingRight={2} paddingTop={1} paddingBottom={1}
         width={width ?? "auto"}>
         <box flexDirection="column" flexGrow={1} paddingLeft={1}>
-          <box flexDirection="row" alignItems="center" height={1}>
+          <box minHeight={1} maxHeight={6}>
             {isLoading ? (
               <text fg={c.warn}>{SPINNER[spinnerFrame]}  Thinking...</text>
             ) : (
-              <box flexDirection="row" flexGrow={1} alignItems="center" gap={1}>
+              <box flexDirection="row" flexGrow={1} gap={1}>
                 <text fg={c.accent}>›</text>
                 <box flexGrow={1}>
-                  <input key={submitKey} placeholder={placeholder}
-                    onSubmit={(v) => onSubmit(String(v))} focused={true} />
+                  <textarea key={inputKey} placeholder={placeholder}
+                    minHeight={1} maxHeight={6} width={"100%"} initialValue={initialValue}
+                    keyBindings={[
+                      { name: "return", action: "submit" },
+                      { name: "return", shift: true, action: "newline" },
+                    ]}
+                    ref={(r: any) => { textareaRef.current = r }}
+                    onSubmit={() => {
+                      if (textareaRef.current) onSubmit(textareaRef.current.plainText)
+                    }} focused={true} />
                 </box>
               </box>
             )}

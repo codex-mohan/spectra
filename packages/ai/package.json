@@ -15,10 +15,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run generate-models && tsc",
     "dev": "tsc --watch",
     "test": "vitest --run",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "generate-models": "bun scripts/generate-models.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

@@ -10,11 +10,14 @@ import { Tips } from "./tips.js"
 import { genId, getMessageBlocks } from "./utils.js"
 import type { ChatMessage, ContentBlock } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
+import { readAll } from "../services/auth-store.js"
 import type { AssistantMessage } from "@singularity-ai/spectra-ai"
 import { ProviderDialog } from "./ui/provider-dialog.js"
+import { SessionList } from "./ui/session-list.js"
+import { ToastContainer, showToast } from "./components/toast.js"
 import { buildCmdItems } from "./commands.js"
 import { getGlobalConfigDir } from "../utils/paths.js"
-import { existsSync, readFileSync } from "fs"
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join } from "path"
 
 const AGENTS = ["build", "plan", "debug", "explore"]
@@ -39,6 +42,23 @@ function loadSavedModel(): string | null {
   } catch { return null }
 }
 
+function getAuthKey(providerId: string): string | undefined {
+  const cred = readAll()[providerId]
+  return cred?.type === "api" ? cred.key : undefined
+}
+
+function saveModelConfig(modelId: string) {
+  try {
+    const configDir = getGlobalConfigDir()
+    if (!existsSync(configDir)) mkdirSync(configDir, { recursive: true })
+    const configPath = join(configDir, "spectra.json")
+    let cfg: Record<string, unknown> = {}
+    try { cfg = JSON.parse(readFileSync(configPath, "utf-8")) } catch {}
+    cfg.model = modelId
+    writeFileSync(configPath, JSON.stringify(cfg, null, 2), { mode: 0o600, encoding: "utf-8" })
+  } catch {}
+}
+
 export function App({ renderer }: { renderer: CliRenderer }) {
   const { width: termWidth, height: termHeight } = useTerminalDimensions()
   const [route, setRoute] = useState<"home" | "chat">("home")
@@ -53,12 +73,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [tokPerSec, setTokPerSec] = useState<number | null>(null)
   const [tokenUsage, setTokenUsage] = useState({ input: 0, output: 0 })
   const [selectedAgent, setSelectedAgent] = useState("build")
-  const [selectedModel, setSelectedModel] = useState<string | null>(loadSavedModel())
+  const [selectedModel, setSelectedModel] = useState<string | null>(loadSavedModel)
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | null>(null)
+  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list" } | null>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
+  const [promptHistory, setPromptHistory] = useState<string[]>([])
+  const [historyIdx, setHistoryIdx] = useState(-1)
+  const [navKey, setNavKey] = useState(0)
+  const historyDraft = useRef("")
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
+  const dialogKeyHandler = useRef<((key: any) => void) | null>(null)
 
   const provider = selectedModel?.split("/")[0] || null
   const hasModel = selectedModel !== null
@@ -87,7 +112,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   }, [isLoading, renderer])
 
   useKeyboard((key) => {
-    if (dialogStep) return
+    if (dialogStep) {
+      dialogKeyHandler.current?.(key)
+      return
+    }
     if (showCmd) {
       if (key.name === "escape" || (key.ctrl && key.name === "p")) { setShowCmd(false); return }
       if (key.name === "return" || key.name === "enter") { if (cmdFiltered.length > 0) { execCmd(cmdFiltered[cmdSelected]); return }; return }
@@ -98,6 +126,21 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       return
     }
     if (key.name === "escape") { renderer.destroy(); return }
+    if (key.name === "up") {
+      if (promptHistory.length === 0) return
+      if (historyIdx === -1) historyDraft.current = ""
+      const nextIdx = Math.min(historyIdx + 1, promptHistory.length - 1)
+      setHistoryIdx(nextIdx)
+      setNavKey((k) => k + 1)
+      return
+    }
+    if (key.name === "down") {
+      if (historyIdx === -1) return
+      const nextIdx = historyIdx - 1
+      setHistoryIdx(nextIdx)
+      setNavKey((k) => k + 1)
+      return
+    }
     if (key.name === "tab") { setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]); return }
     if (key.ctrl && key.name === "p") { setShowCmd(true); setCmdFilter(""); setCmdSelected(0); return }
     if (key.ctrl && key.name === "l") { setMessages([]); setStatus("Cleared"); setTimeout(() => setStatus("Ready"), 2000); return }
@@ -110,15 +153,18 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     const trimmed = text.trim()
     if (!trimmed || isLoading) return
 
-    // If no model configured, prompt to connect provider
     if (!selectedModel || !provider) {
-      setStatus("Connect a provider to send prompts")
-      setTimeout(() => setStatus("Ready"), 3000)
+      showToast("Connect a provider to send prompts", "warn")
       setDialogStep({ type: "provider" })
       return
     }
 
     setTokPerSec(null); setElapsedMs(null)
+    setPromptHistory((prev) => {
+      if (prev[0] === trimmed) return prev
+      return [trimmed, ...prev].slice(0, 50)
+    })
+    setHistoryIdx(-1)
     addMessage({ id: genId(), role: "user", content: trimmed, model: selectedModel })
     setIsLoading(true); setStatus("Streaming..."); setRoute("chat")
     if (!sessionId.current) sessionId.current = sessionStore.current.create({ agent: selectedAgent, model: selectedModel }).id
@@ -133,6 +179,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       const agent = new Agent({
         model,
         systemPrompt: `You are Spectra Code, an AI coding agent running on ${process.platform}.`,
+        getApiKey: (p) => getAuthKey(p),
       })
       for await (const ev of agent.run(trimmed)) {
         if (ev.type === "message_update" && ev.message.role === "assistant") {
@@ -182,10 +229,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           <box flexDirection="column" alignItems="center" flexShrink={0}>
             <ascii-font text="SPECTRA" font="block" color={c.accent} />
             <box height={1} />
-            <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame} submitKey={submitKey}
+            <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
+              inputKey={`${submitKey}-${navKey}`}
               placeholder={`Ask anything... "${PLACEHOLDERS[placeholderIdx]}"`}
               onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
+              initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
               width={Math.min(68, termWidth - 8)} />
             <box height={1} />
             <box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
@@ -222,24 +271,40 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       ) : (
         <>
           <box flexDirection="column" flexGrow={1}><ChatArea messages={messages} /></box>
-          <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame} submitKey={submitKey}
+          <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
+            inputKey={`c-${submitKey}-${navKey}`}
             placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
             agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
+            initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
             elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 2} />
         </>
       )}
       {showCmd && <CommandPalette filter={cmdFilter} selected={cmdSelected} items={cmdFiltered} termWidth={termWidth} termHeight={termHeight} />}
       {dialogStep?.type === "provider" && (
-        <ProviderDialog termWidth={termWidth} termHeight={termHeight}
+        <ProviderDialog termWidth={termWidth} termHeight={termHeight} keyHandlerRef={dialogKeyHandler}
           onModelSelected={(modelId) => {
-            setSelectedModel(modelId)
-            setDialogStep(null)
-            setStatus(`✓ Model: ${modelId}`)
-            setTimeout(() => setStatus("Ready"), 3000)
+            setSelectedModel(modelId); setDialogStep(null)
+            saveModelConfig(modelId)
+            showToast(`Model set: ${modelId}`, "success")
           }}
           onClose={() => setDialogStep(null)}
         />
       )}
+      {dialogStep?.type === "session-list" && (
+        <SessionList store={sessionStore.current} termWidth={termWidth} termHeight={termHeight}
+          onLoad={(data) => {
+            setMessages(() => data.messages)
+            setSelectedModel(data.model)
+            setSelectedAgent(data.agent)
+            setRoute("chat")
+            setDialogStep(null)
+            showToast(`Loaded: ${data.title.slice(0, 40)}`, "info")
+          }}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      <ToastContainer />
     </box>
   )
 }

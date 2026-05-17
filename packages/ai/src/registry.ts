@@ -7,9 +7,15 @@ export type StreamFunction = (
   options?: StreamOptions,
 ) => AssistantMessageEventStream;
 
+export interface ModelInfo {
+  id: string;
+  name: string;
+}
+
 export interface Provider {
   name: string;
   stream: StreamFunction;
+  listModels?: () => ModelInfo[] | Promise<ModelInfo[]>;
 }
 
 const providers = new Map<string, Provider>();
@@ -24,6 +30,12 @@ export function getProvider(name: string): Provider | undefined {
 
 export function listProviders(): string[] {
   return Array.from(providers.keys());
+}
+
+export async function getModels(providerName: string): Promise<ModelInfo[]> {
+  const provider = providers.get(providerName);
+  if (!provider?.listModels) return [];
+  return provider.listModels();
 }
 
 export function stream(

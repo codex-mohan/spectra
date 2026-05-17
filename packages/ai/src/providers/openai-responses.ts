@@ -41,6 +41,7 @@ export interface OpenAIResponsesOptions extends StreamOptions {
 export function createOpenAIResponsesProvider() {
   return {
     name: "openai-responses",
+    listModels: () => import("../models.js").then((m) => m.getProviderModels("openai")),
     stream(model: Model, context: Context, options?: OpenAIResponsesOptions): AssistantMessageEventStream {
       const stream = new AssistantMessageEventStream();
 
