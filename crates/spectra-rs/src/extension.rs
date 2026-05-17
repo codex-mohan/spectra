@@ -44,6 +44,7 @@ pub trait Extension: Send + Sync {
     fn on_turn_end(&self) {}
 }
 
+#[derive(Clone)]
 pub struct ExtensionManager {
     extensions: Vec<Arc<dyn Extension>>,
 }

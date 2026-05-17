@@ -71,7 +71,9 @@ export function CommandPalette(props: CommandPaletteProps) {
             <text fg={c.accent}>{">"}</text>
             <text fg={c.text}>{filter || "Type to filter..."}</text>
           </box>
-          <text fg={c.dim}>esc</text>
+          <box>
+            <text fg={c.dim}>esc</text>
+          </box>
         </box>
 
         <box height={1} />

@@ -62,6 +62,7 @@ pub struct Agent {
     message_store: Arc<Mutex<Vec<Message>>>,
 }
 
+#[derive(Clone)]
 pub struct AgentBuilder {
     model: Model,
     system_prompt: Option<String>,

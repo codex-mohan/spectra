@@ -38,6 +38,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     return () => { clearInterval(id); renderer.dropLive() }
   }, [isLoading, renderer])
 
+  const agents = ["build", "plan", "debug", "explore"]
+
   // keyboard
   useKeyboard((key) => {
     if (showCmd) {
@@ -53,6 +55,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       return
     }
     if (key.name === "escape") { renderer.destroy(); return }
+    if (key.name === "tab") {
+      setSelectedAgent((prev) => {
+        const idx = agents.indexOf(prev)
+        return agents[(idx + 1) % agents.length]
+      })
+      return
+    }
     if (key.ctrl && key.name === "p") { setShowCmd(true); setCmdFilter(""); setCmdSelected(0); return }
     if (key.ctrl && key.name === "l") { setMessages([]); setStatus("Cleared"); setTimeout(() => setStatus("Ready"), 2000); return }
   })
@@ -111,24 +120,28 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
   // commands
   const cmdItems: CmdItem[] = useMemo(() => [
-    { id: "new", label: "new session", desc: "Start a fresh conversation", cat: "Session", action: () => { setMessages([]); sessionId.current = null; setRoute("home"); setStatus("Ready"); setElapsedMs(null); setTokPerSec(null) }},
-    { id: "sessions", label: "list sessions", desc: "Browse saved conversations", cat: "Session", action: () => {
-      const list = sessionStore.current.list()
-      setStatus(list.length ? `Sessions: ${list.map(s => s.title).join(", ")}` : "No saved sessions")
-      setTimeout(() => setStatus("Ready"), 5000)
-    }},
-    { id: "home", label: "go home", desc: "Return to home screen", cat: "Navigation", action: () => { setRoute("home") }},
-    { id: "clear", label: "clear", desc: "Clear conversation", cat: "Session", action: () => { setMessages([]); setStatus("Cleared") }},
-    { id: "agent-build", label: "build agent", desc: "Default — full tool access", cat: "Agent", action: () => { setSelectedAgent("build") }},
-    { id: "agent-plan", label: "plan agent", desc: "Planning mode, limited tools", cat: "Agent", action: () => { setSelectedAgent("plan") }},
-    { id: "agent-debug", label: "debug agent", desc: "Investigation mode", cat: "Agent", action: () => { setSelectedAgent("debug") }},
-    { id: "agent-explore", label: "explore agent", desc: "Codebase exploration", cat: "Agent", action: () => { setSelectedAgent("explore") }},
-    { id: "doctor", label: "doctor", desc: "Run system health check", cat: "System", action: () => { renderer.destroy(); import("../commands/doctor.js").then((m) => m.doctorCommand.handler({} as never)) }},
-    { id: "theme", label: "toggle theme", desc: "Switch dark/light mode", cat: "Settings", action: () => { setStatus("Theme toggled"); setTimeout(() => setStatus("Ready"), 2000) }},
-    { id: "help", label: "help", desc: "Show keyboard shortcuts", cat: "System", action: () => {
-      setStatus("Esc quit · Ctrl+P palette · Ctrl+L clear")
-      setTimeout(() => setStatus("Ready"), 4000)
-    }},
+    { id: "new", label: "new session", desc: "Start a fresh conversation", cat: "Session", action: () => { setMessages([]); sessionId.current = null; setRoute("home"); setStatus("Ready"); setElapsedMs(null); setTokPerSec(null) } },
+    {
+      id: "sessions", label: "list sessions", desc: "Browse saved conversations", cat: "Session", action: () => {
+        const list = sessionStore.current.list()
+        setStatus(list.length ? `Sessions: ${list.map(s => s.title).join(", ")}` : "No saved sessions")
+        setTimeout(() => setStatus("Ready"), 5000)
+      }
+    },
+    { id: "home", label: "go home", desc: "Return to home screen", cat: "Navigation", action: () => { setRoute("home") } },
+    { id: "clear", label: "clear", desc: "Clear conversation", cat: "Session", action: () => { setMessages([]); setStatus("Cleared") } },
+    { id: "agent-build", label: "build agent", desc: "Default — full tool access", cat: "Agent", action: () => { setSelectedAgent("build") } },
+    { id: "agent-plan", label: "plan agent", desc: "Planning mode, limited tools", cat: "Agent", action: () => { setSelectedAgent("plan") } },
+    { id: "agent-debug", label: "debug agent", desc: "Investigation mode", cat: "Agent", action: () => { setSelectedAgent("debug") } },
+    { id: "agent-explore", label: "explore agent", desc: "Codebase exploration", cat: "Agent", action: () => { setSelectedAgent("explore") } },
+    { id: "doctor", label: "doctor", desc: "Run system health check", cat: "System", action: () => { renderer.destroy(); import("../commands/doctor.js").then((m) => m.doctorCommand.handler({} as never)) } },
+    { id: "theme", label: "toggle theme", desc: "Switch dark/light mode", cat: "Settings", action: () => { setStatus("Theme toggled"); setTimeout(() => setStatus("Ready"), 2000) } },
+    {
+      id: "help", label: "help", desc: "Show keyboard shortcuts", cat: "System", action: () => {
+        setStatus("Esc quit · Tab cycle agents · Ctrl+P palette · Ctrl+L clear")
+        setTimeout(() => setStatus("Ready"), 4000)
+      }
+    },
     { id: "quit", label: "quit", desc: "Exit Spectra Code", cat: "System", action: () => renderer.destroy() },
   ], [renderer])
 
@@ -171,7 +184,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               />
             </box>
 
-            <box height={2} />
 
             {/* Hints */}
             <box flexDirection="row" gap={4}>
@@ -207,7 +219,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           {/* Tip row */}
           <box flexDirection="row" justifyContent="center" alignItems="center" gap={1} height={1}>
             <text fg={c.warn}>●</text>
-            <text fg={c.dim}>Tip: Press ctrl+p to open commands</text>
+            <text fg={c.dim}>Tip: tab to cycle agents · ctrl+p for commands</text>
           </box>
 
           <box height={1} />
@@ -239,6 +251,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               provider={provider}
               elapsedMs={elapsedMs}
               tokenUsage={tokenUsage}
+              width={termWidth - 2}
             />
           </box>
         </>
@@ -266,7 +279,7 @@ interface PromptBarProps {
   agent: string
   model: string
   provider: string
-  width?: number
+  width?: number | "auto"
   elapsedMs?: number | null
   tokenUsage?: { input: number; output: number }
 }
@@ -275,41 +288,44 @@ function PromptBar(props: PromptBarProps) {
   const { isLoading, spinnerFrame, submitKey, placeholder, onSubmit, agent, model, provider, width, elapsedMs, tokenUsage } = props
 
   return (
-    <box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={1} paddingRight={2} paddingTop={1} paddingBottom={1} width={width}>
+    <box flexDirection="row">
       {/* Left accent bar */}
-      <box width={1} backgroundColor={c.accent} height={3} />
+      <box width={1} backgroundColor={c.accent} height={"auto"} />
 
-      <box flexDirection="column" flexGrow={1} paddingLeft={1}>
-        {/* Input row */}
-        <box flexDirection="row" alignItems="center" height={1}>
-          {isLoading ? (
-            <text fg={c.warn}>{SPINNER[spinnerFrame]}  Thinking...</text>
-          ) : (
-            <box flexDirection="row" flexGrow={1} alignItems="center" gap={1}>
-              <text fg={c.accent}>›</text>
-              <box flexGrow={1}>
-                <input key={submitKey} placeholder={placeholder} onSubmit={(v) => onSubmit(String(v))} focused={true} />
+      <box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={1} paddingRight={2} paddingTop={1} paddingBottom={1} width={width ?? "auto"}>
+
+        <box flexDirection="column" flexGrow={1} paddingLeft={1}>
+          {/* Input row */}
+          <box flexDirection="row" alignItems="center" height={1}>
+            {isLoading ? (
+              <text fg={c.warn}>{SPINNER[spinnerFrame]}  Thinking...</text>
+            ) : (
+              <box flexDirection="row" flexGrow={1} alignItems="center" gap={1}>
+                <text fg={c.accent}>›</text>
+                <box flexGrow={1}>
+                  <input key={submitKey} placeholder={placeholder} onSubmit={(v) => onSubmit(String(v))} focused={true} />
+                </box>
               </box>
-            </box>
-          )}
-        </box>
-
-        {/* Spacer between input and meta */}
-        <box height={1} />
-
-        {/* Meta row */}
-        <box flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={c.accent}>{agent}</text>
-            <text fg={c.dim}>{model}</text>
-            <text fg={c.subtext}>{provider}</text>
+            )}
           </box>
-          {tokenUsage && (
-            <box flexDirection="row" gap={1}>
-              {elapsedMs !== null && elapsedMs !== undefined && <text fg={c.dim}>{(elapsedMs / 1000).toFixed(1)}s</text>}
-              <text fg={c.dim}>↑{tokenUsage.input} ↓{tokenUsage.output}</text>
+
+          {/* Spacer between input and meta */}
+          <box height={1} />
+
+          {/* Meta row */}
+          <box flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
+            <box flexDirection="row" gap={2} alignItems="center">
+              <text fg={c.accent}>{agent}</text>
+              <text fg={c.dim}>{model}</text>
+              <text fg={c.subtext}>{provider}</text>
             </box>
-          )}
+            {tokenUsage && (
+              <box flexDirection="row" gap={1} height={1}>
+                {elapsedMs !== null && elapsedMs !== undefined && <text fg={c.dim}>{(elapsedMs / 1000).toFixed(1)}s</text>}
+                <text fg={c.dim}>↑{tokenUsage.input} ↓{tokenUsage.output}</text>
+              </box>
+            )}
+          </box>
         </box>
       </box>
     </box>
