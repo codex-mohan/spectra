@@ -1,6 +1,6 @@
 import { c } from "../theme.js"
 import { MessageView } from "./message.js"
-import type { ChatMessage } from "../app.js"
+import type { ChatMessage } from "../types.js"
 
 export function ChatArea({ messages }: { messages: ChatMessage[] }) {
   if (messages.length === 0) {

@@ -1,5 +1,5 @@
 import { c, mdStyle } from "../theme.js"
-import type { ChatMessage } from "../app.js"
+import type { ChatMessage, ContentBlock } from "../types.js"
 
 export function MessageView({ msg }: { msg: ChatMessage }) {
   if (msg.role === "user") {
@@ -23,7 +23,7 @@ export function MessageView({ msg }: { msg: ChatMessage }) {
         ) : null}
         {msg.blocks ? (
           <box flexDirection="column" gap={1} paddingLeft={1}>
-            {msg.blocks.map((block, i) => {
+            {msg.blocks.map((block: ContentBlock, i: number) => {
               if (block.type === "thinking") {
                 return (
                   <box key={i} backgroundColor={c.bgThink} padding={1}>
@@ -42,7 +42,7 @@ export function MessageView({ msg }: { msg: ChatMessage }) {
               return null
             })}
             {(() => {
-              const textBlocks = msg.blocks.filter((b) => b.type === "text")
+              const textBlocks = msg.blocks.filter((b): b is { type: "text"; content: string } => b.type === "text")
               const mdContent = textBlocks.map((b) => b.content).join("\n")
               if (!mdContent) return null
               return (
