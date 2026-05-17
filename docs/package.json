@@ -1,4 +1,5 @@
 {
+  "name": "spectra-docs",
   "private": true,
   "type": "module",
   "scripts": {
