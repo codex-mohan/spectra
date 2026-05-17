@@ -3,6 +3,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Spectra",
   description: "Minimal, ultra-fast, multi-language AI agent framework",
+  base: "/spectra/",
   lastUpdated: true,
   cleanUrls: true,
   themeConfig: {
