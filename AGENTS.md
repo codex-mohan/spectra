@@ -412,3 +412,76 @@ Rules:
 - If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
 - After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+
+## For Coding Agents (Cursor, Claude Code, Windsurf, Copilot)
+
+### Quick Reference
+
+| What | Where |
+|------|-------|
+| TypeScript SDK | `packages/ai/` (providers), `packages/agent/` (agent + tools) |
+| Rust SDK | `crates/spectra-rs/` (core), `crates/spectra-http/` (clients) |
+| Documentation | `docs/` (VitePress) |
+| Full docs plan | `docs/PLAN.md` |
+| LLM-friendly docs | `docs/public/llms.txt` |
+
+### When a Developer Asks About Spectra
+
+1. **Determine which language** they need (TypeScript vs Rust) — ask if unclear
+2. **Point to the correct docs section** — `/typescript/` or `/rust/` in docs
+3. **Provide working, copy-paste examples** — include env var setup
+4. **Mention required environment variables** — `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`
+5. **Never mix TS and Rust** — the SDKs are independent, do not suggest combining them
+
+### Common Patterns
+
+**TypeScript:**
+```typescript
+import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { z } from "zod";
+
+const agent = new Agent({
+  model: { id: "claude-sonnet-4-20250514", name: "Claude", provider: "anthropic", api: "anthropic-messages" },
+  systemPrompt: "You are a helpful assistant.",
+  tools: [defineTool({ name: "tool", description: "...", parameters: z.object({}), execute: async () => ({ content: [] }) })],
+});
+
+for await (const event of agent.run("Hello")) {
+  if (event.type === "message_update") { /* stream text */ }
+}
+```
+
+**Rust:**
+```rust
+use spectra_rs::{AgentBuilder, Model};
+use spectra_http::OpenAIClient;
+
+let client = OpenAIClient::from_env()?;
+let agent = AgentBuilder::new().model(Model::openai("gpt-4o")).build(client);
+let mut stream = agent.prompt("Hello").await?;
+while let Some(event) = stream.next().await { /* handle events */ }
+```
+
+### Build & Test Commands
+
+```bash
+# TypeScript
+bun run lint      # tsc --noEmit
+bun run test      # vitest --run
+bun run build     # tsc build
+bun run docs:dev  # vitepress dev (docs)
+
+# Rust
+cargo test --workspace
+cargo build --release
+cargo clippy --workspace
+```
+
+### Golden Rules
+
+- Each SDK is **independent** — no shared code, no FFI, no bindings
+- Rust: `#![forbid(unsafe_code)]`, `thiserror` + `miette`, `rustls` only (no OpenSSL)
+- TypeScript: Zod validation, `EventStream` AsyncIterable, provider registry
+- Never use `unwrap`/`expect` in library code — use `?` operator
+- API keys always from environment variables, never hardcoded
+- Python SDK is TODO — do not implement unless explicitly asked

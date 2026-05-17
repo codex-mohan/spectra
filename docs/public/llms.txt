@@ -1,0 +1,78 @@
+# Spectra
+
+> Minimal, ultra-fast, multi-language AI agent framework. Independent TypeScript and Rust SDKs with the same API surface, no shared runtime, no bindings, no FFI.
+
+Spectra is a construction kit for building AI agents — not a pre-built house. Each SDK (TypeScript, Rust) is a complete, independent native implementation. Ship only primitives that enable developers to build anything beyond the core without fighting the framework.
+
+For coding agents: use this file to navigate Spectra documentation. Fetch linked `.md` files for clean content without HTML chrome. Full content in one file: [llms-full.txt](https://codex-mohan.github.io/spectra/llms-full.txt).
+
+## Getting Started
+
+- Introduction: What is Spectra, why it exists, comparison with LangChain/CrewAI ([getting-started/introduction.md](https://codex-mohan.github.io/spectra/getting-started/introduction.md))
+- Installation: TypeScript and Rust setup, prerequisites, env vars ([getting-started/installation.md](https://codex-mohan.github.io/spectra/getting-started/installation.md))
+- Quickstart: Build your first agent in 5 minutes ([getting-started/quickstart.md](https://codex-mohan.github.io/spectra/getting-started/quickstart.md))
+- Project Structure: Monorepo layout, SDK independence explained ([getting-started/project-structure.md](https://codex-mohan.github.io/spectra/getting-started/project-structure.md))
+
+## TypeScript SDK
+
+- Overview: Architecture, package structure, data flow ([typescript/overview.md](https://codex-mohan.github.io/spectra/typescript/overview.md))
+- Agent: Agent class, run(), subscribe(), steer(), followUp() ([typescript/agent.md](https://codex-mohan.github.io/spectra/typescript/agent.md))
+- Tools: defineTool(), Zod validation, hooks, execution modes ([typescript/tools.md](https://codex-mohan.github.io/spectra/typescript/tools.md))
+- Providers: Anthropic, OpenAI, custom provider registration ([typescript/providers.md](https://codex-mohan.github.io/spectra/typescript/providers.md))
+- Events: AgentEvent types, generator pattern, subscriber pattern ([typescript/events.md](https://codex-mohan.github.io/spectra/typescript/events.md))
+- Sessions: SessionManager, stores (InMemory, FileSystem, SQLite, Redis) ([typescript/sessions.md](https://codex-mohan.github.io/spectra/typescript/sessions.md))
+- Orchestration: SessionEngine, WorkerPool, RateLimiter, AgentRegistry ([typescript/orchestration.md](https://codex-mohan.github.io/spectra/typescript/orchestration.md))
+
+## Rust SDK
+
+- Overview: Architecture, crate structure, when to use Rust ([rust/overview.md](https://codex-mohan.github.io/spectra/rust/overview.md))
+- Getting Started: Cargo setup, dependencies, env vars ([rust/getting-started.md](https://codex-mohan.github.io/spectra/rust/getting-started.md))
+- Agent: AgentBuilder, prompt(), event stream ([rust/agent.md](https://codex-mohan.github.io/spectra/rust/agent.md))
+- Tools: Tool trait, ToolRegistry, ToolBuilder ([rust/tools.md](https://codex-mohan.github.io/spectra/rust/tools.md))
+- Providers: LlmClient trait, AnthropicClient, OpenAIClient ([rust/providers.md](https://codex-mohan.github.io/spectra/rust/providers.md))
+- Events: StreamEvent, ContentDelta, EventChannel ([rust/events.md](https://codex-mohan.github.io/spectra/rust/events.md))
+- Extensions: Extension trait, middleware hooks ([rust/extensions.md](https://codex-mohan.github.io/spectra/rust/extensions.md))
+
+## Concepts
+
+- Agent Loop: How stream → delta → tool → repeat works ([concepts/agent-loop.md](https://codex-mohan.github.io/spectra/concepts/agent-loop.md))
+- Streaming Architecture: SSE parsing, delta accumulation ([concepts/streaming-architecture.md](https://codex-mohan.github.io/spectra/concepts/streaming-architecture.md))
+- TypeScript vs Rust: Side-by-side comparison, when to use which ([concepts/ts-vs-rust.md](https://codex-mohan.github.io/spectra/concepts/ts-vs-rust.md))
+- Tool Dispatch: How tools are resolved, validated, executed ([concepts/tool-dispatch.md](https://codex-mohan.github.io/spectra/concepts/tool-dispatch.md))
+- Event System: Broadcast vs generator, subscriber lifecycle ([concepts/event-system.md](https://codex-mohan.github.io/spectra/concepts/event-system.md))
+
+## Guides
+
+- Adding a Provider: How to register a custom LLM provider ([guides/adding-a-provider.md](https://codex-mohan.github.io/spectra/guides/adding-a-provider.md))
+- Tool Design Patterns: Best practices, Zod tips, progressive disclosure ([guides/tool-design-patterns.md](https://codex-mohan.github.io/spectra/guides/tool-design-patterns.md))
+- Error Handling: SpectraError types, retry patterns, circuit breaker ([guides/error-handling.md](https://codex-mohan.github.io/spectra/guides/error-handling.md))
+- Prompt Engineering: System prompt patterns, few-shot, tool descriptions ([guides/prompt-engineering.md](https://codex-mohan.github.io/spectra/guides/prompt-engineering.md))
+- Multi-Agent Patterns: Delegation, parallel execution ([guides/multi-agent-patterns.md](https://codex-mohan.github.io/spectra/guides/multi-agent-patterns.md))
+- Streaming UI: Rendering SSE streams in React/terminal/web ([guides/streaming-ui.md](https://codex-mohan.github.io/spectra/guides/streaming-ui.md))
+- Session Management: Choosing a store, forking, production setup ([guides/session-management.md](https://codex-mohan.github.io/spectra/guides/session-management.md))
+- Deployment: Docker, serverless, production config ([guides/deployment.md](https://codex-mohan.github.io/spectra/guides/deployment.md))
+
+## Recipes
+
+- Weather Agent: Simple tool-using agent ([recipes/weather-agent.md](https://codex-mohan.github.io/spectra/recipes/weather-agent.md))
+- Web Search Agent: Agent with web search tool ([recipes/web-search-agent.md](https://codex-mohan.github.io/spectra/recipes/web-search-agent.md))
+- RAG Agent: File reading + context ([recipes/rag-agent.md](https://codex-mohan.github.io/spectra/recipes/rag-agent.md))
+- Multi-Agent Research: Delegation pattern ([recipes/multi-agent-research.md](https://codex-mohan.github.io/spectra/recipes/multi-agent-research.md))
+- Chatbot with Sessions: Persistent conversations ([recipes/chatbot-with-sessions.md](https://codex-mohan.github.io/spectra/recipes/chatbot-with-sessions.md))
+- Rate-Limited API: Production-ready with SSE ([recipes/rate-limited-api.md](https://codex-mohan.github.io/spectra/recipes/rate-limited-api.md))
+
+## Reference
+
+- TypeScript API: All classes, methods, types ([reference/typescript/agent.md](https://codex-mohan.github.io/spectra/reference/typescript/agent.md))
+- Rust API: All traits, structs, enums ([reference/rust/agent-builder.md](https://codex-mohan.github.io/spectra/reference/rust/agent-builder.md))
+
+## GitHub
+
+- Source Code: https://github.com/codex-mohan/spectra
+- Issues: https://github.com/codex-mohan/spectra/issues
+
+## Optional
+
+- Changelog: Version history and breaking changes
+- Contributing: How to add providers, coding standards
+- Troubleshooting: Common issues, debugging, FAQ
