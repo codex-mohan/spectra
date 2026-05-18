@@ -1,5 +1,5 @@
 export function sanitizeSurrogates(text: string): string {
-  return text.replace(/[\u0080-\uFFFF]/g, (c) => `\\u${c.charCodeAt(0).toString(16)}`);
+  return text;
 }
 
 export function parseStreamingJson(json: string): Record<string, unknown> {

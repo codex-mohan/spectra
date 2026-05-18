@@ -14,17 +14,29 @@ export function buildCmdItems(opts: {
   setStatus: (s: string) => void
   setElapsedMs: (v: null) => void
   setTokPerSec: (v: null) => void
+  setTokenUsage: (v: { input: number; output: number }) => void
+  setHomeKey: (fn: (k: number) => number) => void
   setDialogStep: (v: { type: "provider" } | { type: "session-list" } | { type: "switch-model" } | null) => void
   sessionIdRef: { current: string | null }
 }): CmdItem[] {
-  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setDialogStep } = opts
+  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setHomeKey, setDialogStep } = opts
   return [
     { id: "provider", label: "connect provider", desc: hasModel ? "Switch API provider" : "No provider configured", cat: "Provider", action: () => { setDialogStep({ type: "provider" }) } },
     { id: "switch-model", label: "switch model", desc: selectedModel || "No model selected", cat: "Model", action: () => {
       if (!provider) { setDialogStep({ type: "provider" }); return }
       setDialogStep({ type: "switch-model" })
     } },
-    { id: "new", label: "new session", desc: "Start fresh", cat: "Session", action: () => { setMessages(() => []); sessionIdRef.current = null; setRoute("home"); setStatus("Ready"); setElapsedMs(null); setTokPerSec(null) } },
+    { id: "new", label: "new session", desc: "Start fresh", cat: "Session", action: () => {
+      setMessages(() => []);
+      sessionIdRef.current = null;
+      opts.sessionIdRef.current = null;
+      setRoute("home");
+      setStatus("Ready");
+      setElapsedMs(null);
+      setTokPerSec(null);
+      opts.setTokenUsage?.({ input: 0, output: 0 });
+      opts.setHomeKey?.((k: number) => k + 1);
+    } },
     { id: "sessions", label: "list sessions", desc: "Browse saved sessions", cat: "Session", action: () => { setDialogStep({ type: "session-list" }) } },
     { id: "clear", label: "clear", desc: "Clear conversation", cat: "Session", action: () => { setMessages(() => []); setStatus("Cleared") } },
     { id: "home", label: "go home", desc: "Return to home", cat: "Navigation", action: () => { setRoute("home") } },

@@ -11,11 +11,12 @@ import { genId, getMessageBlocks } from "./utils.js"
 import type { ChatMessage, ContentBlock } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
 import { readAll } from "../services/auth-store.js"
-import type { AssistantMessage } from "@singularity-ai/spectra-ai"
+import type { AssistantMessage, Message } from "@singularity-ai/spectra-ai"
 import { ProviderDialog } from "./ui/provider-dialog.js"
 import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
 import { ToastContainer, showToast } from "./components/toast.js"
+import clipboard from "clipboardy"
 import { buildCmdItems } from "./commands.js"
 import { getGlobalConfigDir } from "../utils/paths.js"
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
@@ -44,10 +45,10 @@ function saveModelConfig(modelId: string, providerId: string) {
     if (!existsSync(configDir)) mkdirSync(configDir, { recursive: true })
     const configPath = join(configDir, "spectra.json")
     let cfg: Record<string, unknown> = {}
-    try { cfg = JSON.parse(readFileSync(configPath, "utf-8")) } catch {}
+    try { cfg = JSON.parse(readFileSync(configPath, "utf-8")) } catch { }
     cfg.model = modelId; cfg.provider = providerId
     writeFileSync(configPath, JSON.stringify(cfg, null, 2))
-  } catch {}
+  } catch { }
 }
 
 export function App({ renderer }: { renderer: CliRenderer }) {
@@ -66,6 +67,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [elapsedMs, setElapsedMs] = useState<number | null>(null)
   const [tokPerSec, setTokPerSec] = useState<number | null>(null)
   const [tokenUsage, setTokenUsage] = useState({ input: 0, output: 0 })
+  const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
   const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list" } | { type: "switch-model" } | null>(null)
@@ -73,11 +75,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
   const [navKey, setNavKey] = useState(0)
+  const [homeKey, setHomeKey] = useState(0)
   const historyDraft = useRef("")
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
   const agentRef = useRef<any>(null)
   const dialogKeyHandler = useRef<((key: any) => void) | null>(null)
+  const lastModelRef = useRef<string | null>(null)
 
   const provider = selectedProvider
   const hasModel = selectedModel !== null && selectedProvider !== null
@@ -89,7 +93,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     try {
       const branch = execSync("git rev-parse --abbrev-ref HEAD 2>/dev/null", { encoding: "utf-8", timeout: 2000 }).toString().trim()
       if (branch) return `${dir}:${branch}`
-    } catch {}
+    } catch { }
     return dir
   }, [])
 
@@ -104,6 +108,22 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     renderer.requestLive()
     return () => { clearInterval(id); renderer.dropLive() }
   }, [isLoading, renderer])
+
+  useEffect(() => {
+    const handler = (selection: { getSelectedText: () => string }) => {
+      const text = selection.getSelectedText()
+      if (!text) return
+      setTimeout(() => {
+        try {
+          clipboard.writeSync(text)
+          setCopiedMsg(true)
+          setTimeout(() => setCopiedMsg(false), 2500)
+        } catch { }
+      }, 2000)
+    }
+    renderer.on("selection", handler)
+    return () => { renderer.off?.("selection", handler) }
+  }, [renderer])
 
   useKeyboard((key) => {
     if (dialogStep) { dialogKeyHandler.current?.(key); return }
@@ -136,27 +156,31 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const addMessage = useCallback((msg: ChatMessage) => setMessages((p) => [...p, msg]), [])
   const updateMessage = useCallback((id: string, u: Partial<ChatMessage>) => setMessages((p) => p.map((m) => (m.id === id ? { ...m, ...u } : m))), [])
   const shownToolCalls = useRef(new Set<string>())
+  const toolMsgMap = useRef(new Map<string, string>()) // toolCallId → tuiMessageId
+  const toolArgsMap = useRef(new Map<string, unknown>()) // toolCallId → args
+  const streamingIdRef = useRef<string | null>(null)
 
   const getOrCreateAgent = useCallback(async () => {
-    if (agentRef.current) return agentRef.current
+    if (!selectedModel || !provider) return null
+    if (agentRef.current && lastModelRef.current === `${selectedModel}:${provider}`) return agentRef.current
     const { Agent } = await import("@singularity-ai/spectra-agent")
     const { initProviders } = await import("@singularity-ai/spectra-ai")
     initProviders()
     const { createAllTools, spectraToolToAgentTool } = await import("../tools/index.js")
     agentRef.current = new Agent({
-      model: { id: selectedModel!, name: selectedModel!, provider: provider!, api: provider! },
+      model: { id: selectedModel, name: selectedModel, provider, api: provider },
       systemPrompt: `You are Spectra Code, an AI coding agent running on ${process.platform}.`,
       getApiKey: (p) => getAuthKey(p),
       tools: createAllTools().map(spectraToolToAgentTool),
       maxTurns: 10,
     })
+    lastModelRef.current = `${selectedModel}:${provider}`
     return agentRef.current
   }, [selectedModel, provider])
 
-  function persistMessage(cm: ChatMessage) {
+  function persistMessage(sdkMsg: Message) {
     if (!sessionId.current) return
-    const msg: any = { role: cm.role, content: cm.content, timestamp: Date.now() }
-    sessionStore.current.addMessage(sessionId.current, msg)
+    sessionStore.current.addMessage(sessionId.current, sdkMsg)
   }
 
   const handleSubmit = useCallback(async (text: string) => {
@@ -168,6 +192,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     }
 
     setTokPerSec(null); setElapsedMs(null)
+    shownToolCalls.current.clear()
+    toolMsgMap.current.clear()
+    toolArgsMap.current.clear()
     setPromptHistory((prev) => {
       if (prev[0] === trimmed) return prev
       return [trimmed, ...prev].slice(0, 50)
@@ -175,8 +202,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     setHistoryIdx(-1)
 
     const uid = genId()
-    const userMsg: ChatMessage = { id: uid, role: "user", content: trimmed, model: selectedModel }
-    addMessage(userMsg)
+    const userMsg: Message = { role: "user", content: trimmed, timestamp: Date.now() }
+    addMessage({ id: uid, role: "user", content: trimmed, model: selectedModel })
     setIsLoading(true); setStatus("Streaming..."); setRoute("chat")
 
     if (!sessionId.current) {
@@ -184,6 +211,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       sess.title = `Session ${new Date().toISOString()}`
       sessionStore.current.save(sess)
       sessionId.current = sess.id
+      setTokenUsage({ input: 0, output: 0 })
     }
     persistMessage(userMsg)
 
@@ -193,59 +221,91 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       sessionStore.current.save(sess)
     }
 
-    const aid = genId()
-    addMessage({ id: aid, role: "assistant", content: "", blocks: [], streaming: true, model: selectedModel })
     const start = performance.now()
+    let currentAssistantId: string | null = null
 
     try {
       const agent = await getOrCreateAgent()
       for await (const ev of agent.run(trimmed)) {
-        if (ev.type === "message_update" && ev.message.role === "assistant") {
+        if (ev.type === "message_start" && ev.message.role === "assistant") {
+          const newId = genId()
+          currentAssistantId = newId
+          streamingIdRef.current = newId
+          addMessage({ id: newId, role: "assistant", content: "", blocks: [], streaming: true, model: selectedModel })
+        }
+        if (ev.type === "message_update" && ev.message.role === "assistant" && currentAssistantId) {
           const m = ev.message as AssistantMessage
           const blocks = getMessageBlocks(m)
           const textContent = blocks.filter((b): b is ContentBlock & { type: "text" } => b.type === "text").map((b) => b.content).join("\n")
-          updateMessage(aid, { content: textContent, blocks })
+          updateMessage(currentAssistantId, { content: textContent, blocks })
           if (ev.assistantMessageEvent.type === "toolcall_end") {
             const tc = (ev.assistantMessageEvent as any).toolCall as { id: string; name: string; arguments: Record<string, unknown> }
             if (tc && !shownToolCalls.current.has(tc.id)) {
               shownToolCalls.current.add(tc.id)
-              addMessage({ id: genId(), role: "tool", content: "", meta: `${tc.name}(${JSON.stringify(tc.arguments)})` })
+              toolArgsMap.current.set(tc.id, tc.arguments)
+              const tuiId = genId()
+              toolMsgMap.current.set(tc.id, tuiId)
+              addMessage({ id: tuiId, role: "tool", content: "", meta: `${tc.name}(${JSON.stringify(tc.arguments || {})})` })
             }
           }
         }
-        if (ev.type === "message_end" && ev.message.role === "assistant") {
+        if (ev.type === "message_end" && ev.message.role === "assistant" && currentAssistantId) {
           const m = ev.message as AssistantMessage
           const blocks = getMessageBlocks(m)
-          updateMessage(aid, { content: blocks.filter((b): b is ContentBlock & { type: "text" } => b.type === "text").map((b) => b.content).join("\n"), blocks, streaming: false })
-          persistMessage({ id: aid, role: "assistant", content: m.content as any, blocks, streaming: false, model: selectedModel } as ChatMessage)
+          const textContent = blocks.filter((b): b is ContentBlock & { type: "text" } => b.type === "text").map((b) => b.content).join("\n")
+          updateMessage(currentAssistantId, { content: textContent, blocks, streaming: false })
+          persistMessage(m)
           const e = performance.now() - start; setElapsedMs(e)
           const ot = m.usage.output
           if (ot > 0 && e > 0) setTokPerSec(ot / (e / 1000))
           setTokenUsage((p) => ({ input: p.input + m.usage.input, output: p.output + ot }))
+          currentAssistantId = null
+          streamingIdRef.current = null
         }
         if (ev.type === "tool_execution_start") {
           if (!shownToolCalls.current.has(ev.toolCallId)) {
             shownToolCalls.current.add(ev.toolCallId)
-            addMessage({ id: genId(), role: "tool", content: "", meta: `${ev.toolName}(${JSON.stringify(ev.args)})` })
+            toolArgsMap.current.set(ev.toolCallId, ev.args)
+            const tuiId = genId()
+            toolMsgMap.current.set(ev.toolCallId, tuiId)
+            addMessage({ id: tuiId, role: "tool", content: "", meta: `${ev.toolName}(${JSON.stringify(ev.args || {})})` })
           }
         }
         if (ev.type === "tool_execution_end") {
-          persistMessage({ id: genId(), role: "tool", content: "", meta: `${ev.toolName} result` } as ChatMessage)
+          const args = toolArgsMap.current.get(ev.toolCallId) || {}
+          const toolMsg: any = {
+            role: "toolResult",
+            toolCallId: ev.toolCallId,
+            toolName: ev.toolName,
+            content: ev.result?.content || [],
+            isError: ev.isError || false,
+            timestamp: Date.now(),
+            _args: args,
+          }
+          persistMessage(toolMsg)
+          // Update the existing inline tool message with output
+          const tuiId = toolMsgMap.current.get(ev.toolCallId)
+          if (tuiId) {
+            const toolOutput = ev.result?.content?.[0]?.text || ""
+            updateMessage(tuiId, { content: toolOutput })
+          }
         }
         if (ev.type === "agent_end") setStatus("Ready")
       }
     } catch (err) {
-      updateMessage(aid, { content: `Error: ${err instanceof Error ? err.message : String(err)}`, streaming: false, role: "error" })
+      const errId = currentAssistantId || genId()
+      updateMessage(errId, { content: `Error: ${err instanceof Error ? err.message : String(err)}`, streaming: false, role: "error" })
       setStatus("Error")
     } finally {
       setIsLoading(false); setSubmitKey((k) => k + 1)
+      streamingIdRef.current = null
     }
   }, [isLoading, selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent])
 
   const cmdItems = useMemo(() => buildCmdItems({
     renderer, sessionStore: sessionStore.current, sessionIdRef: sessionId,
     hasModel, selectedModel, provider, mcpCount, messagesLength: messages.length,
-    setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setDialogStep,
+    setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setHomeKey, setDialogStep,
   }), [renderer, hasModel, selectedModel, provider, mcpCount, messages.length])
 
   const cmdFiltered = useMemo(() => {
@@ -258,7 +318,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   return (
     <box flexDirection="column" height={termHeight} backgroundColor={c.bg}>
       {route === "home" ? (
-        <>
+        <box key={`home-${homeKey}`} flexDirection="column" flexGrow={1}>
           <box flexGrow={1} />
           <box flexDirection="column" alignItems="center" flexShrink={0}>
             <ascii-font text="SPECTRA" font="block" color={c.accent} />
@@ -296,26 +356,28 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           <box flexDirection="row" justifyContent="space-between" paddingLeft={2} paddingRight={2} height={1} marginBottom={1}>
             <box flexDirection="row" gap={4}>
               <text fg={c.dim} overflow="hidden" wrapMode="none">{cwdLabel}</text>
-              <text fg={c.dim}>⊙ {mcpCount} MCP</text>
             </box>
             <text fg={c.dim} flexShrink={0}>Spectra Code</text>
           </box>
-        </>
+        </box>
       ) : (
         <>
-          <box flexDirection="column" flexGrow={1}><ChatArea messages={messages} /></box>
-          <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
-            inputKey={`c-${submitKey}-${navKey}`}
-            placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
-            agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
-            initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
-            elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 2} />
+          <box flexDirection="column" height={termHeight - 6} padding={1}><ChatArea messages={messages} /></box>
+          <box height={5}>
+            <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
+              inputKey={`c-${submitKey}-${navKey}`}
+              placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
+              agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
+              initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
+              elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 2} />
+          </box>
         </>
       )}
       {showCmd && <CommandPalette filter={cmdFilter} selected={cmdSelected} items={cmdFiltered} termWidth={termWidth} termHeight={termHeight} />}
       {dialogStep?.type === "provider" && (
         <ProviderDialog termWidth={termWidth} termHeight={termHeight} keyHandlerRef={dialogKeyHandler}
           onModelSelected={(modelId, providerId) => {
+            agentRef.current = null
             setSelectedModel(modelId); setSelectedProvider(providerId); setDialogStep(null)
             saveModelConfig(modelId, providerId)
             showToast(`Model set`, "success")
@@ -326,11 +388,50 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       {dialogStep?.type === "session-list" && (
         <SessionList store={sessionStore.current} termWidth={termWidth} termHeight={termHeight}
           onLoad={(data) => {
-            setMessages(() => data.messages)
+            const loadedMsgs: ChatMessage[] = data.messages.map((m: any) => {
+              const id = genId()
+              // User message
+              if (m.role === "user") {
+                return { id, role: "user" as const, content: typeof m.content === "string" ? m.content : "", model: data.model }
+              }
+              // Assistant message
+              if (m.role === "assistant") {
+                const blocks = Array.isArray(m.content) ? m.content.map((c: any) => {
+                  if (c.type === "text") return { type: "text" as const, content: c.text || "" }
+                  if (c.type === "thinking") return { type: "thinking" as const, content: c.thinking || c.content || "" }
+                  if (c.type === "toolCall") return { type: "toolCall" as const, name: c.name || "", args: JSON.stringify(c.arguments || {}) }
+                  return { type: "text" as const, content: "" }
+                }) : []
+                const textContent = blocks.filter((b: any) => b.type === "text").map((b: any) => b.content).join("\n")
+                return { id, role: "assistant" as const, content: textContent, blocks, model: m.model || data.model }
+              }
+              // Tool result message
+              if (m.role === "toolResult") {
+                const toolOutput = m.content?.[0]?.text || ""
+                const args = m._args || {}
+                const meta = `${m.toolName}(${JSON.stringify(args)})`
+                return { id, role: "tool" as const, content: toolOutput, meta }
+              }
+              return { id, role: "user" as const, content: "", model: data.model }
+            })
+            // Restore token usage from assistant messages
+            let inputTokens = 0, outputTokens = 0
+            for (const m of data.messages as any[]) {
+              if (m.role === "assistant" && m.usage) {
+                inputTokens += m.usage.input || 0
+                outputTokens += m.usage.output || 0
+              }
+            }
+            setTokenUsage({ input: inputTokens, output: outputTokens })
+            setMessages(() => loadedMsgs)
             setSelectedModel(data.model)
             setSelectedProvider(data.provider || data.model.split("/")[0])
             setSelectedAgent(data.agent)
             setRoute("chat"); setDialogStep(null)
+            if (agentRef.current) {
+              agentRef.current.reset()
+              agentRef.current.restoreHistory(data.messages)
+            }
             showToast(`Loaded: ${data.title.slice(0, 40)}`, "info")
           }}
           onClose={() => setDialogStep(null)}
@@ -340,6 +441,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       {dialogStep?.type === "switch-model" && provider && (
         <ModelSwitcher providerId={provider} termWidth={termWidth} termHeight={termHeight}
           onModelSelected={(modelId, providerId) => {
+            const oldMessages = agentRef.current ? [...agentRef.current.messages] : []
+            agentRef.current = null
             setSelectedModel(modelId); setSelectedProvider(providerId); setDialogStep(null)
             saveModelConfig(modelId, providerId)
             showToast(`Switched model`, "info")

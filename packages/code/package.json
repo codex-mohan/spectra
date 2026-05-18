@@ -35,7 +35,9 @@
     "@opentui/react": "^0.2.10",
     "@singularity-ai/spectra-agent": "workspace:*",
     "@singularity-ai/spectra-ai": "workspace:*",
+    "clipboardy": "^5.3.1",
     "react": "^19.2.6",
+    "strip-ansi": "^7.2.0",
     "yargs": "^18.0.0",
     "zod": "^3.25.0"
   },
@@ -43,6 +45,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/strip-ansi": "^5.2.1",
     "@types/yargs": "^17.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
