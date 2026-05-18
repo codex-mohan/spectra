@@ -23,30 +23,19 @@ export function MessageView({ msg }: { msg: ChatMessage }) {
         ) : null}
         {msg.blocks ? (
           <box flexDirection="column" gap={1} paddingLeft={1}>
-            {msg.blocks.map((block: ContentBlock, i: number) => {
-              if (block.type === "thinking") {
-                return (
-                  <box key={i} backgroundColor={c.bgThink} padding={1}>
-                    <text fg={c.thinking}>{block.content}</text>
-                  </box>
-                )
-              }
-              if (block.type === "toolCall") {
-                return (
-                  <box key={i} backgroundColor={c.bgTool} padding={1}>
-                    <text fg={c.tool}><strong>{">"} {block.name}</strong></text>
-                    <text fg={c.dim}>  {block.args}</text>
-                  </box>
-                )
-              }
-              return null
-            })}
             {(() => {
               const textBlocks = msg.blocks.filter((b): b is { type: "text"; content: string } => b.type === "text")
+              const thinkBlocks = msg.blocks.filter((b): b is { type: "thinking"; content: string } => b.type === "thinking")
               const mdContent = textBlocks.map((b) => b.content).join("\n")
-              if (!mdContent) return null
               return (
-                <markdown content={mdContent} syntaxStyle={mdStyle} streaming={!!msg.streaming} conceal={true} width="100%" />
+                <>
+                  {thinkBlocks.map((block, i) => (
+                    <box key={`think-${i}`} backgroundColor={c.bgThink} padding={1}>
+                      <text fg={c.thinking}>{block.content}</text>
+                    </box>
+                  ))}
+                  {mdContent ? <markdown content={mdContent} syntaxStyle={mdStyle} streaming={!!msg.streaming} conceal={true} width="100%" tableOptions={{ style: "grid", borders: true, borderStyle: "single" }} /> : null}
+                </>
               )
             })()}
           </box>

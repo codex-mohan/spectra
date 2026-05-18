@@ -7,7 +7,7 @@ export interface SessionListProps {
   store: SessionStore
   termWidth: number
   termHeight: number
-  onLoad: (session: { messages: ChatMessage[]; model: string; agent: string; title: string }) => void
+  onLoad: (session: { messages: ChatMessage[]; model: string; provider: string; agent: string; title: string }) => void
   onClose: () => void
   registerHandler: (fn: ((key: any) => void) | null) => void
 }
@@ -42,9 +42,8 @@ export function SessionList(props: SessionListProps) {
           if (!data) return
           onLoad({
             messages: data.messages as unknown as ChatMessage[],
-            model: data.model,
-            agent: data.agent,
-            title: data.title,
+            model: data.model, provider: data.provider,
+            agent: data.agent, title: data.title,
           })
         }
         return

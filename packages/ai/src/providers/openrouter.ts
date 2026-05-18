@@ -32,12 +32,9 @@ export function createOpenRouterProvider() {
     name: "openrouter" as const,
     listModels: async () => {
       const live = await fetchLiveModels();
-      if (live.length > 0) return live.map((m) => ({ id: `openrouter/${m.id}`, name: m.name }));
+      if (live.length > 0) return live.map((m) => ({ id: m.id, name: m.name }));
       const { getProviderModels } = await import("../models.js");
-      return getProviderModels("openrouter").map((m) => ({
-        id: `openrouter/${m.id}`,
-        name: m.name,
-      }));
+      return getProviderModels("openrouter").map((m) => ({ id: m.id, name: m.name }));
     },
     stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
       const modelWithDefaults = {

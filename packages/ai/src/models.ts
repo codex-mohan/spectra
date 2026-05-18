@@ -6989,6 +6989,24 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Kwaipilot: KAT-Coder-Pro V2"
     }
   ],
+  "lilac": [
+    {
+      "id": "google/gemma-4-31b-it",
+      "name": "Gemma 4 31B IT"
+    },
+    {
+      "id": "zai-org/glm-5.1",
+      "name": "GLM 5.1"
+    },
+    {
+      "id": "moonshotai/kimi-k2.6",
+      "name": "Kimi K2.6"
+    },
+    {
+      "id": "minimaxai/minimax-m2.7",
+      "name": "MiniMax M2.7"
+    }
+  ],
   "llama": [
     {
       "id": "cerebras-llama-4-maverick-17b-128e-instruct",

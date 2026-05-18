@@ -1,8 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { c } from "../theme.js"
 import { write, type ApiCredential } from "../../services/auth-store.js"
-import { listProviders } from "@singularity-ai/spectra-ai"
-import { getProviderModels } from "@singularity-ai/spectra-ai"
+import { listProviders, getModels } from "@singularity-ai/spectra-ai"
 
 const PROVIDER_META: Record<string, { name: string; desc: string; popular: boolean }> = {
   anthropic: { name: "Anthropic", desc: "Claude models", popular: true },
@@ -179,7 +178,7 @@ function ApiKeyDialog(props: {
 
 export interface ProviderDialogProps {
   termWidth: number; termHeight: number
-  onModelSelected: (modelId: string) => void
+  onModelSelected: (modelId: string, providerId: string) => void
   onClose: () => void
   keyHandlerRef: { current: ((key: any) => void) | null }
 }
@@ -209,7 +208,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 
   if (step.phase === "api-key") {
     if (models === null) {
-      setModels(getProviderModels(step.id))
+      getModels(step.id).then((m) => setModels(m))
     }
     return <ApiKeyDialog providerName={step.name} providerId={step.id} termWidth={termWidth} termHeight={termHeight}
       onSubmit={() => setStep({ phase: "model-select", id: step.id, name: step.name })} onCancel={onClose}
@@ -217,9 +216,12 @@ export function ProviderDialog(props: ProviderDialogProps) {
   }
 
   if (step.phase === "model-select") {
+    if (models === null) {
+      getModels(step.id).then((m) => setModels(m))
+    }
     const items = (models || []).map((m) => ({ id: m.id, name: m.name, desc: "", cat: "Models" }))
     return <SelectDialog items={items} placeholder="Search models..." termWidth={termWidth} termHeight={termHeight}
-      onSelect={(id) => { onModelSelected(id); onClose() }} onCancel={onClose} registerHandler={registerHandler} />
+      onSelect={(id, name) => { onModelSelected(id, step.id); onClose() }} onCancel={onClose} registerHandler={registerHandler} />
   }
 
   return null

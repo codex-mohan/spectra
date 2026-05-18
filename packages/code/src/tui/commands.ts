@@ -6,6 +6,7 @@ export function buildCmdItems(opts: {
   sessionStore: SessionStore
   hasModel: boolean
   selectedModel: string | null
+  provider: string | null
   mcpCount: number
   messagesLength: number
   setRoute: (r: "home" | "chat") => void
@@ -13,15 +14,15 @@ export function buildCmdItems(opts: {
   setStatus: (s: string) => void
   setElapsedMs: (v: null) => void
   setTokPerSec: (v: null) => void
-  setDialogStep: (v: { type: "provider" } | { type: "session-list" } | null) => void
+  setDialogStep: (v: { type: "provider" } | { type: "session-list" } | { type: "switch-model" } | null) => void
   sessionIdRef: { current: string | null }
 }): CmdItem[] {
-  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, mcpCount, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setDialogStep } = opts
+  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setDialogStep } = opts
   return [
     { id: "provider", label: "connect provider", desc: hasModel ? "Switch API provider" : "No provider configured", cat: "Provider", action: () => { setDialogStep({ type: "provider" }) } },
-    { id: "model-list", label: "switch model", desc: selectedModel || "No model selected", cat: "Model", action: () => {
-      if (!hasModel) { setDialogStep({ type: "provider" }); return }
-      setStatus(`Current: ${selectedModel}`); setTimeout(() => setStatus("Ready"), 3000)
+    { id: "switch-model", label: "switch model", desc: selectedModel || "No model selected", cat: "Model", action: () => {
+      if (!provider) { setDialogStep({ type: "provider" }); return }
+      setDialogStep({ type: "switch-model" })
     } },
     { id: "new", label: "new session", desc: "Start fresh", cat: "Session", action: () => { setMessages(() => []); sessionIdRef.current = null; setRoute("home"); setStatus("Ready"); setElapsedMs(null); setTokPerSec(null) } },
     { id: "sessions", label: "list sessions", desc: "Browse saved sessions", cat: "Session", action: () => { setDialogStep({ type: "session-list" }) } },

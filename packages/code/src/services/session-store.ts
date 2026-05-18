@@ -8,6 +8,7 @@ export interface SessionInfo {
   title: string;
   agent: string;
   model: string;
+  provider: string;
   created: number;
   updated: number;
   messageCount: number;
@@ -19,6 +20,7 @@ export interface SessionData {
   title: string;
   agent: string;
   model: string;
+  provider: string;
   created: number;
   updated: number;
   directory: string;
@@ -53,14 +55,10 @@ export class SessionStore {
         const data = JSON.parse(readFileSync(join(this.dataDir, file), "utf-8")) as SessionData;
         if (dir && data.directory !== dir) continue;
         sessions.push({
-          id: data.id,
-          title: data.title,
-          agent: data.agent,
-          model: data.model,
-          created: data.created,
-          updated: data.updated,
-          messageCount: data.messages.length,
-          directory: data.directory,
+          id: data.id, title: data.title, agent: data.agent,
+          model: data.model, provider: data.provider || "",
+          created: data.created, updated: data.updated,
+          messageCount: data.messages.length, directory: data.directory,
         });
       } catch { }
     }
@@ -79,12 +77,13 @@ export class SessionStore {
     }
   }
 
-  create(input: { title?: string; agent?: string; model?: string; directory?: string }): SessionData {
+  create(input: { title?: string; agent?: string; model?: string; provider?: string; directory?: string }): SessionData {
     const session: SessionData = {
       id: this.generateId(),
       title: input.title || "New Session",
       agent: input.agent || "build",
-      model: input.model || "anthropic/claude-sonnet-4-20250514",
+      model: input.model || "",
+      provider: input.provider || input.model?.split("/")[0] || "",
       created: Date.now(),
       updated: Date.now(),
       directory: input.directory || process.cwd(),
