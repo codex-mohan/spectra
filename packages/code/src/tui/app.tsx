@@ -67,10 +67,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [elapsedMs, setElapsedMs] = useState<number | null>(null)
   const [tokPerSec, setTokPerSec] = useState<number | null>(null)
   const [tokenUsage, setTokenUsage] = useState({ input: 0, output: 0 })
+  const [showThinking, setShowThinking] = useState(true)
+  const [showToolCalls, setShowToolCalls] = useState(true)
   const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list" } | { type: "switch-model" } | null>(null)
+  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | null>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
@@ -305,8 +307,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const cmdItems = useMemo(() => buildCmdItems({
     renderer, sessionStore: sessionStore.current, sessionIdRef: sessionId,
     hasModel, selectedModel, provider, mcpCount, messagesLength: messages.length,
-    setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setHomeKey, setDialogStep,
-  }), [renderer, hasModel, selectedModel, provider, mcpCount, messages.length])
+    showThinking, showToolCalls,
+    setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep,
+  }), [renderer, hasModel, selectedModel, provider, mcpCount, messages.length, showThinking, showToolCalls])
 
   const cmdFiltered = useMemo(() => {
     const q = cmdFilter.toLowerCase()
@@ -362,8 +365,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         </box>
       ) : (
         <>
-          <box flexDirection="column" height={termHeight - 6} padding={1}><ChatArea messages={messages} /></box>
-          <box height={5}>
+          <box flexDirection="column" height={termHeight - 6} padding={1}><ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls} /></box>
+          <box height={5} paddingX={1}>
             <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
               inputKey={`c-${submitKey}-${navKey}`}
               placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
@@ -387,6 +390,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       )}
       {dialogStep?.type === "session-list" && (
         <SessionList store={sessionStore.current} termWidth={termWidth} termHeight={termHeight}
+          mode={dialogStep.mode || "load"}
           onLoad={(data) => {
             const loadedMsgs: ChatMessage[] = data.messages.map((m: any) => {
               const id = genId()
@@ -424,6 +428,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             }
             setTokenUsage({ input: inputTokens, output: outputTokens })
             setMessages(() => loadedMsgs)
+            sessionId.current = data.id
             setSelectedModel(data.model)
             setSelectedProvider(data.provider || data.model.split("/")[0])
             setSelectedAgent(data.agent)
@@ -433,6 +438,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               agentRef.current.restoreHistory(data.messages)
             }
             showToast(`Loaded: ${data.title.slice(0, 40)}`, "info")
+          }}
+          onDelete={(id) => {
+            sessionStore.current.delete(id)
+            if (sessionId.current === id) {
+              sessionId.current = null
+              setMessages([])
+              setRoute("home")
+              setHomeKey((k) => k + 1)
+            }
+            showToast("Session deleted", "success")
+          }}
+          onRename={(id, title) => {
+            sessionStore.current.rename(id, title)
+            showToast("Session renamed", "success")
           }}
           onClose={() => setDialogStep(null)}
           registerHandler={(fn) => { dialogKeyHandler.current = fn }}

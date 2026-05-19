@@ -105,6 +105,41 @@ export class SessionStore {
     return true;
   }
 
+  rename(id: string, title: string): boolean {
+    const session = this.get(id);
+    if (!session) return false;
+    session.title = title;
+    this.save(session);
+    return true;
+  }
+
+  fork(id: string): SessionData | null {
+    const original = this.get(id);
+    if (!original) return null;
+    const forked: SessionData = {
+      ...original,
+      id: this.generateId(),
+      title: `${original.title} (fork)`,
+      created: Date.now(),
+      updated: Date.now(),
+      messages: [...original.messages],
+    };
+    this.save(forked);
+    return forked;
+  }
+
+  archive(id: string): boolean {
+    const session = this.get(id);
+    if (!session) return false;
+    const path = this.sessionPath(id);
+    const archiveDir = join(this.dataDir, "archived");
+    if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+    const archivePath = join(archiveDir, `${id}.json`);
+    writeFileSync(archivePath, JSON.stringify(session, null, 2));
+    unlinkSync(path);
+    return true;
+  }
+
   addMessage(sessionId: string, message: Message): SessionData | null {
     const session = this.get(sessionId);
     if (!session) return null;

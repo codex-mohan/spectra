@@ -63,13 +63,15 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
             <text fg={c.accent}>{">"}</text>
             <text fg={c.text}>{filter || `Search ${providerId} models...`}</text>
           </box>
-          <text fg={c.dim}>esc</text>
+          <box flexDirection="row" height={1}>
+            <text fg={c.dim}>esc</text>
+          </box>
         </box>
         <box height={1} />
         <box height={1} paddingX={2}><text fg={c.border}>{"─".repeat(mw - 4)}</text></box>
         <scrollbox ref={(r: any) => { scrollRef.current = r }}
           paddingX={1} maxHeight={listH} scrollY={true}
-          verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.bgCard, foregroundColor: c.bgCard } }}>
+          scrollbarOptions={{ visible: false }}>
           <box flexDirection="column">
             {filtered.length === 0
               ? <box height={1} paddingX={1} backgroundColor={c.bgCard}><text fg={c.dim}>No models</text></box>

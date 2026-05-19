@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, mkdirSync } from "fs";
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getGlobalConfigDir, discoverConfigDirs, type DiscoveredDir } from "../utils/paths.js";
 import { getPlatformInfo } from "../utils/platform.js";
@@ -35,6 +35,9 @@ export interface McpConfig {
   args?: string[];
   url?: string;
   env?: Record<string, string>;
+  headers?: Record<string, string>;
+  enabled?: boolean;
+  timeout?: number;
 }
 
 export interface PluginConfig {
@@ -121,7 +124,6 @@ export function saveConfig(cfg: SpectraConfig, filePath?: string): void {
   writeFileSync(target, JSON.stringify(cfg, null, 2));
 }
 
-import { writeFileSync } from "fs";
 
 export function getEffectiveModel(cfg: SpectraConfig): string {
   return cfg.model || "anthropic/claude-sonnet-4-20250514";

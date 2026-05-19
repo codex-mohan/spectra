@@ -9,6 +9,8 @@ import { webFetchTool } from "./web-fetch.js";
 import type { AgentTool, ToolResult } from "@singularity-ai/spectra-agent";
 import { defineTool } from "@singularity-ai/spectra-agent";
 import { textResult } from "./utils.js";
+import { listConnectedServers } from "../services/mcp.js";
+import { createMcpAgentTools } from "./mcp-tool.js";
 
 export { type SpectraTool } from "./types.js";
 
@@ -37,6 +39,38 @@ export function spectraToolToAgentTool(specTool: SpectraTool): AgentTool {
 
 export function createAllTools(): SpectraTool[] {
   return [...builtinTools];
+}
+
+export async function createAllToolsWithMcp(): Promise<{
+  builtin: AgentTool[];
+  mcp: AgentTool[];
+  all: AgentTool[];
+}> {
+  const builtin = builtinTools.map(spectraToolToAgentTool);
+
+  const connected = listConnectedServers();
+  const mcp: AgentTool[] = [];
+  for (const server of connected) {
+    if (server.tools.length > 0) {
+      mcp.push(...createMcpAgentTools(server.name, server.tools));
+    }
+  }
+
+  return {
+    builtin,
+    mcp,
+    all: [...builtin, ...mcp],
+  };
+}
+
+export function getToolStats(): { builtin: number; mcp: number; total: number } {
+  const connected = listConnectedServers();
+  const mcpCount = connected.reduce((sum, s) => sum + s.tools.length, 0);
+  return {
+    builtin: builtinTools.length,
+    mcp: mcpCount,
+    total: builtinTools.length + mcpCount,
+  };
 }
 
 export function getToolDisplayName(tool: SpectraTool, args: unknown, result?: ToolResult): string {

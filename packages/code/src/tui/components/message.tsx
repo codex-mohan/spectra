@@ -24,7 +24,7 @@ function InlineTool(props: { icon: string; title: string; meta?: string; color?:
 
 function BlockTool(props: { title: string; titleColor?: string; children: any }) {
   return (
-    <box flexDirection="column" paddingTop={0} paddingBottom={0} paddingLeft={1} marginTop={0} marginBottom={1}
+    <box flexDirection="column" paddingTop={0} paddingBottom={0} paddingLeft={2}
       backgroundColor={c.bgTool}>
       <text fg={props.titleColor || c.tool} paddingLeft={1}>{props.title}</text>
       <box paddingLeft={2}>{props.children}</box>
@@ -45,11 +45,11 @@ function TruncatedContent(props: { text: string; maxLines: number }) {
   )
 }
 
-export function MessageView({ msg }: { msg: ChatMessage }) {
+export function MessageView({ msg, showThinking = true }: { msg: ChatMessage; showThinking?: boolean }) {
   if (msg.role === "user") {
     return (
-      <box flexDirection="column" marginBottom={1} marginTop={1} backgroundColor={c.bgBar}
-        border={["left"]} customBorderChars={SB} borderColor={c.user} paddingTop={1} paddingBottom={1} paddingLeft={1} paddingRight={1}>
+      <box flexDirection="column" backgroundColor={c.bg}
+        border={["left"]} customBorderChars={SB} borderColor={c.user} paddingLeft={1} paddingRight={1}>
         <text fg={c.user} attributes={1}>You</text>
         <text fg={c.text}>{msg.content}</text>
       </box>
@@ -63,14 +63,14 @@ export function MessageView({ msg }: { msg: ChatMessage }) {
           <text fg={c.dim} paddingLeft={2}>(streaming...)</text>
         ) : null}
         {msg.blocks ? (
-          <box flexDirection="column" paddingLeft={1}>
+          <box flexDirection="column" paddingLeft={2}>
             {(() => {
               const thinkBlocks = msg.blocks.filter((b): b is { type: "thinking"; content: string } => b.type === "thinking")
               const textBlocks = msg.blocks.filter((b): b is { type: "text"; content: string } => b.type === "text")
               const mdContent = textBlocks.map((b) => b.content).join("\n")
               return (
                 <>
-                  {thinkBlocks.map((block, i) => (
+                  {showThinking && thinkBlocks.map((block, i) => (
                     <box key={`think-${i}`}>
                       <text fg={c.dim}>{block.content}</text>
                     </box>
@@ -165,7 +165,7 @@ export function MessageView({ msg }: { msg: ChatMessage }) {
   }
 
   return (
-    <box paddingLeft={1} marginBottom={1}>
+    <box paddingLeft={2}>
       <text fg={c.error}><strong>Error:</strong> {msg.content}</text>
     </box>
   )

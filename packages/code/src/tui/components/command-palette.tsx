@@ -47,12 +47,11 @@ export function CommandPalette(props: CommandPaletteProps) {
       }
       const isSelected = i === selected
       r.push(
-        <box key={item.id} id={item.id} height={1} paddingX={1}
+        <box key={item.id} id={item.id} height={1} paddingLeft={2} paddingRight={1}
           backgroundColor={isSelected ? c.bgSelect : c.bgCard}
           flexDirection="row" justifyContent="space-between" alignItems="center">
           <text fg={isSelected ? c.accent : c.text}
-            overflow="hidden" wrapMode="none" flexGrow={1}
-            paddingLeft={1}>
+            overflow="hidden" wrapMode="none" flexGrow={1}>
             {item.label}
           </text>
           <text fg={c.dim} flexShrink={0}>{item.desc}</text>
@@ -105,7 +104,7 @@ export function CommandPalette(props: CommandPaletteProps) {
             ) : rows}
           </box>
         </scrollbox>
-        <box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="center">
+        <box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
           <text fg={c.dim}>{"\u2191\u2193"} navigate · {"\u23CE"} select · esc close</text>
         </box>
       </box>

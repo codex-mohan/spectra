@@ -45,12 +45,28 @@ function SelectDialog(props: {
   const listH = mh - 5
   const [filter, setFilter] = useState("")
   const [sel, setSel] = useState(0)
+  const scrollRef = useRef<any>(null)
 
   const filtered = useMemo(() => {
     const q = filter.toLowerCase()
     if (!q) return items
     return items.filter((i) => i.name.toLowerCase().includes(q) || i.id.includes(q) || i.desc.includes(q))
   }, [filter, items])
+
+  useEffect(() => {
+    if (!scrollRef.current || !filtered[sel]) return
+    const el = scrollRef.current
+    if (typeof el.scrollChildIntoView === "function") {
+      el.scrollChildIntoView(filtered[sel].id)
+    } else {
+      const child = el.getChildren?.()?.find?.((ch: any) => ch.id === filtered[sel].id)
+      if (child) {
+        const y = child.y - (el.y || 0)
+        if (y >= (el.height || listH)) el.scrollBy?.(y - (el.height || listH) + 1)
+        if (y < 0) el.scrollBy?.(y)
+      }
+    }
+  }, [sel, filtered, listH])
 
   useEffect(() => {
     registerHandler((key: any) => {
@@ -79,7 +95,7 @@ function SelectDialog(props: {
         <text fg={c.warn} attributes={1}>{cat}</text>
       </box>)
     }
-    rows.push(<box key={it.id} height={1} paddingX={1}
+    rows.push(<box key={it.id} id={it.id} height={1} paddingX={1}
       backgroundColor={i === sel ? c.bgSelect : c.bgCard}
       flexDirection="row" justifyContent="space-between" alignItems="center">
       <text fg={i === sel ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1} paddingLeft={1}>{it.name}</text>
@@ -92,12 +108,14 @@ function SelectDialog(props: {
       <box position="absolute" left={Math.floor((termWidth - mw) / 2)} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
         <box paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
           <box flexDirection="row" gap={1}><text fg={c.accent}>{">"}</text><text fg={c.text}>{filter || placeholder}</text></box>
-          <text fg={c.dim}>esc</text>
+          <box flexDirection="row" height={1}>
+            <text fg={c.dim}>esc</text>
+          </box>
         </box>
         <box height={1} />
         <box height={1} paddingX={2}><text fg={c.border}>{"─".repeat(mw - 4)}</text></box>
-        <scrollbox paddingX={1} maxHeight={listH} scrollY={true}
-          verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.bgCard, foregroundColor: c.bgCard } }}>
+        <scrollbox ref={(r: any) => { scrollRef.current = r }} paddingX={1} maxHeight={listH} scrollY={true}
+          scrollbarOptions={{ visible: false }}>
           <box flexDirection="column">
             {rows.length === 0
               ? <box height={1} paddingX={1} backgroundColor={c.bgCard}><text fg={c.dim}>No matches</text></box>

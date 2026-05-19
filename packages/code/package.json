@@ -31,10 +31,13 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@clack/prompts": "^1.4.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@opentui/core": ">=0.2.6",
     "@opentui/react": "^0.2.10",
     "@singularity-ai/spectra-agent": "workspace:*",
     "@singularity-ai/spectra-ai": "workspace:*",
+    "chalk": "^5.6.2",
     "clipboardy": "^5.3.1",
     "react": "^19.2.6",
     "strip-ansi": "^7.2.0",

@@ -58,18 +58,18 @@ graph TB
 | Before/After Tool Hooks | ✅ | ✅ |
 | Extension / Middleware System | ✅ | ✅ |
 | Agent Loop (Multi-Turn) | ✅ | ✅ |
-| Retry with Exponential Backoff | ✅ | — |
+| Retry with Exponential Backoff | ✅ | ✅ |
 | Session Management | ✅ | — |
 | Session Persistence (FS + SQLite) | ✅ | — |
 | Redis Session Store (distributed) | ✅ | — |
-| Worker Pool | ✅ | — |
-| Rate Limiting (in-memory) | ✅ | — |
+| Worker Pool | ✅ | ✅ |
+| Rate Limiting (in-memory) | ✅ | ✅ |
 | Redis Rate Limiting (distributed) | ✅ | — |
 | Composite Rate Limiting (tenant+user+provider) | ✅ | — |
-| Circuit Breaker | ✅ | — |
+| Circuit Breaker | ✅ | ✅ |
 | SSE Bridge (WS-compatible interface) | ✅ | — |
-| Health Probe (K8s ready) | ✅ | — |
-| Agent Registry | ✅ | — |
+| Health Probe (K8s ready) | ✅ | ✅ |
+| Agent Registry | ✅ | ✅ |
 | Cost Tracking | ✅ | ✅ |
 | Tool Choice / Reasoning Effort | ✅ | ✅ |
 | Model Registry | ✅ | ✅ |
