@@ -1,16 +1,27 @@
 # Providers
 
-Spectra provides built-in LLM providers. Register custom ones via the provider registry.
+Spectra provides built-in LLM providers and a registry for custom ones. On import, **21 providers** are auto-registered — core providers (Anthropic, OpenAI, Groq, OpenRouter) plus 16 OpenAI-compatible endpoints (xAI, DeepSeek, Mistral, Cerebras, Google, Fireworks AI, Together AI, Perplexity, Cohere, Novita AI, Moonshot AI, Chutes, MiniMax, HuggingFace, NVIDIA, Z AI).
 
 ## Built-in Providers
 
 ```typescript
 import { initProviders } from "@singularity-ai/spectra-ai";
 
-initProviders(); // registers anthropic, openai-completions, openai-responses
+initProviders(); // auto-called on import
 ```
 
-Use model objects with the provider field:
+## Model Catalog
+
+Spectra auto-generates a model catalog at build time from **OpenRouter API** and **models.dev**, producing 4,000+ models across 150+ providers. See [Providers Overview](/typescript/providers#model-registry) for details.
+
+```typescript
+import { getProviderModels, getModels, listProviders } from "@singularity-ai/spectra-ai";
+
+const models = getProviderModels("anthropic");
+const allProviders = listProviders();
+```
+
+## Using a Provider
 
 ```typescript
 const agent = new Agent({

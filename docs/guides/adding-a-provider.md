@@ -2,10 +2,12 @@
 
 This guide shows you how to register a custom LLM provider in Spectra.
 
+Spectra already ships with **21 built-in providers** (Anthropic, OpenAI, Groq, OpenRouter, plus 16 OpenAI-compatible endpoints) and an auto-generated model catalog of **4,000+ models** across **150+ providers**. You only need to add a custom provider if your target is not covered.
+
 ## When to Add a Custom Provider
 
-- Using an OpenAI-compatible endpoint (Groq, Together, local models)
-- Integrating with a proprietary LLM API
+- Using an OpenAI-compatible endpoint not already in the built-in list
+- Integrating with a proprietary LLM API that has a non-standard format
 - Adding support for a new provider not yet in Spectra
 
 ## TypeScript
@@ -82,6 +84,21 @@ const agent = new Agent({
 });
 ```
 
+### Optional: Add Model Listing
+
+If you want your provider to support `getModels()`:
+
+```typescript
+registerProvider({
+  name: "my-provider",
+  listModels: () => [
+    { id: "my-model-v1", name: "My Model v1" },
+    { id: "my-model-v2", name: "My Model v2" },
+  ],
+  stream: (model, context, options) => { /* ... */ },
+});
+```
+
 ## Rust
 
 ### Step 1: Implement LlmClient
@@ -144,5 +161,5 @@ for await (const event of agent.run("Say hello")) {
 
 ## Next Steps
 
-- [**Providers Overview**](/typescript/providers) — Built-in providers
+- [**Providers Overview**](/typescript/providers) — Built-in providers and model catalog
 - [**Error Handling**](/guides/error-handling) — Provider-specific error patterns

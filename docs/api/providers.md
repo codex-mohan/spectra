@@ -6,6 +6,7 @@
 function registerProvider(provider: Provider): void
 function getProvider(name: string): Provider | undefined
 function listProviders(): string[]
+function getModels(providerName: string): Promise<ModelInfo[]>
 ```
 
 ## Provider Interface
@@ -14,6 +15,7 @@ function listProviders(): string[]
 interface Provider {
   name: string;
   stream: (model: Model, context: Context, options?: StreamOptions) => AssistantMessageEventStream;
+  listModels?: () => ModelInfo[] | Promise<ModelInfo[]>;
 }
 ```
 
@@ -31,6 +33,19 @@ interface Model {
   headers?: Record<string, string>;
 }
 ```
+
+## ModelEntry (from auto-generated catalog)
+
+```typescript
+interface ModelEntry {
+  id: string;
+  name: string;
+}
+
+function getProviderModels(providerId: string): ModelEntry[]
+```
+
+The model catalog is auto-generated at build time from OpenRouter API and models.dev, containing 4,000+ models across 150+ providers.
 
 ## StreamOptions
 

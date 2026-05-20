@@ -82,7 +82,19 @@ while let Some(chunk) = stream.next().await {
 }
 ```
 
+## Model Registry
+
+Unlike the TypeScript SDK (which auto-generates a static model catalog at build time), the Rust SDK does **not** embed any models. Models are loaded at runtime from external JSON or TOML configuration files via `ModelRegistry`. See [ModelRegistry Reference](/reference/rust/model-registry) for details.
+
+```rust
+use spectra_rs::{ModelRegistry, Provider};
+
+let registry = spectra_rs::load_models_from_file("models.json")?;
+let claude = registry.get("claude-sonnet-4-20250514");
+```
+
 ## Next Steps
 
 - [**Agent**](/rust/agent) — Use clients with AgentBuilder
+- [**ModelRegistry Reference**](/reference/rust/model-registry) — Model configuration
 - [**Adding a Provider Guide**](/guides/adding-a-provider) — Step-by-step custom client

@@ -2,6 +2,8 @@
 
 How to add a new LLM provider to Spectra.
 
+Spectra already ships with **21 built-in providers** and an auto-generated model catalog of **4,000+ models** across **150+ providers** (built at build time from OpenRouter API and models.dev). Only add a provider if your target is not covered.
+
 ## TypeScript
 
 ### 1. Create the Provider
@@ -49,6 +51,18 @@ Add to `packages/ai/src/providers/register-builtins.ts`:
 import { createMyProvider } from "./my-provider";
 registerProvider(createMyProvider());
 ```
+
+### 4. Add Model Listing (Optional)
+
+```typescript
+registerProvider({
+  name: "my-provider",
+  listModels: () => import("../models.js").then((m) => m.getProviderModels("my-provider")),
+  stream: /* ... */,
+});
+```
+
+For OpenAI-compatible providers, use the `wrapOpenAIProvider` helper from `register-builtins.ts`.
 
 ## Rust
 
@@ -123,5 +137,5 @@ for await (const event of agent.run("Say hello")) {
 
 ## Next Steps
 
-- [**Provider Reference**](/typescript/providers) — Provider interface
+- [**Provider Reference**](/typescript/providers) — Provider interface and model catalog
 - [**Coding Standards**](/contribute/coding-standards) — Conventions
