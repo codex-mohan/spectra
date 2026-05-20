@@ -15,12 +15,15 @@ import type { AssistantMessage, Message } from "@singularity-ai/spectra-ai"
 import { ProviderDialog } from "./ui/provider-dialog.js"
 import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
+import { ManageProvidersDialog } from "./ui/manage-providers-dialog.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
 import { buildCmdItems } from "./commands.js"
 import { getGlobalConfigDir } from "../utils/paths.js"
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join } from "path"
+import { loadConfig, type CustomProviderConfig } from "../services/config.js"
+import { registerAllCustomProviders } from "../services/custom-providers.js"
 
 const AGENTS = ["build", "plan", "debug", "explore"]
 const PLACEHOLDERS = ["fix the login bug", "explain this codebase", "add error handling", "refactor this function", "write tests", "debug this issue", "optimize performance", "document the API"]
@@ -54,6 +57,12 @@ function saveModelConfig(modelId: string, providerId: string) {
 export function App({ renderer }: { renderer: CliRenderer }) {
   const { width: termWidth, height: termHeight } = useTerminalDimensions()
   const [savedConfig] = useState(loadSavedConfig)
+  const [customProviders, setCustomProviders] = useState<Record<string, CustomProviderConfig>>(() => {
+    const cfg = loadConfig()
+    const cp = cfg.providers || {}
+    registerAllCustomProviders(cp)
+    return cp
+  })
   const [selectedModel, setSelectedModel] = useState<string | null>(savedConfig.model)
   const [selectedProvider, setSelectedProvider] = useState<string | null>(savedConfig.provider)
   const [route, setRoute] = useState<"home" | "chat">("home")
@@ -72,7 +81,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | null>(null)
+  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | null>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
@@ -88,6 +97,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const provider = selectedProvider
   const hasModel = selectedModel !== null && selectedProvider !== null
   const mcpCount = 0
+  const customProviderCount = Object.keys(customProviders).length
 
   const cwdLabel = useMemo(() => {
     const home = process.env.HOME || process.env.USERPROFILE || ""
@@ -169,8 +179,16 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     const { initProviders } = await import("@singularity-ai/spectra-ai")
     initProviders()
     const { createAllTools, spectraToolToAgentTool } = await import("../tools/index.js")
+    const customCfg = customProviders[provider]
     agentRef.current = new Agent({
-      model: { id: selectedModel, name: selectedModel, provider, api: provider },
+      model: {
+        id: selectedModel,
+        name: selectedModel,
+        provider,
+        api: provider,
+        baseUrl: customCfg?.baseUrl,
+        headers: customCfg?.headers,
+      },
       systemPrompt: `You are Spectra Code, an AI coding agent running on ${process.platform}.`,
       getApiKey: (p) => getAuthKey(p),
       tools: createAllTools().map(spectraToolToAgentTool),
@@ -178,7 +196,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     })
     lastModelRef.current = `${selectedModel}:${provider}`
     return agentRef.current
-  }, [selectedModel, provider])
+  }, [selectedModel, provider, customProviders])
 
   function persistMessage(sdkMsg: Message) {
     if (!sessionId.current) return
@@ -306,10 +324,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
   const cmdItems = useMemo(() => buildCmdItems({
     renderer, sessionStore: sessionStore.current, sessionIdRef: sessionId,
-    hasModel, selectedModel, provider, mcpCount, messagesLength: messages.length,
+    hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength: messages.length,
     showThinking, showToolCalls,
     setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep,
-  }), [renderer, hasModel, selectedModel, provider, mcpCount, messages.length, showThinking, showToolCalls])
+  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls])
 
   const cmdFiltered = useMemo(() => {
     const q = cmdFilter.toLowerCase()
@@ -365,14 +383,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         </box>
       ) : (
         <>
-          <box flexDirection="column" height={termHeight - 6} padding={1}><ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls} /></box>
-          <box height={5} paddingX={1}>
+          <box flexDirection="column" height={termHeight - 5} paddingBottom={1}><ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls} /></box>
+          <box flexShrink={0}>
             <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
               inputKey={`c-${submitKey}-${navKey}`}
               placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
               initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
-              elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 2} />
+              elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth} />
           </box>
         </>
       )}
@@ -457,14 +475,26 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           registerHandler={(fn) => { dialogKeyHandler.current = fn }}
         />
       )}
-      {dialogStep?.type === "switch-model" && provider && (
-        <ModelSwitcher providerId={provider} termWidth={termWidth} termHeight={termHeight}
+      {dialogStep?.type === "switch-model" && (
+        <ModelSwitcher providerId={provider || ""} termWidth={termWidth} termHeight={termHeight}
           onModelSelected={(modelId, providerId) => {
             const oldMessages = agentRef.current ? [...agentRef.current.messages] : []
             agentRef.current = null
             setSelectedModel(modelId); setSelectedProvider(providerId); setDialogStep(null)
             saveModelConfig(modelId, providerId)
             showToast(`Switched model`, "info")
+          }}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      {dialogStep?.type === "manage-providers" && (
+        <ManageProvidersDialog termWidth={termWidth} termHeight={termHeight}
+          providers={customProviders}
+          onProvidersChange={(updated) => {
+            setCustomProviders(updated)
+            agentRef.current = null
+            showToast("Providers updated", "success")
           }}
           onClose={() => setDialogStep(null)}
           registerHandler={(fn) => { dialogKeyHandler.current = fn }}

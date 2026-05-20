@@ -2,8 +2,9 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { c } from "../theme.js"
 import { write, type ApiCredential } from "../../services/auth-store.js"
 import { listProviders, getModels } from "@singularity-ai/spectra-ai"
+import { loadConfig } from "../../services/config.js"
 
-const PROVIDER_META: Record<string, { name: string; desc: string; popular: boolean }> = {
+const BUILTIN_META: Record<string, { name: string; desc: string; popular: boolean }> = {
   anthropic: { name: "Anthropic", desc: "Claude models", popular: true },
   openai: { name: "OpenAI", desc: "GPT models", popular: true },
   openrouter: { name: "OpenRouter", desc: "Multi-model gateway", popular: true },
@@ -213,18 +214,44 @@ export function ProviderDialog(props: ProviderDialogProps) {
   }, [keyHandlerRef])
 
   if (step.phase === "provider-list") {
+    const cfg = loadConfig()
+    const customProviders = cfg.providers || {}
     const providerIds = listProviders()
-    const items = providerIds
-      .filter((id) => PROVIDER_META[id])
+    const builtinItems = providerIds
+      .filter((id) => BUILTIN_META[id])
       .map((id) => {
-        const m = PROVIDER_META[id]
+        const m = BUILTIN_META[id]
         return { id, name: m.name, desc: m.desc, cat: m.popular ? "Popular" : "Providers" }
       })
+    const customItems = Object.entries(customProviders).map(([id, cfg]) => ({
+      id,
+      name: cfg.name || id,
+      desc: cfg.baseUrl,
+      cat: "Custom",
+    }))
+    const items = [...builtinItems, ...customItems]
     return <SelectDialog items={items} placeholder="Search providers..." termWidth={termWidth} termHeight={termHeight}
       onSelect={(id, name) => setStep({ phase: "api-key", id, name })} onCancel={onClose} registerHandler={registerHandler} />
   }
 
   if (step.phase === "api-key") {
+    const cfg = loadConfig()
+    const customCfg = cfg.providers?.[step.id]
+    if (customCfg?.apiKey) {
+      getModels(step.id).then((m) => {
+        if (m.length > 0) {
+          setModels(m)
+          setStep({ phase: "model-select", id: step.id, name: step.name })
+        } else if (customCfg.models) {
+          const customModels = Object.entries(customCfg.models).map(([id, meta]) => ({ id, name: meta.name || id }))
+          setModels(customModels)
+          setStep({ phase: "model-select", id: step.id, name: step.name })
+        } else {
+          setStep({ phase: "model-select", id: step.id, name: step.name })
+        }
+      })
+      return null
+    }
     if (models === null) {
       getModels(step.id).then((m) => setModels(m))
     }
@@ -234,10 +261,16 @@ export function ProviderDialog(props: ProviderDialogProps) {
   }
 
   if (step.phase === "model-select") {
-    if (models === null) {
-      getModels(step.id).then((m) => setModels(m))
+    const cfg = loadConfig()
+    const customCfg = cfg.providers?.[step.id]
+    let items: { id: string; name: string; desc: string; cat: string }[]
+    if (models && models.length > 0) {
+      items = models.map((m) => ({ id: m.id, name: m.name, desc: "", cat: "Models" }))
+    } else if (customCfg?.models) {
+      items = Object.entries(customCfg.models).map(([id, meta]) => ({ id, name: meta.name || id, desc: "", cat: "Models" }))
+    } else {
+      items = [{ id: step.id, name: "Enter model ID manually", desc: "Type the model ID", cat: "" }]
     }
-    const items = (models || []).map((m) => ({ id: m.id, name: m.name, desc: "", cat: "Models" }))
     return <SelectDialog items={items} placeholder="Search models..." termWidth={termWidth} termHeight={termHeight}
       onSelect={(id, name) => { onModelSelected(id, step.id); onClose() }} onCancel={onClose} registerHandler={registerHandler} />
   }

@@ -8,6 +8,7 @@ export function buildCmdItems(opts: {
   selectedModel: string | null
   provider: string | null
   mcpCount: number
+  customProviderCount: number
   messagesLength: number
   showThinking: boolean
   showToolCalls: boolean
@@ -21,10 +22,10 @@ export function buildCmdItems(opts: {
   setShowToolCalls: (fn: (v: boolean) => boolean) => void
   setHomeKey: (fn: (k: number) => number) => void
   setNavKey: (fn: (k: number) => number) => void
-  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | null) => void
+  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | null) => void
   sessionIdRef: { current: string | null }
 }): CmdItem[] {
-  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep } = opts
+  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep } = opts
   return [
     { id: "new", label: "New Session", desc: "Start fresh", cat: "Session", action: () => {
       setMessages(() => []);
@@ -66,9 +67,9 @@ export function buildCmdItems(opts: {
     { id: "toggle-tools", label: `${showToolCalls ? "Hide" : "Show"} Tool Calls`, desc: showToolCalls ? "Hide tool call indicators" : "Show tool call indicators", cat: "Display", action: () => { setShowToolCalls((v) => !v) } },
     { id: "provider", label: "Connect Provider", desc: hasModel ? "Switch API provider" : "No provider configured", cat: "Provider", action: () => { setDialogStep({ type: "provider" }) } },
     { id: "switch-model", label: "Switch Model", desc: selectedModel || "No model selected", cat: "Model", action: () => {
-      if (!provider) { setDialogStep({ type: "provider" }); return }
       setDialogStep({ type: "switch-model" })
     } },
+    { id: "manage-providers", label: "Manage Providers", desc: `${opts.customProviderCount} custom provider${opts.customProviderCount !== 1 ? "s" : ""}`, cat: "Provider", action: () => { setDialogStep({ type: "manage-providers" }) } },
     { id: "home", label: "Go Home", desc: "Return to home", cat: "Navigation", action: () => { setRoute("home") } },
     { id: "doctor", label: "Doctor", desc: "Run health check", cat: "System", action: () => { renderer.destroy(); import("../commands/doctor.js").then((m) => m.doctorCommand.handler({} as never)) } },
     { id: "about", label: "About", desc: "Version info", cat: "System", action: () => { setStatus("Spectra Code v0.1.0"); setTimeout(() => setStatus("Ready"), 3000) } },

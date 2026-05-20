@@ -3,6 +3,15 @@ import { join } from "path";
 import { getGlobalConfigDir, discoverConfigDirs, type DiscoveredDir } from "../utils/paths.js";
 import { getPlatformInfo } from "../utils/platform.js";
 
+export interface CustomProviderConfig {
+  name: string;
+  baseUrl: string;
+  apiKey?: string;
+  headers?: Record<string, string>;
+  models?: Record<string, { name?: string; contextWindow?: number; maxOutput?: number }>;
+  enabled?: boolean;
+}
+
 export interface SpectraConfig {
   model?: string;
   smallModel?: string;
@@ -16,6 +25,7 @@ export interface SpectraConfig {
   permissions?: PermissionRule[];
   shell?: string;
   logLevel?: "debug" | "info" | "warn" | "error";
+  providers?: Record<string, CustomProviderConfig>;
 }
 
 export interface AgentConfig {
