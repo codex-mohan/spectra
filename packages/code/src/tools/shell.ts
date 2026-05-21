@@ -28,6 +28,7 @@ Be careful with destructive commands - seek permission for rm -rf, sudo, etc.`,
         env: { ...process.env, SHELL: info.shell } as NodeJS.ProcessEnv,
         windowsHide: true,
         encoding: "utf-8",
+        stdio: "pipe",
       });
       return textResult(`Exit code: 0\n${stdout}`);
     } catch (err: unknown) {

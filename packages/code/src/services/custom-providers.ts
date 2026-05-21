@@ -73,7 +73,9 @@ export function registerCustomProvider(id: string, config: CustomProviderConfig)
             return
           }
 
-          const { default: OpenAI } = await import("openai")
+          // Use the openai package from @singularity-ai/spectra-ai's dependencies
+          // This avoids duplicating the openai dependency in packages/code
+          const { default: OpenAI } = await import("@singularity-ai/spectra-ai").then(() => import("openai"))
           const client = new OpenAI({
             apiKey,
             baseURL: config.baseUrl,

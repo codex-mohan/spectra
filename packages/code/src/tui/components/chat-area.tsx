@@ -12,21 +12,21 @@ export function ChatArea({ messages, showThinking = true, showToolCalls = true }
   })
 
   return (
-    <scrollbox flexGrow={1} stickyScroll={true} stickyStart="bottom" scrollY={true}
-      paddingTop={1} paddingLeft={1} paddingRight={2}
-      backgroundColor={c.bg} viewportCulling={false}
-      focusable={false}
-      verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.sbTrack, foregroundColor: c.sbThumb } }}>
-      {visible.length === 0 ? (
-        <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-          <text fg={c.dim}>No messages yet</text>
-          <text fg={c.dim}>Type below to start chatting</text>
-        </box>
-      ) : visible.map((msg) => (
-        <box key={msg.id} flexDirection="column" marginBottom={1}>
-          <MessageView msg={msg} showThinking={showThinking} />
-        </box>
-      ))}
-    </scrollbox>
+    <box flexDirection="column">
+      <scrollbox flexGrow={1} stickyScroll={true} stickyStart="bottom" scrollY={true}
+        backgroundColor={c.bg} viewportCulling={false}
+        focusable={false}
+        verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.sbTrack, foregroundColor: c.sbThumb } }}>
+        <box height={1} />
+        {visible.length === 0 ? (
+          <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
+            <text fg={c.dim}>No messages yet</text>
+            <text fg={c.dim}>Type below to start chatting</text>
+          </box>
+        ) : visible.map((msg, i) => (
+          <MessageView key={msg.id} msg={msg} showThinking={showThinking} isFirst={i === 0} />
+        ))}
+      </scrollbox>
+    </box>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { c } from "../theme.js"
 import { listProviders, getModels } from "@singularity-ai/spectra-ai"
 import { loadConfig } from "../../services/config.js"
+import { readAll } from "../../services/auth-store.js"
 
 export interface ModelSwitcherProps {
   providerId: string
@@ -18,7 +19,25 @@ interface ModelEntry {
   providerName: string
 }
 
-const POPULAR_PROVIDERS = ["anthropic", "openai", "openrouter", "groq", "google", "xai", "deepseek", "mistral"]
+function isProviderConnected(providerId: string): boolean {
+  const cred = readAll()[providerId]
+  return cred?.type === "api" && !!cred.key
+}
+
+function getProviderDisplayName(providerId: string, customProviders: Record<string, { name?: string }>): string {
+  const custom = customProviders[providerId]
+  if (custom?.name) return custom.name
+  const builtinNames: Record<string, string> = {
+    anthropic: "Anthropic", openai: "OpenAI", "openai-completions": "OpenAI", "openai-responses": "OpenAI",
+    openrouter: "OpenRouter", groq: "Groq", google: "Google", xai: "xAI",
+    deepseek: "DeepSeek", mistral: "Mistral", cerebras: "Cerebras",
+    "fireworks-ai": "Fireworks AI", togetherai: "Together AI", perplexity: "Perplexity",
+    cohere: "Cohere", "novita-ai": "Novita AI", moonshotai: "Moonshot AI",
+    chutes: "Chutes", minimax: "MiniMax", huggingface: "Hugging Face",
+    nvidia: "NVIDIA", zai: "Z.AI",
+  }
+  return builtinNames[providerId] || providerId
+}
 
 export function ModelSwitcher(props: ModelSwitcherProps) {
   const { providerId, termWidth, termHeight, onModelSelected, onClose, registerHandler } = props
@@ -33,15 +52,19 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
     const builtinIds = listProviders()
     const collected: ModelEntry[] = []
 
-    const promises = builtinIds.map((id) =>
+    const connectedBuiltins = builtinIds.filter(isProviderConnected)
+    const connectedCustoms = Object.entries(customProviders).filter(([id]) => isProviderConnected(id))
+
+    const promises = connectedBuiltins.map((id) =>
       getModels(id).then((models) => {
+        const displayName = getProviderDisplayName(id, customProviders)
         for (const m of models) {
-          collected.push({ id: m.id, name: m.name, provider: id, providerName: id })
+          collected.push({ id: m.id, name: m.name, provider: id, providerName: displayName })
         }
       })
     )
 
-    for (const [id, pcfg] of Object.entries(customProviders)) {
+    for (const [id, pcfg] of connectedCustoms) {
       if (pcfg.models) {
         for (const [modelId, meta] of Object.entries(pcfg.models)) {
           collected.push({ id: modelId, name: meta.name || modelId, provider: id, providerName: pcfg.name || id })
@@ -50,8 +73,13 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
     }
 
     Promise.all(promises).then(() => {
-      setAllModels(collected)
-      const currentIdx = collected.findIndex(m => m.provider === providerId)
+      const sorted = collected.sort((a, b) => {
+        const nameCmp = a.providerName.localeCompare(b.providerName)
+        if (nameCmp !== 0) return nameCmp
+        return a.name.localeCompare(b.name)
+      })
+      setAllModels(sorted)
+      const currentIdx = sorted.findIndex(m => m.provider === providerId)
       setSel(currentIdx >= 0 ? currentIdx : 0)
     })
   }, [providerId])
@@ -100,14 +128,12 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
     let prevProvider = ""
     for (let i = 0; i < filtered.length; i++) {
       const m = filtered[i]
-      const isPopular = POPULAR_PROVIDERS.includes(m.provider)
-      const cat = isPopular ? "Popular" : m.providerName
-      if (cat !== prevProvider) {
-        if (prevProvider) r.push(<box key={`gap-${cat}-${i}`} height={1} backgroundColor={c.bgCard} />)
-        prevProvider = cat
+      if (m.providerName !== prevProvider) {
+        if (prevProvider) r.push(<box key={`gap-${m.providerName}`} height={1} backgroundColor={c.bgCard} />)
+        prevProvider = m.providerName
         r.push(
-          <box key={`cat-${cat}-${i}`} height={1} paddingLeft={2} backgroundColor={c.bgCard}>
-            <text fg={c.warn} attributes={1}>{cat}</text>
+          <box key={`cat-${m.providerName}-${i}`} height={1} paddingLeft={2} backgroundColor={c.bgCard}>
+            <text fg={c.warn} attributes={1}>{m.providerName}</text>
           </box>
         )
       }
@@ -132,7 +158,7 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
         <box paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
           <box flexDirection="row" gap={1}>
             <text fg={c.accent}>{">"}</text>
-            <text fg={c.text}>{filter || "Search all models..."}</text>
+            <text fg={c.text}>{filter || "Search models..."}</text>
           </box>
           <box flexDirection="row" height={1}>
             <text fg={c.dim}>esc</text>
@@ -145,7 +171,7 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
           scrollbarOptions={{ visible: false }}>
           <box flexDirection="column">
             {rows.length === 0
-              ? <box height={1} paddingX={1} backgroundColor={c.bgCard}><text fg={c.dim}>No models</text></box>
+              ? <box height={1} paddingX={1} backgroundColor={c.bgCard}><text fg={c.dim}>No models. Connect a provider first.</text></box>
               : rows}
           </box>
         </scrollbox>

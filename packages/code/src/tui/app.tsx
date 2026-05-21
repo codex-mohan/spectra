@@ -87,12 +87,15 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [historyIdx, setHistoryIdx] = useState(-1)
   const [navKey, setNavKey] = useState(0)
   const [homeKey, setHomeKey] = useState(0)
+  const [interruptKey, setInterruptKey] = useState(0)
   const historyDraft = useRef("")
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
   const agentRef = useRef<any>(null)
   const dialogKeyHandler = useRef<((key: any) => void) | null>(null)
   const lastModelRef = useRef<string | null>(null)
+  const isStreamingRef = useRef(false)
+  const loadedSessionMessages = useRef<Message[]>([])
 
   const provider = selectedProvider
   const hasModel = selectedModel !== null && selectedProvider !== null
@@ -148,7 +151,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       if (key.name.length === 1 && !key.ctrl && !key.meta) { setCmdFilter((p) => p + key.name); setCmdSelected(0); return }
       return
     }
-    if (key.name === "escape") { renderer.destroy(); return }
+    if (key.ctrl && key.name === "c") { renderer.destroy(); return }
+    if (key.name === "escape") {
+      if (isStreamingRef.current) {
+        if (interruptKey === 1) {
+          agentRef.current?.abort()
+          setInterruptKey(0)
+          return
+        }
+        setInterruptKey(1)
+        setTimeout(() => setInterruptKey(0), 3000)
+        return
+      }
+      renderer.destroy(); return
+    }
     if (key.name === "up") {
       if (promptHistory.length === 0) return
       if (historyIdx === -1) historyDraft.current = ""
@@ -194,6 +210,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       tools: createAllTools().map(spectraToolToAgentTool),
       maxTurns: 10,
     })
+    // Restore loaded session history if available
+    if (loadedSessionMessages.current.length > 0) {
+      agentRef.current.restoreHistory(loadedSessionMessages.current)
+    }
     lastModelRef.current = `${selectedModel}:${provider}`
     return agentRef.current
   }, [selectedModel, provider, customProviders])
@@ -225,6 +245,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     const userMsg: Message = { role: "user", content: trimmed, timestamp: Date.now() }
     addMessage({ id: uid, role: "user", content: trimmed, model: selectedModel })
     setIsLoading(true); setStatus("Streaming..."); setRoute("chat")
+    isStreamingRef.current = true
+    streamingIdRef.current = "pending"
 
     if (!sessionId.current) {
       const sess = sessionStore.current.create({ agent: selectedAgent, model: selectedModel, provider })
@@ -317,7 +339,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       updateMessage(errId, { content: `Error: ${err instanceof Error ? err.message : String(err)}`, streaming: false, role: "error" })
       setStatus("Error")
     } finally {
-      setIsLoading(false); setSubmitKey((k) => k + 1)
+      setIsLoading(false); setSubmitKey((k) => k + 1); setInterruptKey(0)
+      isStreamingRef.current = false
       streamingIdRef.current = null
     }
   }, [isLoading, selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent])
@@ -382,17 +405,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           </box>
         </box>
       ) : (
-        <>
-          <box flexDirection="column" height={termHeight - 5} paddingBottom={1}><ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls} /></box>
+        <box flexDirection="column" height={termHeight} paddingLeft={2} paddingRight={2}>
+          <box flexDirection="column" flexGrow={1} paddingBottom={1}>
+            <ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls} />
+          </box>
           <box flexShrink={0}>
             <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
               inputKey={`c-${submitKey}-${navKey}`}
               placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
               initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
-              elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth} />
+              elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
+              isChatView={true} showInterruptHint={interruptKey === 1} />
           </box>
-        </>
+        </box>
       )}
       {showCmd && <CommandPalette filter={cmdFilter} selected={cmdSelected} items={cmdFiltered} termWidth={termWidth} termHeight={termHeight} />}
       {dialogStep?.type === "provider" && (
@@ -451,9 +477,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             setSelectedProvider(data.provider || data.model.split("/")[0])
             setSelectedAgent(data.agent)
             setRoute("chat"); setDialogStep(null)
+            // Store SDK messages for agent history
+            loadedSessionMessages.current = data.messages as unknown as Message[]
             if (agentRef.current) {
               agentRef.current.reset()
-              agentRef.current.restoreHistory(data.messages)
+              agentRef.current.restoreHistory(data.messages as unknown as Message[])
             }
             showToast(`Loaded: ${data.title.slice(0, 40)}`, "info")
           }}
