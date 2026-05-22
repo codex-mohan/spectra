@@ -1,5 +1,14 @@
 # @singularity-ai/spectra-agent
 
+## 0.3.1
+
+### Patch Changes
+
+- [`e1e4fd2`](https://github.com/codex-mohan/spectra/commit/e1e4fd2efe19a98dbbfe64b7b12d3ee177718bb2) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add provider model registry with generate-models script, listModels() on all providers, and new provider registrations (xAI, DeepSeek, Mistral, Cerebras, Google, Fireworks, Together, Perplexity, Cohere, Novita, Moonshot, Chutes, MiniMax, HuggingFace, NVIDIA, Z.AI)
+
+- Updated dependencies [[`e1e4fd2`](https://github.com/codex-mohan/spectra/commit/e1e4fd2efe19a98dbbfe64b7b12d3ee177718bb2)]:
+  - @singularity-ai/spectra-ai@0.3.1
+
 ## 0.3.0
 
 ### Patch Changes
