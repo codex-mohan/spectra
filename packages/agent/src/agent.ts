@@ -609,7 +609,7 @@ export class Agent {
       }
     }
 
-    const msg: ToolResultMessage = { role: "toolResult", toolCallId: toolCall.id, toolName: toolCall.name, content: result.content, isError, timestamp: Date.now() };
+    const msg: ToolResultMessage = { role: "toolResult", toolCallId: toolCall.id, toolName: toolCall.name, content: result.content, details: result.details, isError, timestamp: Date.now() };
     this._messages.push(msg);
 
     // Emit message events so consumers can track tool results in the transcript

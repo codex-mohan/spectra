@@ -611,8 +611,9 @@ function App() {
 
     // Normal mode keyboard
     if (key.name === "escape") {
-      agentRef.current.abort()
-      renderer.destroy()
+      if (isLoading) {
+        agentRef.current.abort()
+      }
       return
     }
     if (key.ctrl && key.name === "p") {

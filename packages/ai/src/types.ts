@@ -45,6 +45,8 @@ export interface UserMessage {
   role: "user";
   content: string | (TextContent | ImageContent)[];
   timestamp: number;
+  /** Arbitrary metadata for app/ui use. Ignored by LLM context. */
+  metadata?: Record<string, unknown>;
 }
 
 export interface AssistantMessage {
@@ -57,15 +59,21 @@ export interface AssistantMessage {
   stopReason: StopReason;
   errorMessage?: string;
   timestamp: number;
+  /** Arbitrary metadata for app/ui use. Ignored by LLM context. */
+  metadata?: Record<string, unknown>;
 }
 
-export interface ToolResultMessage {
+export interface ToolResultMessage<TDetails = unknown> {
   role: "toolResult";
   toolCallId: string;
   toolName: string;
   content: (TextContent | ImageContent)[];
+  /** Typed tool-specific metadata (e.g. diff, truncation info). Ignored by LLM context. */
+  details?: TDetails;
   isError: boolean;
   timestamp: number;
+  /** Arbitrary metadata for app/ui use. Ignored by LLM context. */
+  metadata?: Record<string, unknown>;
   provenance?: {
     blockedBy?: string;
     blockReason?: string;

@@ -1023,6 +1023,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.6 Plus"
     },
     {
+      "id": "qwen3.7-max",
+      "name": "Qwen3.7 Max"
+    },
+    {
       "id": "qwq-plus",
       "name": "QwQ Plus"
     },
@@ -1926,10 +1930,6 @@ const MODELS: Record<string, ModelEntry[]> = {
     }
   ],
   "arcee-ai": [
-    {
-      "id": "arcee-ai/trinity-large-preview",
-      "name": "Arcee AI: Trinity Large Preview"
-    },
     {
       "id": "arcee-ai/trinity-large-thinking",
       "name": "Arcee AI: Trinity Large Thinking"
@@ -3087,6 +3087,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT OSS 20B"
     },
     {
+      "id": "@cf/ibm-granite/granite-4.0-h-micro",
+      "name": "Granite 4.0 H Micro"
+    },
+    {
       "id": "@cf/moonshotai/kimi-k2.5",
       "name": "Kimi K2.5"
     },
@@ -3095,12 +3099,24 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Kimi K2.6"
     },
     {
+      "id": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      "name": "Llama 3.3 70B Instruct fp8 Fast"
+    },
+    {
       "id": "@cf/meta/llama-4-scout-17b-16e-instruct",
       "name": "Llama 4 Scout 17B 16E Instruct"
     },
     {
+      "id": "@cf/mistralai/mistral-small-3.1-24b-instruct",
+      "name": "Mistral Small 3.1 24B Instruct"
+    },
+    {
       "id": "@cf/nvidia/nemotron-3-120b-a12b",
       "name": "Nemotron 3 Super 120B"
+    },
+    {
+      "id": "@cf/qwen/qwen3-30b-a3b-fp8",
+      "name": "Qwen3 30B A3b fp8"
     }
   ],
   "cohere": [
@@ -3335,6 +3351,88 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.5 397B A17B"
     }
   ],
+  "crof": [
+    {
+      "id": "deepseek-v3.2",
+      "name": "DeepSeek V3.2"
+    },
+    {
+      "id": "deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash"
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro"
+    },
+    {
+      "id": "deepseek-v4-pro-precision",
+      "name": "DeepSeek V4 Pro (Precision)"
+    },
+    {
+      "id": "gemma-4-31b-it",
+      "name": "Gemma 4 31B IT"
+    },
+    {
+      "id": "glm-5.1-precision",
+      "name": "GLM 5.1 (Precision)"
+    },
+    {
+      "id": "glm-4.7",
+      "name": "GLM-4.7"
+    },
+    {
+      "id": "glm-4.7-flash",
+      "name": "GLM-4.7-Flash"
+    },
+    {
+      "id": "glm-5",
+      "name": "GLM-5"
+    },
+    {
+      "id": "glm-5.1",
+      "name": "GLM-5.1"
+    },
+    {
+      "id": "kimi-k2.5",
+      "name": "Kimi K2.5"
+    },
+    {
+      "id": "kimi-k2.5-lightning",
+      "name": "Kimi K2.5 (Lightning)"
+    },
+    {
+      "id": "kimi-k2.6",
+      "name": "Kimi K2.6"
+    },
+    {
+      "id": "kimi-k2.6-precision",
+      "name": "Kimi K2.6 (Precision)"
+    },
+    {
+      "id": "mimo-v2.5-pro",
+      "name": "MiMo-V2.5-Pro"
+    },
+    {
+      "id": "mimo-v2.5-pro-precision",
+      "name": "MiMo-V2.5-Pro (Precision)"
+    },
+    {
+      "id": "minimax-m2.5",
+      "name": "MiniMax-M2.5"
+    },
+    {
+      "id": "qwen3.5-397b-a17b",
+      "name": "Qwen3.5 397B-A17B"
+    },
+    {
+      "id": "qwen3.5-9b",
+      "name": "Qwen3.5 9B"
+    },
+    {
+      "id": "qwen3.6-27b",
+      "name": "Qwen3.6 27B"
+    }
+  ],
   "databricks": [
     {
       "id": "databricks-claude-haiku-4-5",
@@ -3460,11 +3558,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "google/gemma-4-26B-A4B-it",
-      "name": "Gemma 4 26B"
+      "name": "Gemma 4 26B A4B IT"
     },
     {
       "id": "google/gemma-4-31B-it",
-      "name": "Gemma 4 31B"
+      "name": "Gemma 4 31B IT"
     },
     {
       "id": "zai-org/GLM-4.5",
@@ -4027,6 +4125,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "accounts/fireworks/models/deepseek-v3p2",
       "name": "DeepSeek V3.2"
+    },
+    {
+      "id": "accounts/fireworks/models/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash"
     },
     {
       "id": "accounts/fireworks/models/deepseek-v4-pro",
@@ -4593,6 +4695,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "duo-chat-gpt-5-4",
       "name": "Agentic Chat (GPT-5.4)"
+    },
+    {
+      "id": "duo-chat-gpt-5-5",
+      "name": "Agentic Chat (GPT-5.5)"
     }
   ],
   "gmicloud": [
@@ -4631,24 +4737,12 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "google": [
     {
-      "id": "gemini-1.5-flash",
-      "name": "Gemini 1.5 Flash"
-    },
-    {
-      "id": "gemini-1.5-flash-8b",
-      "name": "Gemini 1.5 Flash-8B"
-    },
-    {
-      "id": "gemini-1.5-pro",
-      "name": "Gemini 1.5 Pro"
-    },
-    {
       "id": "gemini-2.0-flash",
       "name": "Gemini 2.0 Flash"
     },
     {
       "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash Lite"
+      "name": "Gemini 2.0 Flash-Lite"
     },
     {
       "id": "gemini-2.5-flash",
@@ -4656,39 +4750,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite"
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-06-17",
-      "name": "Gemini 2.5 Flash Lite Preview 06-17"
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Gemini 2.5 Flash Lite Preview 09-25"
-    },
-    {
-      "id": "gemini-2.5-flash-preview-04-17",
-      "name": "Gemini 2.5 Flash Preview 04-17"
-    },
-    {
-      "id": "gemini-2.5-flash-preview-05-20",
-      "name": "Gemini 2.5 Flash Preview 05-20"
-    },
-    {
-      "id": "gemini-2.5-flash-preview-09-2025",
-      "name": "Gemini 2.5 Flash Preview 09-25"
+      "name": "Gemini 2.5 Flash-Lite"
     },
     {
       "id": "gemini-2.5-pro",
       "name": "Gemini 2.5 Pro"
-    },
-    {
-      "id": "gemini-2.5-pro-preview-05-06",
-      "name": "Gemini 2.5 Pro Preview 05-06"
-    },
-    {
-      "id": "gemini-2.5-pro-preview-06-05",
-      "name": "Gemini 2.5 Pro Preview 06-05"
     },
     {
       "id": "gemini-3-flash-preview",
@@ -4715,6 +4781,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini 3.1 Pro Preview Custom Tools"
     },
     {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
+    },
+    {
       "id": "gemini-flash-latest",
       "name": "Gemini Flash Latest"
     },
@@ -4723,24 +4793,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini Flash-Lite Latest"
     },
     {
-      "id": "gemini-live-2.5-flash",
-      "name": "Gemini Live 2.5 Flash"
-    },
-    {
-      "id": "gemini-live-2.5-flash-preview-native-audio",
-      "name": "Gemini Live 2.5 Flash Preview Native Audio"
-    },
-    {
-      "id": "gemma-3-27b-it",
-      "name": "Gemma 3 27B"
-    },
-    {
       "id": "gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B"
+      "name": "Gemma 4 26B A4B IT"
     },
     {
       "id": "gemma-4-31b-it",
-      "name": "Gemma 4 31B"
+      "name": "Gemma 4 31B IT"
     },
     {
       "id": "google/gemini-2.0-flash-001",
@@ -4793,6 +4851,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "google/gemini-3.1-pro-preview-customtools",
       "name": "Google: Gemini 3.1 Pro Preview Custom Tools"
+    },
+    {
+      "id": "google/gemini-3.5-flash",
+      "name": "Google: Gemini 3.5 Flash"
     },
     {
       "id": "google/gemma-3-12b-it",
@@ -4882,47 +4944,27 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash Lite"
+      "name": "Gemini 2.0 Flash-Lite"
     },
     {
       "id": "gemini-2.5-flash",
       "name": "Gemini 2.5 Flash"
     },
     {
-      "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite"
-    },
-    {
       "id": "gemini-2.5-flash-lite-preview-06-17",
       "name": "Gemini 2.5 Flash Lite Preview 06-17"
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Gemini 2.5 Flash Lite Preview 09-25"
-    },
-    {
-      "id": "gemini-2.5-flash-preview-04-17",
-      "name": "Gemini 2.5 Flash Preview 04-17"
-    },
-    {
-      "id": "gemini-2.5-flash-preview-05-20",
-      "name": "Gemini 2.5 Flash Preview 05-20"
     },
     {
       "id": "gemini-2.5-flash-preview-09-2025",
       "name": "Gemini 2.5 Flash Preview 09-25"
     },
     {
+      "id": "gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash-Lite"
+    },
+    {
       "id": "gemini-2.5-pro",
       "name": "Gemini 2.5 Pro"
-    },
-    {
-      "id": "gemini-2.5-pro-preview-05-06",
-      "name": "Gemini 2.5 Pro Preview 05-06"
-    },
-    {
-      "id": "gemini-2.5-pro-preview-06-05",
-      "name": "Gemini 2.5 Pro Preview 06-05"
     },
     {
       "id": "gemini-3-flash-preview",
@@ -5575,6 +5617,24 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "mercury-2",
       "name": "Mercury 2"
+    }
+  ],
+  "inceptron": [
+    {
+      "id": "zai-org/GLM-5.1-FP8",
+      "name": "GLM 5.1"
+    },
+    {
+      "id": "moonshotai/Kimi-K2.6",
+      "name": "Kimi K2.6"
+    },
+    {
+      "id": "nvidia/llama-3.3-70b-instruct-fp8",
+      "name": "Llama 3.3 70B Instruct"
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M2.5",
+      "name": "MiniMax M2.5"
     }
   ],
   "inclusionai": [
@@ -7140,7 +7200,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash Lite"
+      "name": "Gemini 2.0 Flash-Lite"
     },
     {
       "id": "gemini-2.5-flash",
@@ -7148,11 +7208,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite"
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Gemini 2.5 Flash Lite Preview 09-25"
+      "name": "Gemini 2.5 Flash-Lite"
     },
     {
       "id": "gemini-2.5-pro",
@@ -7173,6 +7229,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gemini-3.1-pro-preview",
       "name": "Gemini 3.1 Pro Preview"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
     },
     {
       "id": "gemini-pro-latest",
@@ -7367,11 +7427,19 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Grok 4.1 Fast Reasoning"
     },
     {
+      "id": "grok-4-20-non-reasoning",
+      "name": "Grok 4.20 (Non-Reasoning)"
+    },
+    {
       "id": "grok-4-20-beta-0309-non-reasoning",
       "name": "Grok 4.20 (Non-Reasoning)"
     },
     {
       "id": "grok-4-20-beta-0309-reasoning",
+      "name": "Grok 4.20 (Reasoning)"
+    },
+    {
+      "id": "grok-4-20-reasoning",
       "name": "Grok 4.20 (Reasoning)"
     },
     {
@@ -7645,6 +7713,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "qwen3.6-plus",
       "name": "Qwen3.6 Plus"
+    },
+    {
+      "id": "qwen37-max",
+      "name": "Qwen3.7 Max"
     },
     {
       "id": "qwq-plus",
@@ -8702,7 +8774,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite"
+      "name": "Gemini 2.5 Flash-Lite"
     },
     {
       "id": "google/gemini-2.5-pro",
@@ -9107,15 +9179,15 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Kimi K2.6"
     },
     {
-      "id": "sao10k/l3-70b-euryale-v2.1",
+      "id": "sao10K/l3-70b-euryale-v2.1",
       "name": "L3 70B Euryale V2.1\t"
     },
     {
-      "id": "Sao10K/L3-8B-Stheno-v3.2",
+      "id": "sao10K/L3-8B-stheno-v3.2",
       "name": "L3 8B Stheno V3.2"
     },
     {
-      "id": "sao10k/l31-70b-euryale-v2.2",
+      "id": "sao10K/l31-70b-euryale-v2.2",
       "name": "L31 70B Euryale V2.2"
     },
     {
@@ -10079,6 +10151,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini 3.1 Pro Preview"
     },
     {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
+    },
+    {
       "id": "glm-4.6",
       "name": "GLM-4.6"
     },
@@ -10169,6 +10245,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gpt-5.5-pro",
       "name": "GPT-5.5 Pro"
+    },
+    {
+      "id": "grok-build-0.1",
+      "name": "Grok Build 0.1"
     },
     {
       "id": "grok-code",
@@ -10344,7 +10424,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "anthropic/claude-haiku-4.5",
-      "name": "Claude Haiku 4.5"
+      "name": "Claude Haiku 4.5 (latest)"
     },
     {
       "id": "anthropic/claude-opus-4",
@@ -10352,11 +10432,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "anthropic/claude-opus-4.1",
-      "name": "Claude Opus 4.1"
+      "name": "Claude Opus 4.1 (latest)"
     },
     {
       "id": "anthropic/claude-opus-4.5",
-      "name": "Claude Opus 4.5"
+      "name": "Claude Opus 4.5 (latest)"
     },
     {
       "id": "anthropic/claude-opus-4.6",
@@ -10384,7 +10464,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "anthropic/claude-sonnet-4.5",
-      "name": "Claude Sonnet 4.5"
+      "name": "Claude Sonnet 4.5 (latest)"
     },
     {
       "id": "anthropic/claude-sonnet-4.6",
@@ -10400,15 +10480,15 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "cohere/command-r-08-2024",
-      "name": "Command R (08-2024)"
+      "name": "Command R"
     },
     {
       "id": "cohere/command-r-plus-08-2024",
-      "name": "Command R+ (08-2024)"
+      "name": "Command R+"
     },
     {
       "id": "deepseek/deepseek-chat",
-      "name": "DeepSeek V3"
+      "name": "DeepSeek Chat"
     },
     {
       "id": "deepseek/deepseek-chat-v3-0324",
@@ -10448,7 +10528,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "mistralai/devstral-2512",
-      "name": "Devstral 2 2512"
+      "name": "Devstral 2"
     },
     {
       "id": "mistralai/devstral-medium",
@@ -10483,12 +10563,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini 2.5 Flash"
     },
     {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite"
-    },
-    {
       "id": "google/gemini-2.5-flash-lite-preview-09-2025",
       "name": "Gemini 2.5 Flash Lite Preview 09-2025"
+    },
+    {
+      "id": "google/gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash-Lite"
     },
     {
       "id": "google/gemini-2.5-pro",
@@ -10523,6 +10603,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini 3.1 Pro Preview Custom Tools"
     },
     {
+      "id": "google/gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
+    },
+    {
       "id": "google/gemma-3-12b-it",
       "name": "Gemma 3 12B"
     },
@@ -10531,72 +10615,72 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemma 3 27B"
     },
     {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B "
-    },
-    {
       "id": "google/gemma-4-26b-a4b-it:free",
       "name": "Gemma 4 26B A4B  (free)"
     },
     {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B"
+      "id": "google/gemma-4-26b-a4b-it",
+      "name": "Gemma 4 26B A4B IT"
     },
     {
       "id": "google/gemma-4-31b-it:free",
       "name": "Gemma 4 31B (free)"
     },
     {
+      "id": "google/gemma-4-31b-it",
+      "name": "Gemma 4 31B IT"
+    },
+    {
       "id": "z-ai/glm-4-32b",
       "name": "GLM 4 32B "
-    },
-    {
-      "id": "z-ai/glm-4.5",
-      "name": "GLM 4.5"
-    },
-    {
-      "id": "z-ai/glm-4.5-air",
-      "name": "GLM 4.5 Air"
     },
     {
       "id": "z-ai/glm-4.5-air:free",
       "name": "GLM 4.5 Air (free)"
     },
     {
+      "id": "z-ai/glm-4.5",
+      "name": "GLM-4.5"
+    },
+    {
+      "id": "z-ai/glm-4.5-air",
+      "name": "GLM-4.5-Air"
+    },
+    {
       "id": "z-ai/glm-4.5v",
-      "name": "GLM 4.5V"
+      "name": "GLM-4.5V"
     },
     {
       "id": "z-ai/glm-4.6",
-      "name": "GLM 4.6"
+      "name": "GLM-4.6"
     },
     {
       "id": "z-ai/glm-4.6v",
-      "name": "GLM 4.6V"
+      "name": "GLM-4.6V"
     },
     {
       "id": "z-ai/glm-4.7",
-      "name": "GLM 4.7"
+      "name": "GLM-4.7"
     },
     {
       "id": "z-ai/glm-4.7-flash",
-      "name": "GLM 4.7 Flash"
+      "name": "GLM-4.7-Flash"
     },
     {
       "id": "z-ai/glm-5",
-      "name": "GLM 5"
+      "name": "GLM-5"
     },
     {
       "id": "z-ai/glm-5-turbo",
-      "name": "GLM 5 Turbo"
+      "name": "GLM-5-Turbo"
     },
     {
       "id": "z-ai/glm-5.1",
-      "name": "GLM 5.1"
+      "name": "GLM-5.1"
     },
     {
       "id": "z-ai/glm-5v-turbo",
-      "name": "GLM 5V Turbo"
+      "name": "GLM-5V-Turbo"
     },
     {
       "id": "~google/gemini-flash-latest",
@@ -10619,16 +10703,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT Chat Latest"
     },
     {
-      "id": "openai/gpt-3.5-turbo",
-      "name": "GPT-3.5 Turbo"
-    },
-    {
       "id": "openai/gpt-3.5-turbo-0613",
       "name": "GPT-3.5 Turbo (older v0613)"
     },
     {
       "id": "openai/gpt-3.5-turbo-16k",
       "name": "GPT-3.5 Turbo 16k"
+    },
+    {
+      "id": "openai/gpt-3.5-turbo",
+      "name": "GPT-3.5-turbo"
     },
     {
       "id": "openai/gpt-4",
@@ -10656,11 +10740,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 Mini"
+      "name": "GPT-4.1 mini"
     },
     {
       "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1 Nano"
+      "name": "GPT-4.1 nano"
     },
     {
       "id": "openai/gpt-4o",
@@ -10684,7 +10768,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o-mini"
+      "name": "GPT-4o mini"
     },
     {
       "id": "openai/gpt-4o-mini-2024-07-18",
@@ -10693,10 +10777,6 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "openai/gpt-5",
       "name": "GPT-5"
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5 Codex"
     },
     {
       "id": "openai/gpt-5-mini",
@@ -10711,6 +10791,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT-5 Pro"
     },
     {
+      "id": "openai/gpt-5-codex",
+      "name": "GPT-5-Codex"
+    },
+    {
       "id": "openai/gpt-5.1",
       "name": "GPT-5.1"
     },
@@ -10720,15 +10804,15 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1-Codex"
+      "name": "GPT-5.1 Codex"
     },
     {
       "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT-5.1-Codex-Max"
+      "name": "GPT-5.1 Codex Max"
     },
     {
       "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1-Codex-Mini"
+      "name": "GPT-5.1 Codex mini"
     },
     {
       "id": "openai/gpt-5.2",
@@ -10739,12 +10823,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT-5.2 Chat"
     },
     {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT-5.2 Pro"
+      "id": "openai/gpt-5.2-codex",
+      "name": "GPT-5.2 Codex"
     },
     {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2-Codex"
+      "id": "openai/gpt-5.2-pro",
+      "name": "GPT-5.2 Pro"
     },
     {
       "id": "openai/gpt-5.3-chat",
@@ -10752,7 +10836,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3-Codex"
+      "name": "GPT-5.3 Codex"
     },
     {
       "id": "openai/gpt-5.4",
@@ -10760,11 +10844,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4 Mini"
+      "name": "GPT-5.4 mini"
     },
     {
       "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4 Nano"
+      "name": "GPT-5.4 nano"
     },
     {
       "id": "openai/gpt-5.4-pro",
@@ -10809,6 +10893,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "x-ai/grok-4.3",
       "name": "Grok 4.3"
+    },
+    {
+      "id": "x-ai/grok-build-0.1",
+      "name": "Grok Build 0.1"
     },
     {
       "id": "tencent/hy3-preview",
@@ -10879,10 +10967,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Llama 3.1 Euryale 70B v2.2"
     },
     {
-      "id": "meta-llama/llama-3.3-70b-instruct",
-      "name": "Llama 3.3 70B Instruct"
-    },
-    {
       "id": "meta-llama/llama-3.3-70b-instruct:free",
       "name": "Llama 3.3 70B Instruct (free)"
     },
@@ -10893,6 +10977,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "meta-llama/llama-4-scout",
       "name": "Llama 4 Scout"
+    },
+    {
+      "id": "meta-llama/llama-3.3-70b-instruct",
+      "name": "Llama-3.3-70B-Instruct"
     },
     {
       "id": "inception/mercury-2",
@@ -10923,24 +11011,24 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "MiniMax M1"
     },
     {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax M2"
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax M2.1"
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5"
-    },
-    {
       "id": "minimax/minimax-m2.5:free",
       "name": "MiniMax M2.5 (free)"
     },
     {
+      "id": "minimax/minimax-m2",
+      "name": "MiniMax-M2"
+    },
+    {
+      "id": "minimax/minimax-m2.1",
+      "name": "MiniMax-M2.1"
+    },
+    {
+      "id": "minimax/minimax-m2.5",
+      "name": "MiniMax-M2.5"
+    },
+    {
       "id": "minimax/minimax-m2.7",
-      "name": "MiniMax M2.7"
+      "name": "MiniMax-M2.7"
     },
     {
       "id": "mistralai/ministral-14b-2512",
@@ -10959,16 +11047,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Mistral Large"
     },
     {
+      "id": "mistralai/mistral-large-2411",
+      "name": "Mistral Large 2.1"
+    },
+    {
       "id": "mistralai/mistral-large-2407",
       "name": "Mistral Large 2407"
     },
     {
-      "id": "mistralai/mistral-large-2411",
-      "name": "Mistral Large 2411"
-    },
-    {
       "id": "mistralai/mistral-large-2512",
-      "name": "Mistral Large 3 2512"
+      "name": "Mistral Large 3"
     },
     {
       "id": "mistralai/mistral-medium-3",
@@ -11063,32 +11151,32 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "o3"
     },
     {
-      "id": "openai/o3-deep-research",
-      "name": "o3 Deep Research"
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3 Mini"
-    },
-    {
       "id": "openai/o3-mini-high",
       "name": "o3 Mini High"
     },
     {
+      "id": "openai/o3-deep-research",
+      "name": "o3-deep-research"
+    },
+    {
+      "id": "openai/o3-mini",
+      "name": "o3-mini"
+    },
+    {
       "id": "openai/o3-pro",
-      "name": "o3 Pro"
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4 Mini"
-    },
-    {
-      "id": "openai/o4-mini-deep-research",
-      "name": "o4 Mini Deep Research"
+      "name": "o3-pro"
     },
     {
       "id": "openai/o4-mini-high",
       "name": "o4 Mini High"
+    },
+    {
+      "id": "openai/o4-mini",
+      "name": "o4-mini"
+    },
+    {
+      "id": "openai/o4-mini-deep-research",
+      "name": "o4-mini-deep-research"
     },
     {
       "id": "~openai/gpt-latest",
@@ -11287,6 +11375,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.6 Plus"
     },
     {
+      "id": "qwen/qwen3.7-max",
+      "name": "Qwen3.7 Max"
+    },
+    {
       "id": "deepseek/deepseek-r1",
       "name": "R1"
     },
@@ -11345,10 +11437,6 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "alibaba/tongyi-deepresearch-30b-a3b",
       "name": "Tongyi DeepResearch 30B A3B"
-    },
-    {
-      "id": "arcee-ai/trinity-large-preview",
-      "name": "Trinity Large Preview"
     },
     {
       "id": "arcee-ai/trinity-large-thinking",
@@ -11434,7 +11522,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite"
+      "name": "Gemini 2.5 Flash-Lite"
     },
     {
       "id": "google/gemini-2.5-pro",
@@ -11470,11 +11558,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B"
+      "name": "Gemma 4 26B A4B IT"
     },
     {
       "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B"
+      "name": "Gemma 4 31B IT"
     },
     {
       "id": "z-ai/glm-4.5",
@@ -11937,6 +12025,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "google/gemini-3.1-pro",
       "name": "Gemini-3.1-Pro"
+    },
+    {
+      "id": "google/gemini-3.5-flash",
+      "name": "Gemini-3.5-Flash"
     },
     {
       "id": "google/gemini-deep-research",
@@ -12911,6 +13003,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen: Qwen3.6 Plus"
     },
     {
+      "id": "qwen/qwen3.7-max",
+      "name": "Qwen: Qwen3.7 Max"
+    },
+    {
       "id": "qwen/qwen-2.5-72b-instruct",
       "name": "Qwen2.5 72B Instruct"
     }
@@ -13119,6 +13215,104 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "o4 Mini"
     }
   ],
+  "routing-run": [
+    {
+      "id": "route/deepseek-v3.2",
+      "name": "DeepSeek V3.2"
+    },
+    {
+      "id": "route/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash"
+    },
+    {
+      "id": "route/deepseek-v4-flash-6bit",
+      "name": "DeepSeek V4 Flash 6bit"
+    },
+    {
+      "id": "route/deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro"
+    },
+    {
+      "id": "route/deepseek-v4-pro-6bit",
+      "name": "DeepSeek V4 Pro 6bit"
+    },
+    {
+      "id": "route/gemma-4-31b-it",
+      "name": "Gemma 4 31B IT"
+    },
+    {
+      "id": "route/glm-5.1",
+      "name": "GLM 5.1"
+    },
+    {
+      "id": "route/glm-5.1-6bit",
+      "name": "GLM 5.1 6bit"
+    },
+    {
+      "id": "route/kimi-k2.5",
+      "name": "Kimi K2.5"
+    },
+    {
+      "id": "route/kimi-k2.6",
+      "name": "Kimi K2.6"
+    },
+    {
+      "id": "route/kimi-k2.6-6bit",
+      "name": "Kimi K2.6 6bit"
+    },
+    {
+      "id": "route/mimo-v2.5-pro",
+      "name": "MiMo V2.5 Pro"
+    },
+    {
+      "id": "route/mimo-v2.5-pro-6bit",
+      "name": "MiMo V2.5 Pro 6bit"
+    },
+    {
+      "id": "route/minimax-m2.5",
+      "name": "MiniMax M2.5"
+    },
+    {
+      "id": "route/minimax-m2.5-highspeed",
+      "name": "MiniMax M2.5 Highspeed"
+    },
+    {
+      "id": "route/minimax-m2.7",
+      "name": "MiniMax M2.7"
+    },
+    {
+      "id": "route/minimax-m2.7-highspeed",
+      "name": "MiniMax M2.7 Highspeed"
+    },
+    {
+      "id": "route/mistral-large-3",
+      "name": "Mistral Large 3"
+    },
+    {
+      "id": "route/mistral-medium-2505",
+      "name": "Mistral Medium 2505"
+    },
+    {
+      "id": "route/mistral-small-2503",
+      "name": "Mistral Small 2503"
+    },
+    {
+      "id": "route/qwen3.6-27b",
+      "name": "Qwen3.6 27B"
+    },
+    {
+      "id": "route/step-3.5-flash",
+      "name": "Step 3.5 Flash"
+    },
+    {
+      "id": "route/step-3.5-flash-2603",
+      "name": "Step 3.5 Flash 2603"
+    },
+    {
+      "id": "route/stepfun-3.5-flash",
+      "name": "StepFun 3.5 Flash"
+    }
+  ],
   "sao10k": [
     {
       "id": "sao10k/l3-euryale-70b",
@@ -13213,6 +13407,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gpt-5-nano",
       "name": "gpt-5-nano"
+    },
+    {
+      "id": "gpt-5.4",
+      "name": "gpt-5.4"
     }
   ],
   "sarvam": [
@@ -13249,6 +13447,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "llama-3.3-70b-instruct",
       "name": "Llama-3.3-70B-Instruct"
+    },
+    {
+      "id": "mistral-medium-3.5-128b",
+      "name": "Mistral Medium 3.5 128B"
     },
     {
       "id": "mistral-nemo-instruct-2407",
@@ -13939,6 +14141,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "StepFun: Step 3.5 Flash"
     }
   ],
+  "stepfun-ai": [
+    {
+      "id": "step-3.5-flash",
+      "name": "Step 3.5 Flash"
+    },
+    {
+      "id": "step-3.5-flash-2603",
+      "name": "Step 3.5 Flash 2603"
+    }
+  ],
   "submodel": [
     {
       "id": "deepseek-ai/DeepSeek-R1-0528",
@@ -14155,6 +14367,30 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "the-grid-ai": [
     {
+      "id": "agent-max",
+      "name": "Agent Max"
+    },
+    {
+      "id": "agent-prime",
+      "name": "Agent Prime"
+    },
+    {
+      "id": "agent-standard",
+      "name": "Agent Standard"
+    },
+    {
+      "id": "code-max",
+      "name": "Code Max"
+    },
+    {
+      "id": "code-prime",
+      "name": "Code Prime"
+    },
+    {
+      "id": "code-standard",
+      "name": "Code Standard"
+    },
+    {
       "id": "text-max",
       "name": "Text Max"
     },
@@ -14241,6 +14477,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "Qwen/Qwen3.6-Plus",
       "name": "Qwen3.6 Plus"
+    },
+    {
+      "id": "Qwen/Qwen3.7-Max",
+      "name": "Qwen3.7 Max"
     },
     {
       "id": "essentialai/Rnj-1-Instruct",
@@ -14439,16 +14679,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT-5.5 Pro"
     },
     {
-      "id": "grok-41-fast",
-      "name": "Grok 4.1 Fast"
-    },
-    {
       "id": "grok-4-20",
       "name": "Grok 4.20"
     },
     {
       "id": "grok-4-3",
       "name": "Grok 4.3"
+    },
+    {
+      "id": "grok-build-0-1",
+      "name": "Grok Build 0.1"
     },
     {
       "id": "kimi-k2-5",
@@ -14674,7 +14914,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "google/gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash Lite"
+      "name": "Gemini 2.0 Flash-Lite"
     },
     {
       "id": "google/gemini-2.5-flash",
@@ -14715,6 +14955,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "google/gemini-3.1-pro-preview",
       "name": "Gemini 3.1 Pro Preview"
+    },
+    {
+      "id": "google/gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
     },
     {
       "id": "google/gemma-4-26b-a4b-it",
@@ -14905,10 +15149,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "gpt-oss-safeguard-20b"
     },
     {
-      "id": "xai/grok-2-vision",
-      "name": "Grok 2 Vision"
-    },
-    {
       "id": "xai/grok-4-fast-reasoning",
       "name": "Grok 4 Fast Reasoning"
     },
@@ -14947,6 +15187,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "xai/grok-4.3",
       "name": "Grok 4.3"
+    },
+    {
+      "id": "xai/grok-build-0.1",
+      "name": "Grok Build 0.1"
     },
     {
       "id": "prime-intellect/intellect-3",
@@ -15089,6 +15333,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Mistral Medium 3.1"
     },
     {
+      "id": "mistral/mistral-medium-3.5",
+      "name": "Mistral Medium Latest"
+    },
+    {
       "id": "mistral/mistral-nemo",
       "name": "Mistral Nemo"
     },
@@ -15183,6 +15431,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "alibaba/qwen3.6-plus",
       "name": "Qwen 3.6 Plus"
+    },
+    {
+      "id": "alibaba/qwen3.7-max",
+      "name": "Qwen 3.7 Max"
     },
     {
       "id": "alibaba/qwen-3-235b",
@@ -15437,33 +15689,13 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "x-ai/grok-4.3",
       "name": "xAI: Grok 4.3"
+    },
+    {
+      "id": "x-ai/grok-build-0.1",
+      "name": "xAI: Grok Build 0.1"
     }
   ],
   "xai": [
-    {
-      "id": "grok-2",
-      "name": "Grok 2"
-    },
-    {
-      "id": "grok-2-1212",
-      "name": "Grok 2 (1212)"
-    },
-    {
-      "id": "grok-2-latest",
-      "name": "Grok 2 Latest"
-    },
-    {
-      "id": "grok-2-vision",
-      "name": "Grok 2 Vision"
-    },
-    {
-      "id": "grok-2-vision-1212",
-      "name": "Grok 2 Vision (1212)"
-    },
-    {
-      "id": "grok-2-vision-latest",
-      "name": "Grok 2 Vision Latest"
-    },
     {
       "id": "grok-4.20-0309-non-reasoning",
       "name": "Grok 4.20 (Non-Reasoning)"
@@ -15477,12 +15709,8 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Grok 4.3"
     },
     {
-      "id": "grok-beta",
-      "name": "Grok Beta"
-    },
-    {
-      "id": "grok-vision-beta",
-      "name": "Grok Vision Beta"
+      "id": "grok-build-0.1",
+      "name": "Grok Build 0.1"
     }
   ],
   "xiaomi": [

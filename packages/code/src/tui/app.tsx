@@ -10,12 +10,14 @@ import { Tips } from "./tips.js"
 import { genId, getMessageBlocks } from "./utils.js"
 import type { ChatMessage, ContentBlock } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
+import { SnapshotManager } from "../services/snapshot-manager.js"
 import { readAll } from "../services/auth-store.js"
 import type { AssistantMessage, Message } from "@singularity-ai/spectra-ai"
 import { ProviderDialog } from "./ui/provider-dialog.js"
 import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
 import { ManageProvidersDialog } from "./ui/manage-providers-dialog.js"
+import { MessageControls } from "./ui/message-controls.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
 import { buildCmdItems } from "./commands.js"
@@ -88,6 +90,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [navKey, setNavKey] = useState(0)
   const [homeKey, setHomeKey] = useState(0)
   const [interruptKey, setInterruptKey] = useState(0)
+  const [msgControls, setMsgControls] = useState<ChatMessage | null>(null)
+  const [revertPoint, setRevertPoint] = useState<string | null>(null)
   const historyDraft = useRef("")
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
@@ -96,6 +100,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const lastModelRef = useRef<string | null>(null)
   const isStreamingRef = useRef(false)
   const loadedSessionMessages = useRef<Message[]>([])
+  const revertedMessagesRef = useRef<ChatMessage[]>([])
+  const revertedSdkMessagesRef = useRef<Message[]>([])
+  const revertDraftRef = useRef<string>("")
+  const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }))
+  const currentTurnStartRef = useRef<number | null>(null)
+  const currentTurnMsgIdRef = useRef<string | null>(null)
 
   const provider = selectedProvider
   const hasModel = selectedModel !== null && selectedProvider !== null
@@ -141,7 +151,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   }, [renderer])
 
   useKeyboard((key) => {
-    if (dialogStep) { dialogKeyHandler.current?.(key); return }
+    if (dialogStep || msgControls) { dialogKeyHandler.current?.(key); return }
     if (showCmd) {
       if (key.name === "escape" || (key.ctrl && key.name === "p")) { setShowCmd(false); return }
       if (key.name === "return" || key.name === "enter") { if (cmdFiltered.length > 0) { execCmd(cmdFiltered[cmdSelected]); return }; return }
@@ -152,10 +162,65 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       return
     }
     if (key.ctrl && key.name === "c") { renderer.destroy(); return }
+    if (key.ctrl && key.name === "y") {
+      if (revertPoint !== null && revertedMessagesRef.current.length > 0) {
+        // Restore UI messages
+        setMessages((prev) => [...prev, ...revertedMessagesRef.current])
+        // Restore session store
+        const sess = sessionStore.current.get(sessionId.current!)
+        if (sess) {
+          sess.messages = [...sess.messages, ...revertedSdkMessagesRef.current]
+          sessionStore.current.save(sess)
+          loadedSessionMessages.current = sess.messages
+        }
+        // Restore agent history
+        if (agentRef.current) {
+          agentRef.current.reset()
+          if (loadedSessionMessages.current.length > 0) {
+            agentRef.current.restoreHistory(loadedSessionMessages.current)
+          }
+        }
+        // Clear revert state
+        setRevertPoint(null)
+        revertDraftRef.current = ""
+        revertedMessagesRef.current = []
+        revertedSdkMessagesRef.current = []
+        // Clear prompt draft
+        setHistoryIdx(-1)
+        setNavKey((k) => k + 1)
+        showToast("Messages restored", "success")
+      }
+      return
+    }
+    if (key.ctrl && key.shift && key.name === "y") {
+      // File rollback: restore files to checkpoint state
+      if (revertPoint !== null) {
+        const result = snapshotManager.current.rollback("user requested file rollback")
+        if (result.restored > 0 || result.deleted > 0) {
+          showToast(`Files rolled back: ${result.restored} restored, ${result.deleted} deleted`, "success")
+        } else if (result.errors.length > 0) {
+          showToast(`Rollback errors: ${result.errors.map((e) => e.error).join(", ")}`, "warn")
+        } else {
+          showToast("No files to rollback", "info")
+        }
+      }
+      return
+    }
     if (key.name === "escape") {
       if (isStreamingRef.current) {
         if (interruptKey === 1) {
           agentRef.current?.abort()
+          const duration = Math.round(performance.now() - (currentTurnStartRef.current ?? 0))
+          // Mark current turn as interrupted
+          if (currentTurnMsgIdRef.current) {
+            updateMessage(currentTurnMsgIdRef.current, {
+              turnStatus: "interrupted",
+              streaming: false,
+              turnDurationMs: duration,
+            })
+          }
+          // Persist turn status + duration to session store so it survives reload
+          updateLastAssistantMeta({ turnStatus: "interrupted", turnDurationMs: duration })
           setInterruptKey(0)
           return
         }
@@ -163,7 +228,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         setTimeout(() => setInterruptKey(0), 3000)
         return
       }
-      renderer.destroy(); return
+      return
     }
     if (key.name === "up") {
       if (promptHistory.length === 0) return
@@ -223,12 +288,34 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     sessionStore.current.addMessage(sessionId.current, sdkMsg)
   }
 
+  function updateLastAssistantMeta(meta: Record<string, unknown>) {
+    if (!sessionId.current) return
+    const sess = sessionStore.current.get(sessionId.current)
+    if (!sess) return
+    for (let i = sess.messages.length - 1; i >= 0; i--) {
+      const msg = sess.messages[i]
+      if (msg.role === "assistant") {
+        msg.metadata = { ...msg.metadata, ...meta }
+        sessionStore.current.save(sess)
+        return
+      }
+    }
+  }
+
   const handleSubmit = useCallback(async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || isLoading) return
     if (!selectedModel || !provider) {
       showToast("Connect a provider to send prompts", "warn")
       setDialogStep({ type: "provider" }); return
+    }
+
+    // New message after revert permanently discards the reverted branch
+    if (revertPoint !== null) {
+      revertedMessagesRef.current = []
+      revertedSdkMessagesRef.current = []
+      revertDraftRef.current = ""
+      setRevertPoint(null)
     }
 
     setTokPerSec(null); setElapsedMs(null)
@@ -265,6 +352,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
     const start = performance.now()
     let currentAssistantId: string | null = null
+    currentTurnStartRef.current = start
 
     try {
       const agent = await getOrCreateAgent()
@@ -272,6 +360,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         if (ev.type === "message_start" && ev.message.role === "assistant") {
           const newId = genId()
           currentAssistantId = newId
+          currentTurnMsgIdRef.current = newId
           streamingIdRef.current = newId
           addMessage({ id: newId, role: "assistant", content: "", blocks: [], streaming: true, model: selectedModel })
         }
@@ -295,8 +384,23 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           const m = ev.message as AssistantMessage
           const blocks = getMessageBlocks(m)
           const textContent = blocks.filter((b): b is ContentBlock & { type: "text" } => b.type === "text").map((b) => b.content).join("\n")
-          updateMessage(currentAssistantId, { content: textContent, blocks, streaming: false })
-          persistMessage(m)
+          const duration = performance.now() - (currentTurnStartRef.current ?? start)
+          updateMessage(currentAssistantId, {
+            content: textContent,
+            blocks,
+            streaming: false,
+            turnTokens: { input: m.usage.input, output: m.usage.output },
+            turnDurationMs: Math.round(duration),
+          })
+          // Persist with turn metadata so it survives session reload
+          persistMessage({
+            ...m,
+            metadata: {
+              ...m.metadata,
+              turnDurationMs: Math.round(duration),
+              turnTokens: { input: m.usage.input, output: m.usage.output },
+            }
+          })
           const e = performance.now() - start; setElapsedMs(e)
           const ot = m.usage.output
           if (ot > 0 && e > 0) setTokPerSec(ot / (e / 1000))
@@ -305,6 +409,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           streamingIdRef.current = null
         }
         if (ev.type === "tool_execution_start") {
+          // Snapshot files before tool edits them (for checkpointing)
+          if (ev.args && typeof ev.args === "object") {
+            const args = ev.args as Record<string, unknown>
+            const filePath = (args.path || args.file_path || args.filePath) as string | undefined
+            if (filePath && typeof filePath === "string") {
+              snapshotManager.current.note(filePath)
+            }
+          }
           if (!shownToolCalls.current.has(ev.toolCallId)) {
             shownToolCalls.current.add(ev.toolCallId)
             toolArgsMap.current.set(ev.toolCallId, ev.args)
@@ -315,14 +427,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         }
         if (ev.type === "tool_execution_end") {
           const args = toolArgsMap.current.get(ev.toolCallId) || {}
-          const toolMsg: any = {
+          const toolMsg: Message = {
             role: "toolResult",
             toolCallId: ev.toolCallId,
             toolName: ev.toolName,
             content: ev.result?.content || [],
+            details: { args },
             isError: ev.isError || false,
             timestamp: Date.now(),
-            _args: args,
           }
           persistMessage(toolMsg)
           // Update the existing inline tool message with output
@@ -332,18 +444,38 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             updateMessage(tuiId, { content: toolOutput })
           }
         }
-        if (ev.type === "agent_end") setStatus("Ready")
+        if (ev.type === "agent_end") {
+          setStatus("Ready")
+          // Mark the turn as completed
+          if (currentTurnMsgIdRef.current) {
+            updateMessage(currentTurnMsgIdRef.current, { turnStatus: "completed" })
+          }
+          // Persist turn status to session store so it survives reload
+          updateLastAssistantMeta({ turnStatus: "completed" })
+        }
       }
     } catch (err) {
       const errId = currentAssistantId || genId()
       updateMessage(errId, { content: `Error: ${err instanceof Error ? err.message : String(err)}`, streaming: false, role: "error" })
+      // Mark the turn as errored if there was an assistant message
+      if (currentTurnMsgIdRef.current) {
+        updateMessage(currentTurnMsgIdRef.current, { turnStatus: "error", streaming: false })
+      }
+      // Persist turn status to session store so it survives reload
+      updateLastAssistantMeta({ turnStatus: "error" })
       setStatus("Error")
     } finally {
+      // Commit file checkpoint for this turn
+      if (snapshotManager.current.isActive()) {
+        snapshotManager.current.commit()
+      }
       setIsLoading(false); setSubmitKey((k) => k + 1); setInterruptKey(0)
       isStreamingRef.current = false
       streamingIdRef.current = null
+      currentTurnStartRef.current = null
+      currentTurnMsgIdRef.current = null
     }
-  }, [isLoading, selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent])
+  }, [isLoading, selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent, revertPoint])
 
   const cmdItems = useMemo(() => buildCmdItems({
     renderer, sessionStore: sessionStore.current, sessionIdRef: sessionId,
@@ -372,7 +504,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               placeholder={`Ask anything... "${PLACEHOLDERS[placeholderIdx]}"`}
               onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
-              initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
+              initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               width={Math.min(68, termWidth - 8)} />
             <box height={1} />
             <box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
@@ -406,15 +538,31 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         </box>
       ) : (
         <box flexDirection="column" height={termHeight} paddingLeft={2} paddingRight={2}>
+          {revertPoint && (
+            <box flexDirection="column" alignItems="center" paddingY={1}>
+              <box flexDirection="row">
+                <text fg={c.warn}>Messages reverted. </text>
+                <text fg={c.accent}>Ctrl+Y</text>
+                <text fg={c.dim}> to restore</text>
+              </box>
+              <box flexDirection="row">
+                <text fg={c.dim}>Files unchanged. </text>
+                <text fg={c.accent}>Ctrl+Shift+Y</text>
+                <text fg={c.dim}> to rollback files</text>
+              </box>
+            </box>
+          )}
           <box flexDirection="column" flexGrow={1} paddingBottom={1}>
-            <ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls} />
+            <ChatArea messages={messages} showThinking={showThinking} showToolCalls={showToolCalls}
+              revertPoint={revertPoint}
+              onMessageClick={(msg) => setMsgControls(msg)} />
           </box>
           <box flexShrink={0}>
             <PromptBar isLoading={isLoading} spinnerFrame={spinnerFrame}
               inputKey={`c-${submitKey}-${navKey}`}
               placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
-              initialValue={historyIdx >= 0 ? promptHistory[historyIdx] : ""}
+              initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
               isChatView={true} showInterruptHint={interruptKey === 1} />
           </box>
@@ -451,12 +599,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
                   return { type: "text" as const, content: "" }
                 }) : []
                 const textContent = blocks.filter((b: any) => b.type === "text").map((b: any) => b.content).join("\n")
-                return { id, role: "assistant" as const, content: textContent, blocks, model: m.model || data.model }
+                const metadata = m.metadata || {}
+                const turnTokens = metadata.turnTokens || (m.usage ? { input: m.usage.input || 0, output: m.usage.output || 0 } : undefined)
+                return {
+                  id, role: "assistant" as const, content: textContent, blocks,
+                  model: m.model || data.model,
+                  turnStatus: metadata.turnStatus as "completed" | "interrupted" | "error" | undefined,
+                  turnDurationMs: metadata.turnDurationMs as number | undefined,
+                  turnTokens,
+                }
               }
               // Tool result message
               if (m.role === "toolResult") {
                 const toolOutput = m.content?.[0]?.text || ""
-                const args = m._args || {}
+                const args = (m as any).details?.args || {}
                 const meta = `${m.toolName}(${JSON.stringify(args)})`
                 return { id, role: "tool" as const, content: toolOutput, meta }
               }
@@ -525,6 +681,161 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             showToast("Providers updated", "success")
           }}
           onClose={() => setDialogStep(null)}
+          registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      {msgControls && sessionId.current && (
+        <MessageControls
+          message={msgControls}
+          sessionId={sessionId.current}
+          messages={messages}
+          termWidth={termWidth}
+          termHeight={termHeight}
+          revertPoint={revertPoint}
+          onRevert={(msgId) => {
+            const msgIdx = messages.findIndex(m => m.id === msgId)
+            if (msgIdx < 0) { setMsgControls(null); return }
+
+            // Walk back to find the target user message
+            let targetIdx = msgIdx
+            while (targetIdx >= 0 && messages[targetIdx].role !== "user") {
+              targetIdx--
+            }
+            if (targetIdx < 0) {
+              showToast("Cannot revert: no user message found", "warn")
+              setMsgControls(null)
+              return
+            }
+
+            // Discard any previous reverted branch (chained revert)
+            const targetMsg = messages[targetIdx]
+            const keptMessages = messages.slice(0, targetIdx)
+            const removedMessages = messages.slice(targetIdx)
+
+            // Store for potential redo
+            revertedMessagesRef.current = removedMessages
+            setRevertPoint(targetMsg.id)
+            revertDraftRef.current = targetMsg.content
+
+            // Update UI
+            setMessages(keptMessages)
+
+            // Update session store
+            const sess = sessionStore.current.get(sessionId.current!)
+            if (sess) {
+              const keptSdkMessages = sess.messages.slice(0, targetIdx)
+              revertedSdkMessagesRef.current = sess.messages.slice(targetIdx)
+              sess.messages = keptSdkMessages
+              sessionStore.current.save(sess)
+              loadedSessionMessages.current = keptSdkMessages
+            }
+
+            // Reset agent history to the kept messages
+            if (agentRef.current) {
+              agentRef.current.reset()
+              if (loadedSessionMessages.current.length > 0) {
+                agentRef.current.restoreHistory(loadedSessionMessages.current)
+              }
+            }
+
+            // Reset prompt state and force re-render with revert draft
+            setHistoryIdx(-1)
+            setNavKey((k) => k + 1)
+
+            showToast("Reverted — Ctrl+Y to redo", "success")
+            setMsgControls(null)
+          }}
+          onRedo={() => {
+            if (revertedMessagesRef.current.length === 0) {
+              setMsgControls(null)
+              return
+            }
+
+            // Restore UI messages
+            setMessages((prev) => [...prev, ...revertedMessagesRef.current])
+
+            // Restore session store
+            const sess = sessionStore.current.get(sessionId.current!)
+            if (sess) {
+              sess.messages = [...sess.messages, ...revertedSdkMessagesRef.current]
+              sessionStore.current.save(sess)
+              loadedSessionMessages.current = sess.messages
+            }
+
+            // Restore agent history
+            if (agentRef.current) {
+              agentRef.current.reset()
+              if (loadedSessionMessages.current.length > 0) {
+                agentRef.current.restoreHistory(loadedSessionMessages.current)
+              }
+            }
+
+            // Clear revert state
+            setRevertPoint(null)
+            revertDraftRef.current = ""
+            revertedMessagesRef.current = []
+            revertedSdkMessagesRef.current = []
+
+            // Clear prompt draft
+            setHistoryIdx(-1)
+            setNavKey((k) => k + 1)
+
+            showToast("Messages restored", "success")
+            setMsgControls(null)
+          }}
+          onFork={(msgId) => {
+            const forked = sessionStore.current.fork(sessionId.current!)
+            if (forked) {
+              // Trim forked session to the selected message
+              const msgIdx = messages.findIndex(m => m.id === msgId)
+              if (msgIdx >= 0) {
+                forked.messages = forked.messages.slice(0, msgIdx + 1)
+                forked.title = `${forked.title.split(" (fork)")[0]} (fork)`
+                sessionStore.current.save(forked)
+              }
+              // Load the forked session
+              const data = sessionStore.current.get(forked.id)
+              if (data) {
+                const loadedMsgs: ChatMessage[] = data.messages.map((m: any) => {
+                  const id = genId()
+                  if (m.role === "user") {
+                    return { id, role: "user" as const, content: typeof m.content === "string" ? m.content : "", model: data.model }
+                  }
+                  if (m.role === "assistant") {
+                    const blocks = Array.isArray(m.content) ? m.content.map((c: any) => {
+                      if (c.type === "text") return { type: "text" as const, content: c.text || "" }
+                      if (c.type === "thinking") return { type: "thinking" as const, content: c.thinking || c.content || "" }
+                      if (c.type === "toolCall") return { type: "toolCall" as const, name: c.name || "", args: JSON.stringify(c.arguments || {}) }
+                      return { type: "text" as const, content: "" }
+                    }) : []
+                    const textContent = blocks.filter((b: any) => b.type === "text").map((b: any) => b.content).join("\n")
+                    const metadata = m.metadata || {}
+                    const turnTokens = metadata.turnTokens || (m.usage ? { input: m.usage.input || 0, output: m.usage.output || 0 } : undefined)
+                    return {
+                      id, role: "assistant" as const, content: textContent, blocks,
+                      model: m.model || data.model,
+                      turnStatus: metadata.turnStatus as "completed" | "interrupted" | "error" | undefined,
+                      turnDurationMs: metadata.turnDurationMs as number | undefined,
+                      turnTokens,
+                    }
+                  }
+                  if (m.role === "toolResult") {
+                    const toolOutput = m.content?.[0]?.text || ""
+                    const args = (m as any).details?.args || {}
+                    const meta = `${m.toolName}(${JSON.stringify(args)})`
+                    return { id, role: "tool" as const, content: toolOutput, meta }
+                  }
+                  return { id, role: "user" as const, content: "", model: data.model }
+                })
+                setMessages(loadedMsgs)
+                sessionId.current = forked.id
+                loadedSessionMessages.current = data.messages as unknown as Message[]
+                showToast("Session forked", "success")
+              }
+            }
+            setMsgControls(null)
+          }}
+          onClose={() => setMsgControls(null)}
           registerHandler={(fn) => { dialogKeyHandler.current = fn }}
         />
       )}

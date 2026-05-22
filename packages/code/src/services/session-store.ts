@@ -15,6 +15,18 @@ export interface SessionInfo {
   directory: string;
 }
 
+export interface SessionCheckpoint {
+  id: string;
+  turnIndex: number; // Index into messages array where this checkpoint starts
+  timestamp: number;
+  label: string;
+}
+
+export interface SessionRevert {
+  messageIndex: number; // Revert to before this message index
+  checkpointId?: string; // Associated file checkpoint, if any
+}
+
 export interface SessionData {
   id: string;
   title: string;
@@ -25,6 +37,10 @@ export interface SessionData {
   updated: number;
   directory: string;
   messages: Message[];
+  /** Soft-delete state: hide messages at/after messageIndex */
+  revert?: SessionRevert;
+  /** File checkpoint history */
+  checkpoints?: SessionCheckpoint[];
 }
 
 export class SessionStore {
@@ -152,5 +168,48 @@ export class SessionStore {
     }
     this.save(session);
     return session;
+  }
+
+  // ─── Revert State ──────────────────────────────────────────────────────
+
+  setRevert(sessionId: string, messageIndex: number, checkpointId?: string): SessionData | null {
+    const session = this.get(sessionId);
+    if (!session) return null;
+    session.revert = { messageIndex, checkpointId };
+    session.updated = Date.now();
+    this.save(session);
+    return session;
+  }
+
+  clearRevert(sessionId: string): SessionData | null {
+    const session = this.get(sessionId);
+    if (!session) return null;
+    delete session.revert;
+    session.updated = Date.now();
+    this.save(session);
+    return session;
+  }
+
+  // ─── Checkpoints ───────────────────────────────────────────────────────
+
+  addCheckpoint(sessionId: string, turnIndex: number, label: string, checkpointId: string): SessionData | null {
+    const session = this.get(sessionId);
+    if (!session) return null;
+    if (!session.checkpoints) session.checkpoints = [];
+    session.checkpoints.push({ id: checkpointId, turnIndex, timestamp: Date.now(), label });
+    session.updated = Date.now();
+    this.save(session);
+    return session;
+  }
+
+  getCheckpoint(sessionId: string, checkpointId: string): SessionCheckpoint | undefined {
+    const session = this.get(sessionId);
+    if (!session?.checkpoints) return undefined;
+    return session.checkpoints.find((cp) => cp.id === checkpointId);
+  }
+
+  getCheckpoints(sessionId: string): SessionCheckpoint[] {
+    const session = this.get(sessionId);
+    return session?.checkpoints || [];
   }
 }

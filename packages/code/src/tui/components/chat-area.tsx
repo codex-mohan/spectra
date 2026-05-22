@@ -2,7 +2,7 @@ import { c } from "../theme.js"
 import { MessageView } from "./message.js"
 import type { ChatMessage } from "../types.js"
 
-export function ChatArea({ messages, showThinking = true, showToolCalls = true }: { messages: ChatMessage[]; showThinking?: boolean; showToolCalls?: boolean }) {
+export function ChatArea({ messages, showThinking = true, showToolCalls = true, revertPoint, onMessageClick }: { messages: ChatMessage[]; showThinking?: boolean; showToolCalls?: boolean; revertPoint?: string | null; onMessageClick?: (msg: ChatMessage) => void }) {
   const visible = messages.filter((msg) => {
     if (msg.role === "assistant" && !showThinking) {
       return !msg.blocks?.some((b) => b.type === "thinking") || msg.blocks.every((b) => b.type !== "thinking")
@@ -24,7 +24,9 @@ export function ChatArea({ messages, showThinking = true, showToolCalls = true }
             <text fg={c.dim}>Type below to start chatting</text>
           </box>
         ) : visible.map((msg, i) => (
-          <MessageView key={msg.id} msg={msg} showThinking={showThinking} isFirst={i === 0} />
+          <MessageView key={msg.id} msg={msg} showThinking={showThinking} isFirst={i === 0}
+            isRevertPoint={msg.id === revertPoint}
+            onClick={msg.role === "user" ? () => onMessageClick?.(msg) : undefined} />
         ))}
       </scrollbox>
     </box>

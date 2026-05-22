@@ -11,4 +11,10 @@ export interface ChatMessage {
   meta?: string
   streaming?: boolean
   model?: string
+  /** Turn status — set when the assistant turn completes/interrupts/errors */
+  turnStatus?: "completed" | "interrupted" | "error"
+  /** Turn duration in milliseconds */
+  turnDurationMs?: number
+  /** Token usage for this turn */
+  turnTokens?: { input: number; output: number }
 }

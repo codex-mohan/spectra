@@ -45,20 +45,41 @@ function TruncatedContent(props: { text: string; maxLines: number }) {
   )
 }
 
-export function MessageView({ msg, showThinking = true, isFirst = false }: { msg: ChatMessage; showThinking?: boolean; isFirst?: boolean }) {
+export function MessageView({ msg, showThinking = true, isFirst = false, isRevertPoint = false, onClick }: { msg: ChatMessage; showThinking?: boolean; isFirst?: boolean; isRevertPoint?: boolean; onClick?: () => void }) {
   const mt = isFirst ? 0 : 1
 
   if (msg.role === "user") {
     return (
       <box flexDirection="column" marginTop={mt} backgroundColor={c.bg}
-        border={["left"]} customBorderChars={SB} borderColor={c.user} paddingLeft={2} paddingRight={1}>
+        border={["left"]} customBorderChars={SB} borderColor={isRevertPoint ? c.warn : c.user} paddingLeft={2} paddingRight={1}
+        onMouseUp={onClick}>
         <text fg={c.user} attributes={1}>You</text>
         <text fg={c.text}>{msg.content}</text>
+        {isRevertPoint && (
+          <box flexDirection="row" marginTop={1} gap={1}>
+            <text fg={c.warn}>⎌</text>
+            <text fg={c.dim}>Messages after this point were reverted</text>
+          </box>
+        )}
       </box>
     )
   }
 
   if (msg.role === "assistant") {
+    // Build turn footer: agent · model · duration · status
+    const agentName = "build" // TODO: pass agent name through props if needed
+    const showFooter = !msg.streaming && (msg.turnStatus || msg.turnTokens)
+    const isInterrupted = msg.turnStatus === "interrupted"
+    const isError = msg.turnStatus === "error"
+    const durationStr = msg.turnDurationMs && msg.turnDurationMs > 1000
+      ? `${(msg.turnDurationMs / 1000).toFixed(1)}s`
+      : msg.turnDurationMs
+        ? `${msg.turnDurationMs}ms`
+        : null
+    const tokensStr = msg.turnTokens
+      ? `↑${msg.turnTokens.input} ↓${msg.turnTokens.output}`
+      : null
+
     return (
       <box flexDirection="column" marginTop={mt}>
         {msg.blocks && msg.blocks.length === 0 && msg.streaming ? (
@@ -84,7 +105,27 @@ export function MessageView({ msg, showThinking = true, isFirst = false }: { msg
             })()}
           </box>
         ) : (
-          <text fg={c.text} paddingLeft={3}>{msg.content}</text>
+          <text fg={isInterrupted ? c.dim : c.text} paddingLeft={3}>{msg.content}</text>
+        )}
+        {showFooter && (
+          <box flexDirection="column" paddingLeft={3} marginTop={1}>
+            {/* Separator line for interrupted/error turns */}
+            {(isInterrupted || isError) && (
+              <box height={1} flexDirection="row" gap={0} marginBottom={1}>
+                <text fg={isInterrupted ? c.warn : c.error}>{"─".repeat(3)}</text>
+                <text fg={isInterrupted ? c.warn : c.error}> {isInterrupted ? "⊘ interrupted" : "✖ error"} </text>
+                <text fg={isInterrupted ? c.warn : c.error}>{"─".repeat(Math.max(4, 32 - 14))}</text>
+              </box>
+            )}
+            <box flexDirection="row" gap={1}>
+              <text fg={c.accent}>▣</text>
+              <text fg={c.text}>{agentName}</text>
+              {msg.model && <text fg={c.dim}>· {msg.model}</text>}
+              {durationStr && <text fg={c.dim}>· {durationStr}</text>}
+              {tokensStr && <text fg={c.dim}>· {tokensStr}</text>}
+              {!isInterrupted && !isError && msg.turnStatus === "completed" && <text fg={c.success}>· done</text>}
+            </box>
+          </box>
         )}
       </box>
     )
