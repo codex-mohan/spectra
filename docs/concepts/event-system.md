@@ -31,7 +31,7 @@ const unsubscribe = agent.subscribe((event, signal) => {
   console.log(event.type);
 });
 
-await agent.prompt("Hello");
+await agent.run("Hello");
 unsubscribe();
 ```
 
@@ -42,7 +42,7 @@ The subscriber receives a copy of every event but doesn't affect the primary str
 The primary pattern is consuming events via a stream:
 
 ```rust
-let mut stream = agent.prompt("Hello").await?;
+let (mut rx, _, _) = agent.run("Hello").await?;
 while let Some(Ok(event)) = stream.next().await {
   // event is yielded as it happens
 }
@@ -54,7 +54,7 @@ Internally, events flow through an `mpsc::channel`:
 let (tx, rx) = tokio::sync::mpsc::channel(32);
 
 // In the agent loop:
-tx.send(StreamEvent::ContentDelta(delta)).await?;
+let _ = tx.send(Ok(StreamEvent::MessageUpdate { delta })).await;
 
 // Consumer:
 while let Some(event) = rx.recv().await {
@@ -67,14 +67,14 @@ while let Some(event) = rx.recv().await {
 For multiple subscribers:
 
 ```rust
-let broadcast = EventChannel::new(16); // buffer size
+let broadcast = EventChannel::new(); // capacity: 256
 
 // Subscribe
 let mut sub1 = broadcast.subscribe();
 let mut sub2 = broadcast.subscribe();
 
 // Send (in agent loop)
-broadcast.send(event)?;
+broadcast.emit(event)?;
 
 // Receive
 while let Ok(event) = sub1.recv().await {

@@ -6,15 +6,17 @@ Events emitted during agent execution.
 
 ```rust
 pub enum StreamEvent {
+    AgentStart,
     TurnStart,
-    ContentDelta(ContentDelta),
-    ToolCallStart { name: String, args: String },
-    ToolCallEnd { name: String, result: ToolResult },
-    TurnEnd {
-        message: AssistantMessage,
-        tool_results: Vec<ToolResultMessage>,
-    },
-    Error(SpectraError),
+    MessageStart { message: Message },
+    MessageUpdate { delta: ContentDelta },
+    MessageEnd { message: Message },
+    TurnEnd { tool_results: Vec<ToolResultMessage> },
+    ToolExecutionStart { tool_call: ToolCall },
+    ToolExecutionUpdate { partial: serde_json::Value },
+    ToolExecutionEnd { result: ToolResultMessage, is_error: bool },
+    AgentEnd { messages: Vec<AssistantMessage> },
+    Error { message: String },
 }
 ```
 
@@ -22,14 +24,17 @@ pub enum StreamEvent {
 
 ```rust
 pub enum ContentDelta {
-    Text(String),              // Streaming text token
-    ToolCall(String, String),  // Tool name, partial JSON args
+    Text { delta: String },
+    Thinking { delta: String, signature: Option<String> },
+    ToolCallStart { id: String, name: String },
+    ToolCallDelta { id: String, args_delta: String },
+    ToolCallEnd { id: String },
 }
 ```
 
 ## EventChannel
 
-Broadcast channel for multiple subscribers:
+Broadcast channel for multiple subscribers (capacity: 256):
 
 ```rust
 pub struct EventChannel {
@@ -37,9 +42,20 @@ pub struct EventChannel {
 }
 
 impl EventChannel {
-    pub fn new(capacity: usize) -> Self;
-    pub fn subscribe(&self) -> BroadcastReceiver<StreamEvent>;
-    pub fn send(&self, event: StreamEvent) -> Result<(), SpectraError>;
+    pub fn new() -> Self;
+    pub fn subscribe(&self) -> broadcast::Receiver<StreamEvent>;
+    pub fn emit(&self, event: StreamEvent) -> Result<()>;
+    pub fn close(&self);
+}
+```
+
+## EventSink
+
+Generic trait for abstracting over event emission:
+
+```rust
+pub trait EventSink: Send + Sync {
+    fn emit(&self, event: StreamEvent) -> Result<()>;
 }
 ```
 

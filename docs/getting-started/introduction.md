@@ -87,7 +87,7 @@ User → Agent.run(input)
 The same pattern exists in Rust, just with different types:
 
 ```
-User → agent.prompt(input)
+User → Agent::run(input)
   → LlmClient::stream(LlmRequest)
     → SSE parse → ContentDelta
   → apply_delta() → accumulate AssistantMessage

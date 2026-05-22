@@ -16,14 +16,14 @@ They share **design patterns and type shapes**, not code or runtime.
 
 | Concept | TypeScript | Rust |
 |---|---|---|
-| **Agent** | `new Agent(config)` | `AgentBuilder::new().build(client)` |
-| **Run** | `for await (const event of agent.run(input))` | `while let Some(event) = stream.next().await` |
-| **Tool definition** | `defineTool({ name, description, parameters: z.object(...), execute })` | `impl Tool for MyTool { fn name(), fn description(), fn parameters(), async fn execute() }` |
+| **Agent** | `new Agent(config)` | `AgentBuilder::new(model).build(client)` |
+| **Run** | `for await (const event of agent.run(input))` | `let (mut rx, _, _) = agent.run(input).await?; while let Some(Ok(event)) = rx.recv().await` |
+| **Tool definition** | `defineTool({ name, description, parameters: z.object(...), execute })` | `impl Tool for MyTool { fn definition(), async fn execute(ctx) }` or `ToolBuilder` |
 | **Schema** | Zod (`z.object({ query: z.string() })`) | JSON Schema (`serde_json::json!({...})`) |
-| **Events** | `AgentEvent` discriminated union | `StreamEvent` enum |
+| **Events** | `AgentEvent` discriminated union | `StreamEvent` enum (11 variants) |
 | **Streaming** | `EventStream` (AsyncIterable) | `LlmStream` (`Pin<Box<dyn Stream>>`) |
 | **Error handling** | TypeScript errors, try/catch | `Result<T, SpectraError>`, `?` operator |
-| **Hooks** | `beforeToolCall`, `afterToolCall` callbacks | `Extension` trait with hook methods |
+| **Hooks** | `beforeToolCall`, `afterToolCall` async callbacks | `Extension` trait with synchronous action-based hooks |
 | **Tool registry** | `Map<string, AgentTool>` on Agent | `ToolRegistry` (DashMap) |
 | **Provider** | `registerProvider({ name, stream })` | `impl LlmClient for MyClient` |
 
@@ -58,40 +58,35 @@ for await (const event of agent.run("What's new?")) {
 ### Rust
 
 ```rust
-use spectra_rs::{AgentBuilder, Model, Tool, ToolResult};
+use std::sync::Arc;
+use spectra_rs::{AgentBuilder, Model, ToolBuilder, ToolResult};
 use spectra_http::OpenAIClient;
 use serde_json::json;
 
-struct SearchTool;
+let client = Arc::new(OpenAIClient::from_env()?);
 
-#[async_trait]
-impl Tool for SearchTool {
-    fn name(&self) -> &str { "search" }
-    fn description(&self) -> &str { "Search the web" }
-    fn parameters(&self) -> serde_json::Value {
-        json!({ "type": "object", "properties": { "query": { "type": "string" } }, "required": ["query"] })
-    }
-    async fn execute(&self, args: serde_json::Value) -> Result<ToolResult, Box<dyn std::error::Error + Send + Sync>> {
-        let query = args["query"].as_str().unwrap();
+let search_tool = ToolBuilder::new("search")
+    .description("Search the web")
+    .parameters(json!({
+        "type": "object",
+        "properties": { "query": { "type": "string" } },
+        "required": ["query"]
+    }))
+    .execute(|ctx| async move {
+        let query = ctx.params["query"].as_str().unwrap();
         let result = search(query).await?;
-        Ok(ToolResult::text(result))
-    }
-}
+        Ok(ToolResult::success(json!({ "result": result })))
+    })
+    .build();
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = OpenAIClient::from_env()?;
-    let agent = AgentBuilder::new()
-        .model(Model::openai("gpt-4o"))
-        .system_prompt("You are helpful.")
-        .tool(SearchTool)
-        .build(client);
+let agent = AgentBuilder::new(Model::openai("gpt-4o"))
+    .system_prompt("You are helpful.")
+    .register_tool(search_tool)
+    .build(client);
 
-    let mut stream = agent.prompt("What's new?").await?;
-    while let Some(Ok(event)) = stream.next().await {
-        // Handle events
-    }
-    Ok(())
+let (mut rx, _, _) = agent.run("What's new?").await?;
+while let Some(Ok(event)) = rx.recv().await {
+    // Handle events
 }
 ```
 

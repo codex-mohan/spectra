@@ -136,7 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .system_prompt("You are a helpful assistant.")
         .build(client);
 
-    let mut stream = agent.prompt("Say hello").await?;
+    let (mut rx, _, _) = agent.run("Say hello").await?;
     while let Some(Ok(event)) = stream.next().await {
         println!("{:?}", event);
     }

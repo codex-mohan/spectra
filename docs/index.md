@@ -115,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .tool(SearchTool)
         .build(client);
 
-    let mut stream = agent.prompt("What's new in AI?").await?;
+    let (mut rx, _, _) = agent.run("What's new in AI?").await?;
     while let Some(Ok(event)) = stream.next().await {
         // Handle streaming events
     }

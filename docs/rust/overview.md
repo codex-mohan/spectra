@@ -12,13 +12,15 @@ The Rust SDK (`spectra-rs` + `spectra-http`) provides a minimal, ultra-fast agen
 ## Architecture
 
 ```
-User → Agent::prompt(input)
-  → LlmClient::stream(LlmRequest)
-    → SSE parse → LlmStreamEvent::ContentDelta
-  → apply_delta() → accumulate AssistantMessage
-  → if ToolCalls → dispatch_tool() → ToolRegistry::dispatch()
-  → emit StreamEvent via mpsc + EventChannel (broadcast)
-  → repeat until end-of-turn
+User → Agent::run(input)
+  → (mpsc::Receiver, EventChannel, AgentHandle)
+  → run_agent_loop()
+    → LlmClient::stream(LlmRequest)
+      → SSE parse → LlmStreamEvent::ContentDelta
+    → apply_delta() → accumulate AssistantMessage
+    → if ToolCalls → dispatch_tool() → ToolRegistry::dispatch()
+    → emit StreamEvent via mpsc + EventChannel (broadcast)
+    → repeat until end-of-turn
 ```
 
 ## Core Traits
@@ -29,9 +31,10 @@ Defines how to communicate with an LLM provider:
 
 ```rust
 #[async_trait]
-pub trait LlmClient: Send + Sync + 'static {
-    async fn complete(&self, req: LlmRequest) -> Result<LlmResponse, SpectraError>;
-    async fn stream(&self, req: LlmRequest) -> Result<LlmStream, SpectraError>;
+pub trait LlmClient: Send + Sync {
+    async fn complete(&self, request: LlmRequest) -> Result<LlmResponse>;
+    async fn stream(&self, request: LlmRequest) -> Result<LlmStream>;
+    fn provider(&self) -> Provider;
 }
 ```
 
@@ -43,24 +46,26 @@ Defines a capability the agent can use:
 
 ```rust
 #[async_trait]
-pub trait Tool: Send + Sync + 'static {
-    fn name(&self) -> &str;
-    fn description(&self) -> &str;
-    fn parameters(&self) -> serde_json::Value; // JSON Schema
-    async fn execute(&self, args: serde_json::Value) -> Result<ToolResult, Box<dyn std::error::Error + Send + Sync>>;
+pub trait Tool: Send + Sync {
+    fn definition(&self) -> &ToolDef;
+    async fn execute(&self, ctx: ToolContext) -> Result<ToolResult>;
 }
 ```
 
+Also available: `ToolBuilder` for defining tools without implementing the trait.
+
 ### Extension
 
-Provides middleware hooks:
+Provides synchronous middleware hooks with action-based returns:
 
 ```rust
-#[async_trait]
-pub trait Extension: Send + Sync + 'static {
-    async fn on_agent_start(&self, ctx: &mut AgentContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_before_tool_call(&self, ctx: &mut BeforeToolCallContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_after_tool_call(&self, ctx: &mut AfterToolCallContext) -> Result<(), SpectraError> { Ok(()) }
+pub trait Extension: Send + Sync {
+    fn on_before_tool_call(&self, tool_call: &ToolCall, ctx: &ToolContext) -> BeforeToolCallAction;
+    fn on_after_tool_call(&self, tool_call: &ToolCall, ctx: &ToolContext, result: &ToolResult) -> AfterToolCallAction;
+    fn on_agent_start(&self) {}
+    fn on_agent_end(&self) {}
+    fn on_turn_start(&self) {}
+    fn on_turn_end(&self) {}
 }
 ```
 
@@ -70,10 +75,11 @@ pub trait Extension: Send + Sync + 'static {
 |---|---|
 | `Agent` | The agent instance (built via `AgentBuilder`) |
 | `AgentBuilder` | Fluent builder for configuring agents |
+| `AgentHandle` | Runtime control (steer, follow-up, abort) |
 | `Model` | Model configuration (`Model::openai("gpt-4o")`) |
 | `Message` | Enum: `UserMessage`, `AssistantMessage`, `ToolResultMessage` |
-| `StreamEvent` | Events emitted during agent execution |
-| `ContentDelta` | Streaming deltas: `Text(String)`, `ToolCall(name, args)` |
+| `StreamEvent` | 11 event variants emitted during agent execution |
+| `ContentDelta` | Streaming deltas: `Text`, `Thinking`, `ToolCallStart`, `ToolCallDelta`, `ToolCallEnd` |
 | `SpectraError` | Error enum with `thiserror` + `miette` diagnostics |
 
 ## Design Principles
@@ -86,5 +92,5 @@ pub trait Extension: Send + Sync + 'static {
 ## Next Steps
 
 - [**Getting Started**](/rust/getting-started) — Installation, Cargo setup, env vars
-- [**Agent**](/rust/agent) — AgentBuilder, prompt(), event stream
-- [**Tools**](/rust/tools) — Tool trait, ToolRegistry
+- [**Agent**](/rust/agent) — AgentBuilder, run(), event stream
+- [**Tools**](/rust/tools) — Tool trait, ToolBuilder, ToolRegistry

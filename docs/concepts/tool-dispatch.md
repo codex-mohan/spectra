@@ -9,9 +9,9 @@ LLM responds with tool call
   → Parse tool name and arguments from response
   → Look up tool in registry by name
   → Validate arguments against schema (TypeScript: Zod, Rust: JSON Schema)
-  → Run beforeToolCall hook (if any)
+  → Run beforeToolCall/Extension hook (if any)
   → Execute tool
-  → Run afterToolCall hook (if any)
+  → Run afterToolCall/Extension hook (if any)
   → Format result as ToolResultMessage
   → Append to conversation history
   → Loop back to LLM
@@ -38,7 +38,9 @@ Tools are stored in a `ToolRegistry` (DashMap):
 ```rust
 // Internal lookup
 let tool = self.registry.get(&tool_call.name)
-    .ok_or_else(|| SpectraError::ToolError(format!("Unknown tool: {}", tool_call.name)))?;
+    .ok_or_else(|| SpectraError::ToolNotFound {
+        name: tool_call.name.to_string(),
+    })?;
 ```
 
 ## Argument Validation
@@ -65,23 +67,19 @@ If validation fails, the error is returned to the LLM as a tool execution failur
 ### Rust (JSON Schema)
 
 ```rust
-// Tool returns JSON Schema → caller validates before execute()
-fn parameters(&self) -> serde_json::Value {
-    json!({
-        "type": "object",
-        "properties": { "query": { "type": "string" } },
-        "required": ["query"]
-    })
-}
+// Tool returns JSON Schema via definition() → caller may validate before execute
+fn definition(&self) -> &ToolDef { &self.def }
 
-async fn execute(&self, args: serde_json::Value) -> Result<ToolResult, ...> {
-    // args is a raw JSON Value — tool must parse/validate itself
-    let query = args["query"].as_str().ok_or("missing query")?;
+async fn execute(&self, ctx: ToolContext) -> Result<ToolResult> {
+    // ctx.params is a parsed JSON Value — tool must handle validation internally
+    let query = ctx.params["query"].as_str().ok_or(
+        SpectraError::ToolError { name: "search".into(), reason: "missing query".into(), source: None }
+    )?;
 }
 ```
 
 ::: tip
-TypeScript's Zod validation is stricter — invalid args never reach `execute()`. Rust tools must handle validation internally.
+TypeScript's Zod validation is stricter — invalid args never reach `execute()`. Rust tools must handle validation internally or validate against the JSON Schema.
 :::
 
 ## Execution Modes
@@ -100,7 +98,7 @@ const results = await Promise.all(
 ```rust
 // Rust
 let results = futures::future::join_all(
-  tool_calls.iter().map(|call| execute_tool(call))
+  assistant_msg.tool_calls.iter().map(|tc| dispatch_tool(tc))
 ).await;
 ```
 
@@ -122,7 +120,7 @@ Use sequential when tools depend on each other's output or when rate-limiting is
 If a tool fails:
 
 1. The error is caught
-2. A `ToolResult` with `isError: true` is created
+2. A `ToolResult` with `isError: true` / `is_error: true` is created
 3. The error message is sent back to the LLM
 4. The LLM can retry, use a different tool, or respond with an explanation
 

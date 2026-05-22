@@ -5,17 +5,16 @@ The `Agent` is built via `AgentBuilder` with a fluent API.
 ## Building an Agent
 
 ```rust
+use std::sync::Arc;
 use spectra_rs::{AgentBuilder, Model};
 use spectra_http::OpenAIClient;
 
-let client = OpenAIClient::from_env()?;
+let client = Arc::new(OpenAIClient::from_env()?);
 
-let agent = AgentBuilder::new()
-    .model(Model::openai("gpt-4o"))
+let agent = AgentBuilder::new(Model::openai("gpt-4o"))
     .system_prompt("You are a helpful assistant.")
+    .register_tool(Arc::new(WeatherTool))
     .max_turns(10)
-    .tool(WeatherTool)
-    .extension(LoggingExtension)
     .build(client);
 ```
 
@@ -23,25 +22,31 @@ let agent = AgentBuilder::new()
 
 | Method | Description |
 |---|---|
-| `model(Model)` | Set the LLM model |
+| `new(Model)` | Set the LLM model (constructor parameter) |
 | `system_prompt(&str)` | Set the system prompt |
-| `max_turns(u32)` | Maximum LLM turns (default: unlimited) |
-| `tool(T: Tool)` | Register a tool |
-| `extension(E: Extension)` | Register a middleware extension |
-| `build(client: L)` | Build the agent with an LlmClient |
+| `tools(Arc<ToolRegistry>)` | Use a shared tool registry |
+| `register_tool(Arc<dyn Tool>)` | Register a tool |
+| `max_turns(usize)` | Maximum LLM turns (default: unlimited) |
+| `tool_execution(ToolExecutionMode)` | Parallel (default) or Sequential |
+| `tool_choice(ToolChoice)` | Force tool selection behavior |
+| `reasoning_effort(ReasoningEffort)` | Set reasoning/thinking effort |
+| `extensions(ExtensionManager)` | Register middleware extensions |
+| `transform_context(f)` | Async transform messages before LLM call |
+| `get_api_key(f)` | Dynamic API key resolution |
+| `build(Arc<dyn LlmClient>)` | Build the agent |
 
-## Prompting
+## Running the Agent
 
 ```rust
-let mut stream = agent.prompt("What is the weather in Tokyo?").await?;
+let (mut rx, _channel, handle) = agent.run("What is the weather in Tokyo?").await?;
 
-while let Some(Ok(event)) = stream.next().await {
+while let Some(Ok(event)) = rx.recv().await {
     match event {
-        StreamEvent::ContentDelta(ContentDelta::Text(delta)) => print!("{}", delta),
-        StreamEvent::ContentDelta(ContentDelta::ToolCall(name, args)) => {
-            println!("\nCalling tool {} with {}", name, args);
-        }
-        StreamEvent::TurnEnd { message, .. } => println!("\nTurn complete"),
+        StreamEvent::MessageUpdate { delta } => match delta {
+            ContentDelta::Text { delta: text } => print!("{}", text),
+            _ => {}
+        },
+        StreamEvent::TurnEnd { .. } => println!("\nTurn complete"),
         _ => {}
     }
 }
@@ -49,24 +54,47 @@ while let Some(Ok(event)) = stream.next().await {
 
 ## Event Stream
 
-The `prompt()` method returns a stream of `StreamEvent`:
+The `run()` method returns a triple:
+- `mpsc::Receiver<Result<StreamEvent>>` — primary event stream
+- `EventChannel` — broadcast channel for additional subscribers
+- `AgentHandle` — control handle for steer/follow-up/abort
 
 ```rust
 use spectra_rs::{StreamEvent, ContentDelta};
+use futures_util::StreamExt;
 
-while let Some(Ok(event)) = stream.next().await {
+let (mut rx, channel, handle) = agent.run("Hello").await?;
+
+// Primary consumer
+while let Some(Ok(event)) = rx.recv().await {
     match event {
         StreamEvent::TurnStart => println!("-- Turn started --"),
-        StreamEvent::ContentDelta(ContentDelta::Text(delta)) => print!("{}", delta),
-        StreamEvent::ContentDelta(ContentDelta::ToolCall(name, args)) => {
-            println!("\nCalling tool {} with {}", name, args);
+        StreamEvent::MessageUpdate { delta } => match delta {
+            ContentDelta::Text { delta } => print!("{}", delta),
+            _ => {}
+        },
+        StreamEvent::TurnEnd { tool_results, .. } => {
+            println!("\n-- Turn ended ({} tools executed) --", tool_results.len());
         }
-        StreamEvent::TurnEnd { message, tool_results } => {
-            println!("\n-- Turn ended --");
-        }
-        StreamEvent::Error(err) => eprintln!("Error: {}", err),
+        StreamEvent::Error { message } => eprintln!("Error: {}", message),
+        _ => {}
     }
 }
+```
+
+## Steering and Queues
+
+The `AgentHandle` provides runtime control:
+
+```rust
+// Inject a message mid-stream (processed at next turn boundary)
+handle.steer("Be more concise").await;
+
+// Queue a follow-up after current run completes
+handle.follow_up("What about X?").await;
+
+// Abort the current run
+handle.abort();
 ```
 
 ## Multi-Turn Conversations
@@ -84,10 +112,14 @@ Turn 3: LLM receives result → responds with text → Agent yields answer
 Spectra uses `thiserror` + `miette` for human-readable errors:
 
 ```rust
-match agent.prompt("Hello").await {
-    Ok(stream) => { /* handle stream */ }
-    Err(SpectraError::ApiError(msg)) => eprintln!("API error: {}", msg),
-    Err(SpectraError::ToolError(msg)) => eprintln!("Tool error: {}", msg),
+match agent.run("Hello").await {
+    Ok((mut rx, _, _)) => { /* handle stream */ }
+    Err(SpectraError::LlmError { provider, message, .. }) => {
+        eprintln!("{provider} API error: {message}");
+    }
+    Err(SpectraError::ToolError { name, reason, .. }) => {
+        eprintln!("Tool {name} failed: {reason}");
+    }
     Err(err) => eprintln!("Error: {:?}", err),
 }
 ```

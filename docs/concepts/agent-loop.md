@@ -67,7 +67,7 @@ for await (const event of agent.run(input)) {
 ## Rust Implementation
 
 ```rust
-let mut stream = agent.prompt(input).await?;
+let (mut rx, _, _) = agent.run(input).await?;
 while let Some(Ok(event)) = stream.next().await {
   // The agent handles the entire loop internally.
   // You just consume events as they happen.

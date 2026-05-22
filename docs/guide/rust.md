@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build(client);
 
     // .prompt() returns an event stream
-    let mut stream = agent.prompt("What is 2+2?").await?;
+    let (mut rx, _, _) = agent.run("What is 2+2?").await?;
 
     while let Some(event) = stream.next().await {
         // Handle events like message deltas, tool calls, etc.
@@ -91,19 +91,20 @@ let agent = AgentBuilder::new()
 
 ## Streaming Events
 
-The stream returned by `agent.prompt()` yields `StreamEvent` enums, which allow you to observe token deltas, tool executions, and state changes.
+The stream returned by `agent.run()` yields `StreamEvent` enums, which allow you to observe token deltas, tool executions, and state changes.
 
 ```rust
 use spectra_rs::{StreamEvent, ContentDelta};
+use futures_util::StreamExt;
 
-while let Some(Ok(event)) = stream.next().await {
+while let Some(Ok(event)) = rx.recv().await {
     match event {
         StreamEvent::TurnStart => println!("-- Turn started --"),
-        StreamEvent::ContentDelta(ContentDelta::Text(delta)) => print!("{}", delta),
-        StreamEvent::ContentDelta(ContentDelta::ToolCall(name, args)) => {
-            println!("\nCalling tool {} with {}", name, args);
-        }
-        StreamEvent::TurnEnd { message, .. } => println!("\n-- Turn ended --"),
+        StreamEvent::MessageUpdate { delta } => match delta {
+            ContentDelta::Text { delta } => print!("{}", delta),
+            _ => {}
+        },
+        StreamEvent::TurnEnd { .. } => println!("\n-- Turn ended --"),
         _ => {}
     }
 }

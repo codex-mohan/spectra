@@ -1,67 +1,109 @@
 # Rust Tools
 
-Tools implement the `Tool` trait, providing a JSON schema definition and async execution.
+Tools implement the `Tool` trait, providing a JSON schema definition and async execution with context (abort signal, progress reporting).
 
 ## Implementing a Tool
 
 ```rust
 use async_trait::async_trait;
-use spectra_rs::{Tool, ToolResult};
+use spectra_rs::{Tool, ToolDef, ToolContext, ToolResult};
 use serde_json::json;
 
 pub struct WeatherTool;
 
-#[async_trait]
-impl Tool for WeatherTool {
-    fn name(&self) -> &str {
-        "get_weather"
-    }
-
-    fn description(&self) -> &str {
-        "Get the current weather for a location"
-    }
-
-    fn parameters(&self) -> serde_json::Value {
-        json!({
+impl WeatherTool {
+    const DEF: ToolDef = ToolDef {
+        name: String::new("get_weather"),
+        description: String::new("Get the current weather for a location"),
+        parameters: json!({
             "type": "object",
             "properties": {
                 "location": { "type": "string", "description": "City name" },
-                "unit": { "type": "string", "enum": ["celsius", "fahrenheit"], "default": "celsius" }
+                "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
             },
             "required": ["location"]
-        })
+        }),
+    };
+}
+
+#[async_trait]
+impl Tool for WeatherTool {
+    fn definition(&self) -> &ToolDef {
+        &Self::DEF
     }
 
-    async fn execute(&self, args: serde_json::Value) -> Result<ToolResult, Box<dyn std::error::Error + Send + Sync>> {
-        let location = args["location"].as_str().unwrap_or("Unknown");
-        let unit = args["unit"].as_str().unwrap_or("celsius");
+    async fn execute(&self, ctx: ToolContext) -> Result<ToolResult> {
+        let location = ctx.params["location"].as_str().unwrap_or("Unknown");
+        let unit = ctx.params["unit"].as_str().unwrap_or("celsius");
+
+        if ctx.is_aborted() {
+            return Ok(ToolResult::error("aborted"));
+        }
+
+        // Report progress
+        ctx.report_progress(ToolResult::success(json!({"status": "fetching..."})));
+
         let weather = fetch_weather(location, unit).await?;
-        Ok(ToolResult::text(format!("The weather in {} is {}°{}", location, weather.temp, unit)))
+        Ok(ToolResult::success(json!({ "temperature": weather.temp, "unit": unit })))
     }
 }
+```
+
+## Using ToolBuilder
+
+For simple tools, use `ToolBuilder` instead of implementing the trait:
+
+```rust
+use spectra_rs::ToolBuilder;
+use serde_json::json;
+
+let search_tool = ToolBuilder::new("search")
+    .description("Search the web")
+    .parameters(json!({
+        "type": "object",
+        "properties": {
+            "query": { "type": "string" }
+        },
+        "required": ["query"]
+    }))
+    .execute(|ctx| async move {
+        let query = ctx.params["query"].as_str().unwrap_or("");
+        let results = search(query).await?;
+        Ok(ToolResult::success(json!({ "results": results })))
+    })
+    .build();
 ```
 
 ## Registering Tools
 
 ```rust
-let agent = AgentBuilder::new()
-    .model(Model::openai("gpt-4o"))
-    .tool(WeatherTool)
-    .tool(SearchTool)
+use std::sync::Arc;
+
+let agent = AgentBuilder::new(Model::openai("gpt-4o"))
+    .register_tool(Arc::new(WeatherTool))
+    .register_tool(search_tool) // Arc<dyn Tool> from ToolBuilder
+    .build(client);
+```
+
+Or share a registry across agents:
+
+```rust
+let registry = Arc::new(ToolRegistry::new());
+registry.register(Arc::new(WeatherTool));
+
+let agent = AgentBuilder::new(Model::openai("gpt-4o"))
+    .tools(registry.clone())
     .build(client);
 ```
 
 ## ToolResult
 
 ```rust
-// Simple text result
-ToolResult::text("The answer is 42")
+// Success result
+ToolResult::success(json!({ "temperature": 22, "unit": "celsius" }))
 
-// With error flag
-ToolResult {
-    content: vec![Content::text("Failed to fetch data")],
-    is_error: true,
-}
+// Error result
+ToolResult::error("Failed to fetch weather data")
 ```
 
 ## ToolRegistry
@@ -72,10 +114,11 @@ Tools are stored in a `ToolRegistry` (backed by `DashMap` for concurrent access)
 use spectra_rs::ToolRegistry;
 
 let registry = ToolRegistry::new();
-registry.register(WeatherTool);
-registry.register(SearchTool);
+registry.register(Arc::new(WeatherTool));
+registry.register(Arc::new(SearchTool));
 
 let tool = registry.get("get_weather");
+let all_defs = registry.definitions();
 ```
 
 ## Next Steps

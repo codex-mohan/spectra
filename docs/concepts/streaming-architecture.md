@@ -56,7 +56,7 @@ for await (const chunk of response) {
 let mut stream = response.bytes_stream();
 while let Some(chunk) = stream.next().await {
     // Parse "data: {...}" lines
-    // Yield ContentDelta events
+    // Yield LlmStreamEvent::ContentDelta events
 }
 ```
 
@@ -65,9 +65,9 @@ while let Some(chunk) = stream.next().await {
 Each `ContentDelta` is a small piece of the full response. The agent accumulates them:
 
 ```
-Delta: "Hello"     → AssistantMessage: "Hello"
-Delta: " world"    → AssistantMessage: "Hello world"
-Delta: "!"         → AssistantMessage: "Hello world!"
+Delta: Text "Hello"       → AssistantMessage: "Hello"
+Delta: Text " world"      → AssistantMessage: "Hello world"
+Delta: Text "!"           → AssistantMessage: "Hello world!"
 ```
 
 ### TypeScript
@@ -82,10 +82,21 @@ stream.push({ type: "content_delta", delta: { type: "text", text: "Hello" } });
 
 ```rust
 // apply_delta() accumulates into AssistantMessage
-fn apply_delta(message: &mut AssistantMessage, delta: ContentDelta) {
+fn apply_delta(msg: &mut AssistantMessage, delta: &ContentDelta) {
     match delta {
-        ContentDelta::Text(text) => message.content.push(Content::text(text)),
-        ContentDelta::ToolCall(name, args) => message.tool_calls.push(ToolCall { name, args }),
+        ContentDelta::Text { delta: text } => {
+            // Append to last text block or push new one
+        }
+        ContentDelta::Thinking { delta, signature } => {
+            // Append to last thinking block or push new one
+        }
+        ContentDelta::ToolCallStart { id, name } => {
+            msg.tool_calls.push(ToolCall { id, name, .. });
+        }
+        ContentDelta::ToolCallDelta { id, args_delta } => {
+            // Accumulate partial JSON args
+        }
+        ContentDelta::ToolCallEnd { .. } => {}
     }
 }
 ```
@@ -117,7 +128,7 @@ for await (const event of agent.run("Hello")) {
 Rust uses `tokio_stream::Stream`:
 
 ```rust
-type LlmStream = Pin<Box<dyn Stream<Item = Result<StreamEvent, SpectraError>> + Send>>;
+type LlmStream = Pin<Box<dyn Stream<Item = Result<LlmStreamEvent>> + Send>>;
 ```
 
 Consumed with `StreamExt::next()`:

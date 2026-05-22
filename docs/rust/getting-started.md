@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .system_prompt("You are a helpful assistant.")
         .build(client);
 
-    let mut stream = agent.prompt("What is 2+2?").await?;
+    let (mut rx, _, _) = agent.run("What is 2+2?").await?;
 
     while let Some(Ok(event)) = stream.next().await {
         println!("{:?}", event);

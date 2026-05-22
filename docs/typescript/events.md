@@ -18,7 +18,7 @@ const unsubscribe = agent.subscribe((event, signal) => {
   // handle event
 });
 
-await agent.prompt("Hello");
+await agent.run("Hello");
 unsubscribe();
 ```
 

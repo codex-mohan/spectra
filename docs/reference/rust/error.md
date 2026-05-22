@@ -5,25 +5,40 @@ Error types using `thiserror` and `miette` for human-readable diagnostics.
 ## SpectraError Enum
 
 ```rust
-#[derive(Debug, thiserror::Error, miette::Diagnostic)]
+#[derive(Error, Debug, Diagnostic)]
 pub enum SpectraError {
-    #[error("API error: {0}")]
-    ApiError(String),
+    #[error("LLM provider error: {provider} — {message}")]
+    LlmError { provider: String, message: String, source: Option<Box<dyn Error + Send + Sync>> },
 
-    #[error("Tool execution failed: {0}")]
-    ToolError(String),
+    #[error("Tool execution failed: '{name}' — {reason}")]
+    ToolError { name: String, reason: String, source: Option<Box<dyn Error + Send + Sync>> },
 
-    #[error("Stream error: {0}")]
-    StreamError(String),
+    #[error("Tool not found: '{name}'")]
+    ToolNotFound { name: String },
 
-    #[error("Configuration error: {0}")]
-    ConfigError(String),
+    #[error("Schema validation failed for tool '{name}': {detail}")]
+    SchemaValidation { name: String, detail: String, source: Option<serde_json::Error> },
 
-    #[error("Unknown tool: {0}")]
-    UnknownTool(String),
+    #[error("Stream interrupted: {reason}")]
+    StreamError { reason: String },
 
-    #[error("Max turns exceeded: {0}")]
-    MaxTurnsExceeded(u32),
+    #[error("Configuration error: {field} — {detail}")]
+    ConfigError { field: String, detail: String },
+
+    #[error("HTTP error: {status} — {url}")]
+    HttpError { status: u16, url: String },
+
+    #[error("Serialization error: {0}")]
+    Serialization(#[from] serde_json::Error),
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Tool approval denied: {reason}")]
+    ApprovalDenied { reason: String },
+
+    #[error("Agent aborted")]
+    Aborted,
 }
 ```
 

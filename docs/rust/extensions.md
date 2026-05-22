@@ -1,41 +1,44 @@
 # Rust Extensions
 
-The `Extension` trait allows middleware injection into the agent lifecycle.
+The `Extension` trait allows synchronous middleware injection into the agent lifecycle.
 
 ## Extension Trait
 
 ```rust
-#[async_trait]
-pub trait Extension: Send + Sync + 'static {
-    async fn on_agent_start(&self, ctx: &mut AgentContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_agent_end(&self, ctx: &mut AgentContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_turn_start(&self, ctx: &mut TurnContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_turn_end(&self, ctx: &mut TurnContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_before_tool_call(&self, ctx: &mut BeforeToolCallContext) -> Result<(), SpectraError> { Ok(()) }
-    async fn on_after_tool_call(&self, ctx: &mut AfterToolCallContext) -> Result<(), SpectraError> { Ok(()) }
+pub trait Extension: Send + Sync {
+    fn on_before_tool_call(&self, tool_call: &ToolCall, ctx: &ToolContext) -> BeforeToolCallAction {
+        BeforeToolCallAction::Allow
+    }
+
+    fn on_after_tool_call(&self, tool_call: &ToolCall, ctx: &ToolContext, result: &ToolResult) -> AfterToolCallAction {
+        AfterToolCallAction::Passthrough
+    }
+
+    fn on_agent_start(&self) {}
+    fn on_agent_end(&self) {}
+    fn on_turn_start(&self) {}
+    fn on_turn_end(&self) {}
 }
 ```
 
-All methods have default implementations that return `Ok(())` — implement only the hooks you need.
+All methods have default implementations — implement only the hooks you need.
 
 ## Logging Extension
 
 ```rust
-use async_trait::async_trait;
-use spectra_rs::{Extension, BeforeToolCallContext, AfterToolCallContext, SpectraError};
+use spectra_rs::{Extension, BeforeToolCallAction, AfterToolCallAction, ToolCall, ToolContext, ToolResult};
 
 pub struct LoggingExtension;
 
-#[async_trait]
 impl Extension for LoggingExtension {
-    async fn on_before_tool_call(&self, ctx: &mut BeforeToolCallContext) -> Result<(), SpectraError> {
-        println!("[Tool] Calling: {} with args: {}", ctx.tool_call.name, ctx.tool_call.args);
-        Ok(())
+    fn on_before_tool_call(&self, tool_call: &ToolCall, ctx: &ToolContext) -> BeforeToolCallAction {
+        println!("[Tool] Calling: {} with args: {}", tool_call.name, ctx.params);
+        BeforeToolCallAction::Allow
     }
 
-    async fn on_after_tool_call(&self, ctx: &mut AfterToolCallContext) -> Result<(), SpectraError> {
-        println!("[Tool] Result: {}", ctx.result.content.iter().map(|c| c.text()).collect::<String>());
-        Ok(())
+    fn on_after_tool_call(&self, tool_call: &ToolCall, _ctx: &ToolContext, result: &ToolResult) -> AfterToolCallAction {
+        println!("[Tool] Result for {}: is_error={}", tool_call.name, result.is_error);
+        AfterToolCallAction::Passthrough
     }
 }
 ```
@@ -43,63 +46,65 @@ impl Extension for LoggingExtension {
 ## Rate Limiting Extension
 
 ```rust
+use std::sync::Mutex;
+
 pub struct RateLimitExtension {
-    limiter: tokio::sync::Mutex<RateLimiter>,
+    limiter: Mutex<RateLimiter>,
 }
 
-#[async_trait]
 impl Extension for RateLimitExtension {
-    async fn on_before_tool_call(&self, ctx: &mut BeforeToolCallContext) -> Result<(), SpectraError> {
-        self.limiter.lock().await.acquire().await;
-        Ok(())
+    fn on_before_tool_call(&self, _tool_call: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
+        self.limiter.lock().unwrap().acquire();
+        BeforeToolCallAction::Allow
     }
 }
 ```
 
 ## Registering Extensions
 
+Extension hooks are composed via `ExtensionManager`:
+
 ```rust
-let agent = AgentBuilder::new()
-    .model(Model::anthropic("claude-sonnet-4-20250514"))
-    .extension(LoggingExtension)
-    .extension(RateLimitExtension { limiter: tokio::sync::Mutex::new(RateLimiter::new(10)) })
+use spectra_rs::ExtensionManager;
+
+let mut extensions = ExtensionManager::new();
+extensions.add(LoggingExtension);
+extensions.add(RateLimitExtension { limiter: Mutex::new(RateLimiter::new(10)) });
+
+let agent = AgentBuilder::new(Model::anthropic("claude-sonnet-4-20250514"))
+    .extensions(extensions)
     .build(client);
 ```
 
-## Context Objects
+## BeforeToolCallAction
 
-### BeforeToolCallContext
+| Variant | Effect |
+|---|---|
+| `Allow` | Proceed with execution |
+| `Block { reason }` | Skip execution, return error to LLM |
+| `Transform { modified_args }` | Modify arguments before execution |
 
-```rust
-pub struct BeforeToolCallContext {
-    pub tool_call: ToolCall,       // The pending tool call
-    pub messages: Vec<Message>,    // Current conversation history
-}
-```
+## AfterToolCallAction
 
-### AfterToolCallContext
-
-```rust
-pub struct AfterToolCallContext {
-    pub tool_call: ToolCall,       // The executed tool call
-    pub result: ToolResult,        // The tool's result
-}
-```
+| Variant | Effect |
+|---|---|
+| `Passthrough` | Use original tool result |
+| `Replace { result }` | Override the tool result |
 
 ## Blocking Tool Execution
 
-Return an error from `on_before_tool_call` to prevent execution:
-
 ```rust
-async fn on_before_tool_call(&self, ctx: &mut BeforeToolCallContext) -> Result<(), SpectraError> {
-    if ctx.tool_call.name == "delete_file" {
-        return Err(SpectraError::ToolError("File deletion is not allowed".into()));
+fn on_before_tool_call(&self, tool_call: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
+    if tool_call.name == "delete_file" {
+        return BeforeToolCallAction::Block {
+            reason: "File deletion is not allowed".into(),
+        };
     }
-    Ok(())
+    BeforeToolCallAction::Allow
 }
 ```
 
-The error is returned to the LLM as a tool execution failure.
+The block reason is returned to the LLM as a tool execution failure.
 
 ## Next Steps
 

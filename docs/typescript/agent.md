@@ -75,7 +75,7 @@ const unsubscribe = agent.subscribe((event, signal) => {
   }
 });
 
-await agent.prompt("Search for something");
+await agent.run("Search for something");
 unsubscribe();
 ```
 
