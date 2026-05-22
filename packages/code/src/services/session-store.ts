@@ -13,6 +13,7 @@ export interface SessionInfo {
   updated: number;
   messageCount: number;
   directory: string;
+  parentId?: string | null;
 }
 
 export interface SessionCheckpoint {
@@ -36,10 +37,9 @@ export interface SessionData {
   created: number;
   updated: number;
   directory: string;
+  parentId?: string | null;
   messages: Message[];
-  /** Soft-delete state: hide messages at/after messageIndex */
   revert?: SessionRevert;
-  /** File checkpoint history */
   checkpoints?: SessionCheckpoint[];
 }
 
@@ -75,6 +75,7 @@ export class SessionStore {
           model: data.model, provider: data.provider || "",
           created: data.created, updated: data.updated,
           messageCount: data.messages.length, directory: data.directory,
+          parentId: data.parentId ?? null,
         });
       } catch { }
     }
@@ -211,5 +212,34 @@ export class SessionStore {
   getCheckpoints(sessionId: string): SessionCheckpoint[] {
     const session = this.get(sessionId);
     return session?.checkpoints || [];
+  }
+
+  // ─── Hierarchy ─────────────────────────────────────────────────────────
+
+  getChildren(parentId: string): SessionInfo[] {
+    return this.list().filter((s) => s.parentId === parentId);
+  }
+
+  getParent(childId: string): SessionData | null {
+    const child = this.get(childId);
+    if (!child?.parentId) return null;
+    return this.get(child.parentId);
+  }
+
+  createChild(parentId: string, input: { title?: string; agent?: string; model?: string; provider?: string }): SessionData {
+    const session: SessionData = {
+      id: this.generateId(),
+      title: input.title || "Subagent Session",
+      agent: input.agent || "build",
+      model: input.model || "",
+      provider: input.provider || input.model?.split("/")[0] || "",
+      created: Date.now(),
+      updated: Date.now(),
+      directory: process.cwd(),
+      parentId,
+      messages: [],
+    };
+    this.save(session);
+    return session;
   }
 }

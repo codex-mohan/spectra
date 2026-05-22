@@ -306,6 +306,23 @@ bun run test:import
 
 ### Research Guidance
 - If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.
+
+### Reference Projects
+
+When instructed to refer to an external project's source code (e.g., "check how opencode does agents"):
+
+1. **Check the local cache first**: Look for the project under `C:\Users\wwwmo\reference-projects\<project-name>\`
+2. **Clone if missing**: If the project doesn't exist locally, clone it from GitHub:
+   ```sh
+   git clone https://github.com/<owner>/<repo>.git C:\Users\wwwmo\reference-projects\<project-name>
+   ```
+3. **Explore the cloned source** to answer the question
+
+Current cached reference projects:
+- `opencode` — anomalo/opencode
+- `pi-mono-ref` — pi-mono reference implementation
+- `smallcode` — smallcode reference
+- `terax-ai` — terax-ai TUI framework
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source=ARCHITECTURE.md -->

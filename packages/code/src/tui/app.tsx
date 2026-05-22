@@ -28,8 +28,10 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join } from "path"
 import { loadConfig, type CustomProviderConfig } from "../services/config.js"
 import { registerAllCustomProviders } from "../services/custom-providers.js"
+import { AGENT_DEFINITIONS, PRIMARY_AGENTS, filterToolsByAgent } from "../agents/definitions.js"
+import { AgentRegistry } from "../agents/registry.js"
 
-const AGENTS = ["build", "plan", "debug", "explore"]
+const AGENTS = PRIMARY_AGENTS
 const PLACEHOLDERS = ["fix the login bug", "explain this codebase", "add error handling", "refactor this function", "write tests", "debug this issue", "optimize performance", "document the API"]
 
 function loadSavedConfig(): { model: string | null; provider: string | null } {
@@ -102,6 +104,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
   const agentRef = useRef<any>(null)
+  const lastAgentRef = useRef<string | null>(null)
   const dialogKeyHandler = useRef<((key: any) => void) | null>(null)
   const lastModelRef = useRef<string | null>(null)
   const isStreamingRef = useRef(false)
@@ -285,12 +288,41 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
   const getOrCreateAgent = useCallback(async () => {
     if (!selectedModel || !provider) return null
-    if (agentRef.current && lastModelRef.current === `${selectedModel}:${provider}`) return agentRef.current
+    const agentKey = `${selectedAgent}:${selectedModel}:${provider}`
+    if (agentRef.current && lastModelRef.current === agentKey) return agentRef.current
+
+    const existingMessages = agentRef.current
+      ? [...agentRef.current.messages]
+      : loadedSessionMessages.current
+
     const { Agent } = await import("@singularity-ai/spectra-agent")
     const { initProviders } = await import("@singularity-ai/spectra-ai")
     initProviders()
     const { createAllTools, spectraToolToAgentTool } = await import("../tools/index.js")
     const customCfg = customProviders[provider]
+
+    const def = AGENT_DEFINITIONS[selectedAgent]
+    const allTools = createAllTools().map(spectraToolToAgentTool)
+    const agentTools = def ? filterToolsByAgent(allTools, selectedAgent) : allTools
+
+    let agentsMd = ""
+    try {
+      const agentsPath = `${process.cwd()}/AGENTS.md`
+      const { readFileSync, existsSync } = await import("fs")
+      if (existsSync(agentsPath)) {
+        agentsMd = readFileSync(agentsPath, "utf-8")
+      }
+    } catch {}
+
+    const { getPlatformInfo } = await import("../utils/platform.js")
+    const info = getPlatformInfo()
+
+    const systemPrompt = [
+      `You are Spectra Code, an AI coding agent running on ${info.os} (${info.arch}).\nDefault shell: ${info.shell}. Working directory: ${info.cwd}.`,
+      agentsMd,
+      def?.prompt,
+    ].filter(Boolean).join("\n\n")
+
     agentRef.current = new Agent({
       model: {
         id: selectedModel,
@@ -300,18 +332,31 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         baseUrl: customCfg?.baseUrl,
         headers: customCfg?.headers,
       },
-      systemPrompt: `You are Spectra Code, an AI coding agent running on ${process.platform}.`,
+      systemPrompt,
       getApiKey: (p) => getAuthKey(p),
-      tools: createAllTools().map(spectraToolToAgentTool),
-      maxTurns: 10,
+      tools: agentTools,
+      maxTurns: def?.maxTurns ?? 10,
     })
-    // Restore loaded session history if available
-    if (loadedSessionMessages.current.length > 0) {
-      agentRef.current.restoreHistory(loadedSessionMessages.current)
+
+    AgentRegistry.setConfig({
+      model: {
+        id: selectedModel,
+        name: selectedModel,
+        provider,
+        api: provider,
+        baseUrl: customCfg?.baseUrl,
+        headers: customCfg?.headers,
+      },
+      getApiKey: (p) => getAuthKey(p),
+    })
+
+    if (existingMessages.length > 0) {
+      agentRef.current.restoreHistory(existingMessages)
     }
-    lastModelRef.current = `${selectedModel}:${provider}`
+
+    lastModelRef.current = agentKey
     return agentRef.current
-  }, [selectedModel, provider, customProviders])
+  }, [selectedModel, provider, selectedAgent, customProviders])
 
   function persistMessage(sdkMsg: Message) {
     if (!sessionId.current) return
@@ -384,6 +429,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
     if (!sessionId.current) {
       agentRef.current = null
+      lastAgentRef.current = null
       loadedSessionMessages.current = []
       const sess = sessionStore.current.create({ agent: selectedAgent, model: selectedModel, provider })
       sess.title = `Session ${new Date().toISOString()}`
@@ -405,13 +451,31 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
     try {
       const agent = await getOrCreateAgent()
-      for await (const ev of agent.run(trimmed)) {
+
+      let promptInput = trimmed
+      const prevAgent = lastAgentRef.current
+      if (prevAgent && prevAgent !== selectedAgent) {
+        const def = AGENT_DEFINITIONS[selectedAgent]
+        const prevDef = AGENT_DEFINITIONS[prevAgent]
+        if (prevDef?.mode === "primary" && def?.mode === "primary") {
+          if (prevAgent === "plan" && selectedAgent !== "plan") {
+            promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode. The previous agent was in plan mode — a plan may have been created. Execute on it if one exists.\n</system-reminder>\n\n${trimmed}`
+          } else if (selectedAgent === "plan") {
+            promptInput = `<system-reminder>\nPlan mode active. You are in read-only analysis mode — do NOT make edits, do NOT run destructive commands. Use read, glob, grep, and web_fetch only. When done, call plan_exit so the user can switch to build mode.\n</system-reminder>\n\n${trimmed}`
+          } else {
+            promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode (was ${prevAgent}). Your available tools and behavior have changed to match this mode.\n</system-reminder>\n\n${trimmed}`
+          }
+        }
+      }
+      lastAgentRef.current = selectedAgent
+
+      for await (const ev of agent.run(promptInput)) {
         if (ev.type === "message_start" && ev.message.role === "assistant") {
           const newId = genId()
           currentAssistantId = newId
           currentTurnMsgIdRef.current = newId
           streamingIdRef.current = newId
-          addMessage({ id: newId, role: "assistant", content: "", blocks: [], streaming: true, model: selectedModel })
+          addMessage({ id: newId, role: "assistant", content: "", blocks: [], streaming: true, model: selectedModel, agent: selectedAgent })
         }
         if (ev.type === "message_update" && ev.message.role === "assistant" && currentAssistantId) {
           const m = ev.message as AssistantMessage
@@ -425,7 +489,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               toolArgsMap.current.set(tc.id, tc.arguments)
               const tuiId = genId()
               toolMsgMap.current.set(tc.id, tuiId)
-              addMessage({ id: tuiId, role: "tool", content: "", meta: `${tc.name}(${JSON.stringify(tc.arguments || {})})` })
+              addMessage({ id: tuiId, role: "tool", content: "", meta: `${tc.name}(${JSON.stringify(tc.arguments || {})})`, agent: selectedAgent })
             }
           }
         }
@@ -471,7 +535,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             toolArgsMap.current.set(ev.toolCallId, ev.args)
             const tuiId = genId()
             toolMsgMap.current.set(ev.toolCallId, tuiId)
-            addMessage({ id: tuiId, role: "tool", content: "", meta: `${ev.toolName}(${JSON.stringify(ev.args || {})})` })
+            addMessage({ id: tuiId, role: "tool", content: "", meta: `${ev.toolName}(${JSON.stringify(ev.args || {})})`, agent: selectedAgent })
           }
         }
         if (ev.type === "tool_execution_end") {
@@ -684,6 +748,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
                   turnStatus: metadata.turnStatus as "completed" | "interrupted" | "error" | undefined,
                   turnDurationMs: metadata.turnDurationMs as number | undefined,
                   turnTokens,
+                  agent: data.agent,
                 }
               }
               // Tool result message
@@ -894,13 +959,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
                       turnStatus: metadata.turnStatus as "completed" | "interrupted" | "error" | undefined,
                       turnDurationMs: metadata.turnDurationMs as number | undefined,
                       turnTokens,
+                      agent: data.agent,
                     }
                   }
                   if (m.role === "toolResult") {
                     const toolOutput = m.content?.[0]?.text || ""
                     const args = (m as any).details?.args || {}
                     const meta = `${m.toolName}(${JSON.stringify(args)})`
-                    return { id, role: "tool" as const, content: toolOutput, meta }
+                return { id, role: "tool" as const, content: toolOutput, meta, agent: data.agent }
                   }
                   return { id, role: "user" as const, content: "", model: data.model }
                 })

@@ -67,7 +67,7 @@ export function MessageView({ msg, showThinking = true, isFirst = false, isRever
 
   if (msg.role === "assistant") {
     // Build turn footer: agent · model · duration · status
-    const agentName = "build" // TODO: pass agent name through props if needed
+    const agentName = msg.agent || "build"
     const showFooter = !msg.streaming && (msg.turnStatus || msg.turnTokens)
     const isInterrupted = msg.turnStatus === "interrupted"
     const isError = msg.turnStatus === "error"
@@ -158,15 +158,42 @@ export function MessageView({ msg, showThinking = true, isFirst = false, isRever
       return <InlineTool icon={tName === "read" ? "→" : ""} title={displayTitle} color={tName === "read" ? c.info : c.tool} marginTop={mt} />
     }
 
+    if (tName === "task") {
+      const subagentType = (argsObj as any)?.subagent_type || "subagent"
+      const description = (argsObj as any)?.description || ""
+      const title = `@${subagentType} ${description}`.slice(0, 60)
+
+      if (!output) {
+        return (
+          <box flexDirection="row" paddingLeft={2} marginTop={mt} gap={1}>
+            <text fg={c.thinking}>◆</text>
+            <text fg={c.dim}>{title}</text>
+            <text fg={c.accent}>(running...)</text>
+          </box>
+        )
+      }
+
+      return (
+        <box flexDirection="column" paddingTop={1} paddingBottom={1} paddingLeft={2} marginTop={mt} gap={1}
+          backgroundColor={c.bgTool} border={["left"]} customBorderChars={SB} borderColor={c.thinking}>
+          <box flexDirection="row" gap={1} paddingLeft={1}>
+            <text fg={c.thinking}>◆</text>
+            <text fg={c.dim}>{title}</text>
+            <text fg={c.success}>(done)</text>
+          </box>
+          <box paddingLeft={2}>
+            <TruncatedContent text={output} maxLines={MAX_SHELL_LINES} />
+          </box>
+        </box>
+      )
+    }
+
     if (tName === "bash" || tName === "shell") {
       const command = (argsObj as any)?.command || argsStr
       const description = (argsObj as any)?.description
       if (!output) return <InlineTool icon="$" title={command || "shell"} color={c.tool} marginTop={mt} />
 
-      // Parse exit code from output
-      const exitCodeMatch = output.match(/^Exit code: (\d+)\n?/)
-      const exitCode = exitCodeMatch ? parseInt(exitCodeMatch[1], 10) : null
-      const cleanOutput = exitCodeMatch ? output.slice(exitCodeMatch[0].length) : output
+      const exitCode = msg.exitCode ?? null
       const exitColor = exitCode === 0 ? c.success : c.error
 
       return (
@@ -180,7 +207,7 @@ export function MessageView({ msg, showThinking = true, isFirst = false, isRever
             {exitCode !== null && <text fg={exitColor}>Exit {exitCode}</text>}
           </box>
           <box paddingLeft={2}>
-            <TruncatedContent text={cleanOutput} maxLines={MAX_SHELL_LINES} />
+            <TruncatedContent text={output} maxLines={MAX_SHELL_LINES} />
           </box>
         </box>
       )

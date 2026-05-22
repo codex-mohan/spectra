@@ -7,6 +7,8 @@ export interface CmdItem {
   desc: string
   cat?: string
   action: () => void
+  slashName?: string
+  slashAliases?: string[]
 }
 
 export interface CommandPaletteProps {

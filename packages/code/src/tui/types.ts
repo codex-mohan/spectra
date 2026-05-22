@@ -17,4 +17,8 @@ export interface ChatMessage {
   turnDurationMs?: number
   /** Token usage for this turn */
   turnTokens?: { input: number; output: number }
+  /** Exit code for shell tool results (structured, no regex parsing needed) */
+  exitCode?: number
+  /** Agent that generated this message */
+  agent?: string
 }

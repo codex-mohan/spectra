@@ -6,6 +6,7 @@ import { editTool } from "./edit.js";
 import { grepTool } from "./grep.js";
 import { globTool } from "./glob.js";
 import { webFetchTool } from "./web-fetch.js";
+import { taskTool } from "./task.js";
 import type { AgentTool, ToolResult } from "@singularity-ai/spectra-agent";
 import { defineTool } from "@singularity-ai/spectra-agent";
 import { textResult } from "./utils.js";
@@ -22,6 +23,7 @@ export const builtinTools: SpectraTool[] = [
   grepTool,
   globTool,
   webFetchTool,
+  taskTool,
 ];
 
 export function spectraToolToAgentTool(specTool: SpectraTool): AgentTool {

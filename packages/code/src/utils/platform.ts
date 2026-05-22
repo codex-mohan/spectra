@@ -1,11 +1,28 @@
+import { existsSync } from "fs"
+
+function resolveShell(): string {
+  if (process.platform !== "win32") {
+    return process.env.SHELL || "/bin/bash"
+  }
+
+  const pathDirs = (process.env.PATH || "").split(";")
+  for (const dir of pathDirs) {
+    const pwshPath = dir ? `${dir}\pwsh.exe` : "pwsh.exe"
+    if (existsSync(pwshPath)) return "pwsh.exe"
+  }
+  for (const dir of pathDirs) {
+    const psPath = dir ? `${dir}\powershell.exe` : "powershell.exe"
+    if (existsSync(psPath)) return "powershell.exe"
+  }
+  return process.env.COMSPEC || "cmd.exe"
+}
+
 export function getPlatformInfo(): { os: string; arch: string; shell: string; homeDir: string; hostname: string; cwd: string } {
   const os = process.platform === "win32" ? "windows"
     : process.platform === "darwin" ? "macos"
     : "linux";
   const arch = process.arch;
-  const shell = os === "windows"
-    ? (process.env.COMSPEC || "cmd.exe")
-    : (process.env.SHELL || "/bin/bash");
+  const shell = resolveShell();
   const homeDir = process.env.HOME || process.env.USERPROFILE || "/home";
   const hostname = process.env.HOSTNAME || process.env.COMPUTERNAME || "localhost";
   const cwd = process.cwd();
@@ -30,7 +47,7 @@ export function getSystemPrompt(): string {
 You have access to the following tools to help complete tasks:
 
 1. **bash** — Execute shell commands. Output includes stdout, stderr, and exit code.
-   - Platform: ${isWin ? "Use PowerShell core (pwsh) if available, else cmd.exe. Prefer PowerShell cmdlets for complex operations." : "Standard bash shell. Use single quotes for literal strings."}
+   - Platform: ${isWin ? `Shell: ${info.shell}. Prefer PowerShell cmdlets for complex operations (e.g., Get-ChildItem, Select-String). For simple commands, cmd.exe builtins like 'dir', 'echo', 'type' also work.` : "Standard bash shell. Use single quotes for literal strings."}
    - Path handling: ${isWin ? "Use forward slashes or escaped backslashes. Bun and Node.js handle both." : "Standard POSIX paths."}
    - Long-running commands: The user will see streaming output if available.
    - Be careful: seek confirmation for destructive commands (rm -rf, sudo, format, etc.).
