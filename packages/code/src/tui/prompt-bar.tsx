@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 import { c, SPINNER } from "./theme.js"
 
 export interface PromptBarProps {
@@ -17,11 +17,33 @@ export interface PromptBarProps {
   tokenUsage?: { input: number; output: number }
   isChatView?: boolean
   showInterruptHint?: boolean
+  onTextChange?: (text: string) => void
+  onGetTextarea?: (ref: any) => void
+  onPositionChange?: (pos: { top: number; left: number; width: number }) => void
 }
 
 export function PromptBar(props: PromptBarProps) {
-  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint } = props
+  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint, onTextChange, onGetTextarea, onPositionChange } = props
   const textareaRef = useRef<any>(null)
+  const boxRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (onPositionChange && boxRef.current) {
+      const updatePosition = () => {
+        const el = boxRef.current
+        if (el) {
+          onPositionChange({
+            top: el.y ?? 0,
+            left: el.x ?? 0,
+            width: el.width ?? 0
+          })
+        }
+      }
+      updatePosition()
+      const interval = setInterval(updatePosition, 100)
+      return () => clearInterval(interval)
+    }
+  }, [onPositionChange])
 
   if (!hasModel && !isLoading) {
     return (
@@ -40,7 +62,7 @@ export function PromptBar(props: PromptBarProps) {
   }
 
   return (
-    <box flexDirection="column">
+    <box flexDirection="column" ref={boxRef}>
       <box flexDirection="row">
         <box width={1} backgroundColor={c.accent} height={"auto"} />
         <box flexDirection="row" alignItems="center" backgroundColor={c.bgBar}
@@ -60,7 +82,12 @@ export function PromptBar(props: PromptBarProps) {
                         { name: "return", action: "submit" },
                         { name: "return", shift: true, action: "newline" },
                       ]}
-                      ref={(r: any) => { textareaRef.current = r }}
+                      ref={(r: any) => { textareaRef.current = r; onGetTextarea?.(r) }}
+                      onContentChange={() => {
+                        if (textareaRef.current && onTextChange) {
+                          onTextChange(textareaRef.current.plainText)
+                        }
+                      }}
                       onSubmit={() => {
                         if (textareaRef.current) onSubmit(textareaRef.current.plainText)
                       }} focused={true} />

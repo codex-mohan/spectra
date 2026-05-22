@@ -27,6 +27,7 @@ export function SessionList(props: SessionListProps) {
   const [sel, setSel] = useState(0)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [renameInput, setRenameInput] = useState("")
+  const [refreshKey, setRefreshKey] = useState(0)
   const scrollRef = useRef<any>(null)
 
   const sessions = useMemo(() => {
@@ -34,7 +35,7 @@ export function SessionList(props: SessionListProps) {
     const q = filter.toLowerCase()
     if (!q) return list
     return list.filter((s) => s.title.toLowerCase().includes(q) || s.model.toLowerCase().includes(q) || s.id.includes(q))
-  }, [store, filter])
+  }, [store, filter, refreshKey])
 
   useEffect(() => {
     if (!scrollRef.current || !sessions[sel]) return
@@ -64,6 +65,7 @@ export function SessionList(props: SessionListProps) {
             const s = sessions[sel]
             onRename?.(s.id, renameInput)
             setRenameInput("")
+            setRefreshKey((k) => k + 1)
           }
           return
         }
@@ -74,6 +76,7 @@ export function SessionList(props: SessionListProps) {
             setConfirmDelete(false)
             setFilter("")
             setSel(0)
+            setRefreshKey((k) => k + 1)
           } else if (!confirmDelete && sessions.length > 0) {
             setConfirmDelete(true)
           }

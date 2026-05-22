@@ -4,7 +4,7 @@ import type { CliRenderer } from "@opentui/core"
 import { execSync } from "child_process"
 import { c, SPINNER } from "./theme.js"
 import { ChatArea } from "./components/chat-area.js"
-import { CommandPalette } from "./components/command-palette.js"
+import { CommandPalette, type CmdItem } from "./components/command-palette.js"
 import { PromptBar } from "./prompt-bar.js"
 import { Tips } from "./tips.js"
 import { genId, getMessageBlocks } from "./utils.js"
@@ -20,7 +20,9 @@ import { ManageProvidersDialog } from "./ui/manage-providers-dialog.js"
 import { MessageControls } from "./ui/message-controls.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
-import { buildCmdItems } from "./commands.js"
+import { buildCmdItems, collectSlashNames } from "./commands.js"
+import { parseSlashCommand, slashHead } from "./slash-commands.js"
+import { SlashAutocomplete } from "./components/slash-autocomplete.js"
 import { getGlobalConfigDir } from "../utils/paths.js"
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join } from "path"
@@ -93,6 +95,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [msgControls, setMsgControls] = useState<ChatMessage | null>(null)
   const [revertPoint, setRevertPoint] = useState<string | null>(null)
   const historyDraft = useRef("")
+  const promptTextareaRef = useRef<any>(null)
+  const [draftText, setDraftText] = useState("")
+  const [slashSelected, setSlashSelected] = useState(0)
+  const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 })
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
   const agentRef = useRef<any>(null)
@@ -160,6 +166,28 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       if (key.name === "backspace") { setCmdFilter((p) => p.slice(0, -1)); setCmdSelected(0); return }
       if (key.name.length === 1 && !key.ctrl && !key.meta) { setCmdFilter((p) => p + key.name); setCmdSelected(0); return }
       return
+    }
+    if (slashActive && slashFiltered.length > 0) {
+      if (key.name === "escape") {
+        setDraftText("")
+        setSlashSelected(0)
+        if (promptTextareaRef.current) {
+          promptTextareaRef.current.setText("")
+        }
+        return
+      }
+      if (key.name === "tab") {
+        const item = slashFiltered[slashSelected]
+        if (item && promptTextareaRef.current) {
+          const cmdName = item.slashName || item.id
+          promptTextareaRef.current.setText(`/${cmdName} `)
+          setDraftText(`/${cmdName} `)
+          setSlashSelected(0)
+        }
+        return
+      }
+      if (key.name === "up") { setSlashSelected((p) => (p > 0 ? p - 1 : slashFiltered.length - 1)); return }
+      if (key.name === "down") { setSlashSelected((p) => (p < slashFiltered.length - 1 ? p + 1 : 0)); return }
     }
     if (key.ctrl && key.name === "c") { renderer.destroy(); return }
     if (key.ctrl && key.name === "y") {
@@ -231,12 +259,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       return
     }
     if (key.name === "up") {
+      if (slashActive) return
       if (promptHistory.length === 0) return
       if (historyIdx === -1) historyDraft.current = ""
       setHistoryIdx(Math.min(historyIdx + 1, promptHistory.length - 1)); setNavKey((k) => k + 1)
       return
     }
     if (key.name === "down") {
+      if (slashActive) return
       if (historyIdx === -1) return
       setHistoryIdx(historyIdx - 1); setNavKey((k) => k + 1)
       return
@@ -305,6 +335,23 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const handleSubmit = useCallback(async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || isLoading) return
+
+    const parsed = parseSlashCommand(trimmed, slashNames)
+    if (parsed.type === "command") {
+      const cmd = cmdItems.find((item) => {
+        if (item.slashName === parsed.command.name) return true
+        if (item.slashAliases?.includes(parsed.command.name)) return true
+        return false
+      })
+      if (cmd) {
+        cmd.action()
+        setDraftText("")
+        setSlashSelected(0)
+        setSubmitKey((k) => k + 1)
+        return
+      }
+    }
+
     if (!selectedModel || !provider) {
       showToast("Connect a provider to send prompts", "warn")
       setDialogStep({ type: "provider" }); return
@@ -336,6 +383,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     streamingIdRef.current = "pending"
 
     if (!sessionId.current) {
+      agentRef.current = null
+      loadedSessionMessages.current = []
       const sess = sessionStore.current.create({ agent: selectedAgent, model: selectedModel, provider })
       sess.title = `Session ${new Date().toISOString()}`
       sessionStore.current.save(sess)
@@ -427,12 +476,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         }
         if (ev.type === "tool_execution_end") {
           const args = toolArgsMap.current.get(ev.toolCallId) || {}
+          const resultDetails = (ev.result?.details as Record<string, unknown> | undefined) ?? {}
           const toolMsg: Message = {
             role: "toolResult",
             toolCallId: ev.toolCallId,
             toolName: ev.toolName,
             content: ev.result?.content || [],
-            details: { args },
+            details: { args, ...resultDetails },
             isError: ev.isError || false,
             timestamp: Date.now(),
           }
@@ -441,7 +491,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           const tuiId = toolMsgMap.current.get(ev.toolCallId)
           if (tuiId) {
             const toolOutput = ev.result?.content?.[0]?.text || ""
-            updateMessage(tuiId, { content: toolOutput })
+            const exitCode = typeof resultDetails.exitCode === "number" ? resultDetails.exitCode : undefined
+            updateMessage(tuiId, { content: toolOutput, exitCode })
           }
         }
         if (ev.type === "agent_end") {
@@ -491,6 +542,21 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const execCmd = useCallback((item: any) => { item.action(); setShowCmd(false) }, [])
   useEffect(() => { if (cmdSelected >= cmdFiltered.length && cmdFiltered.length > 0) setCmdSelected(cmdFiltered.length - 1) }, [cmdSelected, cmdFiltered.length])
 
+  const slashNames = useMemo(() => collectSlashNames(cmdItems), [cmdItems])
+  const slashFiltered = useMemo(() => {
+    const head = slashHead(draftText)
+    if (!head) return [] as CmdItem[]
+    const q = head.name.toLowerCase()
+    if (!q) return cmdItems
+    return cmdItems.filter((item) => {
+      if (item.slashName && item.slashName.toLowerCase().includes(q)) return true
+      if (item.slashAliases) return item.slashAliases.some((a) => a.toLowerCase().includes(q))
+      return false
+    })
+  }, [cmdItems, draftText])
+  const slashActive = useMemo(() => slashHead(draftText) !== undefined, [draftText])
+  useEffect(() => { setSlashSelected(0) }, [draftText])
+
   return (
     <box flexDirection="column" height={termHeight} backgroundColor={c.bg}>
       {route === "home" ? (
@@ -505,7 +571,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
-              width={Math.min(68, termWidth - 8)} />
+              width={Math.min(68, termWidth - 8)}
+              onTextChange={(t) => setDraftText(t)}
+              onGetTextarea={(r) => { promptTextareaRef.current = r }}
+              onPositionChange={setPromptPosition} />
             <box height={1} />
             <box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
               <box flexDirection="row" gap={2}>
@@ -564,11 +633,19 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
-              isChatView={true} showInterruptHint={interruptKey === 1} />
+              isChatView={true} showInterruptHint={interruptKey === 1}
+              onTextChange={(t) => setDraftText(t)}
+              onGetTextarea={(r) => { promptTextareaRef.current = r }}
+              onPositionChange={setPromptPosition} />
           </box>
         </box>
       )}
       {showCmd && <CommandPalette filter={cmdFilter} selected={cmdSelected} items={cmdFiltered} termWidth={termWidth} termHeight={termHeight} />}
+      {slashActive && slashFiltered.length > 0 && (
+        <SlashAutocomplete query={slashHead(draftText)?.name || ""} selected={slashSelected}
+          items={slashFiltered} termWidth={termWidth} termHeight={termHeight} route={route}
+          promptTop={promptPosition.top} promptLeft={promptPosition.left} promptWidth={promptPosition.width} />
+      )}
       {dialogStep?.type === "provider" && (
         <ProviderDialog termWidth={termWidth} termHeight={termHeight} keyHandlerRef={dialogKeyHandler}
           onModelSelected={(modelId, providerId) => {
