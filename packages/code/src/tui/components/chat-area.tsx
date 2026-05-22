@@ -4,9 +4,6 @@ import type { ChatMessage } from "../types.js"
 
 export function ChatArea({ messages, showThinking = true, showToolCalls = true, revertPoint, onMessageClick }: { messages: ChatMessage[]; showThinking?: boolean; showToolCalls?: boolean; revertPoint?: string | null; onMessageClick?: (msg: ChatMessage) => void }) {
   const visible = messages.filter((msg) => {
-    if (msg.role === "assistant" && !showThinking) {
-      return !msg.blocks?.some((b) => b.type === "thinking") || msg.blocks.every((b) => b.type !== "thinking")
-    }
     if (msg.role === "tool" && !showToolCalls) return false
     return true
   })

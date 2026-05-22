@@ -17,13 +17,14 @@ export interface PromptBarProps {
   tokenUsage?: { input: number; output: number }
   isChatView?: boolean
   showInterruptHint?: boolean
+  focused?: boolean
   onTextChange?: (text: string) => void
   onGetTextarea?: (ref: any) => void
   onPositionChange?: (pos: { top: number; left: number; width: number }) => void
 }
 
 export function PromptBar(props: PromptBarProps) {
-  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint, onTextChange, onGetTextarea, onPositionChange } = props
+  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint, focused = true, onTextChange, onGetTextarea, onPositionChange } = props
   const textareaRef = useRef<any>(null)
   const boxRef = useRef<any>(null)
 
@@ -90,7 +91,7 @@ export function PromptBar(props: PromptBarProps) {
                       }}
                       onSubmit={() => {
                         if (textareaRef.current) onSubmit(textareaRef.current.plainText)
-                      }} focused={true} />
+                      }} focused={focused} />
                   </box>
                 </box>
               )}

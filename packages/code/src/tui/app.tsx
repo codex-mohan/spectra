@@ -636,6 +636,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               width={Math.min(68, termWidth - 8)}
+              focused={!dialogStep && !showCmd && !msgControls}
               onTextChange={(t) => setDraftText(t)}
               onGetTextarea={(r) => { promptTextareaRef.current = r }}
               onPositionChange={setPromptPosition} />
@@ -698,6 +699,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
               isChatView={true} showInterruptHint={interruptKey === 1}
+              focused={!dialogStep && !showCmd && !msgControls}
               onTextChange={(t) => setDraftText(t)}
               onGetTextarea={(r) => { promptTextareaRef.current = r }}
               onPositionChange={setPromptPosition} />

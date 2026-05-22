@@ -63,19 +63,17 @@ export const taskTool: SpectraTool = {
         getApiKey: config.getApiKey,
       });
 
-      const outputParts: string[] = [];
+      let finalText = ""
       for await (const ev of subagent.run(prompt)) {
         if (ev.type === "message_update" && ev.message.role === "assistant") {
           const textBlocks = ev.message.content.filter(
             (c): c is { type: "text"; text: string } => c.type === "text"
           );
-          for (const block of textBlocks) {
-            if (block.text) outputParts.push(block.text);
-          }
+          finalText = textBlocks.map((b) => b.text).join("")
         }
       }
 
-      const resultText = outputParts.join("").trim();
+      const resultText = finalText.trim();
       if (!resultText) {
         return textResult(`Subagent @${subagent_type} completed with no text output.`);
       }

@@ -182,7 +182,7 @@ export function MessageView({ msg, showThinking = true, isFirst = false, isRever
             <text fg={c.success}>(done)</text>
           </box>
           <box paddingLeft={2}>
-            <TruncatedContent text={output} maxLines={MAX_SHELL_LINES} />
+            <markdown content={output} syntaxStyle={mdStyle} conceal={true} width="100%" tableOptions={{ style: "grid", borders: true, borderStyle: "single" }} />
           </box>
         </box>
       )
