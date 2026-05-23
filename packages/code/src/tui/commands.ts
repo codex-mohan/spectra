@@ -71,7 +71,19 @@ export function buildCmdItems(opts: {
     } },
     { id: "manage-providers", label: "Manage Providers", desc: `${opts.customProviderCount} custom provider${opts.customProviderCount !== 1 ? "s" : ""}`, cat: "Provider", slashName: "providers", action: () => { setDialogStep({ type: "manage-providers" }) } },
     { id: "home", label: "Go Home", desc: "Return to home", cat: "Navigation", slashName: "home", action: () => { setRoute("home") } },
-    { id: "doctor", label: "Doctor", desc: "Run health check", cat: "System", slashName: "doctor", action: () => { renderer.destroy(); import("../commands/doctor.js").then((m) => m.doctorCommand.handler({} as never)) } },
+    { id: "doctor", label: "Doctor", desc: "Run health check", cat: "System", slashName: "doctor", action: () => {
+      setStatus("Running health check...")
+      import("../commands/doctor.js").then((m) => m.runDoctor().then((result: any) => {
+        const failed = result.checks.filter((c: any) => !c.passed)
+        if (result.allPassed) {
+          setStatus(`All ${result.checks.length} checks passed`)
+        } else {
+          const names = failed.map((c: any) => c.name).join(", ")
+          setStatus(`${failed.length}/${result.checks.length} checks failed: ${names}`)
+        }
+        setTimeout(() => setStatus("Ready"), 6000)
+      }))
+    } },
     { id: "about", label: "About", desc: "Version info", cat: "System", slashName: "about", action: () => { setStatus("Spectra Code v0.1.0"); setTimeout(() => setStatus("Ready"), 3000) } },
     { id: "help", label: "Help", desc: "Keyboard shortcuts", cat: "System", slashName: "help", action: () => { setStatus("Esc quit · Tab agents · Ctrl+P palette · Ctrl+L clear"); setTimeout(() => setStatus("Ready"), 4000) } },
     { id: "quit", label: "Quit", desc: "Exit", cat: "System", slashName: "exit", slashAliases: ["quit", "q"], action: () => renderer.destroy() },

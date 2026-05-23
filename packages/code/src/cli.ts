@@ -412,8 +412,15 @@ async function main() {
     "Run system health check",
     () => {},
     async () => {
-      const { doctorCommand } = await import("./commands/doctor.js");
-      await doctorCommand.handler({} as never);
+      const { runDoctor } = await import("./commands/doctor.js");
+      const result = await runDoctor();
+      process.stdout.write("Spectra Code — System Health Check\n\n");
+      for (const check of result.checks) {
+        process.stdout.write(`${check.passed ? "✓" : "✗"} [${check.section}] ${check.name}\n`);
+        process.stdout.write(`  ${check.detail}\n`);
+      }
+      process.stdout.write(`\n${result.allPassed ? "✓ All checks passed." : "✗ Some checks failed — review the items above."}\n`);
+      process.exit(result.allPassed ? 0 : 1);
     }
   );
 
