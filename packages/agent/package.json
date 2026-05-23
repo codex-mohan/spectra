@@ -1,6 +1,6 @@
 {
   "name": "@mohanscodex/spectra-agent",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Spectra Agent — agent loop, tool dispatch, state management",
   "type": "module",
   "main": "./dist/index.js",
