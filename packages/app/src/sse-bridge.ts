@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@singularity-ai/spectra-agent";
+import type { AgentEvent } from "@mohanscodex/spectra-agent";
 import type {
   ConnectionBridge,
   ConnectionConfig,

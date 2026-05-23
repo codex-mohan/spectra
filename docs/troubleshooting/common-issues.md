@@ -59,7 +59,7 @@ let query = args["query"].as_str().ok_or("missing query field")?;
 
 **Fix:** Call `initProviders()` before creating the agent:
 ```typescript
-import { initProviders } from "@singularity-ai/spectra-ai";
+import { initProviders } from "@mohanscodex/spectra-ai";
 initProviders();
 ```
 

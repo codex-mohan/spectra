@@ -1,6 +1,6 @@
 # Orchestration & Concurrency
 
-The `@singularity-ai/spectra-app` package provides tools for running agents at any scale: the `SessionEngine` for full lifecycle orchestration, worker pools for job processing, rate limiting for API protection, and an agent registry for delegating tasks across specialist agents.
+The `@mohanscodex/spectra-app` package provides tools for running agents at any scale: the `SessionEngine` for full lifecycle orchestration, worker pools for job processing, rate limiting for API protection, and an agent registry for delegating tasks across specialist agents.
 
 ## SessionEngine
 
@@ -13,7 +13,7 @@ import {
   InMemorySessionStore,
   CompositeRateLimiter,
   LocalRateLimiter,
-} from "@singularity-ai/spectra-app";
+} from "@mohanscodex/spectra-app";
 
 const engine = new SessionEngine({
   sessionManager: new SessionManager(new InMemorySessionStore()),
@@ -48,7 +48,7 @@ await engine.stop(true);
 At scale, swap in Redis backends:
 
 ```typescript
-import { RedisSessionStore, RedisRateLimiter } from "@singularity-ai/spectra-app";
+import { RedisSessionStore, RedisRateLimiter } from "@mohanscodex/spectra-app";
 import Redis from "ioredis";
 
 const redis = new Redis();
@@ -78,7 +78,7 @@ import {
   InMemorySessionStore,
   SequentialWorkerPool,
   createAgentRunner,
-} from "@singularity-ai/spectra-app";
+} from "@mohanscodex/spectra-app";
 
 const sessions = new SessionManager(new InMemorySessionStore());
 const session = await sessions.create({
@@ -109,7 +109,7 @@ await pool.stop();
 Sliding-window rate limiter — per-user, configurable:
 
 ```typescript
-import { LocalRateLimiter } from "@singularity-ai/spectra-app";
+import { LocalRateLimiter } from "@mohanscodex/spectra-app";
 
 const limiter = new LocalRateLimiter(60, 60000); // 60 requests per minute
 
@@ -131,7 +131,7 @@ Rate limits are tracked independently per user ID. The window slides — old req
 Register specialist agents and delegate tasks:
 
 ```typescript
-import { AgentRegistry } from "@singularity-ai/spectra-app";
+import { AgentRegistry } from "@mohanscodex/spectra-app";
 
 const orchestrator = new AgentRegistry();
 

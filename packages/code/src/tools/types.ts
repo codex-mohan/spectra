@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { ToolResult } from "@singularity-ai/spectra-agent";
+import type { ToolResult } from "@mohanscodex/spectra-agent";
 
 export interface SpectraTool<TArgs extends z.ZodType = z.ZodType> {
   name: string;

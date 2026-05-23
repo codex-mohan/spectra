@@ -3,14 +3,14 @@
 Build a working AI agent in 5 minutes. This guide walks you through creating an agent that can use tools, stream responses, and handle events.
 
 ::: tip Prerequisites
-- TypeScript: `bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent`
+- TypeScript: `bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent`
 - Set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in your environment
 :::
 
 ## Step 1: Create the Agent
 
 ```typescript
-import { Agent } from "@singularity-ai/spectra-agent";
+import { Agent } from "@mohanscodex/spectra-agent";
 
 const agent = new Agent({
   model: {
@@ -54,7 +54,7 @@ Use `process.stdout.write()` (not `console.log()`) for streaming text — it doe
 Tools let the agent perform actions beyond text generation. Define one with `defineTool()`:
 
 ```typescript
-import { defineTool } from "@singularity-ai/spectra-agent";
+import { defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const calculatorTool = defineTool({
@@ -130,7 +130,7 @@ All of this happens automatically. You just consume events from the stream.
 ## Full Working Example
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const calculatorTool = defineTool({

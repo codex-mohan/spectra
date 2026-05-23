@@ -58,9 +58,9 @@ Open `http://localhost:5173/spectra/` in your browser.
 ```
 spectra/
 ├── packages/          # TypeScript SDKs
-│   ├── ai/            # @singularity-ai/spectra-ai
-│   ├── agent/         # @singularity-ai/spectra-agent
-│   └── app/           # @singularity-ai/spectra-app
+│   ├── ai/            # @mohanscodex/spectra-ai
+│   ├── agent/         # @mohanscodex/spectra-agent
+│   └── app/           # @mohanscodex/spectra-app
 ├── crates/            # Rust SDKs
 │   ├── spectra-rs/    # Core types, agent, traits
 │   └── spectra-http/  # HTTP clients

@@ -5,7 +5,7 @@ Spectra provides built-in LLM providers and a registry for custom ones. On impor
 ## Built-in Providers
 
 ```typescript
-import { initProviders } from "@singularity-ai/spectra-ai";
+import { initProviders } from "@mohanscodex/spectra-ai";
 
 initProviders(); // auto-called on import
 ```
@@ -15,7 +15,7 @@ initProviders(); // auto-called on import
 Spectra auto-generates a model catalog at build time from **OpenRouter API** and **models.dev**, producing 4,000+ models across 150+ providers. See [Providers Overview](/typescript/providers#model-registry) for details.
 
 ```typescript
-import { getProviderModels, getModels, listProviders } from "@singularity-ai/spectra-ai";
+import { getProviderModels, getModels, listProviders } from "@mohanscodex/spectra-ai";
 
 const models = getProviderModels("anthropic");
 const allProviders = listProviders();
@@ -37,7 +37,7 @@ const agent = new Agent({
 ## Custom Providers
 
 ```typescript
-import { registerProvider } from "@singularity-ai/spectra-ai";
+import { registerProvider } from "@mohanscodex/spectra-ai";
 
 registerProvider({
   name: "my-provider",

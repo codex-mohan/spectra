@@ -1,4 +1,4 @@
-# @singularity-ai/spectra-ai
+# @mohanscodex/spectra-ai
 
 ## 0.3.0
 

@@ -7,18 +7,18 @@ Spectra is organized as a monorepo with independent SDKs for each language. This
 ```
 spectra/
 ├── packages/                    # TypeScript SDKs (Bun workspaces)
-│   ├── ai/                      # @singularity-ai/spectra-ai
+│   ├── ai/                      # @mohanscodex/spectra-ai
 │   │   └── src/
 │   │       ├── types.ts         # Core types: Message, Model, StopReason
 │   │       ├── event-stream.ts  # EventStream<T,R> (AsyncIterable)
 │   │       ├── registry.ts      # Provider registry
 │   │       └── providers/       # Anthropic, OpenAI implementations
-│   ├── agent/                   # @singularity-ai/spectra-agent
+│   ├── agent/                   # @mohanscodex/spectra-agent
 │   │   └── src/
 │   │       ├── agent.ts         # Agent class with run loop
 │   │       ├── types.ts         # AgentTool, AgentEvent, AgentConfig
 │   │       └── define-tool.ts   # defineTool() with Zod validation
-│   └── app/                     # @singularity-ai/spectra-app (optional)
+│   └── app/                     # @mohanscodex/spectra-app (optional)
 │       └── src/
 │           ├── session.ts       # SessionManager, SessionStore
 │           ├── engine.ts        # SessionEngine orchestration
@@ -67,9 +67,9 @@ There is no "core" that other SDKs bind to. Rust is not a library that TypeScrip
 
 | Package | Responsibility |
 |---|---|
-| `@singularity-ai/spectra-ai` | LLM provider layer — handles streaming, SSE parsing, provider registration |
-| `@singularity-ai/spectra-agent` | Agent orchestration — run loop, tool dispatch, event streaming |
-| `@singularity-ai/spectra-app` | Production features — sessions, rate limiting, multi-agent delegation |
+| `@mohanscodex/spectra-ai` | LLM provider layer — handles streaming, SSE parsing, provider registration |
+| `@mohanscodex/spectra-agent` | Agent orchestration — run loop, tool dispatch, event streaming |
+| `@mohanscodex/spectra-app` | Production features — sessions, rate limiting, multi-agent delegation |
 
 This separation lets you:
 - Use just the provider layer if you want to build your own agent

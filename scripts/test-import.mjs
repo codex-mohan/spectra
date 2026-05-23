@@ -39,9 +39,9 @@ try {
   // 5. Write and run import test
   console.log('\n=== 5. Run import test ===');
   writeFileSync(join(tmpDir, 'verify.mjs'), [
-    'import { EventStream, stream } from "@singularity-ai/spectra-ai";',
-    'import { Agent, defineTool } from "@singularity-ai/spectra-agent";',
-    'import { SessionManager } from "@singularity-ai/spectra-app";',
+    'import { EventStream, stream } from "@mohanscodex/spectra-ai";',
+    'import { Agent, defineTool } from "@mohanscodex/spectra-agent";',
+    'import { SessionManager } from "@mohanscodex/spectra-app";',
     'import { z } from "zod";',
     '',
     'new EventStream();',

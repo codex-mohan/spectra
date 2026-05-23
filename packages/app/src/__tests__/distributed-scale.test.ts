@@ -24,9 +24,9 @@ import type {
 import { LocalRateLimiter } from "../rate-limiter.js";
 import { RedisRateLimiter } from "../redis-rate-limiter.js";
 import { RedisSessionStore } from "../redis-session-store.js";
-import { registerProvider, AssistantMessageEventStream } from "@singularity-ai/spectra-ai";
-import type { Model, Context, StreamOptions } from "@singularity-ai/spectra-ai";
-import { Agent } from "@singularity-ai/spectra-agent";
+import { registerProvider, AssistantMessageEventStream } from "@mohanscodex/spectra-ai";
+import type { Model, Context, StreamOptions } from "@mohanscodex/spectra-ai";
+import { Agent } from "@mohanscodex/spectra-agent";
 
 function createTempDir(): string {
   return mkdtempSync(join(tmpdir(), "spectra-app-test-"));

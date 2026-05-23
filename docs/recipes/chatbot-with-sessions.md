@@ -9,15 +9,15 @@ Creates a chatbot that maintains conversation state using `SessionManager`, allo
 ## Prerequisites
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent @singularity-ai/spectra-app
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent @mohanscodex/spectra-app
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ## Full Code
 
 ```typescript
-import { Agent } from "@singularity-ai/spectra-agent";
-import { SessionManager, InMemorySessionStore } from "@singularity-ai/spectra-app";
+import { Agent } from "@mohanscodex/spectra-agent";
+import { SessionManager, InMemorySessionStore } from "@mohanscodex/spectra-app";
 
 const sessions = new SessionManager(new InMemorySessionStore());
 
@@ -103,7 +103,7 @@ await chat("user-123", "What's my name?", sessionId);
 Replace `InMemorySessionStore` with `RedisSessionStore` for distributed deployments:
 
 ```typescript
-import { RedisSessionStore, SQLiteSessionStore } from "@singularity-ai/spectra-app";
+import { RedisSessionStore, SQLiteSessionStore } from "@mohanscodex/spectra-app";
 
 const store = new RedisSessionStore(new Redis(), {
   ttlSeconds: 86400, // 24 hours

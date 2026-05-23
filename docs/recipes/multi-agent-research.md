@@ -9,7 +9,7 @@ A planner breaks down a research question, workers research each sub-topic in pa
 ## Prerequisites
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent @singularity-ai/spectra-app
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent @mohanscodex/spectra-app
 export ANTHROPIC_API_KEY=sk-ant-...
 export OPENAI_API_KEY=sk-...
 ```
@@ -17,7 +17,7 @@ export OPENAI_API_KEY=sk-...
 ## Full Code
 
 ```typescript
-import { AgentRegistry } from "@singularity-ai/spectra-app";
+import { AgentRegistry } from "@mohanscodex/spectra-app";
 
 const orchestrator = new AgentRegistry();
 

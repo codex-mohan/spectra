@@ -7,7 +7,7 @@ How to orchestrate multiple agents for complex tasks.
 Use `AgentRegistry` to delegate tasks to specialist agents:
 
 ```typescript
-import { AgentRegistry } from "@singularity-ai/spectra-app";
+import { AgentRegistry } from "@mohanscodex/spectra-app";
 
 const orchestrator = new AgentRegistry();
 

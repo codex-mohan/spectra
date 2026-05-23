@@ -1,17 +1,17 @@
 # Session Management
 
-The `@singularity-ai/spectra-app` package provides session management for persisting and restoring agent conversations across requests — essential for production deployments.
+The `@mohanscodex/spectra-app` package provides session management for persisting and restoring agent conversations across requests — essential for production deployments.
 
 ## Installation
 
 ```bash
-bun add @singularity-ai/spectra-app
+bun add @mohanscodex/spectra-app
 ```
 
 ## Creating a Session
 
 ```typescript
-import { SessionManager, InMemorySessionStore } from "@singularity-ai/spectra-app";
+import { SessionManager, InMemorySessionStore } from "@mohanscodex/spectra-app";
 
 const store = new InMemorySessionStore();
 const sessions = new SessionManager(store);
@@ -76,7 +76,7 @@ const completedSessions = await sessions.list({ status: "completed" });
 | `RedisSessionStore` | Production — distributed hot cache with TTL, optional cold store fallback |
 
 ```typescript
-import { RedisSessionStore } from "@singularity-ai/spectra-app";
+import { RedisSessionStore } from "@mohanscodex/spectra-app";
 import Redis from "ioredis";
 
 // Redis as hot cache, SQLite as cold storage
@@ -90,7 +90,7 @@ const sessions = new SessionManager(store);
 For custom backends, implement the `SessionStore` interface:
 
 ```typescript
-import type { SessionStore } from "@singularity-ai/spectra-app";
+import type { SessionStore } from "@mohanscodex/spectra-app";
 
 class PostgresSessionStore implements SessionStore {
   async create(session) { /* INSERT ... */ }

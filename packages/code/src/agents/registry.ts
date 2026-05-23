@@ -1,4 +1,4 @@
-import type { Model } from "@singularity-ai/spectra-ai"
+import type { Model } from "@mohanscodex/spectra-ai"
 
 export interface AgentRegistryConfig {
   model: Model

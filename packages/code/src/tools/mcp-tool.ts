@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { AgentTool, ToolResult } from "@singularity-ai/spectra-agent";
-import { defineTool } from "@singularity-ai/spectra-agent";
+import type { AgentTool, ToolResult } from "@mohanscodex/spectra-agent";
+import { defineTool } from "@mohanscodex/spectra-agent";
 import type { Tool as McpToolDefinition } from "@modelcontextprotocol/sdk/types.js";
 import { callMcpTool, formatMcpToolName } from "../services/mcp.js";
 import { textResult, errorResult } from "./utils.js";

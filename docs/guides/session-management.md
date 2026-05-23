@@ -14,7 +14,7 @@ How to choose a session store and configure sessions for production.
 ## Development Setup
 
 ```typescript
-import { SessionManager, InMemorySessionStore } from "@singularity-ai/spectra-app";
+import { SessionManager, InMemorySessionStore } from "@mohanscodex/spectra-app";
 
 const sessions = new SessionManager(new InMemorySessionStore());
 const session = await sessions.create({
@@ -26,7 +26,7 @@ const session = await sessions.create({
 ## Production Setup (Redis + SQLite)
 
 ```typescript
-import { SessionManager, RedisSessionStore, SQLiteSessionStore } from "@singularity-ai/spectra-app";
+import { SessionManager, RedisSessionStore, SQLiteSessionStore } from "@mohanscodex/spectra-app";
 import Redis from "ioredis";
 
 const redis = new Redis(process.env.REDIS_URL);

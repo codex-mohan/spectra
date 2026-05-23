@@ -121,7 +121,7 @@ spectra/
 │           ├── openai.rs           # OpenAI Chat Completions SSE streaming via reqwest
 │           └── test.rs             # Wiremock integration tests
 ├── packages/
-│   ├── ai/                         # @singularity-ai/spectra-ai — TypeScript LLM provider layer
+│   ├── ai/                         # @mohanscodex/spectra-ai — TypeScript LLM provider layer
 │   │   └── src/
 │   │       ├── types.ts            # Core types: Message, AssistantMessage, ToolCall, StopReason, Model, etc.
 │   │       ├── event-stream.ts     # EventStream<T,R> / AssistantMessageEventStream (AsyncIterable)
@@ -132,7 +132,7 @@ spectra/
 │   │           ├── openai-responses.ts     # OpenAI Responses API provider
 │   │           ├── shared.ts            # sanitizeSurrogates, parseStreamingJson
 │   │           └── register-builtins.ts   # Auto-registers all providers
-│   └── agent/                      # @singularity-ai/spectra-agent — TypeScript agent + tool system
+│   └── agent/                      # @mohanscodex/spectra-agent — TypeScript agent + tool system
 │       └── src/
 │           ├── agent.ts            # Agent class with run loop, tool dispatch, streaming
 │           ├── types.ts            # AgentTool, ToolResult, AgentEvent, AgentConfig, hooks
@@ -177,7 +177,7 @@ spectra/
 ### Naming Conventions
 - Rust: snake_case for functions/variables, PascalCase for types, module files are snake_case
 - TypeScript: camelCase for functions/variables, PascalCase for types/classes
-- Package namespaces: `@singularity-ai/spectra-ai`, `@singularity-ai/spectra-agent`, `spectra-rs`, `spectra-http`
+- Package namespaces: `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent`, `spectra-rs`, `spectra-http`
 - Provider names in registry: `"anthropic"`, `"openai-completions"`, `"openai-responses"`
 - **Implementation naming**: Name classes by their behavior or storage mechanism, not by capability level. Avoid `Simple` prefix. Prefer descriptive names (e.g., `MemoryRateLimiter` over `SimpleRateLimiter`, `SequentialWorkerPool` over `SimpleWorkerPool`, `AgentRegistry` over `SimpleOrchestrator`). Interface names should describe capability (`Orchestrator`, `RateLimiter`, `WorkerPool`).
 - **Limitations belong in docs, not names**: If an implementation has tradeoffs (in-memory only, single-threaded), document them in JSDoc and README — don't encode them in the class name.
@@ -264,9 +264,9 @@ npm install ./singularity-ai-spectra-app-*.tgz
 
 # 6. Import test — verify all packages, exports, constructors, and Zod validation
 node --input-type=module -e '
-import { EventStream, stream } from "@singularity-ai/spectra-ai";
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
-import { SessionManager } from "@singularity-ai/spectra-app";
+import { EventStream, stream } from "@mohanscodex/spectra-ai";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
+import { SessionManager } from "@mohanscodex/spectra-app";
 import { z } from "zod";
 
 // Verify each package loads
@@ -379,7 +379,7 @@ No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills
 ### Tooling
 
 - **Changesets** (`@changesets/cli`) for TypeScript package versioning and npm publishing
-- **Fixed versioning**: `@singularity-ai/spectra-ai`, `@singularity-ai/spectra-agent`, and `@singularity-ai/spectra-app` always share the same version
+- **Fixed versioning**: `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent`, and `@mohanscodex/spectra-app` always share the same version
 - **Changelog**: `@changesets/changelog-github` generates changelogs with PR/commit links (repo: `codex-mohan/spectra`)
 
 ### Release Process (TypeScript)
@@ -396,7 +396,7 @@ No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills
 - **Never create Git tags manually** — the release workflow handles `vX.Y.Z` tags and GitHub Releases
 - **Never publish to npm manually** — the release workflow handles `npm publish`
 - **All 3 TS packages must stay at the same version** — the changeset `fixed` group enforces this
-- **Escape `@` in release notes** — scoped package names like `@singularity-ai/spectra-ai` must be escaped (`\@` or backtick-wrapped) in GitHub Release notes to prevent GitHub from interpreting them as user mentions
+- **Escape `@` in release notes** — scoped package names like `@mohanscodex/spectra-ai` must be escaped (`\@` or backtick-wrapped) in GitHub Release notes to prevent GitHub from interpreting them as user mentions
 - **Rust crates**: No automated release yet. When ready, use [release-plz](https://release-plz.ieni.dev/) in a separate workflow. Do **not** try to keep Rust and TS versions in lockstep — they will diverge independently
 - **`commit: false`** in changeset config — the GitHub Action handles the version commit via its own PR
 
@@ -454,7 +454,7 @@ Rules:
 
 **TypeScript:**
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const agent = new Agent({

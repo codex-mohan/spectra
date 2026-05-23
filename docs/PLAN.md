@@ -369,7 +369,7 @@ Project-root `AGENTS.md` already exists. Enhance with:
 - Plugin `vitepress-plugin-llms` v1.12.2 installed in `docs/package.json`
 - Domain: `https://codex-mohan.github.io/spectra` (update if custom domain changes)
 - Each page should use `:::tip` / `:::warning` callouts where appropriate
-- TypeScript examples use `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent`
+- TypeScript examples use `@mohanscodex/spectra-ai` and `@mohanscodex/spectra-agent`
 - Rust examples use `spectra-rs` and `spectra-http` crates
 - Never mix TS and Rust code on the same page — use language-specific sections
 - Old `docs/guide/` and `docs/api/` directories should be deleted after all content is migrated

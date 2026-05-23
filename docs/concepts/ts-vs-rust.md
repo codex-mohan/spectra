@@ -32,7 +32,7 @@ They share **design patterns and type shapes**, not code or runtime.
 ### TypeScript
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const agent = new Agent({

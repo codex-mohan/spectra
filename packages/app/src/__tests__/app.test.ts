@@ -12,8 +12,8 @@ import {
   SequentialWorkerPool,
   createAgentRunner,
 } from "../index.js";
-import { Agent } from "@singularity-ai/spectra-agent";
-import type { Model, Message } from "@singularity-ai/spectra-ai";
+import { Agent } from "@mohanscodex/spectra-agent";
+import type { Model, Message } from "@mohanscodex/spectra-ai";
 
 const testModel: Model = {
   id: "test-model",

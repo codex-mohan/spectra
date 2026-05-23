@@ -3,13 +3,13 @@
 ## Installation
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 ```
 
 ## Quick Start
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const weatherTool = defineTool({

@@ -12,7 +12,7 @@ import type { ChatMessage, ContentBlock } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
 import { SnapshotManager } from "../services/snapshot-manager.js"
 import { readAll } from "../services/auth-store.js"
-import type { AssistantMessage, Message } from "@singularity-ai/spectra-ai"
+import type { AssistantMessage, Message } from "@mohanscodex/spectra-ai"
 import { ProviderDialog } from "./ui/provider-dialog.js"
 import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
@@ -295,8 +295,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       ? [...agentRef.current.messages]
       : loadedSessionMessages.current
 
-    const { Agent } = await import("@singularity-ai/spectra-agent")
-    const { initProviders } = await import("@singularity-ai/spectra-ai")
+    const { Agent } = await import("@mohanscodex/spectra-agent")
+    const { initProviders } = await import("@mohanscodex/spectra-ai")
     initProviders()
     const { createAllTools, spectraToolToAgentTool } = await import("../tools/index.js")
     const customCfg = customProviders[provider]

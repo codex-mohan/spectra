@@ -21,9 +21,9 @@ Conventions and style rules for contributing to Spectra.
 
 ### Package Names
 
-- `@singularity-ai/spectra-ai` — provider layer
-- `@singularity-ai/spectra-agent` — agent + tools
-- `@singularity-ai/spectra-app` — sessions + orchestration
+- `@mohanscodex/spectra-ai` — provider layer
+- `@mohanscodex/spectra-agent` — agent + tools
+- `@mohanscodex/spectra-app` — sessions + orchestration
 
 ## Rust
 

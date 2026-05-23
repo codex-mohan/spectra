@@ -6,9 +6,9 @@ The TypeScript SDK consists of three packages that work together to provide a co
 
 | Package | Purpose | Install |
 |---|---|---|
-| `@singularity-ai/spectra-ai` | LLM provider layer — streaming, SSE parsing, provider registry | `bun add @singularity-ai/spectra-ai` |
-| `@singularity-ai/spectra-agent` | Agent orchestration — run loop, tool dispatch, event streaming | `bun add @singularity-ai/spectra-agent` |
-| `@singularity-ai/spectra-app` | Production features — sessions, rate limiting, multi-agent | `bun add @singularity-ai/spectra-app` |
+| `@mohanscodex/spectra-ai` | LLM provider layer — streaming, SSE parsing, provider registry | `bun add @mohanscodex/spectra-ai` |
+| `@mohanscodex/spectra-agent` | Agent orchestration — run loop, tool dispatch, event streaming | `bun add @mohanscodex/spectra-agent` |
+| `@mohanscodex/spectra-app` | Production features — sessions, rate limiting, multi-agent | `bun add @mohanscodex/spectra-app` |
 
 ## Architecture
 
@@ -16,14 +16,14 @@ The TypeScript SDK consists of three packages that work together to provide a co
 ┌─────────────────────────────────────────────────────┐
 │                  Your Application                    │
 ├─────────────────────────────────────────────────────┤
-│  @singularity-ai/spectra-agent                      │
+│  @mohanscodex/spectra-agent                      │
 │  ┌───────────┐  ┌────────────┐  ┌────────────────┐  │
 │  │  Agent     │  │ defineTool │  │  AgentEvent    │  │
 │  │  (run loop)│  │ (Zod + exec)│  │  (streaming)   │  │
 │  └─────┬─────┘  └────────────┘  └────────────────┘  │
 │        │                                             │
 │        ▼                                             │
-│  @singularity-ai/spectra-ai                         │
+│  @mohanscodex/spectra-ai                         │
 │  ┌──────────────┐  ┌──────────────┐  ┌───────────┐  │
 │  │ Provider      │  │ EventStream  │  │  Registry │  │
 │  │ (Anthropic)   │  │ (AsyncIter)  │  │           │  │

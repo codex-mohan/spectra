@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { c } from "../theme.js"
 import { write, type ApiCredential } from "../../services/auth-store.js"
-import { listProviders, getModels } from "@singularity-ai/spectra-ai"
+import { listProviders, getModels } from "@mohanscodex/spectra-ai"
 import { loadConfig } from "../../services/config.js"
 
 const BUILTIN_META: Record<string, { name: string; desc: string; popular: boolean }> = {

@@ -3,7 +3,7 @@ import type { SpectraTool } from "./types.js";
 import { textResult, errorResult } from "./utils.js";
 import { AGENT_DEFINITIONS, SUBAGENTS, filterToolsByAgent } from "../agents/definitions.js";
 import { AgentRegistry } from "../agents/registry.js";
-import type { AgentTool } from "@singularity-ai/spectra-agent";
+import type { AgentTool } from "@mohanscodex/spectra-agent";
 
 function descriptionForTaskTool(): string {
   const subagentList = SUBAGENTS.map((name) => {
@@ -50,7 +50,7 @@ export const taskTool: SpectraTool = {
     }
 
     try {
-      const { Agent } = await import("@singularity-ai/spectra-agent");
+      const { Agent } = await import("@mohanscodex/spectra-agent");
       const { createAllTools, spectraToolToAgentTool } = await import("./index.js");
       const allTools = createAllTools().map(spectraToolToAgentTool);
       const tools = filterToolsByAgent(allTools, subagent_type);

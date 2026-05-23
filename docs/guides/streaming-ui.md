@@ -29,7 +29,7 @@ For a React component with streaming text:
 
 ```tsx
 import { useState } from "react";
-import { Agent } from "@singularity-ai/spectra-agent";
+import { Agent } from "@mohanscodex/spectra-agent";
 
 function ChatAgent() {
   const [messages, setMessages] = useState<string[]>([]);

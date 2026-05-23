@@ -1,4 +1,4 @@
-import type { ToolResult } from "@singularity-ai/spectra-agent";
+import type { ToolResult } from "@mohanscodex/spectra-agent";
 
 export function textResult(text: string): ToolResult {
   return { content: [{ type: "text", text } as { type: "text"; text: string }] };

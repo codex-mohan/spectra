@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync } from "fs";
 import { getGlobalConfigDir, getGlobalDataDir, getGlobalCacheDir, discoverConfigDirs, discoverInstructionFiles } from "../utils/paths.js";
 import { getPlatformInfo } from "../utils/platform.js";
 import { loadConfig } from "../services/config.js";
-import { listProviders } from "@singularity-ai/spectra-ai";
+import { listProviders } from "@mohanscodex/spectra-ai";
 
 export const doctorCommand: CommandModule = {
   command: "doctor",

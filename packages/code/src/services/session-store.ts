@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, unlinkSync } from "fs";
 import { join } from "path";
 import { getGlobalDataDir } from "../utils/paths.js";
-import type { Message } from "@singularity-ai/spectra-ai";
+import type { Message } from "@mohanscodex/spectra-ai";
 
 export interface SessionInfo {
   id: string;

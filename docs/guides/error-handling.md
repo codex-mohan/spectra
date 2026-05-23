@@ -90,7 +90,7 @@ The LLM receives the error and can:
 For production systems, use a circuit breaker to prevent cascading failures:
 
 ```typescript
-import { DefaultCircuitBreaker } from "@singularity-ai/spectra-app";
+import { DefaultCircuitBreaker } from "@mohanscodex/spectra-app";
 
 const breaker = new DefaultCircuitBreaker({
   failureThreshold: 5,

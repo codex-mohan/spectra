@@ -9,14 +9,14 @@ The agent uses a web search tool to find current information, then synthesizes a
 ## Prerequisites
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ## Full Code
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 async function searchWeb(query: string, numResults = 5): Promise<string> {

@@ -1,6 +1,6 @@
-import type { Message, StreamOptions, Usage } from "@singularity-ai/spectra-ai";
-import type { AgentEvent, AgentConfig } from "@singularity-ai/spectra-agent";
-import { Agent } from "@singularity-ai/spectra-agent";
+import type { Message, StreamOptions, Usage } from "@mohanscodex/spectra-ai";
+import type { AgentEvent, AgentConfig } from "@mohanscodex/spectra-agent";
+import { Agent } from "@mohanscodex/spectra-agent";
 import type {
   Session,
   SessionEngineConfig,

@@ -68,7 +68,7 @@ Most AI agent frameworks are pre-built houses — you get a fixed architecture a
 ::: code-group
 
 ```typescript [TypeScript]
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const agent = new Agent({

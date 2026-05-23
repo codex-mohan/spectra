@@ -1015,6 +1015,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.6 35B-A3B"
     },
     {
+      "id": "qwen3.6-flash",
+      "name": "Qwen3.6 Flash"
+    },
+    {
       "id": "qwen3.6-max-preview",
       "name": "Qwen3.6 Max Preview"
     },
@@ -1305,12 +1309,20 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.5 Plus"
     },
     {
+      "id": "qwen3.6-flash",
+      "name": "Qwen3.6 Flash"
+    },
+    {
       "id": "qwen3.6-max-preview",
       "name": "Qwen3.6 Max Preview"
     },
     {
       "id": "qwen3.6-plus",
       "name": "Qwen3.6 Plus"
+    },
+    {
+      "id": "qwen3.7-max",
+      "name": "Qwen3.7 Max"
     },
     {
       "id": "qwq-32b",
@@ -1371,8 +1383,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.5 Plus"
     },
     {
+      "id": "qwen3.6-flash",
+      "name": "Qwen3.6 Flash"
+    },
+    {
       "id": "qwen3.6-plus",
       "name": "Qwen3.6 Plus"
+    },
+    {
+      "id": "qwen3.7-max",
+      "name": "Qwen3.7 Max"
     }
   ],
   "alibaba-coding-plan-cn": [
@@ -1409,8 +1429,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Qwen3.5 Plus"
     },
     {
+      "id": "qwen3.6-flash",
+      "name": "Qwen3.6 Flash"
+    },
+    {
       "id": "qwen3.6-plus",
       "name": "Qwen3.6 Plus"
+    },
+    {
+      "id": "qwen3.7-max",
+      "name": "Qwen3.7 Max"
     }
   ],
   "amazon": [
@@ -4119,14 +4147,6 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "fireworks-ai": [
     {
-      "id": "accounts/fireworks/models/deepseek-v3p1",
-      "name": "DeepSeek V3.1"
-    },
-    {
-      "id": "accounts/fireworks/models/deepseek-v3p2",
-      "name": "DeepSeek V3.2"
-    },
-    {
       "id": "accounts/fireworks/models/deepseek-v4-flash",
       "name": "DeepSeek V4 Flash"
     },
@@ -4135,24 +4155,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "DeepSeek V4 Pro"
     },
     {
-      "id": "accounts/fireworks/models/glm-4p5",
-      "name": "GLM 4.5"
-    },
-    {
-      "id": "accounts/fireworks/models/glm-4p5-air",
-      "name": "GLM 4.5 Air"
-    },
-    {
-      "id": "accounts/fireworks/models/glm-4p7",
-      "name": "GLM 4.7"
-    },
-    {
-      "id": "accounts/fireworks/models/glm-5",
-      "name": "GLM 5"
-    },
-    {
       "id": "accounts/fireworks/models/glm-5p1",
       "name": "GLM 5.1"
+    },
+    {
+      "id": "accounts/fireworks/routers/glm-5p1-fast",
+      "name": "GLM 5.1 Fast"
     },
     {
       "id": "accounts/fireworks/models/gpt-oss-120b",
@@ -4163,28 +4171,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT OSS 20B"
     },
     {
-      "id": "accounts/fireworks/models/kimi-k2-instruct",
-      "name": "Kimi K2 Instruct"
-    },
-    {
-      "id": "accounts/fireworks/models/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking"
-    },
-    {
       "id": "accounts/fireworks/models/kimi-k2p5",
       "name": "Kimi K2.5"
-    },
-    {
-      "id": "accounts/fireworks/routers/kimi-k2p5-turbo",
-      "name": "Kimi K2.5 Turbo"
     },
     {
       "id": "accounts/fireworks/models/kimi-k2p6",
       "name": "Kimi K2.6"
     },
     {
-      "id": "accounts/fireworks/models/minimax-m2p1",
-      "name": "MiniMax-M2.1"
+      "id": "accounts/fireworks/routers/kimi-k2p6-turbo",
+      "name": "Kimi K2.6 Turbo"
     },
     {
       "id": "accounts/fireworks/models/minimax-m2p5",
@@ -4375,6 +4371,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gemini-3.1-pro-preview",
       "name": "Gemini 3.1 Pro Preview"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
     },
     {
       "id": "gpt-4.1",
@@ -4989,6 +4989,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gemini-3.1-pro-preview-customtools",
       "name": "Gemini 3.1 Pro Preview Custom Tools"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
     },
     {
       "id": "gemini-flash-latest",
@@ -8781,8 +8785,20 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini 2.5 Pro"
     },
     {
+      "id": "google/gemini-3-pro",
+      "name": "Gemini 3 Pro Preview"
+    },
+    {
       "id": "google/gemini-3.1-flash-lite",
       "name": "Gemini 3.1 Flash Lite"
+    },
+    {
+      "id": "google/gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash"
+    },
+    {
+      "id": "google/gemma-4-31B-it",
+      "name": "Gemma 4 31B IT"
     },
     {
       "id": "zai-org/GLM-5.1-FP8",
@@ -8851,6 +8867,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "openai/o4-mini",
       "name": "o4-mini"
+    },
+    {
+      "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+      "name": "Qwen 3.6 35B A3B FP8"
     },
     {
       "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
@@ -13425,12 +13445,12 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "scaleway": [
     {
-      "id": "deepseek-r1-distill-llama-70b",
-      "name": "DeepSeek R1 Distill Llama 70B"
-    },
-    {
       "id": "devstral-2-123b-instruct-2512",
       "name": "Devstral 2 123B Instruct (2512)"
+    },
+    {
+      "id": "gemma-4-26b-a4b-it",
+      "name": "Gemma 4 26B A4B IT"
     },
     {
       "id": "gemma-3-27b-it",
@@ -13441,20 +13461,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GPT-OSS 120B"
     },
     {
-      "id": "llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct"
-    },
-    {
       "id": "llama-3.3-70b-instruct",
       "name": "Llama-3.3-70B-Instruct"
     },
     {
       "id": "mistral-medium-3.5-128b",
       "name": "Mistral Medium 3.5 128B"
-    },
-    {
-      "id": "mistral-nemo-instruct-2407",
-      "name": "Mistral Nemo Instruct 2407"
     },
     {
       "id": "mistral-small-3.2-24b-instruct-2506",
@@ -13475,6 +13487,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "qwen3.5-397b-a17b",
       "name": "Qwen3.5 397B A17B"
+    },
+    {
+      "id": "qwen3.6-35b-a3b",
+      "name": "Qwen3.6 35B A3B"
     },
     {
       "id": "voxtral-small-24b-2507",
@@ -14591,6 +14607,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "Gemini 3.1 Pro Preview"
     },
     {
+      "id": "gemini-3-5-flash",
+      "name": "Gemini 3.5 Flash"
+    },
+    {
       "id": "gemma-4-uncensored",
       "name": "Gemma 4 Uncensored"
     },
@@ -14773,6 +14793,10 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "qwen-3-6-plus",
       "name": "Qwen 3.6 Plus Uncensored"
+    },
+    {
+      "id": "qwen-3-7-max",
+      "name": "Qwen 3.7 Max"
     },
     {
       "id": "qwen3-vl-235b-a22b",

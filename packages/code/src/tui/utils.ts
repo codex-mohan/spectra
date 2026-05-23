@@ -1,4 +1,4 @@
-import type { AssistantMessage, TextContent, ThinkingContent, ToolCall } from "@singularity-ai/spectra-ai"
+import type { AssistantMessage, TextContent, ThinkingContent, ToolCall } from "@mohanscodex/spectra-ai"
 import type { ContentBlock } from "./types.js"
 
 export function genId(): string {

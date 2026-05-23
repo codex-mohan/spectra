@@ -13,13 +13,13 @@ Spectra provides independent SDKs for TypeScript and Rust. Choose the one that m
 
 ```bash
 # Using Bun (recommended)
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 
 # Using npm
-npm install @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+npm install @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 
 # Using yarn
-yarn add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+yarn add @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 ```
 
 ### Optional: Session Management & Orchestration
@@ -27,7 +27,7 @@ yarn add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
 For production features (persistent sessions, rate limiting, multi-agent delegation):
 
 ```bash
-bun add @singularity-ai/spectra-app
+bun add @mohanscodex/spectra-app
 ```
 
 ### Environment Variables
@@ -51,7 +51,7 @@ Never hardcode API keys in your source code. Always use environment variables or
 Create a test file `test.ts`:
 
 ```typescript
-import { Agent } from "@singularity-ai/spectra-agent";
+import { Agent } from "@mohanscodex/spectra-agent";
 
 const agent = new Agent({
   model: {
@@ -161,9 +161,9 @@ You should see streaming events from the LLM.
 
 | Package | Purpose |
 |---|---|
-| `@singularity-ai/spectra-ai` | LLM provider layer — Anthropic, OpenAI, custom providers |
-| `@singularity-ai/spectra-agent` | Agent class, tool system, event streaming |
-| `@singularity-ai/spectra-app` | (Optional) Session management, orchestration, rate limiting |
+| `@mohanscodex/spectra-ai` | LLM provider layer — Anthropic, OpenAI, custom providers |
+| `@mohanscodex/spectra-agent` | Agent class, tool system, event streaming |
+| `@mohanscodex/spectra-app` | (Optional) Session management, orchestration, rate limiting |
 
 ### Rust Crates
 

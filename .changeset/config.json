@@ -7,14 +7,14 @@
   "commit": false,
   "fixed": [
     [
-      "@singularity-ai/spectra-ai",
-      "@singularity-ai/spectra-agent",
-      "@singularity-ai/spectra-app"
+      "@mohanscodex/spectra-ai",
+      "@mohanscodex/spectra-agent",
+      "@mohanscodex/spectra-app"
     ]
   ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@singularity-ai/spectra-examples"]
+  "ignore": ["@mohanscodex/spectra-examples"]
 }

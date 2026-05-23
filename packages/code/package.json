@@ -1,5 +1,5 @@
 {
-  "name": "@singularity-ai/spectra-code",
+  "name": "@mohanscodex/spectra-code",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -35,8 +35,8 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@opentui/core": ">=0.2.6",
     "@opentui/react": "^0.2.10",
-    "@singularity-ai/spectra-agent": "workspace:*",
-    "@singularity-ai/spectra-ai": "workspace:*",
+    "@mohanscodex/spectra-agent": "workspace:*",
+    "@mohanscodex/spectra-ai": "workspace:*",
     "chalk": "^5.6.2",
     "clipboardy": "^5.3.1",
     "openai": "^5.3.0",

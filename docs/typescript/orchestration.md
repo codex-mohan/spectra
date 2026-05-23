@@ -1,6 +1,6 @@
 # Orchestration
 
-The `@singularity-ai/spectra-app` package provides tools for running agents at any scale.
+The `@mohanscodex/spectra-app` package provides tools for running agents at any scale.
 
 ## SessionEngine
 
@@ -13,7 +13,7 @@ import {
   InMemorySessionStore,
   CompositeRateLimiter,
   LocalRateLimiter,
-} from "@singularity-ai/spectra-app";
+} from "@mohanscodex/spectra-app";
 
 const engine = new SessionEngine({
   sessionManager: new SessionManager(new InMemorySessionStore()),
@@ -47,7 +47,7 @@ await engine.stop(true); // graceful drain
 ### Production Scale (Redis)
 
 ```typescript
-import { RedisSessionStore, RedisRateLimiter } from "@singularity-ai/spectra-app";
+import { RedisSessionStore, RedisRateLimiter } from "@mohanscodex/spectra-app";
 import Redis from "ioredis";
 
 const redis = new Redis();
@@ -74,7 +74,7 @@ import {
   InMemorySessionStore,
   SequentialWorkerPool,
   createAgentRunner,
-} from "@singularity-ai/spectra-app";
+} from "@mohanscodex/spectra-app";
 
 const sessions = new SessionManager(new InMemorySessionStore());
 const session = await sessions.create({
@@ -96,7 +96,7 @@ await pool.stop();
 Sliding-window rate limiter — per-user, configurable:
 
 ```typescript
-import { LocalRateLimiter } from "@singularity-ai/spectra-app";
+import { LocalRateLimiter } from "@mohanscodex/spectra-app";
 
 const limiter = new LocalRateLimiter(60, 60000); // 60 requests per minute
 
@@ -118,7 +118,7 @@ Rate limits are tracked independently per user ID. For distributed deployments, 
 Register specialist agents and delegate tasks:
 
 ```typescript
-import { AgentRegistry } from "@singularity-ai/spectra-app";
+import { AgentRegistry } from "@mohanscodex/spectra-app";
 
 const orchestrator = new AgentRegistry();
 
@@ -147,7 +147,7 @@ const results = await orchestrator.executeParallel([
 Protect against cascading failures:
 
 ```typescript
-import { DefaultCircuitBreaker } from "@singularity-ai/spectra-app";
+import { DefaultCircuitBreaker } from "@mohanscodex/spectra-app";
 
 const breaker = new DefaultCircuitBreaker({
   failureThreshold: 5,     // Open after 5 consecutive failures

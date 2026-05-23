@@ -63,7 +63,7 @@ Each SDK (TypeScript, Rust) is a **complete, independent native implementation**
 
 ### TypeScript Agent
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const agent = new Agent({

@@ -9,7 +9,7 @@ Exposes a Spectra agent as an HTTP API with rate limiting per user, session pers
 ## Prerequisites
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent @singularity-ai/spectra-app
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent @mohanscodex/spectra-app
 bun add hono  # or express/fastify
 export ANTHROPIC_API_KEY=sk-ant-...
 export REDIS_URL=redis://localhost:6379
@@ -20,14 +20,14 @@ export REDIS_URL=redis://localhost:6379
 ```typescript
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { Agent } from "@singularity-ai/spectra-agent";
+import { Agent } from "@mohanscodex/spectra-agent";
 import {
   SessionEngine,
   SessionManager,
   RedisSessionStore,
   CompositeRateLimiter,
   RedisRateLimiter,
-} from "@singularity-ai/spectra-app";
+} from "@mohanscodex/spectra-app";
 import Redis from "ioredis";
 
 const app = new Hono();

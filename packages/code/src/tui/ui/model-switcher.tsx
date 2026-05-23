@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import { c } from "../theme.js"
-import { listProviders, getModels } from "@singularity-ai/spectra-ai"
+import { listProviders, getModels } from "@mohanscodex/spectra-ai"
 import { loadConfig } from "../../services/config.js"
 import { readAll } from "../../services/auth-store.js"
 

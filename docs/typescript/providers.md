@@ -5,7 +5,7 @@ Spectra provides built-in LLM providers, a provider registry for custom ones, an
 ## Built-in Providers
 
 ```typescript
-import { initProviders } from "@singularity-ai/spectra-ai";
+import { initProviders } from "@mohanscodex/spectra-ai";
 
 initProviders(); // auto-called on import — registers all built-in providers
 ```
@@ -87,7 +87,7 @@ The generated file typically contains **4,000+ models** across **150+ providers*
 ### Accessing Models
 
 ```typescript
-import { getProviderModels, getModels, listProviders } from "@singularity-ai/spectra-ai";
+import { getProviderModels, getModels, listProviders } from "@mohanscodex/spectra-ai";
 
 // From the static catalog
 const anthropicModels = getProviderModels("anthropic");
@@ -193,7 +193,7 @@ Never hardcode API keys in source code. Use environment variables, a secrets man
 Register any LLM provider that supports streaming:
 
 ```typescript
-import { registerProvider } from "@singularity-ai/spectra-ai";
+import { registerProvider } from "@mohanscodex/spectra-ai";
 
 registerProvider({
   name: "my-provider",

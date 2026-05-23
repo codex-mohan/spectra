@@ -15,7 +15,7 @@ Spectra already ships with **21 built-in providers** (Anthropic, OpenAI, Groq, O
 ### Step 1: Import the Registry
 
 ```typescript
-import { registerProvider, AssistantMessageEventStream } from "@singularity-ai/spectra-ai";
+import { registerProvider, AssistantMessageEventStream } from "@mohanscodex/spectra-ai";
 ```
 
 ### Step 2: Implement the Stream Function

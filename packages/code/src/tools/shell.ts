@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { SpectraTool } from "./types.js";
-import type { ToolResult } from "@singularity-ai/spectra-agent";
+import type { ToolResult } from "@mohanscodex/spectra-agent";
 import { spawnSync } from "child_process";
 import { getPlatformInfo } from "../utils/platform.js";
 

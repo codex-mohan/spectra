@@ -52,7 +52,7 @@ For serverless functions, use the agent inline:
 
 ```typescript
 // api/agent.ts
-import { Agent } from "@singularity-ai/spectra-agent";
+import { Agent } from "@mohanscodex/spectra-agent";
 
 export async function POST(req: Request) {
   const { input } = await req.json();
@@ -91,7 +91,7 @@ Serverless functions have execution timeouts (usually 10-60 seconds). For long-r
 ## Health Check
 
 ```typescript
-import { HealthProbe } from "@singularity-ai/spectra-app";
+import { HealthProbe } from "@mohanscodex/spectra-app";
 
 const health = new HealthProbe();
 health.registerCheck("redis", async () => {

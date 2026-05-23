@@ -1,4 +1,4 @@
-import type { AgentTool } from "@singularity-ai/spectra-agent"
+import type { AgentTool } from "@mohanscodex/spectra-agent"
 
 export interface AgentDefinition {
   name: string

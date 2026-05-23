@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Agent } from "../agent.js";
 import { defineTool } from "../define-tool.js";
 import { z } from "zod";
-import type { Model, Message, AssistantMessage, AssistantMessageEvent } from "@singularity-ai/spectra-ai";
-import { AssistantMessageEventStream, registerProvider } from "@singularity-ai/spectra-ai";
+import type { Model, Message, AssistantMessage, AssistantMessageEvent } from "@mohanscodex/spectra-ai";
+import { AssistantMessageEventStream, registerProvider } from "@mohanscodex/spectra-ai";
 
 // Test model
 const testModel: Model = {

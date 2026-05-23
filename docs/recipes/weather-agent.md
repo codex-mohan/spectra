@@ -9,14 +9,14 @@ The agent receives a natural language query like "What's the weather in Tokyo?" 
 ## Prerequisites
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ## Full Code
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 // Simulated weather API — replace with a real API call

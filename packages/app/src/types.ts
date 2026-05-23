@@ -1,5 +1,5 @@
-import type { AgentConfig, AgentTool, AgentEvent } from "@singularity-ai/spectra-agent";
-import type { Model, Message, Usage, StreamOptions } from "@singularity-ai/spectra-ai";
+import type { AgentConfig, AgentTool, AgentEvent } from "@mohanscodex/spectra-agent";
+import type { Model, Message, Usage, StreamOptions } from "@mohanscodex/spectra-ai";
 
 export interface SessionEntryBase {
   id: string;

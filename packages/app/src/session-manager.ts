@@ -12,7 +12,7 @@ import type {
   ModelChangeEntry,
   SessionContext,
 } from "./types.js";
-import type { Message, Model } from "@singularity-ai/spectra-ai";
+import type { Message, Model } from "@mohanscodex/spectra-ai";
 
 function generateId(): string {
   return uuidv4();

@@ -1,4 +1,4 @@
-import { registerProvider, type Provider, type Model, type Context, type StreamOptions, AssistantMessageEventStream } from "@singularity-ai/spectra-ai"
+import { registerProvider, type Provider, type Model, type Context, type StreamOptions, AssistantMessageEventStream } from "@mohanscodex/spectra-ai"
 import type { CustomProviderConfig } from "./config.js"
 import { read } from "./auth-store.js"
 
@@ -73,9 +73,9 @@ export function registerCustomProvider(id: string, config: CustomProviderConfig)
             return
           }
 
-          // Use the openai package from @singularity-ai/spectra-ai's dependencies
+          // Use the openai package from @mohanscodex/spectra-ai's dependencies
           // This avoids duplicating the openai dependency in packages/code
-          const { default: OpenAI } = await import("@singularity-ai/spectra-ai").then(() => import("openai"))
+          const { default: OpenAI } = await import("@mohanscodex/spectra-ai").then(() => import("openai"))
           const client = new OpenAI({
             apiKey,
             baseURL: config.baseUrl,

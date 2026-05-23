@@ -6,10 +6,10 @@ import clipboard from "clipboardy"
 import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import { createCliRenderer, RGBA, SyntaxStyle } from "@opentui/core"
 import { createRoot, flushSync, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
-import { Agent } from "@singularity-ai/spectra-agent"
-import { defineTool } from "@singularity-ai/spectra-agent"
+import { Agent } from "@mohanscodex/spectra-agent"
+import { defineTool } from "@mohanscodex/spectra-agent"
 import { z } from "zod"
-import type { AssistantMessage, TextContent, ThinkingContent, ToolCall, Message } from "@singularity-ai/spectra-ai"
+import type { AssistantMessage, TextContent, ThinkingContent, ToolCall, Message } from "@mohanscodex/spectra-ai"
 import "dotenv/config"
 
 // ---------------------------------------------------------------------------

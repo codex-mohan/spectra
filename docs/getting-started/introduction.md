@@ -37,7 +37,7 @@ This isn't an afterthought — it's the core data flow.
 
 | | TypeScript | Rust |
 |---|---|---|
-| **Packages** | `@singularity-ai/spectra-ai`, `@singularity-ai/spectra-agent` | `spectra-rs`, `spectra-http` |
+| **Packages** | `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent` | `spectra-rs`, `spectra-http` |
 | **Runtime** | Node.js / Bun | Tokio async runtime |
 | **Error handling** | TypeScript errors, Zod validation | `thiserror` + `miette` diagnostics |
 | **Tool definition** | `defineTool()` with Zod schemas | `Tool` trait implementation |
