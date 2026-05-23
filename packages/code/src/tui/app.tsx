@@ -17,6 +17,7 @@ import { ProviderDialog } from "./ui/provider-dialog.js"
 import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
 import { ManageProvidersDialog } from "./ui/manage-providers-dialog.js"
+import { DoctorDialog } from "./ui/doctor-dialog.js"
 import { MessageControls } from "./ui/message-controls.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
@@ -87,7 +88,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | null>(null)
+  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | null>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
@@ -827,6 +828,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           onClose={() => setDialogStep(null)}
           registerHandler={(fn) => { dialogKeyHandler.current = fn }}
         />
+      )}
+      {dialogStep?.type === "doctor" && dialogStep.result && (
+        <DoctorDialog result={dialogStep.result} termWidth={termWidth} termHeight={termHeight}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn: any) => { dialogKeyHandler.current = fn }} />
       )}
       {msgControls && sessionId.current && (
         <MessageControls

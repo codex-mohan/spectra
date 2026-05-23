@@ -22,7 +22,7 @@ export function buildCmdItems(opts: {
   setShowToolCalls: (fn: (v: boolean) => boolean) => void
   setHomeKey: (fn: (k: number) => number) => void
   setNavKey: (fn: (k: number) => number) => void
-  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | null) => void
+  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | null) => void
   sessionIdRef: { current: string | null }
 }): CmdItem[] {
   const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep } = opts
@@ -72,16 +72,9 @@ export function buildCmdItems(opts: {
     { id: "manage-providers", label: "Manage Providers", desc: `${opts.customProviderCount} custom provider${opts.customProviderCount !== 1 ? "s" : ""}`, cat: "Provider", slashName: "providers", action: () => { setDialogStep({ type: "manage-providers" }) } },
     { id: "home", label: "Go Home", desc: "Return to home", cat: "Navigation", slashName: "home", action: () => { setRoute("home") } },
     { id: "doctor", label: "Doctor", desc: "Run health check", cat: "System", slashName: "doctor", action: () => {
-      setStatus("Running health check...")
+      setDialogStep({ type: "doctor", result: null } as any)
       import("../commands/doctor.js").then((m) => m.runDoctor().then((result: any) => {
-        const failed = result.checks.filter((c: any) => !c.passed)
-        if (result.allPassed) {
-          setStatus(`All ${result.checks.length} checks passed`)
-        } else {
-          const names = failed.map((c: any) => c.name).join(", ")
-          setStatus(`${failed.length}/${result.checks.length} checks failed: ${names}`)
-        }
-        setTimeout(() => setStatus("Ready"), 6000)
+        setDialogStep({ type: "doctor", result } as any)
       }))
     } },
     { id: "about", label: "About", desc: "Version info", cat: "System", slashName: "about", action: () => { setStatus("Spectra Code v0.1.0"); setTimeout(() => setStatus("Ready"), 3000) } },
