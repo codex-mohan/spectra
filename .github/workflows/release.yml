@@ -38,7 +38,7 @@ jobs:
         uses: changesets/action@v1
         with:
           version: bun run version
-          publish: bun run release
+          publish: bun run release --no-git-tag
           commit: "chore: version packages"
           title: "chore: version packages"
         env:
@@ -54,17 +54,27 @@ jobs:
           VERSION=$(echo "$PUBLISHED" | jq -r '.[0].version')
           TAG="v${VERSION}"
 
-          cat > /tmp/release-body.md <<- EOF
-          ## Published Packages
+          # Build release body
+          {
+            echo "## Published Packages"
+            echo ""
+            for row in $(echo "$PUBLISHED" | jq -r '.[] | @base64'); do
+              PKG_NAME=$(echo "$row" | base64 -d | jq -r '.name')
+              VER=$(echo "$row" | base64 -d | jq -r '.version')
+              echo "- \`\`${PKG_NAME}@${VER}\`\` — [npm](https://www.npmjs.com/package/${PKG_NAME}/v/${VER})"
+            done
+            echo ""
+            echo "## Install"
+            echo ""
+            echo '```sh'
+            echo "bun add @mohanscodex/spectra-ai@${VERSION}"
+            echo '```'
+          } > /tmp/release-body.md
 
-          $(echo "$PUBLISHED" | jq -r '.[] | "- \`\(.name)@\(.version)\` — [npm](https://www.npmjs.com/package/\(.name)/v/\(.version))"')
-
-          ## Install
-
-          \`\`\`sh
-          bun add @mohanscodex/spectra-ai@${VERSION}
-          \`\`\`
-          EOF
+          # Create and push unified tag, then create GitHub Release
+          git tag "$TAG"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$TAG"
 
           gh release create "$TAG" \
             --title "Spectra $TAG" \
