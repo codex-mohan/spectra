@@ -4,7 +4,7 @@ import {
   disconnectServer,
   listConnectedServers,
   listServerTools,
-} from "../services/mcp.js";
+} from "../integrations/mcp/index.js";
 import { loadConfig, saveConfig, type SpectraConfig, type McpConfig } from "../services/config.js";
 
 export const mcpListCommand: CommandModule = {

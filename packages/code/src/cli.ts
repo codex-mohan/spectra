@@ -5,7 +5,7 @@ import { spinner, text, confirm, select, intro, outro, isCancel, cancel } from "
 import chalk from "chalk";
 import { SessionStore } from "./services/session-store.js";
 import { loadConfig, saveConfig } from "./services/config.js";
-import { connectServer, disconnectServer, listConnectedServers, listServerTools } from "./services/mcp.js";
+import { connectServer, disconnectServer, listConnectedServers, listServerTools } from "./integrations/mcp/index.js";
 
 async function main() {
   const pkg = await import("../package.json", { with: { type: "json" } });
@@ -421,6 +421,18 @@ async function main() {
       }
       process.stdout.write(`\n${result.allPassed ? "✓ All checks passed." : "✗ Some checks failed — review the items above."}\n`);
       process.exit(result.allPassed ? 0 : 1);
+    }
+  );
+
+  // ACP command
+  cli.command(
+    "acp",
+    "Run as ACP-compatible agent (Agent Client Protocol over stdio)",
+    () => {},
+    async () => {
+      const { ACPAdapter } = await import("./integrations/acp/index.js");
+      const adapter = new ACPAdapter();
+      adapter.start();
     }
   );
 

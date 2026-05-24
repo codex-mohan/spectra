@@ -10,7 +10,7 @@ import type {
   ListToolsResult,
   Tool as McpToolDefinition,
 } from "@modelcontextprotocol/sdk/types.js";
-import type { McpConfig } from "./config.js";
+import type { McpConfig } from "../../services/config.js";
 
 export interface McpServerConfig {
   name: string;

@@ -13,9 +13,9 @@ export {
   shutdownAllServers,
   sanitizeToolName,
   formatMcpToolName,
-} from "./services/mcp.js";
+} from "./integrations/mcp/index.js";
 export type { SpectraTool } from "./tools/types.js";
-export { builtinTools, createAllTools, createAllToolsWithMcp, getToolStats, spectraToolToAgentTool } from "./tools/index.js";
+export { builtinTools, createAllTools, createAllToolsWithMcp, createAllToolsWithExtensions, getToolStats, spectraToolToAgentTool } from "./tools/index.js";
 export { shellTool } from "./tools/shell.js";
 export { readTool } from "./tools/read.js";
 export { writeTool } from "./tools/write.js";

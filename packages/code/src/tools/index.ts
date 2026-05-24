@@ -10,8 +10,9 @@ import { taskTool } from "./task.js";
 import type { AgentTool, ToolResult } from "@mohanscodex/spectra-agent";
 import { defineTool } from "@mohanscodex/spectra-agent";
 import { textResult } from "./utils.js";
-import { listConnectedServers } from "../services/mcp.js";
+import { listConnectedServers } from "../integrations/mcp/index.js";
 import { createMcpAgentTools } from "./mcp-tool.js";
+import { loadCustomTools } from "../integrations/custom-tools/index.js";
 
 export { type SpectraTool } from "./types.js";
 
@@ -72,6 +73,32 @@ export function getToolStats(): { builtin: number; mcp: number; total: number } 
     builtin: builtinTools.length,
     mcp: mcpCount,
     total: builtinTools.length + mcpCount,
+  };
+}
+
+export async function createAllToolsWithExtensions(): Promise<{
+  builtin: AgentTool[];
+  mcp: AgentTool[];
+  custom: AgentTool[];
+  all: AgentTool[];
+}> {
+  const builtin = builtinTools.map(spectraToolToAgentTool);
+
+  const connected = listConnectedServers();
+  const mcp: AgentTool[] = [];
+  for (const server of connected) {
+    if (server.tools.length > 0) {
+      mcp.push(...createMcpAgentTools(server.name, server.tools));
+    }
+  }
+
+  const custom = await loadCustomTools(process.cwd());
+
+  return {
+    builtin,
+    mcp,
+    custom,
+    all: [...builtin, ...mcp, ...custom],
   };
 }
 

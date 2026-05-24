@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { ToolResult } from "@mohanscodex/spectra-agent";
+import type { ToolResult, ToolUpdateCallback } from "@mohanscodex/spectra-agent";
 
 export interface SpectraTool<TArgs extends z.ZodType = z.ZodType> {
   name: string;
@@ -9,14 +9,12 @@ export interface SpectraTool<TArgs extends z.ZodType = z.ZodType> {
   promptGuidelines?: string[];
   execute: (
     args: z.infer<TArgs>,
-    context: {
-      toolCallId: string;
-      signal?: AbortSignal;
-    },
+    context: ToolContext,
   ) => Promise<ToolResult>;
 }
 
 export type ToolContext = {
   toolCallId: string;
   signal?: AbortSignal;
+  onUpdate?: ToolUpdateCallback;
 };

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { AgentTool, ToolResult } from "@mohanscodex/spectra-agent";
 import { defineTool } from "@mohanscodex/spectra-agent";
 import type { Tool as McpToolDefinition } from "@modelcontextprotocol/sdk/types.js";
-import { callMcpTool, formatMcpToolName } from "../services/mcp.js";
+import { callMcpTool, formatMcpToolName } from "../integrations/mcp/index.js";
 import { textResult, errorResult } from "./utils.js";
 
 function mcpSchemaToZod(schema: Record<string, unknown>): z.ZodObject<Record<string, z.ZodType>> {
