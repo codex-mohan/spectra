@@ -1,5 +1,22 @@
 # @mohanscodex/spectra-app
 
+## 0.4.1
+
+### Patch Changes
+
+- [`a714a31`](https://github.com/codex-mohan/spectra/commit/a714a318ba36806d561b788af083b04936a9139e) Thanks [@codex-mohan](https://github.com/codex-mohan)! - feat: add thinking effort API parameter for reasoning model variants
+
+  - Add `thinkingEffort` field to `StreamOptions` for per-request reasoning control
+  - Anthropic: maps effort to extended thinking with budget tokens (low=2048, medium=8192, high=16000, max=31999)
+  - OpenAI Completions: maps effort to `reasoning_effort` param
+  - OpenAI Responses: maps effort to `reasoning.effort` param
+  - Provider-specific defaults: thinking enabled for zai/zhipuai, `enable_thinking` for alibaba-cn
+  - TUI: variant cycle (ctrl+t) cycles through thinking effort levels per provider
+
+- Updated dependencies [[`a714a31`](https://github.com/codex-mohan/spectra/commit/a714a318ba36806d561b788af083b04936a9139e)]:
+  - @mohanscodex/spectra-ai@0.4.1
+  - @mohanscodex/spectra-agent@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
