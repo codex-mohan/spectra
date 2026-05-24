@@ -321,12 +321,19 @@ function convertResponsesMessages(model: Model, context: Context): unknown[] {
         messages.push({ role: "user", content });
       }
     } else if (msg.role === "assistant") {
+      const textBlocks = msg.content.filter((b) => b.type === "text") as TextContent[];
+      if (textBlocks.length > 0) {
+        messages.push({
+          type: "message",
+          role: "assistant",
+          content: textBlocks.map((b) => ({ type: "output_text" as const, text: sanitizeSurrogates(b.text) })),
+        });
+      }
       for (const block of msg.content) {
-        if (block.type === "text") {
+        if (block.type === "thinking" && !(block as ThinkingContent).redacted) {
           messages.push({
-            type: "message",
-            role: "assistant",
-            content: [{ type: "output_text", text: sanitizeSurrogates((block as TextContent).text) }],
+            type: "reasoning",
+            summary: [{ type: "summary_text" as const, text: (block as ThinkingContent).thinking }],
           });
         } else if (block.type === "toolCall") {
           const tc = block as ToolCall;

@@ -320,13 +320,18 @@ function convertMessages(model: Model, context: Context): ChatCompletionMessageP
       }
     } else if (msg.role === "assistant") {
       const textBlocks = msg.content.filter((b) => b.type === "text") as TextContent[];
+      const thinkingBlocks = msg.content.filter((b) => b.type === "thinking" && !(b as ThinkingContent).redacted) as ThinkingContent[];
       const toolCalls = msg.content.filter((b) => b.type === "toolCall") as ToolCall[];
 
-      if (textBlocks.length > 0 || toolCalls.length > 0) {
-        const assistantMsg: ChatCompletionAssistantMessageParam = {
-          role: "assistant",
-          content: textBlocks.map((b) => sanitizeSurrogates(b.text)).join(""),
-        };
+      if (textBlocks.length > 0 || thinkingBlocks.length > 0 || toolCalls.length > 0) {
+        const assistantMsg = {
+          role: "assistant" as const,
+          content: textBlocks.map((b) => sanitizeSurrogates(b.text)).join("") || null,
+        } as Record<string, unknown>;
+
+        if (thinkingBlocks.length > 0) {
+          assistantMsg.reasoning_content = thinkingBlocks.map((t) => t.thinking).join("\n");
+        }
 
         if (toolCalls.length > 0) {
           assistantMsg.tool_calls = toolCalls.map((tc) => ({
@@ -336,7 +341,7 @@ function convertMessages(model: Model, context: Context): ChatCompletionMessageP
           }));
         }
 
-        params.push(assistantMsg);
+        params.push(assistantMsg as unknown as ChatCompletionAssistantMessageParam);
       }
     } else if (msg.role === "toolResult") {
       const textResult = msg.content

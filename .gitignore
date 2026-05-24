@@ -46,7 +46,12 @@ coverage/
 # Temporary
 *.tmp
 *.temp
+*.diff
 .tmp/
+
+# Analysis scratch files (root-level scripts for one-off debugging)
+trace_detail.py
+trace_query.py
 
 # Planning (local only)
 .planning/
