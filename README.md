@@ -16,7 +16,7 @@ Each SDK (TypeScript, Rust) is a **complete, independent native implementation**
 
 ```mermaid
 graph TB
-    subgraph TypeScript["TypeScript SDK — @singularity-ai/*"]
+    subgraph TypeScript["TypeScript SDK — @mohanscodex/*"]
         AI["spectra-ai<br/>LLM Providers"]
         AGENT["spectra-agent<br/>Agent Loop + Tools"]
         APP["spectra-app<br/>SessionEngine + Rate Limiting + SSE Bridge"]
@@ -43,9 +43,9 @@ graph TB
 
 | Package | Layer | Description |
 |---------|-------|-------------|
-| `@singularity-ai/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
-| `@singularity-ai/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
-| `@singularity-ai/spectra-app` | **Infrastructure** | Production runtime — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). |
+| `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
+| `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
+| `@mohanscodex/spectra-app` | **Infrastructure** | Production runtime — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic, OpenAI, Groq, OpenRouter. |
 
@@ -80,11 +80,11 @@ graph TB
 ### TypeScript
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent
 ```
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const searchTool = defineTool({
@@ -112,11 +112,11 @@ for await (const event of agent.run("What is Rust?")) {
 ### TypeScript — Production
 
 ```bash
-bun add @singularity-ai/spectra-ai @singularity-ai/spectra-agent @singularity-ai/spectra-app ioredis
+bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent @mohanscodex/spectra-app ioredis
 ```
 
 ```typescript
-import { SessionEngine, SessionManager, InMemorySessionStore, CompositeRateLimiter, LocalRateLimiter } from "@singularity-ai/spectra-app";
+import { SessionEngine, SessionManager, InMemorySessionStore, CompositeRateLimiter, LocalRateLimiter } from "@mohanscodex/spectra-app";
 
 const engine = new SessionEngine({
   sessionManager: new SessionManager(new InMemorySessionStore()),
@@ -179,7 +179,7 @@ The three TypeScript packages compose for any scale — from local CLI to distri
 
 ```
                     ┌─────────────────────────────────────┐
-                    │        @singularity-ai/spectra-app   │
+                    │        @mohanscodex/spectra-app   │
                     │  SessionEngine ── orchestrates full  │
                     │  request lifecycle                   │
                     │                                      │
@@ -214,9 +214,9 @@ The three TypeScript packages compose for any scale — from local CLI to distri
 ```
 spectra/
 ├── packages/
-│   ├── ai/              # @singularity-ai/spectra-ai — LLM providers
-│   ├── agent/           # @singularity-ai/spectra-agent — Agent + tools
-│   ├── app/             # @singularity-ai/spectra-app — SessionEngine + rate limiting + SSE bridge
+│   ├── ai/              # @mohanscodex/spectra-ai — LLM providers
+│   ├── agent/           # @mohanscodex/spectra-agent — Agent + tools
+│   ├── app/             # @mohanscodex/spectra-app — SessionEngine + rate limiting + SSE bridge
 ├── apps/
 │   └── examples/        # Example usage
 ├── crates/
