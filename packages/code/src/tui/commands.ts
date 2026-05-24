@@ -1,6 +1,7 @@
 import type { CmdItem } from "./components/command-palette.js"
 import type { SessionStore } from "../services/session-store.js"
 import { getEffortLabel } from "./variant-cycle.js"
+import { titlecase } from "./utils.js"
 
 export function buildCmdItems(opts: {
   renderer: { destroy: () => void }
@@ -23,12 +24,13 @@ export function buildCmdItems(opts: {
   setShowToolCalls: (fn: (v: boolean) => boolean) => void
   setHomeKey: (fn: (k: number) => number) => void
   setNavKey: (fn: (k: number) => number) => void
-  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | null) => void
+  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | { type: "switch-agent" } | { type: "thinking-effort" } | { type: "toggle-mcp" } | { type: "debug" } | null) => void
   sessionIdRef: { current: string | null }
   onCycleVariant: () => void
   currentEffort?: string
+  selectedAgent: string
 }): CmdItem[] {
-  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep, currentEffort } = opts
+  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep, currentEffort, selectedAgent } = opts
   return [
     // Session
     { id: "new", label: "New Session", desc: "Start fresh", cat: "Session", slashName: "new", slashAliases: ["clear"], action: () => {
@@ -74,10 +76,19 @@ export function buildCmdItems(opts: {
     { id: "provider", label: "Connect Provider", desc: hasModel ? "Switch API provider" : "No provider configured", cat: "Provider", slashName: "connect", slashAliases: ["provider"], action: () => { setDialogStep({ type: "provider" }) } },
     { id: "manage-providers", label: "Manage Providers", desc: `${opts.customProviderCount} custom provider${opts.customProviderCount !== 1 ? "s" : ""}`, cat: "Provider", slashName: "providers", action: () => { setDialogStep({ type: "manage-providers" }) } },
     // Model
-    { id: "switch-model", label: "Switch Model", desc: selectedModel || "No model selected", cat: "Model", slashName: "model", slashAliases: ["models", "switch-model"], action: () => {
+    { id: "switch-model", label: "Switch Model", desc: selectedModel || "No model selected", cat: "Agent", slashName: "model", slashAliases: ["models", "switch-model"], action: () => {
       setDialogStep({ type: "switch-model" })
     } },
-    { id: "cycle-variant", label: "Variant Cycle", desc: `effort: ${getEffortLabel(currentEffort)}`, cat: "Model", slashName: "variant", slashAliases: ["cycle-variant"], action: () => { opts.onCycleVariant() } },
+    { id: "switch-agent", label: "Switch Agent", desc: titlecase(selectedAgent || "build"), cat: "Agent", slashName: "agent", slashAliases: ["agents", "switch-agent"], action: () => {
+      setDialogStep({ type: "switch-agent" })
+    } },
+    { id: "cycle-effort", label: "Thinking effort cycle", desc: `effort: ${getEffortLabel(currentEffort)}`, cat: "Agent", slashName: "effort", slashAliases: ["cycle-effort", "variant"], action: () => { opts.onCycleVariant() } },
+    { id: "change-effort", label: "Change Thinking effort", desc: `set to ${getEffortLabel(currentEffort)}`, cat: "Agent", slashName: "thinking-effort", slashAliases: ["change-effort"], action: () => {
+      setDialogStep({ type: "thinking-effort" })
+    } },
+    { id: "toggle-mcp", label: "Toggle MCPs", desc: `${opts.mcpCount} connected`, cat: "Agent", slashName: "mcp", slashAliases: ["toggle-mcp"], action: () => {
+      setDialogStep({ type: "toggle-mcp" })
+    } },
     // Navigation
     { id: "home", label: "Go Home", desc: "Return to home", cat: "Navigation", slashName: "home", action: () => { setRoute("home") } },
     // System
@@ -87,6 +98,7 @@ export function buildCmdItems(opts: {
         setDialogStep({ type: "doctor", result } as any)
       }))
     } },
+    { id: "debug", label: "Debug", desc: "System information", cat: "System", slashName: "debug", action: () => { setDialogStep({ type: "debug" }) } },
     { id: "about", label: "About", desc: "Version info", cat: "System", slashName: "about", action: () => { setDialogStep({ type: "about" }) } },
     { id: "help", label: "Help", desc: "Keyboard shortcuts", cat: "System", slashName: "help", action: () => { setStatus("Esc quit · Tab agents · Ctrl+P palette · Ctrl+L clear"); setTimeout(() => setStatus("Ready"), 4000) } },
     { id: "quit", label: "Quit", desc: "Exit", cat: "System", slashName: "exit", slashAliases: ["quit", "q"], action: () => renderer.destroy() },

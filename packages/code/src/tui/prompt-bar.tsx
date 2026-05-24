@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react"
 import { c, SPINNER } from "./theme.js"
+import { titlecase } from "./utils.js"
 
 export interface PromptBarProps {
   isLoading: boolean
@@ -100,7 +101,7 @@ export function PromptBar(props: PromptBarProps) {
             <box height={1} />
             <box flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
               <box flexDirection="row" gap={2} alignItems="center">
-                <text fg={c.accent}>{agent}</text>
+                <text fg={c.accent}>{titlecase(agent)}</text>
                 <text fg={c.dim}>{model}</text>
                 <text fg={c.subtext}>{provider}</text>
                 {thinkingEffort && thinkingEffort !== "none" && (

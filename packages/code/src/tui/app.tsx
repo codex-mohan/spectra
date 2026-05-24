@@ -7,7 +7,7 @@ import { ChatArea } from "./components/chat-area.js"
 import { CommandPalette, type CmdItem } from "./components/command-palette.js"
 import { PromptBar } from "./prompt-bar.js"
 import { Tips } from "./tips.js"
-import { genId, getMessageBlocks } from "./utils.js"
+import { genId, getMessageBlocks, titlecase } from "./utils.js"
 import type { ChatMessage, ContentBlock } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
 import { SnapshotManager } from "../services/snapshot-manager.js"
@@ -19,7 +19,11 @@ import { ModelSwitcher } from "./ui/model-switcher.js"
 import { ManageProvidersDialog } from "./ui/manage-providers-dialog.js"
 import { DoctorDialog } from "./ui/doctor-dialog.js"
 import { AboutDialog } from "./ui/about-dialog.js"
-import { cycleEffort, getProviderEfforts } from "./variant-cycle.js"
+import { AgentSwitcher } from "./ui/agent-switcher.js"
+import { ThinkingEffortDialog } from "./ui/thinking-effort-dialog.js"
+import { McpToggleDialog } from "./ui/mcp-toggle-dialog.js"
+import { DebugDialog } from "./ui/debug-dialog.js"
+import { cycleEffort } from "./variant-cycle.js"
 import { MessageControls } from "./ui/message-controls.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
@@ -91,7 +95,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | null>(null)
+  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | { type: "switch-agent" } | { type: "thinking-effort" } | { type: "toggle-mcp" } | { type: "debug" } | null>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
@@ -620,11 +624,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep,
     onCycleVariant: handleCycleVariant,
     currentEffort: thinkingEffort,
-  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls, handleCycleVariant, thinkingEffort])
+    selectedAgent,
+  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls, handleCycleVariant, thinkingEffort, selectedAgent])
 
   const cmdFiltered = useMemo(() => {
     const q = cmdFilter.toLowerCase()
-    return !q ? cmdItems : cmdItems.filter((i) => i.label.includes(q) || i.desc.includes(q) || (i.cat && i.cat.toLowerCase().includes(q)))
+    return !q ? cmdItems : cmdItems.filter((i) => i.label.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q) || (i.cat && i.cat.toLowerCase().includes(q)))
   }, [cmdItems, cmdFilter])
   const execCmd = useCallback((item: any) => { item.action(); setShowCmd(false) }, [])
   useEffect(() => { if (cmdSelected >= cmdFiltered.length && cmdFiltered.length > 0) setCmdSelected(cmdFiltered.length - 1) }, [cmdSelected, cmdFiltered.length])
@@ -667,8 +672,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             <box height={1} />
             <box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
               <box flexDirection="row" gap={2}>
-                <box flexDirection="row"><text fg={c.text}>tab</text><text fg={c.dim}> agents</text></box>
-                <box flexDirection="row"><text fg={c.text}>ctrl+t</text><text fg={c.dim}> variant</text></box>
+                <box flexDirection="row"><text fg={c.text}>tab</text><text fg={c.dim}> agent</text></box>
+                <box flexDirection="row"><text fg={c.text}>ctrl+t</text><text fg={c.dim}> effort</text></box>
                 <box flexDirection="row"><text fg={c.text}>ctrl+p</text><text fg={c.dim}> commands</text></box>
               </box>
             </box>
@@ -864,6 +869,46 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         <AboutDialog termWidth={termWidth} termHeight={termHeight}
           onClose={() => setDialogStep(null)}
           registerHandler={(fn: any) => { dialogKeyHandler.current = fn }} />
+      )}
+      {dialogStep?.type === "switch-agent" && (
+        <AgentSwitcher currentAgent={selectedAgent} termWidth={termWidth} termHeight={termHeight}
+          onAgentSelected={(agent) => {
+            setSelectedAgent(agent)
+            agentRef.current = null
+            setDialogStep(null)
+            showToast(`Switched to ${titlecase(agent)} agent`, "info")
+          }}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      {dialogStep?.type === "thinking-effort" && (
+        <ThinkingEffortDialog provider={provider} currentEffort={thinkingEffort}
+          termWidth={termWidth} termHeight={termHeight}
+          onEffortSelected={(effort) => {
+            setThinkingEffort(effort)
+            agentRef.current = null
+            setDialogStep(null)
+            showToast(effort === "none" ? "Thinking: off" : `Thinking: ${effort}`, "info")
+          }}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      {dialogStep?.type === "toggle-mcp" && (
+        <McpToggleDialog termWidth={termWidth} termHeight={termHeight}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      {dialogStep?.type === "debug" && (
+        <DebugDialog termWidth={termWidth} termHeight={termHeight}
+          selectedModel={selectedModel} provider={provider}
+          selectedAgent={selectedAgent} thinkingEffort={thinkingEffort}
+          sessionStore={sessionStore.current} mcpCount={mcpCount}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn: any) => { dialogKeyHandler.current = fn }}
+        />
       )}
       {msgControls && sessionId.current && (
         <MessageControls
