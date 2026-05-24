@@ -1,6 +1,10 @@
 import type { AssistantMessage, TextContent, ThinkingContent, ToolCall } from "@mohanscodex/spectra-ai"
 import type { ContentBlock } from "./types.js"
 
+export function titlecase(str: string): string {
+  return str.replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 export function genId(): string {
   return Math.random().toString(36).slice(2, 9)
 }
