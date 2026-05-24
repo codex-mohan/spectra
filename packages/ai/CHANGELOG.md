@@ -1,5 +1,11 @@
 # @mohanscodex/spectra-ai
 
+## 0.4.2
+
+### Patch Changes
+
+- [`0929072`](https://github.com/codex-mohan/spectra/commit/0929072f56da4e92aada06d8e681b0113792a13b) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Fix thinking/reasoning blocks being stripped when sending follow-up API requests to providers that require reasoning_content echo-back (DeepSeek, Qwen, etc.)
+
 ## 0.4.1
 
 ### Patch Changes
