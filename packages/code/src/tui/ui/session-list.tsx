@@ -8,7 +8,7 @@ export interface SessionListProps {
   termWidth: number
   termHeight: number
   mode?: "load" | "delete" | "rename"
-  onLoad?: (session: { id: string; messages: ChatMessage[]; model: string; provider: string; agent: string; title: string }) => void
+  onLoad?: (session: { id: string; messages: ChatMessage[]; model: string; provider: string; agent: string; title: string; thinkingEffort?: string }) => void
   onDelete?: (id: string) => void
   onRename?: (id: string, title: string) => void
   onClose: () => void
@@ -92,6 +92,7 @@ export function SessionList(props: SessionListProps) {
             messages: data.messages as unknown as ChatMessage[],
             model: data.model, provider: data.provider,
             agent: data.agent, title: data.title,
+            thinkingEffort: data.thinkingEffort,
           })
         }
         return

@@ -11,6 +11,7 @@ export interface PromptBarProps {
   agent: string
   model: string
   provider: string
+  thinkingEffort?: string
   initialValue?: string
   width?: number | "auto"
   elapsedMs?: number | null
@@ -24,7 +25,7 @@ export interface PromptBarProps {
 }
 
 export function PromptBar(props: PromptBarProps) {
-  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint, focused = true, onTextChange, onGetTextarea, onPositionChange } = props
+  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, thinkingEffort, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint, focused = true, onTextChange, onGetTextarea, onPositionChange } = props
   const textareaRef = useRef<any>(null)
   const boxRef = useRef<any>(null)
 
@@ -102,6 +103,9 @@ export function PromptBar(props: PromptBarProps) {
                 <text fg={c.accent}>{agent}</text>
                 <text fg={c.dim}>{model}</text>
                 <text fg={c.subtext}>{provider}</text>
+                {thinkingEffort && thinkingEffort !== "none" && (
+                  <text fg={c.warn}>{thinkingEffort}</text>
+                )}
               </box>
               {tokenUsage && (
                 <box flexDirection="row" gap={1} height={1}>

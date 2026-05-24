@@ -293,7 +293,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
   const getOrCreateAgent = useCallback(async () => {
     if (!selectedModel || !provider) return null
-    const agentKey = `${selectedAgent}:${selectedModel}:${provider}`
+    const agentKey = `${selectedAgent}:${selectedModel}:${provider}:${thinkingEffort || ""}`
     if (agentRef.current && lastModelRef.current === agentKey) return agentRef.current
 
     const existingMessages = agentRef.current
@@ -437,7 +437,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       agentRef.current = null
       lastAgentRef.current = null
       loadedSessionMessages.current = []
-      const sess = sessionStore.current.create({ agent: selectedAgent, model: selectedModel, provider })
+      const sess = sessionStore.current.create({ agent: selectedAgent, model: selectedModel, provider, thinkingEffort: thinkingEffort || undefined })
       sess.title = `Session ${new Date().toISOString()}`
       sessionStore.current.save(sess)
       sessionId.current = sess.id
@@ -657,6 +657,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               placeholder={`Ask anything... "${PLACEHOLDERS[placeholderIdx]}"`}
               onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
+              thinkingEffort={thinkingEffort}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               width={Math.min(68, termWidth - 8)}
               focused={!dialogStep && !showCmd && !msgControls}
@@ -720,6 +721,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               inputKey={`c-${submitKey}-${navKey}`}
               placeholder="Reply..." onSubmit={handleSubmit} hasModel={hasModel}
               agent={selectedAgent} model={selectedModel || ""} provider={provider || ""}
+              thinkingEffort={thinkingEffort}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
               isChatView={true} showInterruptHint={interruptKey === 1}
@@ -800,6 +802,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             setSelectedModel(data.model)
             setSelectedProvider(data.provider || data.model.split("/")[0])
             setSelectedAgent(data.agent)
+            setThinkingEffort(data.thinkingEffort || undefined)
             setRoute("chat"); setDialogStep(null)
             // Store SDK messages for agent history
             loadedSessionMessages.current = data.messages as unknown as Message[]

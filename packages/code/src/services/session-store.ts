@@ -9,6 +9,7 @@ export interface SessionInfo {
   agent: string;
   model: string;
   provider: string;
+  thinkingEffort?: string;
   created: number;
   updated: number;
   messageCount: number;
@@ -34,6 +35,7 @@ export interface SessionData {
   agent: string;
   model: string;
   provider: string;
+  thinkingEffort?: string;
   created: number;
   updated: number;
   directory: string;
@@ -73,6 +75,7 @@ export class SessionStore {
         sessions.push({
           id: data.id, title: data.title, agent: data.agent,
           model: data.model, provider: data.provider || "",
+          thinkingEffort: data.thinkingEffort,
           created: data.created, updated: data.updated,
           messageCount: data.messages.length, directory: data.directory,
           parentId: data.parentId ?? null,
@@ -94,13 +97,14 @@ export class SessionStore {
     }
   }
 
-  create(input: { title?: string; agent?: string; model?: string; provider?: string; directory?: string }): SessionData {
+  create(input: { title?: string; agent?: string; model?: string; provider?: string; thinkingEffort?: string; directory?: string }): SessionData {
     const session: SessionData = {
       id: this.generateId(),
       title: input.title || "New Session",
       agent: input.agent || "build",
       model: input.model || "",
       provider: input.provider || input.model?.split("/")[0] || "",
+      thinkingEffort: input.thinkingEffort,
       created: Date.now(),
       updated: Date.now(),
       directory: input.directory || process.cwd(),
@@ -226,13 +230,14 @@ export class SessionStore {
     return this.get(child.parentId);
   }
 
-  createChild(parentId: string, input: { title?: string; agent?: string; model?: string; provider?: string }): SessionData {
+  createChild(parentId: string, input: { title?: string; agent?: string; model?: string; provider?: string; thinkingEffort?: string }): SessionData {
     const session: SessionData = {
       id: this.generateId(),
       title: input.title || "Subagent Session",
       agent: input.agent || "build",
       model: input.model || "",
       provider: input.provider || input.model?.split("/")[0] || "",
+      thinkingEffort: input.thinkingEffort,
       created: Date.now(),
       updated: Date.now(),
       directory: process.cwd(),
