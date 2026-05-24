@@ -158,6 +158,37 @@ describe("AssistantMessageEventStream (pi-mono pattern)", () => {
     expect(result.errorMessage).toBe("Something went wrong");
   });
 
+  it("should handle thinking event streaming", async () => {
+    const stream = new AssistantMessageEventStream();
+    const partial = createAssistantMessage("");
+
+    stream.push({ type: "start", partial });
+    stream.push({ type: "thinking_start", contentIndex: 0, partial });
+    stream.push({ type: "thinking_delta", contentIndex: 0, delta: "Let me", partial });
+    stream.push({ type: "thinking_delta", contentIndex: 0, delta: " think", partial });
+    stream.push({ type: "thinking_end", contentIndex: 0, content: "Let me think", partial });
+    stream.push({
+      type: "done",
+      reason: "stop",
+      message: createAssistantMessage("Answer"),
+    });
+    stream.end();
+
+    const events: AssistantMessageEvent[] = [];
+    for await (const event of stream) {
+      events.push(event);
+    }
+
+    expect(events).toHaveLength(6);
+    const thinkingStart = events.find((e) => e.type === "thinking_start");
+    expect(thinkingStart).toBeDefined();
+    const thinkingEnd = events.find((e) => e.type === "thinking_end") as any;
+    expect(thinkingEnd).toBeDefined();
+    if (thinkingEnd?.type === "thinking_end") {
+      expect(thinkingEnd.content).toBe("Let me think");
+    }
+  });
+
   it("should handle tool call streaming (pi-mono tool pattern)", async () => {
     const stream = new AssistantMessageEventStream();
     const partial = createAssistantMessage("");

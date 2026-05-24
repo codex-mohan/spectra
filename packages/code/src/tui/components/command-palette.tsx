@@ -37,11 +37,11 @@ export function CommandPalette(props: CommandPaletteProps) {
       const item = items[i]
       if (item.cat && item.cat !== prevCat) {
         if (prevCat) {
-          r.push(<box key={`gap-${item.cat}`} height={1} backgroundColor={c.bgCard} />)
+          r.push(<box key={`gap-${i}`} height={1} backgroundColor={c.bgCard} />)
         }
         prevCat = item.cat
         r.push(
-          <box key={`cat-${item.cat}`} height={1} paddingLeft={2}
+          <box key={`cat-${i}`} height={1} paddingLeft={2}
             backgroundColor={c.bgCard}>
             <text fg={c.warn} attributes={1}>{item.cat}</text>
           </box>

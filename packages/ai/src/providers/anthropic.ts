@@ -23,6 +23,13 @@ import { AssistantMessageEventStream } from "../event-stream.js";
 type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam;
 type StreamBlock = (ThinkingContent | TextContent | ToolCall) & { index?: number; partialJson?: string };
 
+const THINKING_BUDGETS: Record<string, number> = {
+  low: 2048,
+  medium: 8192,
+  high: 16000,
+  max: 31999,
+}
+
 function getEnvApiKey(provider: string): string | undefined {
   const keys: Record<string, string | undefined> = {
     anthropic: process.env.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_KEY,
@@ -200,15 +207,19 @@ export function createAnthropicProvider() {
           const messages: MessageParam[] = context.messages.map(toAnthropicMessage);
           const tools = context.tools?.map(toAnthropicTool) ?? [];
 
+          const thinkingEffort = options?.thinkingEffort
+          const budget = thinkingEffort && thinkingEffort !== "none" ? THINKING_BUDGETS[thinkingEffort] : undefined
+
           const params: MessageCreateParamsStreaming = {
             model: model.id,
-            max_tokens: options?.maxTokens ?? 4096,
+            max_tokens: budget ? (options?.maxTokens ?? 8192) : (options?.maxTokens ?? 4096),
             messages,
             tools: tools.length > 0 ? tools : undefined,
             system: context.systemPrompt,
             temperature: options?.temperature,
+            thinking: budget ? { type: "enabled", budget_tokens: budget } : undefined,
             stream: true,
-          };
+          } as MessageCreateParamsStreaming;
 
           const anthropicStream = client.messages.stream(params, { signal: options?.signal });
           stream.push({ type: "start", partial: output });
@@ -228,6 +239,15 @@ export function createAnthropicProvider() {
                 const block: StreamBlock = { type: "text", text: "", index: event.index };
                 output.content.push(block);
                 stream.push({ type: "text_start", contentIndex: output.content.length - 1, partial: output });
+              } else if ((event.content_block as any).type === "thinking") {
+                const thinkingText = (event.content_block as any).thinking || ""
+                const block: StreamBlock = { type: "thinking", thinking: thinkingText, index: event.index };
+                output.content.push(block);
+                stream.push({ type: "thinking_start", contentIndex: output.content.length - 1, partial: output });
+              } else if ((event.content_block as any).type === "redacted_thinking") {
+                const block: StreamBlock = { type: "thinking", thinking: "[Redacted thinking]", redacted: true, index: event.index };
+                output.content.push(block);
+                stream.push({ type: "thinking_start", contentIndex: output.content.length - 1, partial: output });
               } else if (event.content_block.type === "tool_use") {
                 const block: StreamBlock = { type: "toolCall", id: event.content_block.id, name: event.content_block.name, arguments: event.content_block.input as Record<string, unknown> ?? {}, partialJson: "", index: event.index };
                 output.content.push(block);
@@ -240,6 +260,13 @@ export function createAnthropicProvider() {
                 if (block && block.type === "text") {
                   block.text += event.delta.text;
                   stream.push({ type: "text_delta", contentIndex: idx, delta: event.delta.text, partial: output });
+                }
+              } else if ((event.delta as any).type === "thinking_delta") {
+                const idx = blocks.findIndex((b) => b.index === event.index);
+                const block = blocks[idx];
+                if (block && block.type === "thinking") {
+                  block.thinking += (event.delta as any).thinking || "";
+                  stream.push({ type: "thinking_delta", contentIndex: idx, delta: (event.delta as any).thinking || "", partial: output });
                 }
               } else if (event.delta.type === "input_json_delta") {
                 const idx = blocks.findIndex((b) => b.index === event.index);
@@ -261,6 +288,8 @@ export function createAnthropicProvider() {
                 delete block.index;
                 if (block.type === "text") {
                   stream.push({ type: "text_end", contentIndex: idx, content: block.text, partial: output });
+                } else if (block.type === "thinking") {
+                  stream.push({ type: "thinking_end", contentIndex: idx, content: block.thinking, partial: output });
                 } else if (block.type === "toolCall") {
                   try {
                     block.arguments = JSON.parse(block.partialJson ?? "");

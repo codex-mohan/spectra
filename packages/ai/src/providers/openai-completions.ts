@@ -90,6 +90,21 @@ export function createOpenAICompletionsProvider() {
             params.tool_choice = options.toolChoice;
           }
 
+          const reasoningEffort = options?.reasoningEffort || (options?.thinkingEffort && options.thinkingEffort !== "none" ? (options.thinkingEffort === "max" ? "high" : options.thinkingEffort) : undefined)
+          if (reasoningEffort) {
+            (params as any).reasoning_effort = reasoningEffort;
+          }
+
+          // zai/zhipuai need thinking enabled for reasoning models
+          if (["zai", "zhipuai"].some((id) => model.provider.toLowerCase().includes(id))) {
+            (params as any).thinking = { type: "enabled", clear_thinking: false };
+          }
+
+          // alibaba-cn/DashScope needs enable_thinking for reasoning models
+          if (model.provider.toLowerCase().includes("alibaba")) {
+            (params as any).enable_thinking = true;
+          }
+
           if (context.tools) {
             params.tools = context.tools.map((tool) => ({
               type: "function" as const,

@@ -18,6 +18,8 @@ import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
 import { ManageProvidersDialog } from "./ui/manage-providers-dialog.js"
 import { DoctorDialog } from "./ui/doctor-dialog.js"
+import { AboutDialog } from "./ui/about-dialog.js"
+import { cycleEffort, getProviderEfforts } from "./variant-cycle.js"
 import { MessageControls } from "./ui/message-controls.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
@@ -72,6 +74,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   })
   const [selectedModel, setSelectedModel] = useState<string | null>(savedConfig.model)
   const [selectedProvider, setSelectedProvider] = useState<string | null>(savedConfig.provider)
+  const [thinkingEffort, setThinkingEffort] = useState<string | undefined>(undefined)
   const [route, setRoute] = useState<"home" | "chat">("home")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -88,7 +91,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | null>(null)
+  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | null>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
@@ -278,6 +281,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     if (key.name === "tab") { setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]); return }
     if (key.ctrl && key.name === "p") { setShowCmd(true); setCmdFilter(""); setCmdSelected(0); return }
     if (key.ctrl && key.name === "l") { setMessages([]); setStatus("Cleared"); setTimeout(() => setStatus("Ready"), 2000); return }
+    if (key.ctrl && key.name === "t") { handleCycleVariant(); return }
   })
 
   const addMessage = useCallback((msg: ChatMessage) => setMessages((p) => [...p, msg]), [])
@@ -337,6 +341,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       getApiKey: (p) => getAuthKey(p),
       tools: agentTools,
       maxTurns: def?.maxTurns ?? 10,
+      streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
     })
 
     AgentRegistry.setConfig({
@@ -357,7 +362,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
     lastModelRef.current = agentKey
     return agentRef.current
-  }, [selectedModel, provider, selectedAgent, customProviders])
+  }, [selectedModel, provider, selectedAgent, customProviders, thinkingEffort])
 
   function persistMessage(sdkMsg: Message) {
     if (!sessionId.current) return
@@ -593,12 +598,29 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     }
   }, [isLoading, selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent, revertPoint])
 
+  const handleCycleVariant = useCallback(() => {
+    if (!provider) {
+      showToast("No provider configured", "warn")
+      return
+    }
+    const nextEffort = cycleEffort(provider, thinkingEffort)
+    if (!nextEffort) {
+      showToast("No variants available", "info")
+      return
+    }
+    setThinkingEffort(nextEffort)
+    agentRef.current = null
+    showToast(nextEffort === "none" ? "Thinking: off" : `Thinking: ${nextEffort}`, "info")
+  }, [provider, thinkingEffort])
+
   const cmdItems = useMemo(() => buildCmdItems({
     renderer, sessionStore: sessionStore.current, sessionIdRef: sessionId,
     hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength: messages.length,
     showThinking, showToolCalls,
     setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep,
-  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls])
+    onCycleVariant: handleCycleVariant,
+    currentEffort: thinkingEffort,
+  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls, handleCycleVariant, thinkingEffort])
 
   const cmdFiltered = useMemo(() => {
     const q = cmdFilter.toLowerCase()
@@ -645,6 +667,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             <box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
               <box flexDirection="row" gap={2}>
                 <box flexDirection="row"><text fg={c.text}>tab</text><text fg={c.dim}> agents</text></box>
+                <box flexDirection="row"><text fg={c.text}>ctrl+t</text><text fg={c.dim}> variant</text></box>
                 <box flexDirection="row"><text fg={c.text}>ctrl+p</text><text fg={c.dim}> commands</text></box>
               </box>
             </box>
@@ -831,6 +854,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       )}
       {dialogStep?.type === "doctor" && dialogStep.result && (
         <DoctorDialog result={dialogStep.result} termWidth={termWidth} termHeight={termHeight}
+          onClose={() => setDialogStep(null)}
+          registerHandler={(fn: any) => { dialogKeyHandler.current = fn }} />
+      )}
+      {dialogStep?.type === "about" && (
+        <AboutDialog termWidth={termWidth} termHeight={termHeight}
           onClose={() => setDialogStep(null)}
           registerHandler={(fn: any) => { dialogKeyHandler.current = fn }} />
       )}

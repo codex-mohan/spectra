@@ -90,10 +90,12 @@ export function createOpenAIResponsesProvider() {
             params.temperature = options.temperature;
           }
 
-          if (model.reasoning && (options?.reasoningEffort || options?.reasoningSummary)) {
+          const rawEffort = options?.reasoningEffort || (options?.thinkingEffort && options.thinkingEffort !== "none" ? (options.thinkingEffort === "max" ? "high" : options.thinkingEffort) : undefined) as string | undefined
+          const reasoningEffort = rawEffort as "low" | "medium" | "high" | undefined
+          if (model.reasoning && (reasoningEffort || options?.reasoningSummary)) {
             params.reasoning = {
-              effort: options.reasoningEffort || "medium",
-              summary: options.reasoningSummary || "auto",
+              effort: reasoningEffort || "medium",
+              summary: options?.reasoningSummary || "auto",
             };
             params.include = ["reasoning.encrypted_content"];
           }

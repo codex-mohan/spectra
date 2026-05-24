@@ -15627,8 +15627,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "name": "GLM-5.1"
     },
     {
+      "id": "Kimi-K2.6",
+      "name": "Kimi K2.6"
+    },
+    {
       "id": "Qwen3.5-397B-A17B",
       "name": "Qwen3.5 397B A17B"
+    },
+    {
+      "id": "Qwen3.6-35B-A3B",
+      "name": "Qwen3.6 35B A3B"
     }
   ],
   "wandb": [

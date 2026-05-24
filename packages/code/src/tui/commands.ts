@@ -1,5 +1,6 @@
 import type { CmdItem } from "./components/command-palette.js"
 import type { SessionStore } from "../services/session-store.js"
+import { getEffortLabel } from "./variant-cycle.js"
 
 export function buildCmdItems(opts: {
   renderer: { destroy: () => void }
@@ -22,11 +23,14 @@ export function buildCmdItems(opts: {
   setShowToolCalls: (fn: (v: boolean) => boolean) => void
   setHomeKey: (fn: (k: number) => number) => void
   setNavKey: (fn: (k: number) => number) => void
-  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | null) => void
+  setDialogStep: (v: { type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | null) => void
   sessionIdRef: { current: string | null }
+  onCycleVariant: () => void
+  currentEffort?: string
 }): CmdItem[] {
-  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep } = opts
+  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep, currentEffort } = opts
   return [
+    // Session
     { id: "new", label: "New Session", desc: "Start fresh", cat: "Session", slashName: "new", slashAliases: ["clear"], action: () => {
       setMessages(() => []);
       sessionIdRef.current = null;
@@ -63,21 +67,27 @@ export function buildCmdItems(opts: {
       setStatus("Session archived");
     } },
     { id: "clear", label: "Clear", desc: "Clear conversation", cat: "Session", slashName: "clear", action: () => { setMessages(() => []); setStatus("Cleared") } },
+    // Display
     { id: "toggle-thinking", label: `${showThinking ? "Hide" : "Show"} Thinking`, desc: showThinking ? "Hide thinking blocks" : "Show thinking blocks", cat: "Display", slashName: "thinking", slashAliases: ["toggle-thinking"], action: () => { setShowThinking((v) => !v) } },
     { id: "toggle-tools", label: `${showToolCalls ? "Hide" : "Show"} Tool Calls`, desc: showToolCalls ? "Hide tool call indicators" : "Show tool call indicators", cat: "Display", slashName: "tools", slashAliases: ["toggle-tools"], action: () => { setShowToolCalls((v) => !v) } },
+    // Provider
     { id: "provider", label: "Connect Provider", desc: hasModel ? "Switch API provider" : "No provider configured", cat: "Provider", slashName: "connect", slashAliases: ["provider"], action: () => { setDialogStep({ type: "provider" }) } },
+    { id: "manage-providers", label: "Manage Providers", desc: `${opts.customProviderCount} custom provider${opts.customProviderCount !== 1 ? "s" : ""}`, cat: "Provider", slashName: "providers", action: () => { setDialogStep({ type: "manage-providers" }) } },
+    // Model
     { id: "switch-model", label: "Switch Model", desc: selectedModel || "No model selected", cat: "Model", slashName: "model", slashAliases: ["models", "switch-model"], action: () => {
       setDialogStep({ type: "switch-model" })
     } },
-    { id: "manage-providers", label: "Manage Providers", desc: `${opts.customProviderCount} custom provider${opts.customProviderCount !== 1 ? "s" : ""}`, cat: "Provider", slashName: "providers", action: () => { setDialogStep({ type: "manage-providers" }) } },
+    { id: "cycle-variant", label: "Variant Cycle", desc: `effort: ${getEffortLabel(currentEffort)}`, cat: "Model", slashName: "variant", slashAliases: ["cycle-variant"], action: () => { opts.onCycleVariant() } },
+    // Navigation
     { id: "home", label: "Go Home", desc: "Return to home", cat: "Navigation", slashName: "home", action: () => { setRoute("home") } },
+    // System
     { id: "doctor", label: "Doctor", desc: "Run health check", cat: "System", slashName: "doctor", action: () => {
       setDialogStep({ type: "doctor", result: null } as any)
       import("../commands/doctor.js").then((m) => m.runDoctor().then((result: any) => {
         setDialogStep({ type: "doctor", result } as any)
       }))
     } },
-    { id: "about", label: "About", desc: "Version info", cat: "System", slashName: "about", action: () => { setStatus("Spectra Code v0.1.0"); setTimeout(() => setStatus("Ready"), 3000) } },
+    { id: "about", label: "About", desc: "Version info", cat: "System", slashName: "about", action: () => { setDialogStep({ type: "about" }) } },
     { id: "help", label: "Help", desc: "Keyboard shortcuts", cat: "System", slashName: "help", action: () => { setStatus("Esc quit · Tab agents · Ctrl+P palette · Ctrl+L clear"); setTimeout(() => setStatus("Ready"), 4000) } },
     { id: "quit", label: "Quit", desc: "Exit", cat: "System", slashName: "exit", slashAliases: ["quit", "q"], action: () => renderer.destroy() },
   ]

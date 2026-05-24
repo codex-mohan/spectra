@@ -122,6 +122,8 @@ export interface StreamOptions {
   headers?: Record<string, string>;
   maxTokens?: number;
   temperature?: number;
+  /** Thinking/reasoning effort level. Provider-dependent; common values: none, low, medium, high, max. */
+  thinkingEffort?: string;
 }
 
 export interface Model {
