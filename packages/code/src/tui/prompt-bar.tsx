@@ -17,8 +17,6 @@ export interface PromptBarProps {
   width?: number | "auto"
   elapsedMs?: number | null
   tokenUsage?: { input: number; output: number }
-  isChatView?: boolean
-  showInterruptHint?: boolean
   focused?: boolean
   onTextChange?: (text: string) => void
   onGetTextarea?: (ref: any) => void
@@ -26,7 +24,7 @@ export interface PromptBarProps {
 }
 
 export function PromptBar(props: PromptBarProps) {
-  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, thinkingEffort, initialValue, width, elapsedMs, tokenUsage, isChatView, showInterruptHint, focused = true, onTextChange, onGetTextarea, onPositionChange } = props
+  const { isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel, agent, model, provider, thinkingEffort, initialValue, width, elapsedMs, tokenUsage, focused = true, onTextChange, onGetTextarea, onPositionChange } = props
   const textareaRef = useRef<any>(null)
   const boxRef = useRef<any>(null)
 
@@ -118,13 +116,6 @@ export function PromptBar(props: PromptBarProps) {
           </box>
         </box>
       </box>
-      {isChatView && showInterruptHint && (
-        <box paddingLeft={3} paddingTop={1} paddingBottom={1}>
-          <text fg={c.dim}>Press </text>
-          <text fg={c.accent} attributes={1}>Esc</text>
-          <text fg={c.dim}> again to interrupt</text>
-        </box>
-      )}
     </box>
   )
 }

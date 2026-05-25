@@ -8,6 +8,7 @@ import { CommandPalette, type CmdItem } from "./components/command-palette.js"
 import { PromptBar } from "./prompt-bar.js"
 import { Tips } from "./tips.js"
 import { genId, getMessageBlocks, titlecase } from "./utils.js"
+import { getProviderModels } from "@mohanscodex/spectra-ai"
 import type { ChatMessage, ContentBlock } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
 import { SnapshotManager } from "../services/snapshot-manager.js"
@@ -65,6 +66,27 @@ function saveModelConfig(modelId: string, providerId: string) {
     cfg.model = modelId; cfg.provider = providerId
     writeFileSync(configPath, JSON.stringify(cfg, null, 2))
   } catch { }
+}
+
+function fmtCtx(n: number): string {
+  if (n < 1000) return String(n)
+  const k = n / 1000
+  const s = k.toFixed(1)
+  return (s.endsWith(".0") ? s.slice(0, -2) : s) + "K"
+}
+
+function lookupContextWindow(modelId: string, providerId: string | null): number | undefined {
+  if (!providerId) return undefined
+  const models = getProviderModels(providerId)
+  const exact = models.find((m) => m.id === modelId)
+  if (exact?.contextWindow) return exact.contextWindow
+  const base = modelId.replace(/-\d{8}$/, "")
+  const prefix = models.find((m) => m.id === base || m.id === `${providerId}/${base}`)
+  if (prefix?.contextWindow) return prefix.contextWindow
+  const family = base.replace(/-\d+$/, "")
+  const partial = models.find((m) => m.id === family || m.id.endsWith(`/${family}`))
+  if (partial?.contextWindow) return partial.contextWindow
+  return undefined
 }
 
 export function App({ renderer }: { renderer: CliRenderer }) {
@@ -729,11 +751,39 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               thinkingEffort={thinkingEffort}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
-              isChatView={true} showInterruptHint={interruptKey === 1}
               focused={!dialogStep && !showCmd && !msgControls}
               onTextChange={(t) => setDraftText(t)}
               onGetTextarea={(r) => { promptTextareaRef.current = r }}
               onPositionChange={setPromptPosition} />
+            <box height={1} />
+            <box flexDirection="row" justifyContent="space-between" alignItems="center" height={1} paddingLeft={3} paddingRight={1}>
+              <box flexDirection="row" gap={2} alignItems="center" overflow="hidden">
+                {isLoading ? (
+                  <box flexDirection="row" gap={2} alignItems="center">
+                    <box flexDirection="row" gap={1}><text fg={c.warn}>{SPINNER[spinnerFrame]}</text><text fg={c.dim}>Streaming...</text></box>
+                    <box flexDirection="row" gap={1}><text fg={c.accent}>esc</text><text fg={c.dim}>interrupt</text></box>
+                  </box>
+                ) : (
+                  <text fg={c.dim}>Ready</text>
+                )}
+                {(tokenUsage.input + tokenUsage.output) > 0 && (() => {
+                  const used = tokenUsage.input + tokenUsage.output
+                  const cw = lookupContextWindow(selectedModel || "", provider)
+                  const pct = cw ? Math.round((used / cw) * 100) : null
+                  return (
+                    <box flexDirection="row" gap={1}>
+                      <text fg={c.subtext}>{fmtCtx(used)}</text>
+                      {pct !== null && <text fg={pct > 80 ? c.warn : c.dim}>({pct}%)</text>}
+                    </box>
+                  )
+                })()}
+              </box>
+              <box flexDirection="row" gap={2} alignItems="center">
+                <box flexDirection="row"><text fg={c.text}>tab</text><text fg={c.dim}> agent</text></box>
+                <box flexDirection="row"><text fg={c.text}>ctrl+t</text><text fg={c.dim}> effort</text></box>
+                <box flexDirection="row"><text fg={c.text}>ctrl+p</text><text fg={c.dim}> commands</text></box>
+              </box>
+            </box>
           </box>
         </box>
       )}
