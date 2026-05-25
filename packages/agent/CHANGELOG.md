@@ -1,5 +1,12 @@
 # @mohanscodex/spectra-agent
 
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`e29e755`](https://github.com/codex-mohan/spectra/commit/e29e7556a9a11909fbf169498a3fb69f6606d1f0)]:
+  - @mohanscodex/spectra-ai@0.4.3
+
 ## 0.4.2
 
 ### Patch Changes
