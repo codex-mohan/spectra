@@ -10,6 +10,7 @@ const outputPath = join(packageRoot, "src", "models.ts");
 interface FetchModel {
   id: string;
   name: string;
+  contextWindow?: number;
 }
 
 async function fetchOpenRouterModels(): Promise<FetchModel[]> {
@@ -22,6 +23,7 @@ async function fetchOpenRouterModels(): Promise<FetchModel[]> {
       .map((m: Record<string, unknown>) => ({
         id: m.id as string,
         name: (m.name as string) || (m.id as string),
+        contextWindow: (m.context_length as number) || undefined,
       }));
   } catch (e) {
     console.warn("Failed to fetch OpenRouter:", e);
@@ -33,7 +35,7 @@ async function main() {
   const orModels = await fetchOpenRouterModels();
   console.log(`OpenRouter: ${orModels.length} models`);
 
-  let devData: Record<string, { models: Record<string, { name?: string; tool_call?: boolean }> }> = {};
+  let devData: Record<string, { models: Record<string, { name?: string; tool_call?: boolean; limit?: { context?: number } }> }> = {};
   try {
     const res = await fetch("https://models.dev/api.json", { signal: AbortSignal.timeout(10000) });
     devData = await res.json();
@@ -42,12 +44,12 @@ async function main() {
     console.warn("Failed to fetch models.dev:", e);
   }
 
-  const byProvider: Record<string, Map<string, string>> = {};
+  const byProvider: Record<string, Map<string, { name: string; contextWindow?: number }>> = {};
 
-  function addModel(provider: string, id: string, name: string) {
+  function addModel(provider: string, id: string, name: string, contextWindow?: number) {
     if (!byProvider[provider]) byProvider[provider] = new Map();
     if (!byProvider[provider].has(id)) {
-      byProvider[provider].set(id, name);
+      byProvider[provider].set(id, { name, contextWindow });
     }
   }
 
@@ -56,30 +58,24 @@ async function main() {
     if (!providerData.models) continue;
     for (const [modelId, model] of Object.entries(providerData.models)) {
       if (model.tool_call !== true) continue;
-      addModel(providerName, modelId, model.name || modelId);
+      addModel(providerName, modelId, model.name || modelId, model.limit?.context);
     }
   }
 
-  // Process OpenRouter models, categorized by their prefix
+  // Process OpenRouter models — all belong under "openrouter"
   for (const m of orModels) {
-    const parts = m.id.split("/");
-    const prefix = parts.length >= 2 ? parts[0] : "openrouter";
-
-    // Map common OpenRouter prefixes to models.dev provider names
-    const prefixMap: Record<string, string> = {
-      together: "togetherai",
-      "fireworks-ai": "fireworks-ai",
-      "nova-ai": "nova",
-    };
-    const provider = prefixMap[prefix] || prefix;
-    addModel(provider, m.id, m.name);
+    addModel("openrouter", m.id, m.name);
   }
 
   // Sort and convert to plain objects
-  const sorted: Record<string, { id: string; name: string }[]> = {};
+  const sorted: Record<string, { id: string; name: string; contextWindow?: number }[]> = {};
   for (const provider of Object.keys(byProvider).sort()) {
     const models = Array.from(byProvider[provider].entries())
-      .map(([id, name]) => ({ id, name }))
+      .map(([id, entry]) => {
+        const obj: { id: string; name: string; contextWindow?: number } = { id, name: entry.name };
+        if (entry.contextWindow) obj.contextWindow = entry.contextWindow;
+        return obj;
+      })
       .sort((a, b) => a.name.localeCompare(b.name));
     sorted[provider] = models;
   }
@@ -90,6 +86,7 @@ async function main() {
 export interface ModelEntry {
   id: string;
   name: string;
+  contextWindow?: number;
 }
 
 const MODELS: Record<string, ModelEntry[]> = ${JSON.stringify(sorted, null, 2)};
