@@ -24,6 +24,12 @@ The cost of this over-engineering is real. I spent weeks tracking down bugs that
 
 **Built for hackers who just want things to work. Ship what you mean, not what the framework lets you.**
 
+### "But Spectra has rate limiters, circuit breakers, session stores..."
+
+There's a difference between **abstractions you don't need** and **utilities everyone ends up building anyway.** LangChain invents chains, graphs, and runnables you never asked for. Rate limiting, circuit breakers, session persistence, SSE bridging — those aren't architecture opinions. They're infrastructure you'd write by hand in every production app. Spectra ships them as composable primitives so you don't spend 3 weeks building the same boilerplate every time.
+
+Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming) and a **utility belt** (rate limiting, session stores, health probes) — use what you need, ignore what you don't. The core never forces the belt on you.
+
 ## Architecture
 
 ```mermaid
@@ -57,7 +63,7 @@ graph TB
 |---------|-------|-------------|
 | `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
 | `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
-| `@mohanscodex/spectra-app` | **Infrastructure** | Production runtime — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). |
+| `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). Completely optional — the agent works fine without it. |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic, OpenAI, Groq, OpenRouter. |
 
