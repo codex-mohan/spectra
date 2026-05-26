@@ -4,6 +4,12 @@
 
 A lightweight, component-based TUI framework built from scratch on raw ANSI escape codes. No external UI dependencies — just a `TUI` core, a set of composable components (`Box`, `Text`, `Input`, `Editor`, `Loader`, `Markdown`, `Spacer`, `TruncatedText`), and a `ProcessTerminal` driver.
 
+## Why Spectra?
+
+Every agent framework I tried — **LangChain, LangGraph**, and others — followed the same pattern: endless layers of abstraction for things that are, at their core, just a simple loop. An agent takes input, calls a model, processes the response, dispatches tools, and repeats. That's it. A loop. Everything else — chains, graphs, runnables — is over-engineering dressed up as architecture. I lost months debugging framework bugs instead of building my product.
+
+**Spectra TUI** is built on the same philosophy — just ANSI escape codes, differential rendering, and composable components. No bloated UI frameworks.
+
 ## Features
 
 - **Differential rendering** — Only emits ANSI escape sequences for cells that changed. No full-screen redraws.
@@ -34,6 +40,10 @@ tui.setRoot(root);
 const abort = new AbortController();
 tui.run(abort.signal);
 ```
+
+## Credits
+
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 

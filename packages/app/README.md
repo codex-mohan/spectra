@@ -4,6 +4,12 @@
 
 Builds on `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent` to provide the runtime needed for serving agents from local dev (SQLite) to distributed clusters (Redis + K8s).
 
+## Why Spectra?
+
+Every agent framework I tried — **LangChain, LangGraph**, and others — followed the same pattern: endless layers of abstraction for things that are, at their core, just a simple loop. An agent takes input, calls a model, processes the response, dispatches tools, and repeats. That's it. A loop. Everything else — chains, graphs, runnables — is over-engineering dressed up as architecture. I lost months debugging framework bugs instead of building my product.
+
+**Spectra takes the opposite approach.** No graphs. No chains. No runtime that owns your application. Just the primitives — a loop, a model call, a tool dispatch, a stream — that you assemble however you need. `@mohanscodex/spectra-app` provides production utilities you'd build anyway (rate limiting, circuit breakers, session stores) — completely optional, never forced.
+
 ## Features
 
 - **SessionEngine** — Full lifecycle orchestration: session load → rate limit → concurrency cap → agent loop → persist → stream. One `run()` call. Graceful drain for K8s.
@@ -268,6 +274,10 @@ const all = await orchestrator.executeParallel([
   { agentType: "coder", task: "Task 2" },
 ]);
 ```
+
+## Credits
+
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 

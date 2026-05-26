@@ -4,6 +4,12 @@
 
 Orchestrates conversations with LLMs: streams responses, dispatches tool calls (parallel or sequential), injects intermediate messages mid-turn, and emits typed events for every phase of execution.
 
+## Why Spectra?
+
+Every agent framework I tried — **LangChain, LangGraph**, and others — followed the same pattern: endless layers of abstraction for things that are, at their core, just a simple loop. An agent takes input, calls a model, processes the response, dispatches tools, and repeats. That's it. A loop. Everything else — chains, graphs, runnables — is over-engineering dressed up as architecture. I lost months debugging framework bugs instead of building my product.
+
+**Spectra takes the opposite approach.** No graphs. No chains. No runtime that owns your application. Just the primitives — a loop, a model call, a tool dispatch, a stream — that you assemble however you need.
+
 ## Features
 
 - **Multi-turn loop** — Automatically feeds tool results back to the model. Configurable `maxTurns`.
@@ -235,6 +241,10 @@ getApiKey: async (provider) => {
 The agent retries LLM calls up to 3 times with exponential backoff (1s, 2s, 4s) capped at `maxRetryDelayMs` (default 30s). Does not retry on:
 - 4xx client errors (400, 401, 403, 404)
 - Aborted requests
+
+## Credits
+
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 

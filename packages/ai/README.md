@@ -4,6 +4,12 @@
 
 A registry-based system for interacting with multiple LLM providers through a unified streaming interface. Built-in providers for Anthropic, OpenAI (Chat Completions + Responses API), Groq, and OpenRouter — all streaming SSE by default.
 
+## Why Spectra?
+
+Every agent framework I tried — **LangChain, LangGraph**, and others — followed the same pattern: endless layers of abstraction for things that are, at their core, just a simple loop. An agent takes input, calls a model, processes the response, dispatches tools, and repeats. That's it. A loop. Everything else — chains, graphs, runnables — is over-engineering dressed up as architecture. I lost months debugging framework bugs instead of building my product.
+
+**Spectra takes the opposite approach.** No graphs. No chains. No runtime that owns your application. Just the primitives — a loop, a model call, a tool dispatch, a stream — that you assemble however you need.
+
 ## Features
 
 - **Streaming-first** — Every provider streams SSE events. No polling, no buffering.
@@ -183,6 +189,10 @@ const msg = await complete(
   { apiKey: process.env.OPENAI_API_KEY }
 );
 ```
+
+## Credits
+
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 

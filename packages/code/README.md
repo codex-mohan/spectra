@@ -4,6 +4,12 @@
 
 Spectra Code is a terminal-native AI coding agent with a full-screen TUI, CLI commands, MCP integration, and ACP support for editor integration. It runs locally, respects your config, and keeps your API keys in a secure auth store.
 
+## Why Spectra?
+
+Every agent framework I tried — **LangChain, LangGraph**, and others — followed the same pattern: endless layers of abstraction for things that are, at their core, just a simple loop. An agent takes input, calls a model, processes the response, dispatches tools, and repeats. That's it. A loop. Everything else — chains, graphs, runnables — is over-engineering dressed up as architecture. I lost months debugging framework bugs instead of building my product.
+
+**Spectra Code** is the proof that you don't need a bloated SDK to build a capable coding agent. Just a loop, tools, and a terminal.
+
 ## Features
 
 - **TUI** — Full-screen terminal UI with session management, model switching, and real-time streaming
@@ -191,6 +197,10 @@ import { shellTool, readTool, writeTool } from "@mohanscodex/spectra-code";
 const store = new SessionStore();
 const sessions = store.list();
 ```
+
+## Credits
+
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 
