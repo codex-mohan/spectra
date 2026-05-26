@@ -276,7 +276,7 @@ cargo test --workspace  # Rust
 
 ## Credits
 
-Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful. pi-mono's philosophy of shipping primitives, not platforms, is baked into Spectra's DNA.
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 
