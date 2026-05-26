@@ -1,5 +1,11 @@
 # @mohanscodex/spectra-ai
 
+## 0.4.3
+
+### Patch Changes
+
+- [`e29e755`](https://github.com/codex-mohan/spectra/commit/e29e7556a9a11909fbf169498a3fb69f6606d1f0) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Fix OpenRouter models being incorrectly categorized into native provider buckets (e.g. deepseek/deepseek-v3.2 showing under deepseek instead of openrouter)
+
 ## 0.4.2
 
 ### Patch Changes
