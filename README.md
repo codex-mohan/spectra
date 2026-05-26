@@ -12,6 +12,18 @@ A construction kit, not a pre-built house — ship only primitives that enable d
 
 Each SDK (TypeScript, Rust) is a **complete, independent native implementation** — same API surface, same behavior, no shared runtime, no bindings, no FFI.
 
+## Why Spectra?
+
+I built Spectra because I lost months debugging framework bugs instead of building my product.
+
+Every agent framework I tried — **LangChain, LangGraph**, and others — followed the same pattern: endless layers of abstraction for things that are, at their core, just a simple loop. An agent takes input, calls a model, processes the response, dispatches tools, and repeats. That's it. A loop. Everything else — the chains, graphs, runnables, callbacks, tracing hooks, and configurable-everything — is just over-engineering dressed up as architecture.
+
+The cost of this over-engineering is real. I spent weeks tracking down bugs that turned out to be SDK issues, not application logic. Deployment options were limited. And worst of all, these frameworks create **vendor lock-in** — your entire codebase becomes coupled to abstractions you didn't need in the first place.
+
+**Spectra takes the opposite approach.** No graphs. No chains. No runtime that owns your application. Just the primitives — a loop, a model call, a tool dispatch, a stream — that you assemble however you need. If you can write a `for` loop, you can understand the entire framework in 10 minutes.
+
+**Built for hackers who just want things to work. Ship what you mean, not what the framework lets you.**
+
 ## Architecture
 
 ```mermaid
@@ -255,6 +267,10 @@ bun run build
 bun run test          # TypeScript
 cargo test --workspace  # Rust
 ```
+
+## Credits
+
+Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful. pi-mono's philosophy of shipping primitives, not platforms, is baked into Spectra's DNA.
 
 ## License
 

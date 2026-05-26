@@ -65,8 +65,12 @@ jobs:
             exit 0
           fi
 
+          CHANGELOG=$(awk -v ver="## $VERSION" '$0 ~ ver {found=1; print; next} found && /^## / {exit} found' packages/ai/CHANGELOG.md)
+
           # Write release body
           cat > /tmp/release-body.md <<- EOF
+          $CHANGELOG
+
           ## Published Packages
 
           - \`@mohanscodex/spectra-ai@${VERSION}\` — [npm](https://www.npmjs.com/package/@mohanscodex/spectra-ai/v/${VERSION})
