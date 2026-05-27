@@ -6,6 +6,7 @@ import { resolve, relative } from "path";
 
 export const readTool: SpectraTool = {
   name: "read",
+  capabilities: { reads: true, writes: false },
   description: `Read the contents of a file or directory.
 Supports reading files with optional line ranges.
 When reading a directory, lists entries with types.

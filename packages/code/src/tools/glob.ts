@@ -6,6 +6,7 @@ import { resolve } from "path";
 
 export const globTool: SpectraTool = {
   name: "glob",
+  capabilities: { reads: true, writes: false },
   description: `Find files matching a glob pattern.
 Supports common glob patterns like **/*.ts, src/**/*.css, etc.
 Searches from the specified directory or current working directory.

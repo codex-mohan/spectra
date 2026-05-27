@@ -29,20 +29,15 @@ export function buildCmdItems(opts: {
   onCycleVariant: () => void
   currentEffort?: string
   selectedAgent: string
+  onSecurityReset?: () => void
 }): CmdItem[] {
-  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep, currentEffort, selectedAgent } = opts
+  const { renderer, sessionStore: s, sessionIdRef, hasModel, selectedModel, provider, mcpCount, customProviderCount, messagesLength, showThinking, showToolCalls, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep, currentEffort, selectedAgent, onSecurityReset } = opts
   return [
     // Session
     { id: "new", label: "New Session", desc: "Start fresh", cat: "Session", slashName: "new", slashAliases: ["clear"], action: () => {
-      setMessages(() => []);
-      sessionIdRef.current = null;
-      opts.sessionIdRef.current = null;
-      setRoute("home");
-      setStatus("Ready");
-      setElapsedMs(null);
-      setTokPerSec(null);
-      opts.setTokenUsage?.({ input: 0, output: 0 });
-      opts.setHomeKey?.((k: number) => k + 1);
+      sessionIdRef.current = null; setMessages(() => []); setRoute("home"); setHomeKey(k => k + 1); setNavKey(k => k + 1); setStatus("New session")
+      setTimeout(() => setStatus("Ready"), 3000)
+      onSecurityReset?.()
     } },
     { id: "sessions", label: "List Sessions", desc: "Browse saved sessions", cat: "Session", slashName: "sessions", slashAliases: ["resume", "continue"], action: () => { setDialogStep({ type: "session-list" }) } },
     { id: "delete-session", label: "Delete Session", desc: "Remove a saved session", cat: "Session", slashName: "delete-session", action: () => { setDialogStep({ type: "session-list", mode: "delete" }) } },

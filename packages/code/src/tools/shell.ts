@@ -91,6 +91,7 @@ function truncationDir(): string {
 
 export const shellTool: SpectraTool = {
   name: "bash",
+  capabilities: { reads: true, writes: true },
   description: `Execute shell commands on the user's system.
 Supports any command available in the system shell.
 Output streams in realtime while the command runs.

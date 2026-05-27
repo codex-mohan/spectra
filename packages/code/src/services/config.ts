@@ -12,6 +12,8 @@ export interface CustomProviderConfig {
   enabled?: boolean;
 }
 
+import type { PermissionConfig, SecurityConfig } from "../security/types.js";
+
 export interface SpectraConfig {
   model?: string;
   smallModel?: string;
@@ -22,6 +24,8 @@ export interface SpectraConfig {
   theme?: "dark" | "light";
   mcp?: McpConfig[];
   plugins?: PluginConfig[];
+  permission?: PermissionConfig;
+  security?: SecurityConfig;
   permissions?: PermissionRule[];
   shell?: string;
   logLevel?: "debug" | "info" | "warn" | "error";

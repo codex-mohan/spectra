@@ -4,6 +4,7 @@ import { errorResult, textResult } from "./utils.js";
 
 export const webFetchTool: SpectraTool = {
   name: "web_fetch",
+  capabilities: { reads: false, writes: false },
   description: `Fetch content from a URL and return it as markdown text.
 Useful for reading documentation, API responses, or any web content.
 Handles HTML to markdown conversion, PDF text extraction, and image descriptions.`,

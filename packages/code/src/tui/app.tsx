@@ -38,6 +38,9 @@ import { loadConfig, type CustomProviderConfig } from "../services/config.js"
 import { registerAllCustomProviders } from "../services/custom-providers.js"
 import { AGENT_DEFINITIONS, PRIMARY_AGENTS, filterToolsByAgent } from "../agents/definitions.js"
 import { AgentRegistry } from "../agents/registry.js"
+import { createSecurityManager, type SecurityManager } from "../security/index.js"
+import type { PermissionRequest } from "../security/types.js"
+import { PermissionDialog } from "./ui/permission-dialog.js"
 
 const AGENTS = PRIMARY_AGENTS
 const PLACEHOLDERS = ["fix the login bug", "explain this codebase", "add error handling", "refactor this function", "write tests", "debug this issue", "optimize performance", "document the API"]
@@ -145,6 +148,16 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }))
   const currentTurnStartRef = useRef<number | null>(null)
   const currentTurnMsgIdRef = useRef<string | null>(null)
+  const securityRef = useRef<SecurityManager | null>(null)
+  const [permissionRequest, setPermissionRequest] = useState<PermissionRequest | null>(null)
+
+  const [securityConfig] = useState(() => {
+    const cfg = loadConfig()
+    return {
+      permission: cfg.permission,
+      security: cfg.security,
+    }
+  })
 
   const provider = selectedProvider
   const hasModel = selectedModel !== null && selectedProvider !== null
@@ -190,7 +203,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   }, [renderer])
 
   useKeyboard((key) => {
-    if (dialogStep || msgControls) { dialogKeyHandler.current?.(key); return }
+    if (dialogStep || msgControls || permissionRequest !== null) { dialogKeyHandler.current?.(key); return }
     if (showCmd) {
       if (key.name === "escape" || (key.ctrl && key.name === "p")) { setShowCmd(false); return }
       if (key.name === "return" || key.name === "enter") { if (cmdFiltered.length > 0) { execCmd(cmdFiltered[cmdSelected]); return }; return }
@@ -304,9 +317,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       setHistoryIdx(historyIdx - 1); setNavKey((k) => k + 1)
       return
     }
-    if (key.name === "tab") { setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]); return }
+    if (key.name === "tab") { setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]); securityRef.current?.getReadTracker().reset(); securityRef.current?.getDoomLoop().reset(); return }
     if (key.ctrl && key.name === "p") { setShowCmd(true); setCmdFilter(""); setCmdSelected(0); return }
-    if (key.ctrl && key.name === "l") { setMessages([]); setStatus("Cleared"); setTimeout(() => setStatus("Ready"), 2000); return }
+    if (key.ctrl && key.name === "l") { setMessages([]); setStatus("Cleared"); setTimeout(() => setStatus("Ready"), 2000); securityRef.current?.getReadTracker().reset(); securityRef.current?.getDoomLoop().reset(); return }
     if (key.ctrl && key.name === "t") { handleCycleVariant(); return }
   })
 
@@ -329,11 +342,24 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     const { Agent } = await import("@mohanscodex/spectra-agent")
     const { initProviders } = await import("@mohanscodex/spectra-ai")
     initProviders()
-    const { createAllTools, spectraToolToAgentTool } = await import("../tools/index.js")
+    const { createAllTools, createAllToolsWithSecurity, spectraToolToAgentTool } = await import("../tools/index.js")
     const customCfg = customProviders[provider]
 
     const def = AGENT_DEFINITIONS[selectedAgent]
-    const allTools = createAllTools().map(spectraToolToAgentTool)
+
+    if (!securityRef.current) {
+      const manager = createSecurityManager({
+        config: securityConfig.permission,
+        security: securityConfig.security,
+        cwd: process.cwd(),
+      })
+      manager.setListener((req) => {
+        setPermissionRequest(req)
+      })
+      securityRef.current = manager
+    }
+
+    const allTools = createAllToolsWithSecurity(securityRef.current)
     const agentTools = def ? filterToolsByAgent(allTools, selectedAgent) : allTools
 
     let agentsMd = ""
@@ -549,7 +575,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           const e = performance.now() - start; setElapsedMs(e)
           const ot = m.usage.output
           if (ot > 0 && e > 0) setTokPerSec(ot / (e / 1000))
-          setTokenUsage((p) => ({ input: p.input + m.usage.input, output: p.output + ot }))
+          setTokenUsage((p) => ({ input: m.usage.input, output: p.output + ot }))
           currentAssistantId = null
           streamingIdRef.current = null
         }
@@ -647,6 +673,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     onCycleVariant: handleCycleVariant,
     currentEffort: thinkingEffort,
     selectedAgent,
+    onSecurityReset: () => {
+      securityRef.current?.getReadTracker().reset()
+      securityRef.current?.getDoomLoop().reset()
+    },
   }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls, handleCycleVariant, thinkingEffort, selectedAgent])
 
   const cmdFiltered = useMemo(() => {
@@ -687,7 +717,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               thinkingEffort={thinkingEffort}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               width={Math.min(68, termWidth - 8)}
-              focused={!dialogStep && !showCmd && !msgControls}
+              focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
               onTextChange={(t) => setDraftText(t)}
               onGetTextarea={(r) => { promptTextareaRef.current = r }}
               onPositionChange={setPromptPosition} />
@@ -751,7 +781,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               thinkingEffort={thinkingEffort}
               initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : "")}
               elapsedMs={elapsedMs} tokenUsage={tokenUsage} width={termWidth - 4}
-              focused={!dialogStep && !showCmd && !msgControls}
+              focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
               onTextChange={(t) => setDraftText(t)}
               onGetTextarea={(r) => { promptTextareaRef.current = r }}
               onPositionChange={setPromptPosition} />
@@ -843,15 +873,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               }
               return { id, role: "user" as const, content: "", model: data.model }
             })
-            // Restore token usage from assistant messages
-            let inputTokens = 0, outputTokens = 0
+            // Restore token usage from assistant messages.
+            // usage.input is cumulative (includes full conversation history),
+            // so we take the max (latest), but usage.output is per-turn, so we sum.
+            let maxInputTokens = 0, outputTokens = 0
             for (const m of data.messages as any[]) {
               if (m.role === "assistant" && m.usage) {
-                inputTokens += m.usage.input || 0
+                maxInputTokens = Math.max(maxInputTokens, m.usage.input || 0)
                 outputTokens += m.usage.output || 0
               }
             }
-            setTokenUsage({ input: inputTokens, output: outputTokens })
+            setTokenUsage({ input: maxInputTokens, output: outputTokens })
             setMessages(() => loadedMsgs)
             sessionId.current = data.id
             setSelectedModel(data.model)
@@ -865,6 +897,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
               agentRef.current.reset()
               agentRef.current.restoreHistory(data.messages as unknown as Message[])
             }
+            securityRef.current?.getReadTracker().reset()
+            securityRef.current?.getDoomLoop().reset()
             showToast(`Loaded: ${data.title.slice(0, 40)}`, "info")
           }}
           onDelete={(id) => {
@@ -1114,6 +1148,28 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           }}
           onClose={() => setMsgControls(null)}
           registerHandler={(fn) => { dialogKeyHandler.current = fn }}
+        />
+      )}
+      {permissionRequest && (
+        <PermissionDialog
+          request={permissionRequest}
+          termWidth={termWidth} termHeight={termHeight}
+          onAllow={(id) => {
+            securityRef.current?.respondToRequest(id, { action: "once" })
+            setPermissionRequest(null)
+          }}
+          onAllowAlways={(id) => {
+            securityRef.current?.respondToRequest(id, { action: "always" })
+            setPermissionRequest(null)
+          }}
+          onDeny={(id) => {
+            securityRef.current?.respondToRequest(id, { action: "deny" })
+            setPermissionRequest(null)
+          }}
+          onClose={() => {
+            securityRef.current?.respondToRequest(permissionRequest!.id, { action: "deny" })
+            setPermissionRequest(null)
+          }}
         />
       )}
       <ToastContainer />

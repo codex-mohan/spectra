@@ -111,10 +111,9 @@ export function MessageView({ msg, showThinking = true, isFirst = false, isRever
           <box flexDirection="column" paddingLeft={3} marginTop={1}>
             {/* Separator line for interrupted/error turns */}
             {(isInterrupted || isError) && (
-              <box height={1} flexDirection="row" gap={0} marginBottom={1}>
-                <text fg={isInterrupted ? c.warn : c.error}>{"─".repeat(3)}</text>
-                <text fg={isInterrupted ? c.warn : c.error}> {isInterrupted ? "⊘ interrupted" : "✖ error"} </text>
-                <text fg={isInterrupted ? c.warn : c.error}>{"─".repeat(Math.max(4, 32 - 14))}</text>
+              <box height={1} flexDirection="row" gap={0} marginBottom={1} width="100%">
+                <text fg={isInterrupted ? c.warn : c.error}>{"─".repeat(3)} {isInterrupted ? "⊘ interrupted" : "✖ error"} </text>
+                <text fg={isInterrupted ? c.warn : c.error} truncate flexGrow={1}>{"─".repeat(200)}</text>
               </box>
             )}
             <box flexDirection="row" gap={1}>

@@ -7204,11 +7204,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "arcee-ai/trinity-large-preview",
-      "name": "Arcee AI: Trinity Large Preview",
-      "contextWindow": 131000
-    },
-    {
       "id": "arcee-ai/trinity-large-thinking",
       "name": "Arcee AI: Trinity Large Thinking",
       "contextWindow": 262144
@@ -7314,11 +7309,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1048576
     },
     {
-      "id": "deepseek/deepseek-v4-flash:free",
-      "name": "DeepSeek: DeepSeek V4 Flash (free)",
-      "contextWindow": 1048576
-    },
-    {
       "id": "deepseek/deepseek-v4-pro",
       "name": "DeepSeek: DeepSeek V4 Pro",
       "contextWindow": 1048576
@@ -7406,6 +7396,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "google/gemini-3.1-pro-preview-customtools",
       "name": "Google: Gemini 3.1 Pro Preview Custom Tools",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "google/gemini-3.5-flash",
+      "name": "Google: Gemini 3.5 Flash",
       "contextWindow": 1048576
     },
     {
@@ -8224,6 +8219,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
+      "id": "qwen/qwen3.7-max",
+      "name": "Qwen: Qwen3.7 Max",
+      "contextWindow": 1000000
+    },
+    {
       "id": "qwen/qwen-2.5-72b-instruct",
       "name": "Qwen2.5 72B Instruct",
       "contextWindow": 32768
@@ -8249,14 +8249,24 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 131072
     },
     {
+      "id": "stealth/claude-opus-4.6",
+      "name": "Stealth: Claude Opus 4.6 (20% off)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "stealth/claude-opus-4.7",
+      "name": "Stealth: Claude Opus 4.7 (20% off)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "stealth/claude-sonnet-4.6",
+      "name": "Stealth: Claude Sonnet 4.6 (20% off)",
+      "contextWindow": 1000000
+    },
+    {
       "id": "stepfun/step-3.5-flash",
       "name": "StepFun: Step 3.5 Flash",
       "contextWindow": 256000
-    },
-    {
-      "id": "stepfun/step-3.5-flash:free",
-      "name": "StepFun: Step 3.5 Flash (free)",
-      "contextWindow": 262144
     },
     {
       "id": "tencent/hy3-preview",
@@ -8274,11 +8284,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 32768
     },
     {
-      "id": "alibaba/tongyi-deepresearch-30b-a3b",
-      "name": "Tongyi DeepResearch 30B A3B",
-      "contextWindow": 131072
-    },
-    {
       "id": "upstage/solar-pro-3",
       "name": "Upstage: Solar Pro 3",
       "contextWindow": 128000
@@ -8294,8 +8299,8 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "x-ai/grok-code-fast-1:optimized:free",
-      "name": "xAI: Grok Code Fast 1 Optimized (experimental, free)",
+      "id": "x-ai/grok-build-0.1",
+      "name": "xAI: Grok Build 0.1",
       "contextWindow": 256000
     },
     {
@@ -9239,7 +9244,7 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "qwen37-max",
+      "id": "qwen3.7-max",
       "name": "Qwen3.7 Max",
       "contextWindow": 1000000
     },
@@ -12085,6 +12090,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen3.6-plus",
       "name": "Qwen3.6 Plus",
       "contextWindow": 262144
+    },
+    {
+      "id": "qwen3.7-max",
+      "name": "Qwen3.7 Max",
+      "contextWindow": 1000000
     }
   ],
   "openrouter": [
@@ -12196,7 +12206,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "deepseek/deepseek-chat",
       "name": "DeepSeek Chat",
-      "contextWindow": 163840
+      "contextWindow": 128000
     },
     {
       "id": "deepseek/deepseek-chat-v3-0324",
@@ -12391,7 +12401,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "z-ai/glm-4.5-air",
       "name": "GLM-4.5-Air",
-      "contextWindow": 131072
+      "contextWindow": 131070
     },
     {
       "id": "z-ai/glm-4.5v",
@@ -12756,7 +12766,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "poolside/laguna-m.1:free",
       "name": "Laguna M.1 (free)",
-      "contextWindow": 131072
+      "contextWindow": 262144
     },
     {
       "id": "poolside/laguna-xs.2:free",
@@ -13286,7 +13296,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "qwen/qwen3.6-35b-a3b",
       "name": "Qwen3.6 35B A3B",
-      "contextWindow": 262140
+      "contextWindow": 262144
     },
     {
       "id": "qwen/qwen3.6-flash",
@@ -13379,18 +13389,8 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 262144
     },
     {
-      "id": "alibaba/tongyi-deepresearch-30b-a3b",
-      "name": "Tongyi DeepResearch 30B A3B",
-      "contextWindow": 131072
-    },
-    {
       "id": "arcee-ai/trinity-large-thinking",
       "name": "Trinity Large Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "arcee-ai/trinity-large-thinking:free",
-      "name": "Trinity Large Thinking (free)",
       "contextWindow": 262144
     },
     {
@@ -15393,6 +15393,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 262144
     },
     {
+      "id": "route/mimo-v2.5",
+      "name": "MiMo V2.5",
+      "contextWindow": 1000000
+    },
+    {
       "id": "route/mimo-v2.5-pro",
       "name": "MiMo V2.5 Pro",
       "contextWindow": 1000000
@@ -15440,7 +15445,12 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "route/qwen3.6-27b",
       "name": "Qwen3.6 27B",
-      "contextWindow": 262144
+      "contextWindow": 202000
+    },
+    {
+      "id": "route/qwen3.6-27b-202k",
+      "name": "Qwen3.6 27B 202K",
+      "contextWindow": 202000
     },
     {
       "id": "route/step-3.5-flash",
@@ -18517,7 +18527,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "xpersona-frieren-coder",
       "name": "Xpersona Frieren Coder",
-      "contextWindow": 400000
+      "contextWindow": 1000000
     }
   ],
   "zai": [

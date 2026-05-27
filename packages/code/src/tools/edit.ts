@@ -6,6 +6,7 @@ import { resolve, relative } from "path";
 
 export const editTool: SpectraTool = {
   name: "edit",
+  capabilities: { reads: false, writes: true },
   description: `Edit a file by finding and replacing text.
 The tool finds the exact old string in the file and replaces it with the new string.
 For best results:

@@ -167,6 +167,83 @@ Spectra Code reads config from `spectra.json`, `opencode.json`, or `config.json`
 
 Environment variables: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `SPECTRA_MODEL`, `SPECTRA_PROVIDER`.
 
+## Security
+
+Spectra Code runs with layered, configurable security — everything has sensible defaults but nothing is locked down.
+
+### Permission System
+
+Three-action model per tool and pattern: `allow`, `ask`, or `deny`. Everything defaults to `ask` unless configured.
+
+```json
+{
+  "permission": {
+    "*": "allow",
+    "external_directory": { "*": "ask", "~/Downloads/*": "allow" },
+    "bash": { "git *": "allow", "rm *": "deny", "*": "ask" },
+    "write": { "*.env": "deny" }
+  }
+}
+```
+
+**Permission keys:** `read`, `write` (covers edit/write/apply_patch), `bash`, `grep`, `glob`, `web_fetch`, `task`, `external_directory`
+
+### Tool Capabilities
+
+Every tool declares its intent — `reads` (returns file content to the model) and/or `writes` (modifies files). Custom tools declare their own and automatically get guards and permission grouping.
+
+| Tool | reads | writes |
+|---|---|---|
+| read, glob, grep | ✓ | |
+| edit, write, apply_patch | | ✓ |
+| bash | ✓ | ✓ |
+| web_fetch, task | | |
+
+### Read-Before-Write Guard
+
+Applies to all write-capable tools. Files must be read before they can be overwritten. Modes:
+
+- **soft** (default): first untracked write to existing file refused, second attempt allowed
+- **strict**: permanent block until the file is read
+- **off**: disabled entirely
+
+### Path Safety
+
+Sensitive paths blocked by default: `.ssh/`, `.aws/credentials`, `.gnupg/`, `/etc/shadow`, `.docker/config.json`, `.kube/config`, and more. Override via `allowedPaths`.
+
+```json
+{
+  "security": {
+    "blockedPaths": ["**/.ssh/**"],
+    "allowedPaths": [".env.example"],
+    "writeGuard": "soft",
+    "writeGuardExclude": ["apply_patch"]
+  }
+}
+```
+
+### SSRF Guard
+
+Blocks loopback and RFC1918 addresses for `web_fetch`. Configurable allowlist.
+
+```json
+{
+  "security": {
+    "ssrf": { "blockPrivate": true, "allowedHosts": ["api.internal.corp"] }
+  }
+}
+```
+
+### Doom Loop Detection
+
+- Identical tool calls 3+ times → blocks the loop
+- 8+ consecutive reads without writes → injects warning
+- 4+ patch failures on same file → suggests rewrite
+
+### File Checkpointing
+
+Files are snapshotted before each turn. Ctrl+Shift+Y rolls back file changes. Everything is overridable — no hardcoded restrictions.
+
 ## Architecture
 
 ```
@@ -176,6 +253,7 @@ cli.ts              CLI entry point (yargs)
 ├── services/       Config, session store, auth, snapshots
 ├── tools/          Built-in agent tools (read, write, edit, shell, grep, glob, web_fetch, task)
 ├── agents/         Agent definitions (build, plan, debug, explore)
+├── security/       Permission engine, path safety, read tracker, doom loop, SSRF guard
 └── integrations/
     ├── mcp/           MCP client (stdio + HTTP)
     ├── acp/           ACP server (JSON-RPC 2.0)

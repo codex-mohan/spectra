@@ -6,6 +6,7 @@ import { resolve, dirname, relative } from "path";
 
 export const writeTool: SpectraTool = {
   name: "write",
+  capabilities: { reads: false, writes: true },
   description: `Write content to a file, creating it if it doesn't exist.
 If the file exists, it will be overwritten.
 For small changes to existing files, prefer the edit tool.

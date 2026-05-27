@@ -25,6 +25,7 @@ Usage notes:
 
 export const taskTool: SpectraTool = {
   name: "task",
+  capabilities: { reads: false, writes: false },
   description: descriptionForTaskTool(),
   displayName: (args: { description: string }) =>
     `@${(args as any).subagent_type || "subagent"} ${args.description || ""}`.slice(0, 60),
@@ -52,7 +53,7 @@ export const taskTool: SpectraTool = {
     try {
       const { Agent } = await import("@mohanscodex/spectra-agent");
       const { createAllTools, spectraToolToAgentTool } = await import("./index.js");
-      const allTools = createAllTools().map(spectraToolToAgentTool);
+      const allTools = createAllTools().map((t) => spectraToolToAgentTool(t));
       const tools = filterToolsByAgent(allTools, subagent_type);
 
       const subagent = new Agent({

@@ -6,6 +6,7 @@ import { resolve } from "path";
 
 export const grepTool: SpectraTool = {
   name: "grep",
+  capabilities: { reads: true, writes: false },
   description: `Search file contents using regular expressions.
 Uses ripgrep (rg) if available, otherwise falls back to grep.
 Returns matching file paths, line numbers, and the matched lines.

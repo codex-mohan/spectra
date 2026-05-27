@@ -71,30 +71,30 @@ export function PromptBar(props: PromptBarProps) {
           width={width ?? "auto"}>
           <box flexDirection="column" flexGrow={1} paddingLeft={2}>
             <box minHeight={1} maxHeight={6}>
-              {isLoading ? (
-                <text fg={c.warn}>{SPINNER[spinnerFrame]}  Streaming...</text>
-              ) : (
-                <box flexDirection="row" flexGrow={1} gap={1}>
+              <box flexDirection="row" flexGrow={1} gap={1}>
+                {isLoading ? (
+                  <text fg={c.warn}>{SPINNER[spinnerFrame]}</text>
+                ) : (
                   <text fg={c.accent}>›</text>
-                  <box flexGrow={1}>
-                    <textarea key={inputKey} placeholder={placeholder}
-                      minHeight={1} maxHeight={6} width={"100%"} initialValue={initialValue}
-                      keyBindings={[
-                        { name: "return", action: "submit" },
-                        { name: "return", shift: true, action: "newline" },
-                      ]}
-                      ref={(r: any) => { textareaRef.current = r; onGetTextarea?.(r) }}
-                      onContentChange={() => {
-                        if (textareaRef.current && onTextChange) {
-                          onTextChange(textareaRef.current.plainText)
-                        }
-                      }}
-                      onSubmit={() => {
-                        if (textareaRef.current) onSubmit(textareaRef.current.plainText)
-                      }} focused={focused} />
-                  </box>
+                )}
+                <box flexGrow={1}>
+                  <textarea key={inputKey} placeholder={isLoading ? "Streaming..." : placeholder}
+                    minHeight={1} maxHeight={6} width={"100%"} initialValue={initialValue}
+                    keyBindings={[
+                      { name: "return", action: "submit" },
+                      { name: "return", shift: true, action: "newline" },
+                    ]}
+                    ref={(r: any) => { textareaRef.current = r; onGetTextarea?.(r) }}
+                    onContentChange={() => {
+                      if (textareaRef.current && onTextChange) {
+                        onTextChange(textareaRef.current.plainText)
+                      }
+                    }}
+                    onSubmit={() => {
+                      if (textareaRef.current) onSubmit(textareaRef.current.plainText)
+                    }} focused={focused} />
                 </box>
-              )}
+              </box>
             </box>
             <box height={1} />
             <box flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
