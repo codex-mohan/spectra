@@ -256,7 +256,7 @@ spectra/
 - **Zero `unsafe`** — No unsafe in core logic
 - **No OpenSSL** — rustls only, no C dependencies
 - **Release profile** — `opt-level = 3`, `lto = "thin"`, `codegen-units = 1`, `panic = "abort"`
-- **Edition 2024** — Requires Rust 1.75+
+- **Edition 2024** — Requires Rust 1.86+
 
 ## Development
 
