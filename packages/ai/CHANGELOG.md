@@ -1,5 +1,11 @@
 # @mohanscodex/spectra-ai
 
+## 0.4.4
+
+### Patch Changes
+
+- [`bacb73d`](https://github.com/codex-mohan/spectra/commit/bacb73ddad81495d3ec5cc0c150bd1b67ab0d5ad) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Inject synthetic error tool results in convertMessages when tool calls lack matching toolResult messages, preventing strict providers (DeepSeek, Anthropic) from rejecting requests with unmatched tool_call_ids.
+
 ## 0.4.3
 
 ### Patch Changes
