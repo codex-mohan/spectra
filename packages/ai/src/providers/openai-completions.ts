@@ -357,7 +357,33 @@ function convertMessages(model: Model, context: Context): ChatCompletionMessageP
     }
   }
 
-  return params;
+  // Defensive repair: some providers (e.g. DeepSeek) are strict about every
+  // assistant `tool_calls` being followed by matching `role: "tool"` messages.
+  // If tool results went missing (e.g. parallel permission-dialog race, crash,
+  // or provider leniency like OpenRouter), inject synthetic error results so
+  // the request is not rejected.
+  const repaired: ChatCompletionMessageParam[] = [];
+  for (let i = 0; i < params.length; i++) {
+    const msg = params[i];
+    repaired.push(msg);
+    if (msg.role === "assistant" && Array.isArray((msg as any).tool_calls) && (msg as any).tool_calls.length > 0) {
+      const requiredIds = new Set<string>((msg as any).tool_calls.map((tc: any) => tc.id));
+      let j = i + 1;
+      while (j < params.length && params[j].role === "tool") {
+        requiredIds.delete((params[j] as any).tool_call_id);
+        j++;
+      }
+      for (const missingId of requiredIds) {
+        repaired.push({
+          role: "tool",
+          content: "(tool result missing — the call may have been interrupted or blocked)",
+          tool_call_id: missingId,
+        });
+      }
+    }
+  }
+
+  return repaired;
 }
 
 function parseChunkUsage(

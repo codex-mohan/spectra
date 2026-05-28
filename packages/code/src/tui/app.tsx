@@ -149,7 +149,26 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const currentTurnStartRef = useRef<number | null>(null)
   const currentTurnMsgIdRef = useRef<string | null>(null)
   const securityRef = useRef<SecurityManager | null>(null)
+  const permissionQueueRef = useRef<PermissionRequest[]>([])
   const [permissionRequest, setPermissionRequest] = useState<PermissionRequest | null>(null)
+
+  const showNextPermission = useCallback(() => {
+    const next = permissionQueueRef.current[0] ?? null
+    setPermissionRequest(next)
+  }, [])
+
+  const enqueuePermission = useCallback((req: PermissionRequest) => {
+    permissionQueueRef.current.push(req)
+    if (!permissionRequest) {
+      showNextPermission()
+    }
+  }, [permissionRequest, showNextPermission])
+
+  const resolvePermission = useCallback((id: string, response: { action: "once" | "always" | "deny" }) => {
+    securityRef.current?.respondToRequest(id, response)
+    permissionQueueRef.current = permissionQueueRef.current.filter((r) => r.id !== id)
+    showNextPermission()
+  }, [showNextPermission])
 
   const [securityConfig] = useState(() => {
     const cfg = loadConfig()
@@ -354,7 +373,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         cwd: process.cwd(),
       })
       manager.setListener((req) => {
-        setPermissionRequest(req)
+        enqueuePermission(req)
       })
       securityRef.current = manager
     }
@@ -1155,20 +1174,16 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           request={permissionRequest}
           termWidth={termWidth} termHeight={termHeight}
           onAllow={(id) => {
-            securityRef.current?.respondToRequest(id, { action: "once" })
-            setPermissionRequest(null)
+            resolvePermission(id, { action: "once" })
           }}
           onAllowAlways={(id) => {
-            securityRef.current?.respondToRequest(id, { action: "always" })
-            setPermissionRequest(null)
+            resolvePermission(id, { action: "always" })
           }}
           onDeny={(id) => {
-            securityRef.current?.respondToRequest(id, { action: "deny" })
-            setPermissionRequest(null)
+            resolvePermission(id, { action: "deny" })
           }}
           onClose={() => {
-            securityRef.current?.respondToRequest(permissionRequest!.id, { action: "deny" })
-            setPermissionRequest(null)
+            resolvePermission(permissionRequest!.id, { action: "deny" })
           }}
         />
       )}
