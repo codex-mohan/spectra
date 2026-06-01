@@ -72,7 +72,7 @@ export function DoctorDialog({ result, onClose, termWidth, termHeight, registerH
 
         <scrollbox ref={(r: any) => { scrollRef.current = r }}
           paddingX={1} maxHeight={listH} scrollY={true}
-          scrollbarOptions={{ visible: true }} backgroundColor={c.bgCard}>
+           backgroundColor={c.bgCard}>
           <box flexDirection="column" backgroundColor={c.bgCard}>
             {rows.length === 0 ? (
               <box height={1} paddingX={1} backgroundColor={c.bgCard}>
@@ -83,7 +83,7 @@ export function DoctorDialog({ result, onClose, termWidth, termHeight, registerH
         </scrollbox>
 
         <box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
-          <text fg={c.dim}>esc or enter to close</text>
+          <text fg={c.dim}>esc/enter close</text>
         </box>
       </box>
     </box>
