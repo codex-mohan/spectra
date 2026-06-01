@@ -95,7 +95,7 @@ export function DebugDialog(props: DebugDialogProps) {
             })}
           </box>
         </scrollbox>
-        <box paddingTop={1} flexDirection="row" justifyContent="center">
+        <box paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
           <text fg={c.dim}>esc close</text>
         </box>
       </box>

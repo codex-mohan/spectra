@@ -16,7 +16,7 @@ export function DoctorDialog({ result, onClose, termWidth, termHeight, registerH
 
   const mw = Math.min(68, termWidth - 4)
   const ml = Math.floor((termWidth - mw) / 2)
-  const mh = Math.min(24, termHeight - 4)
+  const mh = Math.min(32, termHeight - 4)
   const mt = Math.max(0, Math.floor((termHeight - mh) / 3))
   const innerW = mw - 4
   const listH = mh - 5
@@ -62,7 +62,7 @@ export function DoctorDialog({ result, onClose, termWidth, termHeight, registerH
   return (
     <box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
       <box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
-        <box height={1} paddingX={2} paddingTop={1} paddingBottom={1} border={["bottom"]} borderColor={c.border} borderStyle="single" backgroundColor={c.bgCard}>
+        <box height={1} paddingX={2} paddingTop={1} paddingBottom={1} backgroundColor={c.bgCard}>
           <text fg={result.allPassed ? c.success : c.error}>{result.allPassed ? "✓ All checks passed" : `✗ ${failedCount}/${result.checks.length} failed`}</text>
         </box>
 
@@ -72,7 +72,7 @@ export function DoctorDialog({ result, onClose, termWidth, termHeight, registerH
 
         <scrollbox ref={(r: any) => { scrollRef.current = r }}
           paddingX={1} maxHeight={listH} scrollY={true}
-          scrollbarOptions={{ visible: false }} backgroundColor={c.bgCard}>
+          scrollbarOptions={{ visible: true }} backgroundColor={c.bgCard}>
           <box flexDirection="column" backgroundColor={c.bgCard}>
             {rows.length === 0 ? (
               <box height={1} paddingX={1} backgroundColor={c.bgCard}>
@@ -82,7 +82,7 @@ export function DoctorDialog({ result, onClose, termWidth, termHeight, registerH
           </box>
         </scrollbox>
 
-        <box height={1} paddingX={2} paddingBottom={1} flexDirection="row" justifyContent="center" backgroundColor={c.bgCard}>
+        <box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
           <text fg={c.dim}>esc or enter to close</text>
         </box>
       </box>

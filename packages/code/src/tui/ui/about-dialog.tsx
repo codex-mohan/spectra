@@ -39,7 +39,7 @@ export function AboutDialog({ onClose, termWidth, termHeight, registerHandler }:
           <text fg={c.dim}>Built with Spectra SDK</text>
         </box>
 
-        <box height={1} paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center" backgroundColor={c.bgCard}>
+        <box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
           <text fg={c.dim}>esc or enter to close</text>
         </box>
       </box>
