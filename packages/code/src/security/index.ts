@@ -8,7 +8,7 @@ import { PathSafety } from "./path-safety.js"
 import { ReadTracker } from "./read-tracker.js"
 import { DoomLoopDetector } from "./doom-loop.js"
 import { SsrfGuard } from "./ssrf-guard.js"
-import { isInsideWorkingDir, canonicalPath } from "./wildcard.js"
+import { isInsideWorkingDir, canonicalPath, matchWildcard } from "./wildcard.js"
 import { resolve } from "path"
 import { URL } from "url"
 
@@ -18,6 +18,90 @@ export { PathSafety } from "./path-safety.js"
 export { ReadTracker } from "./read-tracker.js"
 export { DoomLoopDetector } from "./doom-loop.js"
 export { SsrfGuard } from "./ssrf-guard.js"
+
+const BASHLIST_COMMANDS = new Set([
+  "shutdown", "reboot", "halt", "poweroff",
+  "mkfs", "fdisk", "mkswap", "swapon",
+  "telnet", "chroot",
+])
+
+const BASHLIST_PATTERNS = [
+  "rm -rf /*", "sudo rm -rf /*", "doas rm -rf /*", "rm -rf ~",
+  "rm -rf /home*", "rm -rf /root*",
+  "dd if=*of=/dev/*",
+  "> /dev/sd*", "> /dev/hd*", "> /dev/nvme*",
+  ":(){ :|:& };:*",
+  "curl * | sh", "curl * | bash", "curl * | zsh",
+  "wget * | sh", "wget * | bash", "wget * | zsh",
+  "sudo chmod 777 /*", "sudo chown -R /*", "sudo chown -R /",
+  "cat .env | curl *", "cat .env | wget *",
+  "git push --force origin main", "git push --force origin master",
+  "git push -f origin main", "git push -f origin master",
+  "git push --force --no-verify origin main",
+  "git push --force --no-verify origin master",
+]
+
+const FILE_COMMANDS = new Set([
+  "cat", "cp", "mv", "rm", "mkdir", "touch", "chmod", "chown",
+  "ls", "less", "more", "head", "tail", "file", "stat",
+  "diff", "cmp", "find", "ln",
+])
+
+function unquoteShell(s: string): string {
+  if (s.length >= 2) {
+    const first = s[0], last = s[s.length - 1]
+    if ((first === "'" && last === "'") || (first === '"' && last === '"')) {
+      return s.slice(1, -1)
+    }
+  }
+  return s
+}
+
+function extractBashPaths(
+  command: string,
+  cwd: string,
+): { externalPaths: string[]; pathPatterns: string[] } {
+  const externalPaths: string[] = []
+  const pathPatterns: string[] = []
+
+  for (const firstLine of command.split("\n")) {
+    const trimmed = firstLine.trim()
+    if (!trimmed) continue
+
+    const segments = trimmed.split(/(?<!\\);/)
+    for (const segment of segments) {
+      const parts = segment.trim().split(/\s+/).filter(Boolean)
+      if (parts.length < 2) continue
+
+      const cmd = (parts[0] || "").toLowerCase()
+      if (!FILE_COMMANDS.has(cmd)) continue
+
+      for (const arg of parts.slice(1)) {
+        if (arg.startsWith("-") || arg.startsWith("--")) continue
+        const unquoted = unquoteShell(arg)
+
+        try {
+          const resolved = resolve(cwd, unquoted)
+          pathPatterns.push(resolved)
+          if (!isInsideWorkingDir(unquoted, cwd)) {
+            externalPaths.push(resolved)
+          }
+        } catch {}
+      }
+    }
+  }
+
+  return { externalPaths, pathPatterns }
+}
+
+function isBashBlocked(command: string): boolean {
+  const firstWord = command.trim().split(/\s+/)[0] || ""
+
+  if (BASHLIST_COMMANDS.has(firstWord)) return true
+
+  const normalized = command.trim()
+  return BASHLIST_PATTERNS.some((p) => matchWildcard(p, normalized))
+}
 
 export class PermissionDeniedError extends Error {
   constructor(
@@ -100,17 +184,34 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
     tool?: string,
     details?: string,
   ): Promise<void> {
+    const isBash = permission === "bash" || permission === "shell"
+
+    if (isBash) {
+      const command = patterns[0] ?? ""
+      if (isBashBlocked(command)) {
+        throw new PermissionDeniedError(permission, command)
+      }
+    }
+
+    const ruleset = getRuleset()
+
     for (const pattern of patterns) {
-      const rule = evaluate(permission, pattern, getRuleset())
+      const rule = evaluate(permission, pattern, ruleset)
 
       if (rule.action === "deny") {
         throw new PermissionDeniedError(permission, pattern)
       }
 
-      if (rule.action === "ask") {
-        await requestApproval(permission, pattern, tool, details)
+      if (rule.action === "allow") {
+        return
       }
     }
+
+    if (isBash) {
+      return
+    }
+
+    await requestApproval(permission, patterns[0], tool, details ?? patterns[0])
   }
 
   async function requestApproval(
@@ -227,6 +328,21 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
           toolPatterns.push(`${parts[0]} ${parts[1]} *`)
         }
         toolPatterns.push(`${parts[0]} *`)
+
+        const { externalPaths: bashExtPaths, pathPatterns: bashPathPatterns } =
+          extractBashPaths(command, cwd)
+        if (bashExtPaths.length > 0) {
+          for (const ep of bashExtPaths) {
+            if (!externalPaths.some((e) => resolve(cwd, e) === ep)) {
+              externalPaths.push(ep)
+            }
+          }
+        }
+        for (const pp of bashPathPatterns) {
+          if (!pathPatterns.some((p) => resolve(cwd, p) === pp)) {
+            pathPatterns.push(pp)
+          }
+        }
       }
     }
 
