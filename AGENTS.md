@@ -132,12 +132,27 @@ spectra/
 │   │           ├── openai-responses.ts     # OpenAI Responses API provider
 │   │           ├── shared.ts            # sanitizeSurrogates, parseStreamingJson
 │   │           └── register-builtins.ts   # Auto-registers all providers
-│   └── agent/                      # @mohanscodex/spectra-agent — TypeScript agent + tool system
-│       └── src/
-│           ├── agent.ts            # Agent class with run loop, tool dispatch, streaming
-│           ├── types.ts            # AgentTool, ToolResult, AgentEvent, AgentConfig, hooks
-│           ├── define-tool.ts      # defineTool() with Zod schema validation
-│           └── index.ts            # Re-exports
+│   ├── agent/                      # @mohanscodex/spectra-agent — TypeScript agent + tool system
+│   │   └── src/
+│   │       ├── agent.ts            # Agent class with run loop, tool dispatch, streaming
+│   │       ├── types.ts            # AgentTool, ToolResult, AgentEvent, AgentConfig, hooks
+│   │       ├── define-tool.ts      # defineTool() with Zod schema validation
+│   │       └── index.ts            # Re-exports
+│   ├── code/                       # @mohanscodex/spectra-code — TUI coding agent app (CLI + React/OpenTUI frontend)
+│   │   └── src/
+│   │       ├── cli.ts              # yargs CLI entry (default → launchTui, plus session/agent/mcp/doctor/acp/db)
+│   │       ├── index.ts            # Library re-exports (launchTui, tools, services)
+│   │       ├── agents/             # Built-in agent definitions (build/plan/explore/debug) + registry
+│   │       ├── commands/           # CLI sub-commands: agent, session, mcp, plugin, doctor, db
+│   │       ├── integrations/       # acp (Agent Client Protocol), mcp (MCP client), custom-tools loader
+│   │       ├── security/           # permissions, path-safety, ssrf-guard, doom-loop, read-tracker, wildcards
+│   │       ├── services/           # config, session-store, snapshot-manager, auth-store, custom-providers, context, mcp
+│   │       ├── tools/              # Tool implementations: read, write, edit, shell, glob, grep, web-fetch, task, mcp-tool
+│   │       ├── tui/                # React/OpenTUI frontend (app, prompt-bar, slash-commands, components, dialogs)
+│   │       ├── utils/              # paths, platform helpers
+│   │       └── __tests__/          # vitest suites (acp, code, custom-tools, mcp, session-store)
+│   └── tui/                        # @mohanscodex/spectra-tui — DEPRECATED custom TUI framework (no longer used; see Deprecated section)
+│       └── src/                    # Differential renderer superseded by @opentui/core + @opentui/react in packages/code
 ├── apps/
 │   └── examples/                   # Example usage
 │       └── src/index.ts
@@ -177,7 +192,8 @@ spectra/
 ### Naming Conventions
 - Rust: snake_case for functions/variables, PascalCase for types, module files are snake_case
 - TypeScript: camelCase for functions/variables, PascalCase for types/classes
-- Package namespaces: `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent`, `spectra-rs`, `spectra-http`
+- Package namespaces: `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent`, `@mohanscodex/spectra-code`, `spectra-rs`, `spectra-http`
+  - `@mohanscodex/spectra-tui` is **deprecated** (see Deprecated section) — do not import or depend on it
 - Provider names in registry: `"anthropic"`, `"openai-completions"`, `"openai-responses"`
 - **Implementation naming**: Name classes by their behavior or storage mechanism, not by capability level. Avoid `Simple` prefix. Prefer descriptive names (e.g., `MemoryRateLimiter` over `SimpleRateLimiter`, `SequentialWorkerPool` over `SimpleWorkerPool`, `AgentRegistry` over `SimpleOrchestrator`). Interface names should describe capability (`Orchestrator`, `RateLimiter`, `WorkerPool`).
 - **Limitations belong in docs, not names**: If an implementation has tradeoffs (in-memory only, single-threaded), document them in JSDoc and README — don't encode them in the class name.
@@ -437,6 +453,7 @@ Rules:
 | What | Where |
 |------|-------|
 | TypeScript SDK | `packages/ai/` (providers), `packages/agent/` (agent + tools) |
+| Coding TUI app | `packages/code/` (CLI + React/OpenTUI frontend; `bun run dev` to launch) |
 | Rust SDK | `crates/spectra-rs/` (core), `crates/spectra-http/` (clients) |
 | Documentation | `docs/` (VitePress) |
 | Full docs plan | `docs/PLAN.md` |
@@ -502,3 +519,7 @@ cargo clippy --workspace
 - Never use `unwrap`/`expect` in library code — use `?` operator
 - API keys always from environment variables, never hardcoded
 - Python SDK is TODO — do not implement unless explicitly asked
+
+### Deprecated
+
+- **`@mohanscodex/spectra-tui`** (`packages/tui/`) — the in-house TUI framework (differential renderer) is **deprecated and no longer used**. It has been superseded by `@opentui/core` + `@opentui/react`, which is what `packages/code/` uses for its frontend. Do not import from it, do not add it as a dependency, and do not extend it. The package is retained in the repo only for historical reference and is planned for removal.
