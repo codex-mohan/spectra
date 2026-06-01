@@ -25,7 +25,7 @@ export function DebugDialog(props: DebugDialogProps) {
 
   const mw = Math.min(64, termWidth - 4)
   const ml = Math.floor((termWidth - mw) / 2)
-  const mh = Math.min(26, termHeight - 4)
+  const mh = Math.min(30, termHeight - 4)
   const mt = Math.max(1, Math.floor((termHeight - mh) / 2))
   const innerW = mw - 4
 
@@ -81,7 +81,7 @@ export function DebugDialog(props: DebugDialogProps) {
         <box>
           <text fg={c.border}>{"─".repeat(innerW)}</text>
         </box>
-        <scrollbox height={mh - 5} scrollY={true} scrollbarOptions={{ visible: false }}>
+        <scrollbox height={mh - 8} scrollY={true} scrollbarOptions={{ visible: false }}>
           <box flexDirection="column" gap={0}>
             {info.map((row, i) => {
               if (!row.label) return <box key={i} height={1} />
