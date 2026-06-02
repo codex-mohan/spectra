@@ -3,14 +3,15 @@ import type {
   PermissionRequest, PermissionResponse,
   SecurityConfig, ToolCapabilities,
 } from "./types.js"
-import { evaluate, fromConfig, getCanonicalPermission } from "./permissions.js"
+import { evaluate, fromConfig } from "./permissions.js"
 import { PathSafety } from "./path-safety.js"
 import { ReadTracker } from "./read-tracker.js"
 import { DoomLoopDetector } from "./doom-loop.js"
 import { SsrfGuard } from "./ssrf-guard.js"
-import { isInsideWorkingDir, canonicalPath, matchWildcard } from "./wildcard.js"
-import { resolve } from "path"
+import { isInsideWorkingDir, canonicalPath, matchWildcard, ensureDirGlob } from "./wildcard.js"
+import { resolve, dirname } from "path"
 import { URL } from "url"
+import { statSync } from "fs"
 
 export type { Rule, Ruleset, PermissionAction, SecurityConfig, ToolCapabilities }
 export { evaluate, fromConfig } from "./permissions.js"
@@ -46,6 +47,8 @@ const FILE_COMMANDS = new Set([
   "ls", "less", "more", "head", "tail", "file", "stat",
   "diff", "cmp", "find", "ln",
 ])
+
+const FILE_TOOL_NAMES = new Set(["read", "write", "edit", "grep", "glob"])
 
 function unquoteShell(s: string): string {
   if (s.length >= 2) {
@@ -130,12 +133,15 @@ interface PermissionManagerOptions {
   config?: PermissionConfig
   security?: SecurityConfig
   sessionRuleset?: Ruleset
+  restoredApprovals?: Ruleset
   cwd?: string
+  onPersist?: (approvedRules: Ruleset) => void
 }
 
 export function createSecurityManager(options: PermissionManagerOptions = {}) {
   const configRuleset = options.config ? fromConfig(options.config) : []
   const sessionRuleset = options.sessionRuleset ?? []
+  const restoredFromDisk = options.restoredApprovals ?? []
 
   const pathSafety = new PathSafety({
     blockedPaths: options.security?.blockedPaths,
@@ -150,9 +156,10 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 
   const cwd = options.cwd ?? process.cwd()
 
-  let approvedRuleset: Ruleset = []
+  let approvedRuleset: Ruleset = [...restoredFromDisk]
   const pendingRequests = new Map<string, PendingRequest>()
   let listener: PermissionListener | null = null
+  const onPersist = options.onPersist
 
   function getRuleset(): Ruleset {
     return [...configRuleset, ...approvedRuleset, ...sessionRuleset]
@@ -171,11 +178,35 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
   function getSsrfGuard(): SsrfGuard { return ssrfGuard }
   function getPathSafety(): PathSafety { return pathSafety }
 
+  function getApprovedConfig(): PermissionConfig {
+    const config: PermissionConfig = {}
+    for (const rule of approvedRuleset) {
+      if (rule.action !== "allow") continue
+      const existing = config[rule.permission]
+      if (typeof existing === "object" && existing !== null) {
+        ;(existing as Record<string, PermissionAction>)[rule.pattern] = "allow"
+      } else {
+        config[rule.permission] = { [rule.pattern]: "allow" }
+      }
+    }
+    return config
+  }
+
   function checkPath(rawPath: string): void {
     const result = pathSafety.check(rawPath, cwd)
     if (!result.ok) {
       throw new PermissionDeniedError("path_safety", rawPath)
     }
+  }
+
+  function internalPathsOnly(permission: string, patterns: string[]): boolean {
+    if (!FILE_TOOL_NAMES.has(permission) && permission !== "external_directory") {
+      return false
+    }
+    return patterns.every((p) => {
+      if (p === "*") return false
+      try { return isInsideWorkingDir(p, cwd) } catch { return false }
+    })
   }
 
   async function checkPermission(
@@ -208,6 +239,10 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
     }
 
     if (isBash) {
+      return
+    }
+
+    if (internalPathsOnly(permission, patterns)) {
       return
     }
 
@@ -273,19 +308,44 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
           action: "allow",
         })
       }
+
+      cascadeAutoResolve()
+      onPersist?.(approvedRuleset)
     }
 
     pending.resolve()
   }
 
+  function cascadeAutoResolve(): void {
+    const ruleset = getRuleset()
+    for (const [pid, entry] of pendingRequests) {
+      const allAllowed = entry.always.every((ap) =>
+        evaluate(entry.permission, ap, ruleset).action === "allow"
+      )
+      if (allAllowed) {
+        pendingRequests.delete(pid)
+        entry.resolve()
+      }
+    }
+  }
+
   function generateAlwaysPatterns(permission: string, pattern: string): string[] {
     if (permission === "external_directory") {
-      return [pattern, pattern + "/**"]
-    }
-    if (permission === "write") {
       const resolved = canonicalPath(pattern, cwd)
-      return [pattern, resolved]
+      let dir: string
+      try {
+        const st = statSync(resolved)
+        dir = st.isDirectory() ? resolved : dirname(resolved)
+      } catch {
+        dir = dirname(resolved)
+      }
+      return [pattern, ensureDirGlob(dir)]
     }
+
+    if (FILE_TOOL_NAMES.has(permission)) {
+      return ["*"]
+    }
+
     if (permission === "bash") {
       const parts = pattern.split(/\s+/)
       if (parts.length >= 2) {
@@ -293,6 +353,7 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
       }
       return [`${pattern} *`]
     }
+
     return [pattern]
   }
 
@@ -383,6 +444,7 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
     addApproval,
     respondToRequest,
     getRuleset,
+    getApprovedConfig,
     get pendingCount() { return pendingRequests.size },
   }
 }

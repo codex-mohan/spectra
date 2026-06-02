@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react"
-import { c, SPINNER } from "./theme.js"
+import { c } from "./theme.js"
 import { titlecase } from "./utils.js"
 
 export interface PromptBarProps {
@@ -72,11 +72,7 @@ export function PromptBar(props: PromptBarProps) {
           <box flexDirection="column" flexGrow={1} paddingLeft={2}>
             <box minHeight={1} maxHeight={6}>
               <box flexDirection="row" flexGrow={1} gap={1}>
-                {isLoading ? (
-                  <text fg={c.warn}>{SPINNER[spinnerFrame]}</text>
-                ) : (
-                  <text fg={c.accent}>›</text>
-                )}
+                <text fg={c.accent}>›</text>
                 <box flexGrow={1}>
                   <textarea key={inputKey} placeholder={isLoading ? "Streaming..." : placeholder}
                     minHeight={1} maxHeight={6} width={"100%"} initialValue={initialValue}

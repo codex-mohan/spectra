@@ -1,5 +1,5 @@
 import { homedir } from "os"
-import { resolve, relative, normalize } from "path"
+import { resolve, relative, normalize, sep } from "path"
 
 function escapeRegex(pattern: string): string {
   return pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&")
@@ -37,11 +37,19 @@ export function isInsideWorkingDir(targetPath: string, cwd: string): boolean {
   if (process.platform === "win32") {
     const absLower = abs.toLowerCase()
     const cwdLower = resolve(cwd).toLowerCase()
-    return absLower.startsWith(cwdLower + "\\") || absLower === cwdLower
+    return (
+      absLower.startsWith(cwdLower + "\\") ||
+      absLower.startsWith(cwdLower + "/") ||
+      absLower === cwdLower
+    )
   }
   return true
 }
 
 export function canonicalPath(raw: string, cwd: string): string {
   return normalize(resolve(cwd, raw))
+}
+
+export function ensureDirGlob(rawPath: string): string {
+  return rawPath + sep + "**"
 }

@@ -34,7 +34,7 @@ import { SlashAutocomplete } from "./components/slash-autocomplete.js"
 import { getGlobalConfigDir } from "../utils/paths.js"
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
 import { join } from "path"
-import { loadConfig, type CustomProviderConfig } from "../services/config.js"
+import { loadConfig, saveConfig, type CustomProviderConfig } from "../services/config.js"
 import { registerAllCustomProviders } from "../services/custom-providers.js"
 import { AGENT_DEFINITIONS, PRIMARY_AGENTS, filterToolsByAgent } from "../agents/definitions.js"
 import { AgentRegistry } from "../agents/registry.js"
@@ -131,6 +131,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [revertPoint, setRevertPoint] = useState<string | null>(null)
   const historyDraft = useRef("")
   const promptTextareaRef = useRef<any>(null)
+  const queuedMessageRef = useRef<string | null>(null)
   const [draftText, setDraftText] = useState("")
   const [slashSelected, setSlashSelected] = useState(0)
   const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 })
@@ -371,6 +372,25 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         config: securityConfig.permission,
         security: securityConfig.security,
         cwd: process.cwd(),
+        onPersist: (rules) => {
+          try {
+            const existing = loadConfig()
+            const permission: Record<string, unknown> = {
+              ...(existing.permission ?? {}),
+            }
+            for (const rule of rules) {
+              if (rule.action !== "allow") continue
+              let entry = permission[rule.permission]
+              if (!entry || typeof entry === "string") {
+                permission[rule.permission] = { [rule.pattern]: "allow" }
+              } else if (typeof entry === "object") {
+                ;(entry as Record<string, string>)[rule.pattern] = "allow"
+              }
+            }
+            existing.permission = permission as typeof existing.permission
+            saveConfig(existing)
+          } catch {}
+        },
       })
       manager.setListener((req) => {
         enqueuePermission(req)
@@ -456,7 +476,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
   const handleSubmit = useCallback(async (text: string) => {
     const trimmed = text.trim()
-    if (!trimmed || isLoading) return
+    if (!trimmed) return
+    if (isStreamingRef.current) {
+      queuedMessageRef.current = trimmed
+      return
+    }
 
     const parsed = parseSlashCommand(trimmed, slashNames)
     if (parsed.type === "command") {
@@ -487,6 +511,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       setRevertPoint(null)
     }
 
+    setDraftText("")
+    setSlashSelected(0)
+    if (promptTextareaRef.current) {
+      promptTextareaRef.current.setText("")
+    }
     setTokPerSec(null); setElapsedMs(null)
     shownToolCalls.current.clear()
     toolMsgMap.current.clear()
@@ -657,7 +686,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       updateLastAssistantMeta({ turnStatus: "error" })
       setStatus("Error")
     } finally {
-      // Commit file checkpoint for this turn
       if (snapshotManager.current.isActive()) {
         snapshotManager.current.commit()
       }
@@ -666,8 +694,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       streamingIdRef.current = null
       currentTurnStartRef.current = null
       currentTurnMsgIdRef.current = null
+
+      const queued = queuedMessageRef.current
+      if (queued) {
+        queuedMessageRef.current = null
+        await handleSubmit(queued)
+      }
     }
-  }, [isLoading, selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent, revertPoint])
+  }, [selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent, revertPoint])
 
   const handleCycleVariant = useCallback(() => {
     if (!provider) {

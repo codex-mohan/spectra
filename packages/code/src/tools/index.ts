@@ -29,6 +29,8 @@ export const builtinTools: SpectraTool[] = [
   taskTool,
 ];
 
+const FILE_TOOL_NAMES = new Set(["read", "write", "edit", "grep", "glob", "bash", "shell"])
+
 function wrapExecute(
   tool: SpectraTool,
   security: SecurityManager,
@@ -44,21 +46,23 @@ function wrapExecute(
 
     const patterns = security.extractToolPatterns(tool.name, args)
 
-    try {
-      await security.checkPermission(tool.name, patterns.toolPatterns, tool.name, patterns.toolPatterns[0])
-    } catch (err) {
-      if (err instanceof PermissionDeniedError) {
-        return { content: [{ type: "text", text: `Permission denied: ${err.message}` }], isError: true }
+    if (FILE_TOOL_NAMES.has(tool.name)) {
+      for (const extPath of patterns.externalPaths) {
+        try {
+          await security.checkPermission("external_directory", [extPath], tool.name, extPath)
+        } catch (err) {
+          if (err instanceof PermissionDeniedError) {
+            return { content: [{ type: "text", text: `External file access denied: ${err.message}` }], isError: true }
+          }
+          throw err
+        }
       }
-      throw err
-    }
-
-    for (const extPath of patterns.externalPaths) {
+    } else {
       try {
-        await security.checkPermission("external_directory", [extPath], tool.name, extPath)
+        await security.checkPermission(tool.name, patterns.toolPatterns, tool.name, patterns.toolPatterns[0])
       } catch (err) {
         if (err instanceof PermissionDeniedError) {
-          return { content: [{ type: "text", text: `External file access denied: ${err.message}` }], isError: true }
+          return { content: [{ type: "text", text: `Permission denied: ${err.message}` }], isError: true }
         }
         throw err
       }
