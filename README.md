@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/assets/spectra-banner.png" alt="Spectra Banner" width="100%" />
+</p>
+
 # Spectra
 
 **Minimal, ultra-fast, multi-language AI agent framework**
