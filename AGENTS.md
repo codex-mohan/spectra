@@ -456,7 +456,7 @@ Rules:
 | Coding TUI app | `packages/code/` (CLI + React/OpenTUI frontend; `bun run dev` to launch) |
 | Rust SDK | `crates/spectra-rs/` (core), `crates/spectra-http/` (clients) |
 | Documentation | `docs/` (VitePress) |
-| Full docs plan | `docs/PLAN.md` |
+| Roadmap / TODO | `TODO.md` (items marked done only when user explicitly requests a feature or bugfix) |
 | LLM-friendly docs | `docs/public/llms.txt` |
 
 ### When a Developer Asks About Spectra
