@@ -7,6 +7,7 @@ import { getGlobalConfigDir, getGlobalDataDir } from "../../utils/paths.js"
 import { getPlatformInfo } from "../../utils/platform.js"
 import type { SessionStore } from "../../services/session-store.js"
 import { titlecase } from "../utils.js"
+import { VERSION } from "../utils/version.js"
 
 export interface DebugDialogProps {
   termWidth: number; termHeight: number
@@ -43,7 +44,7 @@ export function DebugDialog(props: DebugDialogProps) {
     const groups: { title?: string; rows: { label: string; value: string }[] }[] = [
       {
         rows: [
-          { label: "Version", value: "0.4.1" },
+          { label: "Version", value: VERSION },
           { label: "Directory", value: platform.cwd },
           { label: "Platform", value: `${platform.os} (${platform.arch})` },
           { label: "Shell", value: platform.shell },

@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { c } from "../theme.js"
+import { VERSION } from "../utils/version.js"
 
 export interface AboutDialogProps {
   onClose: () => void
@@ -39,7 +40,7 @@ export function AboutDialog({ onClose, termWidth, termHeight, registerHandler }:
         <box flexDirection="column" paddingX={2} gap={1} flexGrow={1}>
           <box>
             <text fg={c.text}>Spectra Code</text>
-            <text fg={c.dim}>Version 0.1.0</text>
+            <text fg={c.dim}>Version {VERSION}</text>
           </box>
           <box>
             <text fg={c.dim}>Minimal, ultra-fast AI coding agent</text>
