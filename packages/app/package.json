@@ -1,6 +1,6 @@
 {
   "name": "@mohanscodex/spectra-app",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Spectra App - Session management, concurrency, and orchestration",
   "type": "module",
   "main": "./dist/index.js",
