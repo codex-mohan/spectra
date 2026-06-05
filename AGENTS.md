@@ -405,6 +405,9 @@ No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills
 2. **Commit** the `.changeset/*.md` file along with your code changes
 3. **Push to main** → the Release workflow auto-creates a "chore: version packages" PR with version bumps + CHANGELOGs
 4. **Merge the version PR** → the workflow publishes to npm, creates a unified `vX.Y.Z` Git tag, and creates a GitHub Release with npm links
+5. **Pull the version bump locally** → after merging, the CI version PR updates `package.json` versions and CHANGELOGs on `main`. Always `git pull` to sync the local repo — otherwise your local versions will be stale.
+
+> **Important**: When you push a changeset to `main`, you must watch for the auto-generated "chore: version packages" PR, merge it, then `git pull` locally. Do not skip this — the next changeset depends on being at the correct version.
 
 ### Rules
 
