@@ -9,7 +9,7 @@ import { AGENT_DEFINITIONS, filterToolsByAgent } from "../../agents/definitions.
 import { createAllToolsWithExtensions } from "../../tools/index.js";
 import { connectAllServers, shutdownAllServers } from "../mcp/index.js";
 import { readAll } from "../../services/auth-store.js";
-import { getPlatformInfo } from "../../utils/platform.js";
+import { getSystemPrompt } from "../../utils/platform.js";
 
 const PKG_VERSION = "0.4.0";
 
@@ -115,7 +115,6 @@ export class ACPAdapter {
       const toolResult = await createAllToolsWithExtensions();
       const agentTools = def ? filterToolsByAgent(toolResult.all, agentName) : toolResult.all;
       const context = loadContext();
-      const info = getPlatformInfo();
 
       let agentsMd = "";
       try {
@@ -125,7 +124,7 @@ export class ACPAdapter {
       } catch {}
 
       const systemPrompt = [
-        `You are Spectra Code, an AI coding agent running on ${info.os} (${info.arch}). Default shell: ${info.shell}. Working directory: ${info.cwd}.`,
+        getSystemPrompt(),
         agentsMd,
         def.prompt,
       ].filter(Boolean).join("\n\n");

@@ -9,6 +9,7 @@
     [
       "@mohanscodex/spectra-ai",
       "@mohanscodex/spectra-agent",
+      "@mohanscodex/spectra-code",
       "@mohanscodex/spectra-app"
     ]
   ],

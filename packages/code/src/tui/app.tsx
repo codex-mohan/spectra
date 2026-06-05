@@ -1,19 +1,17 @@
 import { useRef, useCallback, useEffect, useMemo, useState } from "react"
-import { useKeyboard, useTerminalDimensions } from "@opentui/react"
+import { useTerminalDimensions } from "@opentui/react"
 import type { CliRenderer } from "@opentui/core"
 import { execSync } from "child_process"
 import { c, SPINNER } from "./theme.js"
 import { ChatArea } from "./components/chat-area.js"
-import { CommandPalette, type CmdItem } from "./components/command-palette.js"
+import { CommandPalette } from "./components/command-palette.js"
 import { PromptBar } from "./prompt-bar.js"
 import { Tips } from "./tips.js"
-import { genId, getMessageBlocks, titlecase } from "./utils.js"
-import { getProviderModels } from "@mohanscodex/spectra-ai"
-import type { ChatMessage, ContentBlock } from "./types.js"
+import { titlecase } from "./utils.js"
+import type { ChatMessage } from "./types.js"
 import { SessionStore } from "../services/session-store.js"
 import { SnapshotManager } from "../services/snapshot-manager.js"
-import { readAll } from "../services/auth-store.js"
-import type { AssistantMessage, Message } from "@mohanscodex/spectra-ai"
+import type { Message } from "@mohanscodex/spectra-ai"
 import { ProviderDialog } from "./ui/provider-dialog.js"
 import { SessionList } from "./ui/session-list.js"
 import { ModelSwitcher } from "./ui/model-switcher.js"
@@ -24,76 +22,31 @@ import { AgentSwitcher } from "./ui/agent-switcher.js"
 import { ThinkingEffortDialog } from "./ui/thinking-effort-dialog.js"
 import { McpToggleDialog } from "./ui/mcp-toggle-dialog.js"
 import { DebugDialog } from "./ui/debug-dialog.js"
-import { cycleEffort } from "./variant-cycle.js"
 import { MessageControls } from "./ui/message-controls.js"
 import { ToastContainer, showToast } from "./components/toast.js"
 import clipboard from "clipboardy"
 import { buildCmdItems, collectSlashNames } from "./commands.js"
-import { parseSlashCommand, slashHead } from "./slash-commands.js"
+import { slashHead } from "./slash-commands.js"
 import { SlashAutocomplete } from "./components/slash-autocomplete.js"
-import { getGlobalConfigDir } from "../utils/paths.js"
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
-import { join } from "path"
-import { loadConfig, saveConfig, type CustomProviderConfig } from "../services/config.js"
+import { loadConfig, type CustomProviderConfig } from "../services/config.js"
 import { registerAllCustomProviders } from "../services/custom-providers.js"
-import { AGENT_DEFINITIONS, PRIMARY_AGENTS, filterToolsByAgent } from "../agents/definitions.js"
-import { AgentRegistry } from "../agents/registry.js"
-import { createSecurityManager, type SecurityManager } from "../security/index.js"
-import type { PermissionRequest } from "../security/types.js"
 import { PermissionDialog } from "./ui/permission-dialog.js"
+import { AGENTS, PLACEHOLDERS } from "./app-constants.js"
 
-const AGENTS = PRIMARY_AGENTS
-const PLACEHOLDERS = ["fix the login bug", "explain this codebase", "add error handling", "refactor this function", "write tests", "debug this issue", "optimize performance", "document the API"]
-
-function loadSavedConfig(): { model: string | null; provider: string | null } {
-  try {
-    const configPath = join(getGlobalConfigDir(), "spectra.json")
-    if (!existsSync(configPath)) return { model: null, provider: null }
-    const cfg = JSON.parse(readFileSync(configPath, "utf-8"))
-    return { model: cfg.model || null, provider: cfg.provider || null }
-  } catch { return { model: null, provider: null } }
-}
-
-function getAuthKey(providerId: string): string | undefined {
-  const cred = readAll()[providerId]
-  return cred?.type === "api" ? cred.key : undefined
-}
-
-function saveModelConfig(modelId: string, providerId: string) {
-  try {
-    const configDir = getGlobalConfigDir()
-    if (!existsSync(configDir)) mkdirSync(configDir, { recursive: true })
-    const configPath = join(configDir, "spectra.json")
-    let cfg: Record<string, unknown> = {}
-    try { cfg = JSON.parse(readFileSync(configPath, "utf-8")) } catch { }
-    cfg.model = modelId; cfg.provider = providerId
-    writeFileSync(configPath, JSON.stringify(cfg, null, 2))
-  } catch { }
-}
-
-function fmtCtx(n: number): string {
-  if (n < 1000) return String(n)
-  const k = n / 1000
-  const s = k.toFixed(1)
-  return (s.endsWith(".0") ? s.slice(0, -2) : s) + "K"
-}
-
-function lookupContextWindow(modelId: string, providerId: string | null): number | undefined {
-  if (!providerId) return undefined
-  const models = getProviderModels(providerId)
-  const exact = models.find((m) => m.id === modelId)
-  if (exact?.contextWindow) return exact.contextWindow
-  const base = modelId.replace(/-\d{8}$/, "")
-  const prefix = models.find((m) => m.id === base || m.id === `${providerId}/${base}`)
-  if (prefix?.contextWindow) return prefix.contextWindow
-  const family = base.replace(/-\d+$/, "")
-  const partial = models.find((m) => m.id === family || m.id.endsWith(`/${family}`))
-  if (partial?.contextWindow) return partial.contextWindow
-  return undefined
-}
+import { loadSavedConfig, saveModelConfig, fmtCtx, lookupContextWindow } from "./utils/model-config.js"
+import { sdkMessagesToChatMessages } from "./utils/session-messages.js"
+import { usePermissionQueue } from "./hooks/use-permission-queue.js"
+import { useRevert } from "./hooks/use-revert.js"
+import { useAgent } from "./hooks/use-agent.js"
+import { useChatSubmit } from "./hooks/use-chat-submit.js"
+import { useAppKeyboard } from "./hooks/use-app-keyboard.js"
+import { cycleEffort } from "./variant-cycle.js"
+import type { SecurityManager } from "../security/index.js"
 
 export function App({ renderer }: { renderer: CliRenderer }) {
   const { width: termWidth, height: termHeight } = useTerminalDimensions()
+
+  // --- State ---
   const [savedConfig] = useState(loadSavedConfig)
   const [customProviders, setCustomProviders] = useState<Record<string, CustomProviderConfig>>(() => {
     const cfg = loadConfig()
@@ -120,7 +73,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [copiedMsg, setCopiedMsg] = useState(false)
   const [selectedAgent, setSelectedAgent] = useState("build")
   const [submitKey, setSubmitKey] = useState(0)
-  const [dialogStep, setDialogStep] = useState<{ type: "provider" } | { type: "session-list"; mode?: "delete" | "rename" } | { type: "switch-model" } | { type: "manage-providers" } | { type: "doctor"; result: any } | { type: "about" } | { type: "switch-agent" } | { type: "thinking-effort" } | { type: "toggle-mcp" } | { type: "debug" } | null>(null)
+  const [dialogStep, setDialogStep] = useState<any>(null)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [promptHistory, setPromptHistory] = useState<string[]>([])
   const [historyIdx, setHistoryIdx] = useState(-1)
@@ -129,56 +82,26 @@ export function App({ renderer }: { renderer: CliRenderer }) {
   const [interruptKey, setInterruptKey] = useState(0)
   const [msgControls, setMsgControls] = useState<ChatMessage | null>(null)
   const [revertPoint, setRevertPoint] = useState<string | null>(null)
-  const historyDraft = useRef("")
-  const promptTextareaRef = useRef<any>(null)
-  const queuedMessageRef = useRef<string | null>(null)
   const [draftText, setDraftText] = useState("")
   const [slashSelected, setSlashSelected] = useState(0)
   const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 })
+
+  // --- Refs ---
+  const promptTextareaRef = useRef<any>(null)
   const sessionStore = useRef(new SessionStore())
   const sessionId = useRef<string | null>(null)
-  const agentRef = useRef<any>(null)
-  const lastAgentRef = useRef<string | null>(null)
   const dialogKeyHandler = useRef<((key: any) => void) | null>(null)
-  const lastModelRef = useRef<string | null>(null)
   const isStreamingRef = useRef(false)
-  const loadedSessionMessages = useRef<Message[]>([])
-  const revertedMessagesRef = useRef<ChatMessage[]>([])
-  const revertedSdkMessagesRef = useRef<Message[]>([])
-  const revertDraftRef = useRef<string>("")
-  const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }))
   const currentTurnStartRef = useRef<number | null>(null)
   const currentTurnMsgIdRef = useRef<string | null>(null)
-  const securityRef = useRef<SecurityManager | null>(null)
-  const permissionQueueRef = useRef<PermissionRequest[]>([])
-  const [permissionRequest, setPermissionRequest] = useState<PermissionRequest | null>(null)
-
-  const showNextPermission = useCallback(() => {
-    const next = permissionQueueRef.current[0] ?? null
-    setPermissionRequest(next)
-  }, [])
-
-  const enqueuePermission = useCallback((req: PermissionRequest) => {
-    permissionQueueRef.current.push(req)
-    if (!permissionRequest) {
-      showNextPermission()
-    }
-  }, [permissionRequest, showNextPermission])
-
-  const resolvePermission = useCallback((id: string, response: { action: "once" | "always" | "deny" }) => {
-    securityRef.current?.respondToRequest(id, response)
-    permissionQueueRef.current = permissionQueueRef.current.filter((r) => r.id !== id)
-    showNextPermission()
-  }, [showNextPermission])
+  const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }))
 
   const [securityConfig] = useState(() => {
     const cfg = loadConfig()
-    return {
-      permission: cfg.permission,
-      security: cfg.security,
-    }
+    return { permission: cfg.permission, security: cfg.security }
   })
 
+  // --- Derived ---
   const provider = selectedProvider
   const hasModel = selectedModel !== null && selectedProvider !== null
   const mcpCount = 0
@@ -194,6 +117,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     return dir
   }, [])
 
+  // --- Effects ---
   useEffect(() => {
     const id = setInterval(() => setPlaceholderIdx((p) => (p + 1) % PLACEHOLDERS.length), 4000)
     return () => clearInterval(id)
@@ -222,501 +146,42 @@ export function App({ renderer }: { renderer: CliRenderer }) {
     return () => { renderer.off?.("selection", handler) }
   }, [renderer])
 
-  useKeyboard((key) => {
-    if (dialogStep || msgControls || permissionRequest !== null) { dialogKeyHandler.current?.(key); return }
-    if (showCmd) {
-      if (key.name === "escape" || (key.ctrl && key.name === "p")) { setShowCmd(false); return }
-      if (key.name === "return" || key.name === "enter") { if (cmdFiltered.length > 0) { execCmd(cmdFiltered[cmdSelected]); return }; return }
-      if (key.name === "up") { setCmdSelected((p) => (p > 0 ? p - 1 : cmdFiltered.length - 1)); return }
-      if (key.name === "down") { setCmdSelected((p) => (p < cmdFiltered.length - 1 ? p + 1 : 0)); return }
-      if (key.name === "backspace") { setCmdFilter((p) => p.slice(0, -1)); setCmdSelected(0); return }
-      if (key.name.length === 1 && !key.ctrl && !key.meta) { setCmdFilter((p) => p + key.name); setCmdSelected(0); return }
-      return
-    }
-    if (slashActive && slashFiltered.length > 0) {
-      if (key.name === "escape") {
-        setDraftText("")
-        setSlashSelected(0)
-        if (promptTextareaRef.current) {
-          promptTextareaRef.current.setText("")
-        }
-        return
-      }
-      if (key.name === "tab") {
-        const item = slashFiltered[slashSelected]
-        if (item && promptTextareaRef.current) {
-          const cmdName = item.slashName || item.id
-          promptTextareaRef.current.setText(`/${cmdName} `)
-          setDraftText(`/${cmdName} `)
-          setSlashSelected(0)
-        }
-        return
-      }
-      if (key.name === "up") { setSlashSelected((p) => (p > 0 ? p - 1 : slashFiltered.length - 1)); return }
-      if (key.name === "down") { setSlashSelected((p) => (p < slashFiltered.length - 1 ? p + 1 : 0)); return }
-    }
-    if (key.ctrl && key.name === "c") { renderer.destroy(); return }
-    if (key.ctrl && key.name === "y") {
-      if (revertPoint !== null && revertedMessagesRef.current.length > 0) {
-        // Restore UI messages
-        setMessages((prev) => [...prev, ...revertedMessagesRef.current])
-        // Restore session store
-        const sess = sessionStore.current.get(sessionId.current!)
-        if (sess) {
-          sess.messages = [...sess.messages, ...revertedSdkMessagesRef.current]
-          sessionStore.current.save(sess)
-          loadedSessionMessages.current = sess.messages
-        }
-        // Restore agent history
-        if (agentRef.current) {
-          agentRef.current.reset()
-          if (loadedSessionMessages.current.length > 0) {
-            agentRef.current.restoreHistory(loadedSessionMessages.current)
-          }
-        }
-        // Clear revert state
-        setRevertPoint(null)
-        revertDraftRef.current = ""
-        revertedMessagesRef.current = []
-        revertedSdkMessagesRef.current = []
-        // Clear prompt draft
-        setHistoryIdx(-1)
-        setNavKey((k) => k + 1)
-        showToast("Messages restored", "success")
-      }
-      return
-    }
-    if (key.ctrl && key.shift && key.name === "y") {
-      // File rollback: restore files to checkpoint state
-      if (revertPoint !== null) {
-        const result = snapshotManager.current.rollback("user requested file rollback")
-        if (result.restored > 0 || result.deleted > 0) {
-          showToast(`Files rolled back: ${result.restored} restored, ${result.deleted} deleted`, "success")
-        } else if (result.errors.length > 0) {
-          showToast(`Rollback errors: ${result.errors.map((e) => e.error).join(", ")}`, "warn")
-        } else {
-          showToast("No files to rollback", "info")
-        }
-      }
-      return
-    }
-    if (key.name === "escape") {
-      if (isStreamingRef.current) {
-        if (interruptKey === 1) {
-          agentRef.current?.abort()
-          const duration = Math.round(performance.now() - (currentTurnStartRef.current ?? 0))
-          // Mark current turn as interrupted
-          if (currentTurnMsgIdRef.current) {
-            updateMessage(currentTurnMsgIdRef.current, {
-              turnStatus: "interrupted",
-              streaming: false,
-              turnDurationMs: duration,
-            })
-          }
-          // Persist turn status + duration to session store so it survives reload
-          updateLastAssistantMeta({ turnStatus: "interrupted", turnDurationMs: duration })
-          setInterruptKey(0)
-          return
-        }
-        setInterruptKey(1)
-        setTimeout(() => setInterruptKey(0), 3000)
-        return
-      }
-      return
-    }
-    if (key.name === "up") {
-      if (slashActive) return
-      if (promptHistory.length === 0) return
-      if (historyIdx === -1) historyDraft.current = ""
-      setHistoryIdx(Math.min(historyIdx + 1, promptHistory.length - 1)); setNavKey((k) => k + 1)
-      return
-    }
-    if (key.name === "down") {
-      if (slashActive) return
-      if (historyIdx === -1) return
-      setHistoryIdx(historyIdx - 1); setNavKey((k) => k + 1)
-      return
-    }
-    if (key.name === "tab") { setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]); securityRef.current?.getReadTracker().reset(); securityRef.current?.getDoomLoop().reset(); return }
-    if (key.ctrl && key.name === "p") { setShowCmd(true); setCmdFilter(""); setCmdSelected(0); return }
-    if (key.ctrl && key.name === "l") { setMessages([]); setStatus("Cleared"); setTimeout(() => setStatus("Ready"), 2000); securityRef.current?.getReadTracker().reset(); securityRef.current?.getDoomLoop().reset(); return }
-    if (key.ctrl && key.name === "t") { handleCycleVariant(); return }
-  })
-
+  // --- Stable callbacks ---
   const addMessage = useCallback((msg: ChatMessage) => setMessages((p) => [...p, msg]), [])
   const updateMessage = useCallback((id: string, u: Partial<ChatMessage>) => setMessages((p) => p.map((m) => (m.id === id ? { ...m, ...u } : m))), [])
-  const shownToolCalls = useRef(new Set<string>())
-  const toolMsgMap = useRef(new Map<string, string>()) // toolCallId → tuiMessageId
-  const toolArgsMap = useRef(new Map<string, unknown>()) // toolCallId → args
-  const streamingIdRef = useRef<string | null>(null)
 
-  const getOrCreateAgent = useCallback(async () => {
-    if (!selectedModel || !provider) return null
-    const agentKey = `${selectedAgent}:${selectedModel}:${provider}:${thinkingEffort || ""}`
-    if (agentRef.current && lastModelRef.current === agentKey) return agentRef.current
+  // --- Hooks (order matters for ref lifecycle) ---
+  const securityRef = useRef<SecurityManager | null>(null)
 
-    const existingMessages = agentRef.current
-      ? [...agentRef.current.messages]
-      : loadedSessionMessages.current
+  const { permissionRequest, enqueuePermission, resolvePermission } = usePermissionQueue(securityRef)
 
-    const { Agent } = await import("@mohanscodex/spectra-agent")
-    const { initProviders } = await import("@mohanscodex/spectra-ai")
-    initProviders()
-    const { createAllTools, createAllToolsWithSecurity, spectraToolToAgentTool } = await import("../tools/index.js")
-    const customCfg = customProviders[provider]
+  const {
+    agentRef,
+    loadedSessionMessages,
+    getOrCreateAgent,
+    resetAgentForModelSwitch,
+  } = useAgent({ securityRef, securityConfig, enqueuePermission })
 
-    const def = AGENT_DEFINITIONS[selectedAgent]
-
-    if (!securityRef.current) {
-      const manager = createSecurityManager({
-        config: securityConfig.permission,
-        security: securityConfig.security,
-        cwd: process.cwd(),
-        onPersist: (rules) => {
-          try {
-            const existing = loadConfig()
-            const permission: Record<string, unknown> = {
-              ...(existing.permission ?? {}),
-            }
-            for (const rule of rules) {
-              if (rule.action !== "allow") continue
-              let entry = permission[rule.permission]
-              if (!entry || typeof entry === "string") {
-                permission[rule.permission] = { [rule.pattern]: "allow" }
-              } else if (typeof entry === "object") {
-                ;(entry as Record<string, string>)[rule.pattern] = "allow"
-              }
-            }
-            existing.permission = permission as typeof existing.permission
-            saveConfig(existing)
-          } catch {}
-        },
-      })
-      manager.setListener((req) => {
-        enqueuePermission(req)
-      })
-      securityRef.current = manager
-    }
-
-    const allTools = createAllToolsWithSecurity(securityRef.current)
-    const agentTools = def ? filterToolsByAgent(allTools, selectedAgent) : allTools
-
-    let agentsMd = ""
-    try {
-      const agentsPath = `${process.cwd()}/AGENTS.md`
-      const { readFileSync, existsSync } = await import("fs")
-      if (existsSync(agentsPath)) {
-        agentsMd = readFileSync(agentsPath, "utf-8")
-      }
-    } catch {}
-
-    const { getPlatformInfo } = await import("../utils/platform.js")
-    const info = getPlatformInfo()
-
-    const systemPrompt = [
-      `You are Spectra Code, an AI coding agent running on ${info.os} (${info.arch}).\nDefault shell: ${info.shell}. Working directory: ${info.cwd}.`,
-      agentsMd,
-      def?.prompt,
-    ].filter(Boolean).join("\n\n")
-
-    agentRef.current = new Agent({
-      model: {
-        id: selectedModel,
-        name: selectedModel,
-        provider,
-        api: provider,
-        baseUrl: customCfg?.baseUrl,
-        headers: customCfg?.headers,
-      },
-      systemPrompt,
-      getApiKey: (p) => getAuthKey(p),
-      tools: agentTools,
-      maxTurns: def?.maxTurns ?? 10,
-      streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
-    })
-
-    AgentRegistry.setConfig({
-      model: {
-        id: selectedModel,
-        name: selectedModel,
-        provider,
-        api: provider,
-        baseUrl: customCfg?.baseUrl,
-        headers: customCfg?.headers,
-      },
-      getApiKey: (p) => getAuthKey(p),
-    })
-
-    if (existingMessages.length > 0) {
-      agentRef.current.restoreHistory(existingMessages)
-    }
-
-    lastModelRef.current = agentKey
-    return agentRef.current
-  }, [selectedModel, provider, selectedAgent, customProviders, thinkingEffort])
-
-  function persistMessage(sdkMsg: Message) {
-    if (!sessionId.current) return
-    sessionStore.current.addMessage(sessionId.current, sdkMsg)
-  }
-
-  function updateLastAssistantMeta(meta: Record<string, unknown>) {
-    if (!sessionId.current) return
-    const sess = sessionStore.current.get(sessionId.current)
-    if (!sess) return
-    for (let i = sess.messages.length - 1; i >= 0; i--) {
-      const msg = sess.messages[i]
-      if (msg.role === "assistant") {
-        msg.metadata = { ...msg.metadata, ...meta }
-        sessionStore.current.save(sess)
-        return
-      }
-    }
-  }
-
-  const handleSubmit = useCallback(async (text: string) => {
-    const trimmed = text.trim()
-    if (!trimmed) return
-    if (isStreamingRef.current) {
-      queuedMessageRef.current = trimmed
-      return
-    }
-
-    const parsed = parseSlashCommand(trimmed, slashNames)
-    if (parsed.type === "command") {
-      const cmd = cmdItems.find((item) => {
-        if (item.slashName === parsed.command.name) return true
-        if (item.slashAliases?.includes(parsed.command.name)) return true
-        return false
-      })
-      if (cmd) {
-        cmd.action()
-        setDraftText("")
-        setSlashSelected(0)
-        setSubmitKey((k) => k + 1)
-        return
-      }
-    }
-
-    if (!selectedModel || !provider) {
-      showToast("Connect a provider to send prompts", "warn")
-      setDialogStep({ type: "provider" }); return
-    }
-
-    // New message after revert permanently discards the reverted branch
-    if (revertPoint !== null) {
-      revertedMessagesRef.current = []
-      revertedSdkMessagesRef.current = []
-      revertDraftRef.current = ""
-      setRevertPoint(null)
-    }
-
-    setDraftText("")
-    setSlashSelected(0)
-    if (promptTextareaRef.current) {
-      promptTextareaRef.current.setText("")
-    }
-    setTokPerSec(null); setElapsedMs(null)
-    shownToolCalls.current.clear()
-    toolMsgMap.current.clear()
-    toolArgsMap.current.clear()
-    setPromptHistory((prev) => {
-      if (prev[0] === trimmed) return prev
-      return [trimmed, ...prev].slice(0, 50)
-    })
-    setHistoryIdx(-1)
-
-    const uid = genId()
-    const userMsg: Message = { role: "user", content: trimmed, timestamp: Date.now() }
-    addMessage({ id: uid, role: "user", content: trimmed, model: selectedModel })
-    setIsLoading(true); setStatus("Streaming..."); setRoute("chat")
-    isStreamingRef.current = true
-    streamingIdRef.current = "pending"
-
-    if (!sessionId.current) {
-      agentRef.current = null
-      lastAgentRef.current = null
-      loadedSessionMessages.current = []
-      const sess = sessionStore.current.create({ agent: selectedAgent, model: selectedModel, provider, thinkingEffort: thinkingEffort || undefined })
-      sess.title = `Session ${new Date().toISOString()}`
-      sessionStore.current.save(sess)
-      sessionId.current = sess.id
-      setTokenUsage({ input: 0, output: 0 })
-    }
-    persistMessage(userMsg)
-
-    const sess = sessionStore.current.get(sessionId.current)
-    if (sess && sess.messages.length === 1) {
-      sess.title = trimmed.length > 60 ? trimmed.slice(0, 57) + "..." : trimmed
-      sessionStore.current.save(sess)
-    }
-
-    const start = performance.now()
-    let currentAssistantId: string | null = null
-    currentTurnStartRef.current = start
-
-    try {
-      const agent = await getOrCreateAgent()
-
-      let promptInput = trimmed
-      const prevAgent = lastAgentRef.current
-      if (prevAgent && prevAgent !== selectedAgent) {
-        const def = AGENT_DEFINITIONS[selectedAgent]
-        const prevDef = AGENT_DEFINITIONS[prevAgent]
-        if (prevDef?.mode === "primary" && def?.mode === "primary") {
-          if (prevAgent === "plan" && selectedAgent !== "plan") {
-            promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode. The previous agent was in plan mode — a plan may have been created. Execute on it if one exists.\n</system-reminder>\n\n${trimmed}`
-          } else if (selectedAgent === "plan") {
-            promptInput = `<system-reminder>\nPlan mode active. You are in read-only analysis mode — do NOT make edits, do NOT run destructive commands. Use read, glob, grep, and web_fetch only. When done, call plan_exit so the user can switch to build mode.\n</system-reminder>\n\n${trimmed}`
-          } else {
-            promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode (was ${prevAgent}). Your available tools and behavior have changed to match this mode.\n</system-reminder>\n\n${trimmed}`
-          }
-        }
-      }
-      lastAgentRef.current = selectedAgent
-
-      for await (const ev of agent.run(promptInput)) {
-        if (ev.type === "message_start" && ev.message.role === "assistant") {
-          const newId = genId()
-          currentAssistantId = newId
-          currentTurnMsgIdRef.current = newId
-          streamingIdRef.current = newId
-          addMessage({ id: newId, role: "assistant", content: "", blocks: [], streaming: true, model: selectedModel, agent: selectedAgent })
-        }
-        if (ev.type === "message_update" && ev.message.role === "assistant" && currentAssistantId) {
-          const m = ev.message as AssistantMessage
-          const blocks = getMessageBlocks(m)
-          const textContent = blocks.filter((b): b is ContentBlock & { type: "text" } => b.type === "text").map((b) => b.content).join("\n")
-          updateMessage(currentAssistantId, { content: textContent, blocks })
-          if (ev.assistantMessageEvent.type === "toolcall_end") {
-            const tc = (ev.assistantMessageEvent as any).toolCall as { id: string; name: string; arguments: Record<string, unknown> }
-            if (tc && !shownToolCalls.current.has(tc.id)) {
-              shownToolCalls.current.add(tc.id)
-              toolArgsMap.current.set(tc.id, tc.arguments)
-              const tuiId = genId()
-              toolMsgMap.current.set(tc.id, tuiId)
-              addMessage({ id: tuiId, role: "tool", content: "", meta: `${tc.name}(${JSON.stringify(tc.arguments || {})})`, agent: selectedAgent })
-            }
-          }
-        }
-        if (ev.type === "message_end" && ev.message.role === "assistant" && currentAssistantId) {
-          const m = ev.message as AssistantMessage
-          const blocks = getMessageBlocks(m)
-          const textContent = blocks.filter((b): b is ContentBlock & { type: "text" } => b.type === "text").map((b) => b.content).join("\n")
-          const duration = performance.now() - (currentTurnStartRef.current ?? start)
-          updateMessage(currentAssistantId, {
-            content: textContent,
-            blocks,
-            streaming: false,
-            turnTokens: { input: m.usage.input, output: m.usage.output },
-            turnDurationMs: Math.round(duration),
-          })
-          // Persist with turn metadata so it survives session reload
-          persistMessage({
-            ...m,
-            metadata: {
-              ...m.metadata,
-              turnDurationMs: Math.round(duration),
-              turnTokens: { input: m.usage.input, output: m.usage.output },
-            }
-          })
-          const e = performance.now() - start; setElapsedMs(e)
-          const ot = m.usage.output
-          if (ot > 0 && e > 0) setTokPerSec(ot / (e / 1000))
-          setTokenUsage((p) => ({ input: m.usage.input, output: p.output + ot }))
-          currentAssistantId = null
-          streamingIdRef.current = null
-        }
-        if (ev.type === "tool_execution_start") {
-          // Snapshot files before tool edits them (for checkpointing)
-          if (ev.args && typeof ev.args === "object") {
-            const args = ev.args as Record<string, unknown>
-            const filePath = (args.path || args.file_path || args.filePath) as string | undefined
-            if (filePath && typeof filePath === "string") {
-              snapshotManager.current.note(filePath)
-            }
-          }
-          if (!shownToolCalls.current.has(ev.toolCallId)) {
-            shownToolCalls.current.add(ev.toolCallId)
-            toolArgsMap.current.set(ev.toolCallId, ev.args)
-            const tuiId = genId()
-            toolMsgMap.current.set(ev.toolCallId, tuiId)
-            addMessage({ id: tuiId, role: "tool", content: "", meta: `${ev.toolName}(${JSON.stringify(ev.args || {})})`, agent: selectedAgent })
-          }
-        }
-        if (ev.type === "tool_execution_end") {
-          const args = toolArgsMap.current.get(ev.toolCallId) || {}
-          const resultDetails = (ev.result?.details as Record<string, unknown> | undefined) ?? {}
-          const toolMsg: Message = {
-            role: "toolResult",
-            toolCallId: ev.toolCallId,
-            toolName: ev.toolName,
-            content: ev.result?.content || [],
-            details: { args, ...resultDetails },
-            isError: ev.isError || false,
-            timestamp: Date.now(),
-          }
-          persistMessage(toolMsg)
-          // Update the existing inline tool message with output
-          const tuiId = toolMsgMap.current.get(ev.toolCallId)
-          if (tuiId) {
-            const toolOutput = ev.result?.content?.[0]?.text || ""
-            const exitCode = typeof resultDetails.exitCode === "number" ? resultDetails.exitCode : undefined
-            updateMessage(tuiId, { content: toolOutput, exitCode })
-          }
-        }
-        if (ev.type === "agent_end") {
-          setStatus("Ready")
-          // Mark the turn as completed
-          if (currentTurnMsgIdRef.current) {
-            updateMessage(currentTurnMsgIdRef.current, { turnStatus: "completed" })
-          }
-          // Persist turn status to session store so it survives reload
-          updateLastAssistantMeta({ turnStatus: "completed" })
-        }
-      }
-    } catch (err) {
-      const errId = currentAssistantId || genId()
-      updateMessage(errId, { content: `Error: ${err instanceof Error ? err.message : String(err)}`, streaming: false, role: "error" })
-      // Mark the turn as errored if there was an assistant message
-      if (currentTurnMsgIdRef.current) {
-        updateMessage(currentTurnMsgIdRef.current, { turnStatus: "error", streaming: false })
-      }
-      // Persist turn status to session store so it survives reload
-      updateLastAssistantMeta({ turnStatus: "error" })
-      setStatus("Error")
-    } finally {
-      if (snapshotManager.current.isActive()) {
-        snapshotManager.current.commit()
-      }
-      setIsLoading(false); setSubmitKey((k) => k + 1); setInterruptKey(0)
-      isStreamingRef.current = false
-      streamingIdRef.current = null
-      currentTurnStartRef.current = null
-      currentTurnMsgIdRef.current = null
-
-      const queued = queuedMessageRef.current
-      if (queued) {
-        queuedMessageRef.current = null
-        await handleSubmit(queued)
-      }
-    }
-  }, [selectedModel, provider, selectedAgent, addMessage, updateMessage, getOrCreateAgent, revertPoint])
+  const {
+    revertedMessagesRef,
+    revertDraftRef,
+    runRevert,
+    runRedo,
+    runRollbackFiles,
+    discardRevert,
+  } = useRevert({
+    sessionStore, sessionId, agentRef, loadedSessionMessages,
+    setMessages, setRevertPoint, setHistoryIdx, setNavKey, snapshotManager,
+  })
 
   const handleCycleVariant = useCallback(() => {
-    if (!provider) {
-      showToast("No provider configured", "warn")
-      return
-    }
+    if (!provider) { showToast("No provider configured", "warn"); return }
     const nextEffort = cycleEffort(provider, thinkingEffort)
-    if (!nextEffort) {
-      showToast("No variants available", "info")
-      return
-    }
+    if (!nextEffort) { showToast("No variants available", "info"); return }
     setThinkingEffort(nextEffort)
     agentRef.current = null
     showToast(nextEffort === "none" ? "Thinking: off" : `Thinking: ${nextEffort}`, "info")
-  }, [provider, thinkingEffort])
+  }, [provider, thinkingEffort, agentRef])
 
   const cmdItems = useMemo(() => buildCmdItems({
     renderer, sessionStore: sessionStore.current, sessionIdRef: sessionId,
@@ -730,19 +195,34 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       securityRef.current?.getReadTracker().reset()
       securityRef.current?.getDoomLoop().reset()
     },
-  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls, handleCycleVariant, thinkingEffort, selectedAgent])
+  }), [renderer, hasModel, selectedModel, provider, mcpCount, customProviderCount, messages.length, showThinking, showToolCalls, handleCycleVariant, thinkingEffort, selectedAgent, sessionStore, sessionId, setRoute, setMessages, setStatus, setElapsedMs, setTokPerSec, setTokenUsage, setShowThinking, setShowToolCalls, setHomeKey, setNavKey, setDialogStep, securityRef])
 
+  const slashNames = useMemo(() => collectSlashNames(cmdItems), [cmdItems])
+
+  const {
+    handleSubmit,
+    updateLastAssistantMeta,
+  } = useChatSubmit({
+    sessionStore, sessionId, agentRef, securityRef, loadedSessionMessages,
+    snapshotManager, lastAgentRef: useRef(null), isStreamingRef, currentTurnStartRef,
+    currentTurnMsgIdRef, revertPoint, getOrCreateAgent,
+    selectedModel, provider, selectedAgent, customProviders, thinkingEffort,
+    cmdItems, slashNames, addMessage, updateMessage, setMessages,
+    setIsLoading, setStatus, setRoute, setElapsedMs, setTokPerSec,
+    setTokenUsage, setDraftText, setSlashSelected, setSubmitKey,
+    setPromptHistory, setHistoryIdx, setInterruptKey, setRevertPoint,
+    discardRevert,
+  })
+
+  // --- cmdFiltered + slash ---
   const cmdFiltered = useMemo(() => {
     const q = cmdFilter.toLowerCase()
     return !q ? cmdItems : cmdItems.filter((i) => i.label.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q) || (i.cat && i.cat.toLowerCase().includes(q)))
   }, [cmdItems, cmdFilter])
-  const execCmd = useCallback((item: any) => { item.action(); setShowCmd(false) }, [])
-  useEffect(() => { if (cmdSelected >= cmdFiltered.length && cmdFiltered.length > 0) setCmdSelected(cmdFiltered.length - 1) }, [cmdSelected, cmdFiltered.length])
 
-  const slashNames = useMemo(() => collectSlashNames(cmdItems), [cmdItems])
   const slashFiltered = useMemo(() => {
     const head = slashHead(draftText)
-    if (!head) return [] as CmdItem[]
+    if (!head) return [] as typeof cmdItems
     const q = head.name.toLowerCase()
     if (!q) return cmdItems
     return cmdItems.filter((item) => {
@@ -751,8 +231,31 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       return false
     })
   }, [cmdItems, draftText])
+
   const slashActive = useMemo(() => slashHead(draftText) !== undefined, [draftText])
   useEffect(() => { setSlashSelected(0) }, [draftText])
+  useEffect(() => { if (cmdSelected >= cmdFiltered.length && cmdFiltered.length > 0) setCmdSelected(cmdFiltered.length - 1) }, [cmdSelected, cmdFiltered.length])
+
+  const execCmd = useCallback((item: any) => { item.action(); setShowCmd(false) }, [setShowCmd])
+
+  // --- Keyboard ---
+  useAppKeyboard({
+    renderer, isStreamingRef, currentTurnStartRef, currentTurnMsgIdRef,
+    revertPoint, revertedMessagesRef, runRedo, runRollbackFiles,
+    dialogStep, msgControls, permissionRequest, dialogKeyHandler,
+    showCmd, cmdFilter, cmdSelected, cmdFiltered,
+    draftText, slashActive, slashFiltered, slashSelected,
+    promptHistory, historyIdx, interruptKey,
+    selectedAgent, thinkingEffort, provider,
+    agentRef, securityRef, promptTextareaRef,
+    setShowCmd, setCmdFilter, setCmdSelected,
+    setDraftText, setSlashSelected, setHistoryIdx, setNavKey,
+    setInterruptKey, setSelectedAgent, setMessages, setStatus,
+    setThinkingEffort, updateMessage, updateLastAssistantMeta,
+    execCmd, handleCycleVariant,
+  })
+
+  // --- JSX ---
 
   return (
     <box flexDirection="column" height={termHeight} backgroundColor={c.bg}>
@@ -879,7 +382,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       {dialogStep?.type === "provider" && (
         <ProviderDialog termWidth={termWidth} termHeight={termHeight} keyHandlerRef={dialogKeyHandler}
           onModelSelected={(modelId, providerId) => {
-            agentRef.current = null
+            resetAgentForModelSwitch()
             setSelectedModel(modelId); setSelectedProvider(providerId); setDialogStep(null)
             saveModelConfig(modelId, providerId)
             showToast(`Model set`, "success")
@@ -891,52 +394,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         <SessionList store={sessionStore.current} termWidth={termWidth} termHeight={termHeight}
           mode={dialogStep.mode || "load"}
           onLoad={(data) => {
-            const loadedMsgs: ChatMessage[] = data.messages.map((m: any) => {
-              const id = genId()
-              // User message
-              if (m.role === "user") {
-                return { id, role: "user" as const, content: typeof m.content === "string" ? m.content : "", model: data.model }
-              }
-              // Assistant message
-              if (m.role === "assistant") {
-                const blocks = Array.isArray(m.content) ? m.content.map((c: any) => {
-                  if (c.type === "text") return { type: "text" as const, content: c.text || "" }
-                  if (c.type === "thinking") return { type: "thinking" as const, content: c.thinking || c.content || "" }
-                  if (c.type === "toolCall") return { type: "toolCall" as const, name: c.name || "", args: JSON.stringify(c.arguments || {}) }
-                  return { type: "text" as const, content: "" }
-                }) : []
-                const textContent = blocks.filter((b: any) => b.type === "text").map((b: any) => b.content).join("\n")
-                const metadata = m.metadata || {}
-                const turnTokens = metadata.turnTokens || (m.usage ? { input: m.usage.input || 0, output: m.usage.output || 0 } : undefined)
-                return {
-                  id, role: "assistant" as const, content: textContent, blocks,
-                  model: m.model || data.model,
-                  turnStatus: metadata.turnStatus as "completed" | "interrupted" | "error" | undefined,
-                  turnDurationMs: metadata.turnDurationMs as number | undefined,
-                  turnTokens,
-                  agent: data.agent,
-                }
-              }
-              // Tool result message
-              if (m.role === "toolResult") {
-                const toolOutput = m.content?.[0]?.text || ""
-                const args = (m as any).details?.args || {}
-                const meta = `${m.toolName}(${JSON.stringify(args)})`
-                return { id, role: "tool" as const, content: toolOutput, meta }
-              }
-              return { id, role: "user" as const, content: "", model: data.model }
-            })
-            // Restore token usage from assistant messages.
-            // usage.input is cumulative (includes full conversation history),
-            // so we take the max (latest), but usage.output is per-turn, so we sum.
-            let maxInputTokens = 0, outputTokens = 0
-            for (const m of data.messages as any[]) {
-              if (m.role === "assistant" && m.usage) {
-                maxInputTokens = Math.max(maxInputTokens, m.usage.input || 0)
-                outputTokens += m.usage.output || 0
-              }
-            }
-            setTokenUsage({ input: maxInputTokens, output: outputTokens })
+            const { messages: loadedMsgs, tokenUsage: tu } = sdkMessagesToChatMessages(data)
+            setTokenUsage(tu)
             setMessages(() => loadedMsgs)
             sessionId.current = data.id
             setSelectedModel(data.model)
@@ -944,7 +403,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
             setSelectedAgent(data.agent)
             setThinkingEffort(data.thinkingEffort || undefined)
             setRoute("chat"); setDialogStep(null)
-            // Store SDK messages for agent history
             loadedSessionMessages.current = data.messages as unknown as Message[]
             if (agentRef.current) {
               agentRef.current.reset()
@@ -975,8 +433,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
       {dialogStep?.type === "switch-model" && (
         <ModelSwitcher providerId={provider || ""} termWidth={termWidth} termHeight={termHeight}
           onModelSelected={(modelId, providerId) => {
-            const oldMessages = agentRef.current ? [...agentRef.current.messages] : []
-            agentRef.current = null
+            resetAgentForModelSwitch()
             setSelectedModel(modelId); setSelectedProvider(providerId); setDialogStep(null)
             saveModelConfig(modelId, providerId)
             showToast(`Switched model`, "info")
@@ -990,7 +447,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           providers={customProviders}
           onProvidersChange={(updated) => {
             setCustomProviders(updated)
-            agentRef.current = null
+            resetAgentForModelSwitch()
             showToast("Providers updated", "success")
           }}
           onClose={() => setDialogStep(null)}
@@ -1011,7 +468,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         <AgentSwitcher currentAgent={selectedAgent} termWidth={termWidth} termHeight={termHeight}
           onAgentSelected={(agent) => {
             setSelectedAgent(agent)
-            agentRef.current = null
+            resetAgentForModelSwitch()
             setDialogStep(null)
             showToast(`Switched to ${titlecase(agent)} agent`, "info")
           }}
@@ -1024,7 +481,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           termWidth={termWidth} termHeight={termHeight}
           onEffortSelected={(effort) => {
             setThinkingEffort(effort)
-            agentRef.current = null
+            resetAgentForModelSwitch()
             setDialogStep(null)
             showToast(effort === "none" ? "Thinking: off" : `Thinking: ${effort}`, "info")
           }}
@@ -1055,142 +512,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
           termWidth={termWidth}
           termHeight={termHeight}
           revertPoint={revertPoint}
-          onRevert={(msgId) => {
-            const msgIdx = messages.findIndex(m => m.id === msgId)
-            if (msgIdx < 0) { setMsgControls(null); return }
-
-            // Walk back to find the target user message
-            let targetIdx = msgIdx
-            while (targetIdx >= 0 && messages[targetIdx].role !== "user") {
-              targetIdx--
-            }
-            if (targetIdx < 0) {
-              showToast("Cannot revert: no user message found", "warn")
-              setMsgControls(null)
-              return
-            }
-
-            // Discard any previous reverted branch (chained revert)
-            const targetMsg = messages[targetIdx]
-            const keptMessages = messages.slice(0, targetIdx)
-            const removedMessages = messages.slice(targetIdx)
-
-            // Store for potential redo
-            revertedMessagesRef.current = removedMessages
-            setRevertPoint(targetMsg.id)
-            revertDraftRef.current = targetMsg.content
-
-            // Update UI
-            setMessages(keptMessages)
-
-            // Update session store
-            const sess = sessionStore.current.get(sessionId.current!)
-            if (sess) {
-              const keptSdkMessages = sess.messages.slice(0, targetIdx)
-              revertedSdkMessagesRef.current = sess.messages.slice(targetIdx)
-              sess.messages = keptSdkMessages
-              sessionStore.current.save(sess)
-              loadedSessionMessages.current = keptSdkMessages
-            }
-
-            // Reset agent history to the kept messages
-            if (agentRef.current) {
-              agentRef.current.reset()
-              if (loadedSessionMessages.current.length > 0) {
-                agentRef.current.restoreHistory(loadedSessionMessages.current)
-              }
-            }
-
-            // Reset prompt state and force re-render with revert draft
-            setHistoryIdx(-1)
-            setNavKey((k) => k + 1)
-
-            showToast("Reverted — Ctrl+Y to redo", "success")
-            setMsgControls(null)
-          }}
-          onRedo={() => {
-            if (revertedMessagesRef.current.length === 0) {
-              setMsgControls(null)
-              return
-            }
-
-            // Restore UI messages
-            setMessages((prev) => [...prev, ...revertedMessagesRef.current])
-
-            // Restore session store
-            const sess = sessionStore.current.get(sessionId.current!)
-            if (sess) {
-              sess.messages = [...sess.messages, ...revertedSdkMessagesRef.current]
-              sessionStore.current.save(sess)
-              loadedSessionMessages.current = sess.messages
-            }
-
-            // Restore agent history
-            if (agentRef.current) {
-              agentRef.current.reset()
-              if (loadedSessionMessages.current.length > 0) {
-                agentRef.current.restoreHistory(loadedSessionMessages.current)
-              }
-            }
-
-            // Clear revert state
-            setRevertPoint(null)
-            revertDraftRef.current = ""
-            revertedMessagesRef.current = []
-            revertedSdkMessagesRef.current = []
-
-            // Clear prompt draft
-            setHistoryIdx(-1)
-            setNavKey((k) => k + 1)
-
-            showToast("Messages restored", "success")
-            setMsgControls(null)
-          }}
+          onRevert={(msgId) => { runRevert(messages, msgId); setMsgControls(null) }}
+          onRedo={() => { runRedo(); setMsgControls(null) }}
           onFork={(msgId) => {
             const forked = sessionStore.current.fork(sessionId.current!)
             if (forked) {
-              // Trim forked session to the selected message
               const msgIdx = messages.findIndex(m => m.id === msgId)
               if (msgIdx >= 0) {
                 forked.messages = forked.messages.slice(0, msgIdx + 1)
                 forked.title = `${forked.title.split(" (fork)")[0]} (fork)`
                 sessionStore.current.save(forked)
               }
-              // Load the forked session
               const data = sessionStore.current.get(forked.id)
               if (data) {
-                const loadedMsgs: ChatMessage[] = data.messages.map((m: any) => {
-                  const id = genId()
-                  if (m.role === "user") {
-                    return { id, role: "user" as const, content: typeof m.content === "string" ? m.content : "", model: data.model }
-                  }
-                  if (m.role === "assistant") {
-                    const blocks = Array.isArray(m.content) ? m.content.map((c: any) => {
-                      if (c.type === "text") return { type: "text" as const, content: c.text || "" }
-                      if (c.type === "thinking") return { type: "thinking" as const, content: c.thinking || c.content || "" }
-                      if (c.type === "toolCall") return { type: "toolCall" as const, name: c.name || "", args: JSON.stringify(c.arguments || {}) }
-                      return { type: "text" as const, content: "" }
-                    }) : []
-                    const textContent = blocks.filter((b: any) => b.type === "text").map((b: any) => b.content).join("\n")
-                    const metadata = m.metadata || {}
-                    const turnTokens = metadata.turnTokens || (m.usage ? { input: m.usage.input || 0, output: m.usage.output || 0 } : undefined)
-                    return {
-                      id, role: "assistant" as const, content: textContent, blocks,
-                      model: m.model || data.model,
-                      turnStatus: metadata.turnStatus as "completed" | "interrupted" | "error" | undefined,
-                      turnDurationMs: metadata.turnDurationMs as number | undefined,
-                      turnTokens,
-                      agent: data.agent,
-                    }
-                  }
-                  if (m.role === "toolResult") {
-                    const toolOutput = m.content?.[0]?.text || ""
-                    const args = (m as any).details?.args || {}
-                    const meta = `${m.toolName}(${JSON.stringify(args)})`
-                return { id, role: "tool" as const, content: toolOutput, meta, agent: data.agent }
-                  }
-                  return { id, role: "user" as const, content: "", model: data.model }
-                })
+                const { messages: loadedMsgs } = sdkMessagesToChatMessages(data)
                 setMessages(loadedMsgs)
                 sessionId.current = forked.id
                 loadedSessionMessages.current = data.messages as unknown as Message[]
@@ -1207,18 +542,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
         <PermissionDialog
           request={permissionRequest}
           termWidth={termWidth} termHeight={termHeight}
-          onAllow={(id) => {
-            resolvePermission(id, { action: "once" })
-          }}
-          onAllowAlways={(id) => {
-            resolvePermission(id, { action: "always" })
-          }}
-          onDeny={(id) => {
-            resolvePermission(id, { action: "deny" })
-          }}
-          onClose={() => {
-            resolvePermission(permissionRequest!.id, { action: "deny" })
-          }}
+          onAllow={(id) => { resolvePermission(id, { action: "once" }) }}
+          onAllowAlways={(id) => { resolvePermission(id, { action: "always" }) }}
+          onDeny={(id) => { resolvePermission(id, { action: "deny" }) }}
+          onClose={() => { resolvePermission(permissionRequest!.id, { action: "deny" }) }}
         />
       )}
       <ToastContainer />

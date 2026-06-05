@@ -4,6 +4,7 @@ import { textResult, errorResult } from "./utils.js";
 import { AGENT_DEFINITIONS, SUBAGENTS, filterToolsByAgent } from "../agents/definitions.js";
 import { AgentRegistry } from "../agents/registry.js";
 import type { AgentTool } from "@mohanscodex/spectra-agent";
+import { getSystemPrompt } from "../utils/platform.js";
 
 function descriptionForTaskTool(): string {
   const subagentList = SUBAGENTS.map((name) => {
@@ -58,7 +59,7 @@ export const taskTool: SpectraTool = {
 
       const subagent = new Agent({
         model: config.model,
-        systemPrompt: def.prompt,
+        systemPrompt: [getSystemPrompt(), def.prompt].filter(Boolean).join("\n\n"),
         tools,
         maxTurns: def.maxTurns,
         getApiKey: config.getApiKey,
