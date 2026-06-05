@@ -1,5 +1,15 @@
 # @mohanscodex/spectra-code
 
+## 0.4.5
+
+### Patch Changes
+
+- [`b416ed2`](https://github.com/codex-mohan/spectra/commit/b416ed222371ef778949b6eedf6c9832b456b291) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Expand agent system prompt from 6-line stubs to full coding agent personas. Wire dead getSystemPrompt() into agent, ACP adapter, and sub-agent task tool. Modularize app.tsx into hooks/utils.
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.4.5
+  - @mohanscodex/spectra-agent@0.4.5
+
 ## 0.1.5
 
 ### Patch Changes
