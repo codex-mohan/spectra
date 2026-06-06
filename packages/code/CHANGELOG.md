@@ -1,5 +1,15 @@
 # @mohanscodex/spectra-code
 
+## 0.4.6
+
+### Patch Changes
+
+- [`911eb91`](https://github.com/codex-mohan/spectra/commit/911eb912b11a9ec5d6c69bbbc64110050ceedbd8) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Replace hardcoded version strings in about-dialog and debug-dialog with auto-resolved import from package.json.
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.4.6
+  - @mohanscodex/spectra-agent@0.4.6
+
 ## 0.4.5
 
 ### Patch Changes
