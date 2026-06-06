@@ -6,7 +6,7 @@
 
 **Minimal, ultra-fast, multi-language AI agent framework**
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-0.2.4-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0D0D0D)](https://www.typescriptlang.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-0.4.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0D0D0D)](https://www.typescriptlang.org)
 [![Rust](https://img.shields.io/badge/Rust-1.75+-000000?style=for-the-badge&logo=rust&logoColor=white&labelColor=0D0D0D)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/License-MIT-00B140?style=for-the-badge&labelColor=0D0D0D)](LICENSE)
 
@@ -42,7 +42,9 @@ graph TB
         AI["spectra-ai<br/>LLM Providers"]
         AGENT["spectra-agent<br/>Agent Loop + Tools"]
         APP["spectra-app<br/>SessionEngine + Rate Limiting + SSE Bridge"]
+        CODE["spectra-code<br/>TUI Coding Agent"]
         AI --> AGENT --> APP
+        AGENT --> CODE
     end
 
     subgraph Rust["Rust SDK — spectra-*"]
@@ -68,6 +70,7 @@ graph TB
 | `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
 | `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
 | `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). Completely optional — the agent works fine without it. |
+| `@mohanscodex/spectra-code` | **TUI App** | Terminal-based AI coding agent built on the Spectra SDK. CLI with session management, multi-agent modes (build/plan/debug/explore), MCP server integration, ACP protocol support, security permissions, and file checkpointing. Install globally: `bun add -g @mohanscodex/spectra-code`. |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic, OpenAI, Groq, OpenRouter. |
 
@@ -156,6 +159,30 @@ const result = await engine.run("user-123", "What is Rust?", undefined, {
 console.log(result.finalMessage); // "Rust is a systems programming language..."
 ```
 
+### TypeScript — TUI Coding Agent
+
+```bash
+# Install globally (requires Bun)
+bun add -g @mohanscodex/spectra-code
+
+# Or via install script
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/codex-mohan/spectra/main/scripts/install.sh | bash
+
+# Windows
+iwr -useb https://raw.githubusercontent.com/codex-mohan/spectra/main/scripts/install.ps1 | iex
+```
+
+```bash
+# Launch the TUI
+spectra
+
+# CLI commands
+spectra --help
+spectra session list
+spectra doctor
+```
+
 ### Rust
 
 ```toml
@@ -239,6 +266,7 @@ spectra/
 │   ├── ai/              # @mohanscodex/spectra-ai — LLM providers
 │   ├── agent/           # @mohanscodex/spectra-agent — Agent + tools
 │   ├── app/             # @mohanscodex/spectra-app — SessionEngine + rate limiting + SSE bridge
+│   ├── code/            # @mohanscodex/spectra-code — TUI coding agent
 ├── apps/
 │   └── examples/        # Example usage
 ├── crates/
