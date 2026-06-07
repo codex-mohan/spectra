@@ -2,13 +2,19 @@
   <img src=".github/assets/spectra-banner.png" alt="Spectra Banner" width="100%" />
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0A1220" />
+  <img src="https://img.shields.io/badge/runtime-Rust-CE422B?style=for-the-badge&logo=rust&logoColor=white&labelColor=0A1220" />
+  <img src="https://img.shields.io/badge/architecture-Native_SDKs-14E6FF?style=for-the-badge&labelColor=0A1220" />
+  <img src="https://img.shields.io/badge/streaming-SSE-00B8FF?style=for-the-badge&labelColor=0A1220" />
+  <img src="https://img.shields.io/badge/agents-Multi--Turn-7C5CFF?style=for-the-badge&labelColor=0A1220" />
+  <img src="https://img.shields.io/badge/deployment-Production_Ready-00C853?style=for-the-badge&labelColor=0A1220" />
+  <img src="https://img.shields.io/badge/license-MIT-BB86FC?style=for-the-badge&labelColor=0A1220" />
+</p>
+
 # Spectra
 
 **Minimal, ultra-fast, multi-language AI agent framework**
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-0.4.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0D0D0D)](https://www.typescriptlang.org)
-[![Rust](https://img.shields.io/badge/Rust-1.75+-000000?style=for-the-badge&logo=rust&logoColor=white&labelColor=0D0D0D)](https://www.rust-lang.org)
-[![License](https://img.shields.io/badge/License-MIT-00B140?style=for-the-badge&labelColor=0D0D0D)](LICENSE)
 
 ---
 
@@ -34,34 +40,15 @@ There's a difference between **abstractions you don't need** and **utilities eve
 
 Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming) and a **utility belt** (rate limiting, session stores, health probes) — use what you need, ignore what you don't. The core never forces the belt on you.
 
+---
+
 ## Architecture
 
-```mermaid
-graph TB
-    subgraph TypeScript["TypeScript SDK — @mohanscodex/*"]
-        AI["spectra-ai<br/>LLM Providers"]
-        AGENT["spectra-agent<br/>Agent Loop + Tools"]
-        APP["spectra-app<br/>SessionEngine + Rate Limiting + SSE Bridge"]
-        CODE["spectra-code<br/>TUI Coding Agent"]
-        AI --> AGENT --> APP
-        AGENT --> CODE
-    end
+<p align="center">
+  <img src=".github/assets/spectra-architecture.png" alt="Spectra Architecture" width="100%" />
+</p>
 
-    subgraph Rust["Rust SDK — spectra-*"]
-        RS["spectra-rs<br/>Core Types + Agent + Events"]
-        HTTP["spectra-http<br/>Anthropic + OpenAI + Groq"]
-        RS --> HTTP
-    end
-
-    subgraph Deploy["Deployment Scale"]
-        LOCAL["Local · SQLite<br/>coding agent, REPL"]
-        SERVER["Server · Redis + SSE<br/>SaaS, single-node"]
-        CLUSTER["Cluster · Redis + K8s<br/>multi-pod, distributed"]
-        LOCAL -.-> APP
-        SERVER -.-> APP
-        CLUSTER -.-> APP
-    end
-```
+---
 
 ## Packages
 
@@ -69,8 +56,8 @@ graph TB
 |---------|-------|-------------|
 | `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
 | `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
-| `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine` (full lifecycle orchestration), `SessionManager` (CRUD + fork + audit/tree), `SessionStore` (in-memory, filesystem, SQLite, Redis), `LocalRateLimiter` + `RedisRateLimiter` (distributed sliding window), `CompositeRateLimiter` (tenant+user+provider), `CircuitBreaker`, `SseBridge` (SSE with WS-compatible interface), `HealthProbe` (K8s ready). Completely optional — the agent works fine without it. |
-| `@mohanscodex/spectra-code` | **TUI App** | Terminal-based AI coding agent built on the Spectra SDK. CLI with session management, multi-agent modes (build/plan/debug/explore), MCP server integration, ACP protocol support, security permissions, and file checkpointing. Install globally: `bun add -g @mohanscodex/spectra-code`. |
+| `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine`, `SessionManager`, `SessionStore`, `Rate Limiting`, `CircuitBreaker`, `SseBridge`, `HealthProbe`. |
+| `@mohanscodex/spectra-code` | **TUI App** | Terminal-based AI coding agent built on the Spectra SDK. |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic, OpenAI, Groq, OpenRouter. |
 
@@ -122,7 +109,11 @@ const searchTool = defineTool({
 });
 
 const agent = new Agent({
-  model: { id: "claude-sonnet-4-5", provider: "anthropic", api: "messages" },
+  model: {
+    id: "claude-sonnet-4-5",
+    provider: "anthropic",
+    api: "messages",
+  },
   systemPrompt: "You are a helpful assistant.",
   tools: [searchTool],
 });
@@ -134,53 +125,22 @@ for await (const event of agent.run("What is Rust?")) {
 }
 ```
 
+## Deployment Scale
+
+<p align="center">
+  <img src=".github/assets/spectra-deployment.png" alt="Spectra Deployment Scale" width="100%" />
+</p>
+
 ### TypeScript — Production
 
 ```bash
 bun add @mohanscodex/spectra-ai @mohanscodex/spectra-agent @mohanscodex/spectra-app ioredis
 ```
 
-```typescript
-import { SessionEngine, SessionManager, InMemorySessionStore, CompositeRateLimiter, LocalRateLimiter } from "@mohanscodex/spectra-app";
-
-const engine = new SessionEngine({
-  sessionManager: new SessionManager(new InMemorySessionStore()),
-  rateLimiter: new CompositeRateLimiter([
-    { limiter: new LocalRateLimiter(60, 60000), key: "tenant" },
-    { limiter: new LocalRateLimiter(10, 60000), key: "user" },
-  ]),
-  maxConcurrentSessions: 100,
-});
-
-engine.start();
-const result = await engine.run("user-123", "What is Rust?", undefined, {
-  model: { id: "claude-sonnet-4-5", provider: "anthropic", api: "messages" },
-});
-console.log(result.finalMessage); // "Rust is a systems programming language..."
-```
-
 ### TypeScript — TUI Coding Agent
 
 ```bash
-# Install globally (requires Bun)
 bun add -g @mohanscodex/spectra-code
-
-# Or via install script
-# macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/codex-mohan/spectra/main/scripts/install.sh | bash
-
-# Windows
-iwr -useb https://raw.githubusercontent.com/codex-mohan/spectra/main/scripts/install.ps1 | iex
-```
-
-```bash
-# Launch the TUI
-spectra
-
-# CLI commands
-spectra --help
-spectra session list
-spectra doctor
 ```
 
 ### Rust
@@ -190,28 +150,6 @@ spectra doctor
 spectra-rs = "0.2"
 spectra-http = "0.2"
 tokio = { version = "1", features = ["full"] }
-```
-
-```rust
-use spectra_rs::{AgentBuilder, Model, Provider};
-use spectra_http::OpenAIClient;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = OpenAIClient::from_env()?;
-
-    let agent = AgentBuilder::new(Model::new(Provider::OpenAI, "gpt-4o"))
-        .system_prompt("You are a helpful assistant.")
-        .build(client.into());
-
-    let (mut rx, _channel, _handle) = agent.run("Hello!").await?;
-
-    while let Some(event) = rx.recv().await {
-        println!("{:?}", event?);
-    }
-
-    Ok(())
-}
 ```
 
 ## Supported Providers
@@ -224,55 +162,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Deployment Architecture
 
-The three TypeScript packages compose for any scale — from local CLI to distributed cloud:
-
-```
-                    ┌─────────────────────────────────────┐
-                    │        @mohanscodex/spectra-app   │
-                    │  SessionEngine ── orchestrates full  │
-                    │  request lifecycle                   │
-                    │                                      │
-                    │  ┌──────────────────────────────┐    │
-                    │  │ SessionManager + SessionStore│    │
-                    │  │ (InMemory | FS | SQLite |    │    │
-                    │  │  Redis + Postgres cold)      │    │
-                    │  ├──────────────────────────────┤    │
-                    │  │ RateLimiter                  │    │
-                    │  │ (Local | Redis | Composite)  │    │
-                    │  ├──────────────────────────────┤    │
-                    │  │ SseBridge → remote clients   │    │
-                    │  ├──────────────────────────────┤    │
-                    │  │ HealthProbe → K8s probes     │    │
-                    │  └──────────────────────────────┘    │
-                    └──────┬──────────────┬────────────────┘
-                           │              │
-              ┌────────────┴──┐   ┌───────┴──────────┐
-              │ spectra-agent │   │   spectra-ai      │
-              │ Agent.run()   │   │   stream(model)   │
-              │ defineTool()  │   │   registerProvider│
-              │ hooks + retry │   │   EventStream     │
-              └───────────────┘   └──────────────────┘
-```
-
-**Local (coding agent):** SQLite store, no rate limiter, works offline
-**Single-server (SaaS MVP):** Redis store + local rate limiter, 1 process
-**Multi-pod (production):** Redis store (shared state), Redis rate limiter (distributed), SseBridge for SSE streaming, CompositeRateLimiter for tenant isolation
+<p align="center">
+  <img src=".github/assets/spectra-scale.png" alt="Spectra Scale Architecture" width="100%" />
+</p>
 
 ## Project Structure
 
-```
+```text
 spectra/
 ├── packages/
-│   ├── ai/              # @mohanscodex/spectra-ai — LLM providers
-│   ├── agent/           # @mohanscodex/spectra-agent — Agent + tools
-│   ├── app/             # @mohanscodex/spectra-app — SessionEngine + rate limiting + SSE bridge
-│   ├── code/            # @mohanscodex/spectra-code — TUI coding agent
+│   ├── ai/
+│   ├── agent/
+│   ├── app/
+│   ├── code/
 ├── apps/
-│   └── examples/        # Example usage
+│   └── examples/
 ├── crates/
-│   ├── spectra-rs/      # Rust SDK core
-│   └── spectra-http/    # Rust HTTP clients
-└── .github/workflows/   # CI/CD
+│   ├── spectra-rs/
+│   └── spectra-http/
+└── .github/workflows/
 ```
 
 ## Technology Stack
@@ -280,35 +188,35 @@ spectra/
 | Component | Technologies |
 |-----------|-------------|
 | **TypeScript SDK** | TypeScript 5.x · Bun · Vitest · Zod |
-| **Rust SDK** | Rust 1.75+ · Tokio · Reqwest (rustls) · serde · thiserror · miette |
+| **Rust SDK** | Rust 1.86+ · Tokio · Reqwest (rustls) · serde · thiserror · miette |
 | **Tooling** | Turborepo · cargo |
 
 ## Rust Constraints
 
-- **Zero `unsafe`** — No unsafe in core logic
-- **No OpenSSL** — rustls only, no C dependencies
-- **Release profile** — `opt-level = 3`, `lto = "thin"`, `codegen-units = 1`, `panic = "abort"`
-- **Edition 2024** — Requires Rust 1.86+
+- **Zero `unsafe`**
+- **No OpenSSL**
+- **rustls only**
+- **Edition 2024**
+- **Release profile optimized**
+- **Thin LTO enabled**
 
 ## Development
 
 ```bash
-# Install
 git clone https://github.com/codex-mohan/spectra.git
 cd spectra
+
 bun install
 
-# Build all packages
 bun run build
+bun run test
 
-# Run tests
-bun run test          # TypeScript
-cargo test --workspace  # Rust
+cargo test --workspace
 ```
 
 ## Credits
 
-Spectra was deeply inspired by **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
+Spectra was deeply inspired by **pi-mono** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
 ## License
 
