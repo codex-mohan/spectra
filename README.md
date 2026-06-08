@@ -53,12 +53,12 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 
 | Package | Layer | Description |
 |---------|-------|-------------|
-| `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic, OpenAI, Groq clients with SSE streaming. Core types (Message, Model, ToolCall, StopReason). |
+| `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic Messages + OpenAI Chat Completions with SSE streaming. Any OpenAI-compatible endpoint works via baseUrl. Core types (Message, Model, ToolCall, StopReason). |
 | `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
 | `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine`, `SessionManager`, `SessionStore`, `Rate Limiting`, `CircuitBreaker`, `SseBridge`, `HealthProbe`. |
 | `@mohanscodex/spectra-code` | **TUI App** | Terminal-based AI coding agent built on the Spectra SDK. |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
-| `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic, OpenAI, Groq, OpenRouter. |
+| `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic Messages + OpenAI Chat Completions. OpenRouter-compatible. |
 
 ## Feature Matrix
 
@@ -124,10 +124,10 @@ for await (const event of agent.run("What is Rust?")) {
 }
 ```
 
-## Deployment Scale
+## Deployment
 
 <p align="center">
-  <img src=".github/assets/spectra-deployment.png" alt="Spectra Deployment Scale" width="100%" />
+  <img src=".github/assets/spectra-scale.png" alt="Spectra Deployment Scale" width="100%" />
 </p>
 
 ### TypeScript — Production
@@ -146,24 +146,21 @@ bun add -g @mohanscodex/spectra-code
 
 ```toml
 [dependencies]
-spectra-rs = "0.2"
-spectra-http = "0.2"
+spectra-rs = { git = "https://github.com/codex-mohan/spectra" }
+spectra-http = { git = "https://github.com/codex-mohan/spectra" }
 tokio = { version = "1", features = ["full"] }
 ```
 
-## Supported Providers
+## Supported APIs
 
-| Provider | TypeScript | Rust | Streaming | Tool Use |
-|----------|------------|------|-----------|----------|
-| **Anthropic** | ✅ | ✅ | SSE | ✅ |
-| **OpenAI** | ✅ | ✅ | SSE | ✅ |
-| **Groq** | — | ✅ | SSE | — |
+Spectra works with any endpoint that speaks Anthropic's Messages API or OpenAI's Chat Completions API — just set `baseUrl` on your model.
 
-## Deployment Architecture
+| Protocol | TypeScript | Rust |
+|----------|------------|------|
+| **Anthropic Messages** | ✅ | ✅ |
+| **OpenAI Chat Completions** | ✅ | ✅ |
 
-<p align="center">
-  <img src=".github/assets/spectra-scale.png" alt="Spectra Scale Architecture" width="100%" />
-</p>
+Any OpenAI-compatible provider (Groq, OpenRouter, Together, Fireworks, Ollama, vLLM, LiteLLM, local models) works out of the box — no integration needed.
 
 ## Project Structure
 
