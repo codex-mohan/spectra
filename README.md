@@ -3,13 +3,12 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0A1220" />
-  <img src="https://img.shields.io/badge/runtime-Rust-CE422B?style=for-the-badge&logo=rust&logoColor=white&labelColor=0A1220" />
-  <img src="https://img.shields.io/badge/architecture-Native_SDKs-14E6FF?style=for-the-badge&labelColor=0A1220" />
-  <img src="https://img.shields.io/badge/streaming-SSE-00B8FF?style=for-the-badge&labelColor=0A1220" />
-  <img src="https://img.shields.io/badge/agents-Multi--Turn-7C5CFF?style=for-the-badge&labelColor=0A1220" />
-  <img src="https://img.shields.io/badge/deployment-Production_Ready-00C853?style=for-the-badge&labelColor=0A1220" />
-  <img src="https://img.shields.io/badge/license-MIT-BB86FC?style=for-the-badge&labelColor=0A1220" />
+  <a href="https://github.com/codex-mohan/spectra/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/codex-mohan/spectra/ci.yml?branch=main&style=for-the-badge&labelColor=0A1220&color=00C853" alt="CI" /></a>
+  <a href="https://www.npmjs.com/package/@mohanscodex/spectra-agent"><img src="https://img.shields.io/npm/v/@mohanscodex/spectra-agent?style=for-the-badge&labelColor=0A1220&color=3178C6&label=spectra" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/@mohanscodex/spectra-agent"><img src="https://img.shields.io/npm/dm/@mohanscodex/spectra-agent?style=for-the-badge&labelColor=0A1220&color=3178C6" alt="npm downloads" /></a>
+  <a href="https://github.com/codex-mohan/spectra/blob/main/LICENSE"><img src="https://img.shields.io/github/license/codex-mohan/spectra?style=for-the-badge&labelColor=0A1220&color=BB86FC" alt="license" /></a>
+  <a href="https://github.com/codex-mohan/spectra/stargazers"><img src="https://img.shields.io/github/stars/codex-mohan/spectra?style=for-the-badge&labelColor=0A1220&color=FFD700" alt="GitHub stars" /></a>
+  <a href="https://github.com/codex-mohan/spectra/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge&labelColor=0A1220&color=00C853" alt="PRs Welcome" /></a>
 </p>
 
 # Spectra
