@@ -69,6 +69,7 @@ impl ToolContext {
 pub struct ToolResult {
     pub content: Value,
     pub is_error: bool,
+    pub details: Option<Value>,
 }
 
 impl ToolResult {
@@ -76,6 +77,7 @@ impl ToolResult {
         Self {
             content,
             is_error: false,
+            details: None,
         }
     }
 
@@ -83,7 +85,13 @@ impl ToolResult {
         Self {
             content: serde_json::json!({ "error": message.into() }),
             is_error: true,
+            details: None,
         }
+    }
+
+    pub fn with_details(mut self, details: Value) -> Self {
+        self.details = Some(details);
+        self
     }
 }
 

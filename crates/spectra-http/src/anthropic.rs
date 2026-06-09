@@ -387,8 +387,8 @@ async fn parse_event(
                     if let Some(usage) = delta.get("usage") {
                         msg.usage.input_tokens = usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
                         msg.usage.output_tokens = usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                        msg.usage.cache_read_tokens = usage.get("cache_read_input_tokens").and_then(|v| v.as_u64()).map(|v| v as u32);
-                        msg.usage.cache_write_tokens = usage.get("cache_creation_input_tokens").and_then(|v| v.as_u64()).map(|v| v as u32);
+                        msg.usage.cache_read_tokens = usage.get("cache_read_input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        msg.usage.cache_write_tokens = usage.get("cache_creation_input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
                     }
                 }
             }

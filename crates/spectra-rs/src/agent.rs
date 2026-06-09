@@ -15,6 +15,10 @@ pub type TransformFn = Arc<
     dyn Fn(Vec<Message>) -> Pin<Box<dyn Future<Output = Vec<Message>> + Send>> + Send + Sync,
 >;
 
+pub type ConvertToLlmFn = Arc<
+    dyn Fn(Vec<Message>) -> Pin<Box<dyn Future<Output = Vec<Message>> + Send>> + Send + Sync,
+>;
+
 pub type ApiKeyFn = Arc<dyn Fn(&str) -> Option<String> + Send + Sync>;
 
 #[derive(Clone)]
@@ -29,6 +33,7 @@ pub struct AgentConfig {
     pub reasoning_effort: Option<ReasoningEffort>,
     pub extensions: Arc<ExtensionManager>,
     pub transform_context: Option<TransformFn>,
+    pub convert_to_llm: Option<ConvertToLlmFn>,
     pub get_api_key: Option<ApiKeyFn>,
 }
 
@@ -51,6 +56,7 @@ impl Default for AgentConfig {
             reasoning_effort: None,
             extensions: Arc::new(ExtensionManager::new()),
             transform_context: None,
+            convert_to_llm: None,
             get_api_key: None,
         }
     }
@@ -74,6 +80,7 @@ pub struct AgentBuilder {
     reasoning_effort: Option<ReasoningEffort>,
     extensions: Option<ExtensionManager>,
     transform_context: Option<TransformFn>,
+    convert_to_llm: Option<ConvertToLlmFn>,
     get_api_key: Option<ApiKeyFn>,
 }
 
@@ -90,6 +97,7 @@ impl AgentBuilder {
             reasoning_effort: None,
             extensions: None,
             transform_context: None,
+            convert_to_llm: None,
             get_api_key: None,
         }
     }
@@ -148,6 +156,15 @@ impl AgentBuilder {
         self
     }
 
+    pub fn convert_to_llm<F, Fut>(mut self, f: F) -> Self
+    where
+        F: Fn(Vec<Message>) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Vec<Message>> + Send + 'static,
+    {
+        self.convert_to_llm = Some(Arc::new(move |msgs| Box::pin(f(msgs))));
+        self
+    }
+
     pub fn get_api_key<F>(mut self, f: F) -> Self
     where
         F: Fn(&str) -> Option<String> + Send + Sync + 'static,
@@ -168,6 +185,7 @@ impl AgentBuilder {
             reasoning_effort: self.reasoning_effort,
             extensions: Arc::new(self.extensions.unwrap_or_default()),
             transform_context: self.transform_context,
+            convert_to_llm: self.convert_to_llm,
             get_api_key: self.get_api_key,
         };
         Agent::new(client, config)
@@ -355,6 +373,13 @@ async fn run_agent_loop(
             transform(all_messages.clone()).await
         } else {
             all_messages.clone()
+        };
+
+        // Apply convert_to_llm hook (LLM format conversion)
+        let context_messages = if let Some(ref convert) = config.convert_to_llm {
+            convert(context_messages).await
+        } else {
+            context_messages
         };
 
         let mut request = LlmRequest::new(config.model.clone());
@@ -774,6 +799,9 @@ async fn dispatch_tool_with_events(
                 content,
                 is_error,
                 timestamp: chrono::Utc::now(),
+                details: None,
+                metadata: None,
+                provenance: None,
             }
         }
         Err(e) => ToolResultMessage::error(

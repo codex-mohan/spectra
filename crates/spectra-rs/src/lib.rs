@@ -20,8 +20,8 @@ pub use llm::{
     ModelInfo, ModelRegistry, Provider, ReasoningEffort, ToolChoice, ToolDef,
 };
 pub use messages::{
-    AssistantMessage, Content, ImageDetail, Message, StopReason, TokenCost, TokenUsage, ToolCall,
-    ToolResultMessage, UserMessage,
+    AssistantMessage, Content, ImageDetail, Message, Provenance, StopReason, TokenCost,
+    TokenUsage, ToolCall, ToolResultMessage, UserMessage,
 };
 pub use agent_registry::{AgentRegistry, DelegationResult, TaskConfig};
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState};

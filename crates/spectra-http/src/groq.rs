@@ -430,8 +430,8 @@ impl GroqClient {
         let token_usage = TokenUsage {
             input_tokens: usage.prompt_tokens,
             output_tokens: usage.completion_tokens,
-            cache_read_tokens: None,
-            cache_write_tokens: None,
+            cache_read_tokens: 0,
+            cache_write_tokens: 0,
             cost: None,
         };
 

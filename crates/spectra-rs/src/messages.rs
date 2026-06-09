@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "role", rename_all = "snake_case")]
@@ -14,6 +15,8 @@ pub enum Message {
 pub struct UserMessage {
     pub content: Vec<Content>,
     pub timestamp: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<HashMap<String, Value>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,6 +29,24 @@ pub struct AssistantMessage {
     pub model: String,
     pub response_id: Option<String>,
     pub usage: TokenUsage,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<HashMap<String, Value>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Provenance {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transformed_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retry_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hook_details: Option<HashMap<String, Value>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +56,12 @@ pub struct ToolResultMessage {
     pub content: Value,
     pub is_error: bool,
     pub timestamp: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub details: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<HashMap<String, Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,8 +114,8 @@ impl std::fmt::Display for StopReason {
 pub struct TokenUsage {
     pub input_tokens: u32,
     pub output_tokens: u32,
-    pub cache_read_tokens: Option<u32>,
-    pub cache_write_tokens: Option<u32>,
+    pub cache_read_tokens: u32,
+    pub cache_write_tokens: u32,
     pub cost: Option<TokenCost>,
 }
 
@@ -106,11 +133,17 @@ impl UserMessage {
         Self {
             content,
             timestamp: Utc::now(),
+            metadata: None,
         }
     }
 
     pub fn text(text: impl Into<String>) -> Self {
         Self::new(vec![Content::Text { text: text.into() }])
+    }
+
+    pub fn with_metadata(mut self, metadata: HashMap<String, Value>) -> Self {
+        self.metadata = Some(metadata);
+        self
     }
 }
 
@@ -129,10 +162,12 @@ impl AssistantMessage {
             model: String::new(),
             response_id: None,
             usage: TokenUsage::default(),
+            error_message: None,
+            metadata: None,
         }
     }
 
-    pub fn with_metadata(
+    pub fn with_full_metadata(
         content: Vec<Content>,
         tool_calls: Vec<ToolCall>,
         stop_reason: StopReason,
@@ -150,7 +185,19 @@ impl AssistantMessage {
             model: model.into(),
             response_id,
             usage,
+            error_message: None,
+            metadata: None,
         }
+    }
+
+    pub fn with_error(mut self, error_message: impl Into<String>) -> Self {
+        self.error_message = Some(error_message.into());
+        self
+    }
+
+    pub fn with_metadata(mut self, metadata: HashMap<String, Value>) -> Self {
+        self.metadata = Some(metadata);
+        self
     }
 }
 
@@ -162,6 +209,9 @@ impl ToolResultMessage {
             content,
             is_error: false,
             timestamp: Utc::now(),
+            details: None,
+            metadata: None,
+            provenance: None,
         }
     }
 
@@ -172,6 +222,24 @@ impl ToolResultMessage {
             content: serde_json::json!({ "error": error_message }),
             is_error: true,
             timestamp: Utc::now(),
+            details: None,
+            metadata: None,
+            provenance: None,
         }
+    }
+
+    pub fn with_details(mut self, details: Value) -> Self {
+        self.details = Some(details);
+        self
+    }
+
+    pub fn with_metadata(mut self, metadata: HashMap<String, Value>) -> Self {
+        self.metadata = Some(metadata);
+        self
+    }
+
+    pub fn with_provenance(mut self, provenance: Provenance) -> Self {
+        self.provenance = Some(provenance);
+        self
     }
 }
