@@ -1,1 +1,1 @@
-export { ACPAdapter } from "./server.js";
+export { ACPAdapter } from './server.js';

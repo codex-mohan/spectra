@@ -2,20484 +2,20367 @@
 // Do not edit manually
 
 export interface ModelEntry {
-  id: string;
-  name: string;
-  contextWindow?: number;
+	id: string;
+	name: string;
+	contextWindow?: number;
 }
 
 const MODELS: Record<string, ModelEntry[]> = {
-  "302ai": [
-    {
-      "id": "claude-3-5-haiku-20241022",
-      "name": "claude-3-5-haiku-20241022",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-haiku-latest",
-      "name": "claude-3-5-haiku-latest",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5",
-      "name": "claude-haiku-4-5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "claude-haiku-4-5-20251001",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "claude-opus-4-1-20250805",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-20250805-thinking",
-      "name": "claude-opus-4-1-20250805-thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "claude-opus-4-20250514",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5",
-      "name": "claude-opus-4-5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "claude-opus-4-5-20251101",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101-thinking",
-      "name": "claude-opus-4-5-20251101-thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "claude-opus-4-6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-6-thinking",
-      "name": "claude-opus-4-6-thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "claude-opus-4-7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "claude-sonnet-4-20250514",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "claude-sonnet-4-5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "claude-sonnet-4-5-20250929",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929-thinking",
-      "name": "claude-sonnet-4-5-20250929-thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "claude-sonnet-4-6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-6-thinking",
-      "name": "claude-sonnet-4-6-thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-chat",
-      "name": "Deepseek-Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-reasoner",
-      "name": "Deepseek-Reasoner",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "deepseek-v3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.2-thinking",
-      "name": "DeepSeek-V3.2-Thinking",
-      "contextWindow": 128000
-    },
-    {
-      "id": "doubao-seed-1-6-thinking-250715",
-      "name": "doubao-seed-1-6-thinking-250715",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-1-6-vision-250815",
-      "name": "doubao-seed-1-6-vision-250815",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-1-8-251215",
-      "name": "doubao-seed-1-8-251215",
-      "contextWindow": 224000
-    },
-    {
-      "id": "doubao-seed-code-preview-251028",
-      "name": "doubao-seed-code-preview-251028",
-      "contextWindow": 256000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "gemini-2.5-flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025",
-      "name": "gemini-2.5-flash-lite-preview-09-2025",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-flash-nothink",
-      "name": "gemini-2.5-flash-nothink",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-flash-preview-09-2025",
-      "name": "gemini-2.5-flash-preview-09-2025",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "gemini-2.5-pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "gemini-3-flash-preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-3-pro-preview",
-      "name": "gemini-3-pro-preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-air",
-      "name": "glm-4.5-air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-airx",
-      "name": "glm-4.5-airx",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.5-x",
-      "name": "glm-4.5-x",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.5v",
-      "name": "GLM-4.5V",
-      "contextWindow": 64000
-    },
-    {
-      "id": "glm-4.6",
-      "name": "glm-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.7",
-      "name": "glm-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.7-flashx",
-      "name": "glm-4.7-flashx",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5",
-      "name": "glm-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5-turbo",
-      "name": "glm-5-turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5.1",
-      "name": "glm-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5v-turbo",
-      "name": "GLM-5V-Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-for-coding",
-      "name": "glm-for-coding",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "gpt-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "gpt-4.1-mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "gpt-4.1-nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o",
-      "name": "gpt-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "gpt-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "gpt-5-mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-pro",
-      "name": "gpt-5-pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-thinking",
-      "name": "gpt-5-thinking",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "gpt-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-chat-latest",
-      "name": "gpt-5.1-chat-latest",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "gpt-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-chat-latest",
-      "name": "gpt-5.2-chat-latest",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "gpt-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "gpt-5.4-mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-mini-2026-03-17",
-      "name": "gpt-5.4-mini-2026-03-17",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "gpt-5.4-nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano-2026-03-17",
-      "name": "gpt-5.4-nano-2026-03-17",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-pro",
-      "name": "gpt-5.4-pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok-4-1-fast-non-reasoning",
-      "name": "grok-4-1-fast-non-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "grok-4-1-fast-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-fast-non-reasoning",
-      "name": "grok-4-fast-non-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-fast-reasoning",
-      "name": "grok-4-fast-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4.1",
-      "name": "grok-4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "grok-4.20-beta-0309-non-reasoning",
-      "name": "grok-4.20-beta-0309-non-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4.20-beta-0309-reasoning",
-      "name": "grok-4.20-beta-0309-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4.20-multi-agent-beta-0309",
-      "name": "grok-4.20-multi-agent-beta-0309",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "kimi-k2-0905-preview",
-      "name": "kimi-k2-0905-preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "kimi-k2-thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking-turbo",
-      "name": "kimi-k2-thinking-turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMax-M1",
-      "name": "MiniMax-M1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "MiniMax-M2",
-      "name": "MiniMax-M2",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "ministral-14b-2512",
-      "name": "ministral-14b-2512",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-large-2512",
-      "name": "mistral-large-2512",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen-flash",
-      "name": "Qwen-Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-max-latest",
-      "name": "Qwen-Max-Latest",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-plus",
-      "name": "Qwen-Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-235b-a22b",
-      "name": "Qwen3-235B-A22B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct-2507",
-      "name": "qwen3-235b-a22b-instruct-2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-30b-a3b",
-      "name": "Qwen3-30B-A3B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct",
-      "name": "qwen3-coder-480b-a35b-instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-max-2025-09-23",
-      "name": "qwen3-max-2025-09-23",
-      "contextWindow": 258048
-    }
-  ],
-  "abacus": [
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet-20250219",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1",
-      "name": "DeepSeek R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1-Terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "zai-org/glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai-org/glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai-org/glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai-org/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "GPT-4.1 Mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "GPT-4.1 Nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o-2024-11-20",
-      "name": "GPT-4o (2024-11-20)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "GPT-4o Mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "GPT-5 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-chat-latest",
-      "name": "GPT-5.1 Chat Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-chat-latest",
-      "name": "GPT-5.2 Chat Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-chat-latest",
-      "name": "GPT-5.3 Chat Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex-xhigh",
-      "name": "GPT-5.3 Codex XHigh",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT-OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "grok-4-0709",
-      "name": "Grok 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-4-fast-non-reasoning",
-      "name": "Grok 4 Fast (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-non-reasoning",
-      "name": "Grok 4.1 Fast (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-code-fast-1",
-      "name": "Grok Code Fast 1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2-turbo-preview",
-      "name": "Kimi K2 Turbo Preview",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
-      "name": "Llama 3.1 405B Instruct Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-versatile",
-      "name": "Llama 3.3 70B Versatile",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "name": "Llama 4 Maverick 17B 128E Instruct FP8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-pro",
-      "name": "o3-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "Qwen/Qwen2.5-72B-Instruct",
-      "name": "Qwen 2.5 72B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen-2.5-coder-32b",
-      "name": "Qwen 2.5 Coder 32B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-32B",
-      "name": "Qwen3 32B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "Qwen/QwQ-32B",
-      "name": "QwQ 32B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "route-llm",
-      "name": "Route LLM",
-      "contextWindow": 128000
-    }
-  ],
-  "abliteration-ai": [
-    {
-      "id": "abliterated-model",
-      "name": "Abliterated Model",
-      "contextWindow": 150000
-    }
-  ],
-  "aihubmix": [
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-6-think",
-      "name": "Claude Opus 4.6 Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7-think",
-      "name": "Claude Opus 4.7 Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-6-think",
-      "name": "Claude Sonnet 4.6 Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "coding-glm-5.1",
-      "name": "Coding GLM 5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "coding-glm-5.1-free",
-      "name": "Coding GLM 5.1 (free)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "coding-minimax-m2.7",
-      "name": "Coding MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "coding-minimax-m2.7-free",
-      "name": "Coding MiniMax M2.7 (Free)",
-      "contextWindow": 204800
-    },
-    {
-      "id": "coding-minimax-m2.7-highspeed",
-      "name": "Coding MiniMax M2.7 Highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "coding-xiaomi-mimo-v2.5",
-      "name": "Coding Xiaomi MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "coding-xiaomi-mimo-v2.5-pro",
-      "name": "Coding Xiaomi MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "alicloud-deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash (Alibaba Cloud)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deep-deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash (DeepSeek)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "alicloud-deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro (Alibaba Cloud)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deep-deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro (DeepSeek)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "doubao-seed-2-0-code-preview",
-      "name": "Doubao Seed 2.0 Code Preview",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-2-0-lite-260428",
-      "name": "Doubao Seed 2.0 Lite 260428",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-2-0-mini-260428",
-      "name": "Doubao Seed 2.0 Mini 260428",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-2-0-pro",
-      "name": "Doubao Seed 2.0 Pro",
-      "contextWindow": 256000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "glm-5v-turbo",
-      "name": "GLM 5 Vision Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "alicloud-glm-5.1",
-      "name": "GLM-5.1 (Alibaba Cloud)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-glm-5.1",
-      "name": "GLM-5.1 (Z.ai)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 991000
-    },
-    {
-      "id": "qwen3.6-max-preview",
-      "name": "Qwen3.6 Max Preview",
-      "contextWindow": 240000
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 991000
-    },
-    {
-      "id": "xiaomi-mimo-v2.5",
-      "name": "Xiaomi MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi-mimo-v2.5-free",
-      "name": "Xiaomi MiMo-V2.5 (free)",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi-mimo-v2.5-pro",
-      "name": "Xiaomi MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi-mimo-v2.5-pro-free",
-      "name": "Xiaomi MiMo-V2.5-Pro (free)",
-      "contextWindow": 1048576
-    }
-  ],
-  "alibaba": [
-    {
-      "id": "qvq-max",
-      "name": "QVQ Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-flash",
-      "name": "Qwen Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-max",
-      "name": "Qwen Max",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-plus",
-      "name": "Qwen Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-plus-character-ja",
-      "name": "Qwen Plus Character (Japanese)",
-      "contextWindow": 8192
-    },
-    {
-      "id": "qwen-turbo",
-      "name": "Qwen Turbo",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-omni-turbo",
-      "name": "Qwen-Omni Turbo",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-omni-turbo-realtime",
-      "name": "Qwen-Omni Turbo Realtime",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-vl-max",
-      "name": "Qwen-VL Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-vl-plus",
-      "name": "Qwen-VL Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-14b-instruct",
-      "name": "Qwen2.5 14B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-32b-instruct",
-      "name": "Qwen2.5 32B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-72b-instruct",
-      "name": "Qwen2.5 72B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-7b-instruct",
-      "name": "Qwen2.5 7B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-omni-7b",
-      "name": "Qwen2.5-Omni 7B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen2-5-vl-72b-instruct",
-      "name": "Qwen2.5-VL 72B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-vl-7b-instruct",
-      "name": "Qwen2.5-VL 7B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-14b",
-      "name": "Qwen3 14B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-235b-a22b",
-      "name": "Qwen3 235B-A22B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-8b",
-      "name": "Qwen3 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-coder-flash",
-      "name": "Qwen3 Coder Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3-Coder 30B-A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3-Coder 480B-A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3-Next 80B-A3B (Thinking)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3-Next 80B-A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-omni-flash",
-      "name": "Qwen3-Omni Flash",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen3-omni-flash-realtime",
-      "name": "Qwen3-Omni Flash Realtime",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen3-vl-235b-a22b",
-      "name": "Qwen3-VL 235B-A22B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-30b-a3b",
-      "name": "Qwen3-VL 30B-A3B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-plus",
-      "name": "Qwen3-VL Plus",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-122b-a10b",
-      "name": "Qwen3.5 122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-27b",
-      "name": "Qwen3.5 27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-35b-a3b",
-      "name": "Qwen3.5 35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-27b",
-      "name": "Qwen3.6 27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-35b-a3b",
-      "name": "Qwen3.6 35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-max-preview",
-      "name": "Qwen3.6 Max Preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-plus",
-      "name": "Qwen3.7 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwq-plus",
-      "name": "QwQ Plus",
-      "contextWindow": 131072
-    }
-  ],
-  "alibaba-cn": [
-    {
-      "id": "deepseek-r1",
-      "name": "DeepSeek R1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-r1-0528",
-      "name": "DeepSeek R1 0528",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-r1-distill-llama-70b",
-      "name": "DeepSeek R1 Distill Llama 70B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-r1-distill-llama-8b",
-      "name": "DeepSeek R1 Distill Llama 8B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-r1-distill-qwen-1-5b",
-      "name": "DeepSeek R1 Distill Qwen 1.5B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-r1-distill-qwen-14b",
-      "name": "DeepSeek R1 Distill Qwen 14B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-r1-distill-qwen-32b",
-      "name": "DeepSeek R1 Distill Qwen 32B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-r1-distill-qwen-7b",
-      "name": "DeepSeek R1 Distill Qwen 7B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-v3",
-      "name": "DeepSeek V3",
-      "contextWindow": 65536
-    },
-    {
-      "id": "deepseek-v3-1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v3-2-exp",
-      "name": "DeepSeek V3.2 Exp",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "kimi/kimi-k2.5",
-      "name": "kimi/kimi-k2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax/MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "moonshot-kimi-k2-instruct",
-      "name": "Moonshot Kimi K2 Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Moonshot Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Moonshot Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Moonshot Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qvq-max",
-      "name": "QVQ Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-deep-research",
-      "name": "Qwen Deep Research",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-doc-turbo",
-      "name": "Qwen Doc Turbo",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-flash",
-      "name": "Qwen Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-long",
-      "name": "Qwen Long",
-      "contextWindow": 10000000
-    },
-    {
-      "id": "qwen-math-plus",
-      "name": "Qwen Math Plus",
-      "contextWindow": 4096
-    },
-    {
-      "id": "qwen-math-turbo",
-      "name": "Qwen Math Turbo",
-      "contextWindow": 4096
-    },
-    {
-      "id": "qwen-max",
-      "name": "Qwen Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-plus",
-      "name": "Qwen Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-plus-character",
-      "name": "Qwen Plus Character",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-turbo",
-      "name": "Qwen Turbo",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-omni-turbo",
-      "name": "Qwen-Omni Turbo",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-omni-turbo-realtime",
-      "name": "Qwen-Omni Turbo Realtime",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-vl-max",
-      "name": "Qwen-VL Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-vl-plus",
-      "name": "Qwen-VL Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-14b-instruct",
-      "name": "Qwen2.5 14B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-32b-instruct",
-      "name": "Qwen2.5 32B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-72b-instruct",
-      "name": "Qwen2.5 72B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-7b-instruct",
-      "name": "Qwen2.5 7B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-coder-32b-instruct",
-      "name": "Qwen2.5-Coder 32B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-coder-7b-instruct",
-      "name": "Qwen2.5-Coder 7B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-math-72b-instruct",
-      "name": "Qwen2.5-Math 72B Instruct",
-      "contextWindow": 4096
-    },
-    {
-      "id": "qwen2-5-math-7b-instruct",
-      "name": "Qwen2.5-Math 7B Instruct",
-      "contextWindow": 4096
-    },
-    {
-      "id": "qwen2-5-omni-7b",
-      "name": "Qwen2.5-Omni 7B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen2-5-vl-72b-instruct",
-      "name": "Qwen2.5-VL 72B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-vl-7b-instruct",
-      "name": "Qwen2.5-VL 7B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-14b",
-      "name": "Qwen3 14B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-235b-a22b",
-      "name": "Qwen3 235B-A22B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-8b",
-      "name": "Qwen3 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-coder-flash",
-      "name": "Qwen3 Coder Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3-Coder 30B-A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3-Coder 480B-A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3-Next 80B-A3B (Thinking)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3-Next 80B-A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-omni-flash",
-      "name": "Qwen3-Omni Flash",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen3-omni-flash-realtime",
-      "name": "Qwen3-Omni Flash Realtime",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen3-vl-235b-a22b",
-      "name": "Qwen3-VL 235B-A22B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-30b-a3b",
-      "name": "Qwen3-VL 30B-A3B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-plus",
-      "name": "Qwen3-VL Plus",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-flash",
-      "name": "Qwen3.5 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-max-preview",
-      "name": "Qwen3.6 Max Preview",
-      "contextWindow": 245800
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-plus",
-      "name": "Qwen3.7 Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwq-32b",
-      "name": "QwQ 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwq-plus",
-      "name": "QwQ Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "siliconflow/deepseek-r1-0528",
-      "name": "siliconflow/deepseek-r1-0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "siliconflow/deepseek-v3-0324",
-      "name": "siliconflow/deepseek-v3-0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "siliconflow/deepseek-v3.1-terminus",
-      "name": "siliconflow/deepseek-v3.1-terminus",
-      "contextWindow": 163840
-    },
-    {
-      "id": "siliconflow/deepseek-v3.2",
-      "name": "siliconflow/deepseek-v3.2",
-      "contextWindow": 163840
-    }
-  ],
-  "alibaba-coding-plan": [
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-max-2026-01-23",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    }
-  ],
-  "alibaba-coding-plan-cn": [
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-max-2026-01-23",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    }
-  ],
-  "alibaba-token-plan": [
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    }
-  ],
-  "amazon-bedrock": [
-    {
-      "id": "au.anthropic.claude-opus-4-6-v1",
-      "name": "AU Anthropic Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "au.anthropic.claude-sonnet-4-6",
-      "name": "AU Anthropic Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic.claude-haiku-4-5-20251001-v1:0",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
-      "name": "Claude Haiku 4.5 (AU)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
-      "name": "Claude Haiku 4.5 (EU)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-      "name": "Claude Haiku 4.5 (Global)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
-      "name": "Claude Haiku 4.5 (US)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic.claude-opus-4-1-20250805-v1:0",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "us.anthropic.claude-opus-4-1-20250805-v1:0",
-      "name": "Claude Opus 4.1 (US)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic.claude-opus-4-5-20251101-v1:0",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "eu.anthropic.claude-opus-4-5-20251101-v1:0",
-      "name": "Claude Opus 4.5 (EU)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "global.anthropic.claude-opus-4-5-20251101-v1:0",
-      "name": "Claude Opus 4.5 (Global)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "us.anthropic.claude-opus-4-5-20251101-v1:0",
-      "name": "Claude Opus 4.5 (US)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic.claude-opus-4-6-v1",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "eu.anthropic.claude-opus-4-6-v1",
-      "name": "Claude Opus 4.6 (EU)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "global.anthropic.claude-opus-4-6-v1",
-      "name": "Claude Opus 4.6 (Global)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "us.anthropic.claude-opus-4-6-v1",
-      "name": "Claude Opus 4.6 (US)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic.claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "eu.anthropic.claude-opus-4-7",
-      "name": "Claude Opus 4.7 (EU)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "global.anthropic.claude-opus-4-7",
-      "name": "Claude Opus 4.7 (Global)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "jp.anthropic.claude-opus-4-7",
-      "name": "Claude Opus 4.7 (JP)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "us.anthropic.claude-opus-4-7",
-      "name": "Claude Opus 4.7 (US)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic.claude-opus-4-8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "au.anthropic.claude-opus-4-8",
-      "name": "Claude Opus 4.8 (AU)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "eu.anthropic.claude-opus-4-8",
-      "name": "Claude Opus 4.8 (EU)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "global.anthropic.claude-opus-4-8",
-      "name": "Claude Opus 4.8 (Global)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "jp.anthropic.claude-opus-4-8",
-      "name": "Claude Opus 4.8 (JP)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "us.anthropic.claude-opus-4-8",
-      "name": "Claude Opus 4.8 (US)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "au.anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "name": "Claude Sonnet 4.5 (AU)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "name": "Claude Sonnet 4.5 (EU)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "name": "Claude Sonnet 4.5 (Global)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "jp.anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "name": "Claude Sonnet 4.5 (JP)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
-      "name": "Claude Sonnet 4.5 (US)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic.claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "eu.anthropic.claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6 (EU)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "global.anthropic.claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6 (Global)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "jp.anthropic.claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6 (JP)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "us.anthropic.claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6 (US)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek.r1-v1:0",
-      "name": "DeepSeek-R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "us.deepseek.r1-v1:0",
-      "name": "DeepSeek-R1 (US)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek.v3-v1:0",
-      "name": "DeepSeek-V3.1",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek.v3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "mistral.devstral-2-123b",
-      "name": "Devstral 2 123B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "google.gemma-3-4b-it",
-      "name": "Gemma 3 4B IT",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai.glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai.glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai.glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "google.gemma-3-27b-it",
-      "name": "Google Gemma 3 27B Instruct",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai.gpt-oss-safeguard-120b",
-      "name": "GPT OSS Safeguard 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai.gpt-oss-safeguard-20b",
-      "name": "GPT OSS Safeguard 20B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai.gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 272000
-    },
-    {
-      "id": "openai.gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 272000
-    },
-    {
-      "id": "openai.gpt-oss-120b-1:0",
-      "name": "gpt-oss-120b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai.gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai.gpt-oss-20b-1:0",
-      "name": "gpt-oss-20b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai.gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshot.kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262143
-    },
-    {
-      "id": "moonshotai.kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262143
-    },
-    {
-      "id": "meta.llama3-1-70b-instruct-v1:0",
-      "name": "Llama 3.1 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta.llama3-1-8b-instruct-v1:0",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta.llama3-3-70b-instruct-v1:0",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta.llama4-maverick-17b-instruct-v1:0",
-      "name": "Llama 4 Maverick 17B Instruct",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "us.meta.llama4-maverick-17b-instruct-v1:0",
-      "name": "Llama 4 Maverick 17B Instruct (US)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "meta.llama4-scout-17b-instruct-v1:0",
-      "name": "Llama 4 Scout 17B Instruct",
-      "contextWindow": 3500000
-    },
-    {
-      "id": "us.meta.llama4-scout-17b-instruct-v1:0",
-      "name": "Llama 4 Scout 17B Instruct (US)",
-      "contextWindow": 3500000
-    },
-    {
-      "id": "mistral.magistral-small-2509",
-      "name": "Magistral Small 1.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "minimax.minimax-m2",
-      "name": "MiniMax M2",
-      "contextWindow": 204608
-    },
-    {
-      "id": "minimax.minimax-m2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax.minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "mistral.ministral-3-14b-instruct",
-      "name": "Ministral 14B 3.0",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral.ministral-3-3b-instruct",
-      "name": "Ministral 3 3B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral.ministral-3-8b-instruct",
-      "name": "Ministral 3 8B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral.mistral-large-3-675b-instruct",
-      "name": "Mistral Large 3",
-      "contextWindow": 256000
-    },
-    {
-      "id": "amazon.nova-2-lite-v1:0",
-      "name": "Nova 2 Lite",
-      "contextWindow": 128000
-    },
-    {
-      "id": "amazon.nova-lite-v1:0",
-      "name": "Nova Lite",
-      "contextWindow": 300000
-    },
-    {
-      "id": "amazon.nova-micro-v1:0",
-      "name": "Nova Micro",
-      "contextWindow": 128000
-    },
-    {
-      "id": "amazon.nova-pro-v1:0",
-      "name": "Nova Pro",
-      "contextWindow": 300000
-    },
-    {
-      "id": "nvidia.nemotron-super-3-120b",
-      "name": "NVIDIA Nemotron 3 Super 120B A12B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia.nemotron-nano-12b-v2",
-      "name": "NVIDIA Nemotron Nano 12B v2 VL BF16",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nvidia.nemotron-nano-3-30b",
-      "name": "NVIDIA Nemotron Nano 3 30B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nvidia.nemotron-nano-9b-v2",
-      "name": "NVIDIA Nemotron Nano 9B v2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "writer.palmyra-x4-v1:0",
-      "name": "Palmyra X4",
-      "contextWindow": 122880
-    },
-    {
-      "id": "writer.palmyra-x5-v1:0",
-      "name": "Palmyra X5",
-      "contextWindow": 1040000
-    },
-    {
-      "id": "mistral.pixtral-large-2502-v1:0",
-      "name": "Pixtral Large (25.02)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen.qwen3-next-80b-a3b",
-      "name": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen.qwen3-vl-235b-a22b",
-      "name": "Qwen/Qwen3-VL-235B-A22B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen.qwen3-235b-a22b-2507-v1:0",
-      "name": "Qwen3 235B A22B 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen.qwen3-32b-v1:0",
-      "name": "Qwen3 32B (dense)",
-      "contextWindow": 16384
-    },
-    {
-      "id": "qwen.qwen3-coder-30b-a3b-v1:0",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen.qwen3-coder-480b-a35b-v1:0",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen.qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral.voxtral-mini-3b-2507",
-      "name": "Voxtral Mini 3B 2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral.voxtral-small-24b-2507",
-      "name": "Voxtral Small 24B 2507",
-      "contextWindow": 32000
-    }
-  ],
-  "ambient": [
-    {
-      "id": "zai-org/GLM-5.1-FP8",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    }
-  ],
-  "anthropic": [
-    {
-      "id": "claude-3-haiku-20240307",
-      "name": "Claude Haiku 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-haiku-20241022",
-      "name": "Claude Haiku 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-haiku-latest",
-      "name": "Claude Haiku 3.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-opus-20240229",
-      "name": "Claude Opus 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-0",
-      "name": "Claude Opus 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1",
-      "name": "Claude Opus 4.1 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5",
-      "name": "Claude Opus 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-3-sonnet-20240229",
-      "name": "Claude Sonnet 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-sonnet-20240620",
-      "name": "Claude Sonnet 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-sonnet-20241022",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet-20250219",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-0",
-      "name": "Claude Sonnet 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    }
-  ],
-  "anyapi": [
-    {
-      "id": "anthropic/claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "cohere/command-r-plus-08-2024",
-      "name": "Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-chat",
-      "name": "DeepSeek Chat",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-r1",
-      "name": "DeepSeek Reasoner",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistralai/devstral-2512",
-      "name": "Devstral 2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "xai/grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistralai/mistral-large-2512",
-      "name": "Mistral Large 3",
-      "contextWindow": 262144
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    }
-  ],
-  "atomic-chat": [
-    {
-      "id": "Meta-Llama-3_1-8B-Instruct-GGUF",
-      "name": "Meta Llama 3.1 8B Instruct (GGUF)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "Qwen3_5-9B-MLX-4bit",
-      "name": "Qwen 3.5 9B (MLX 4-bit)",
-      "contextWindow": 32768
-    },
-    {
-      "id": "Qwen3_5-9B-Q4_K_M",
-      "name": "Qwen 3.5 9B (Q4_K_M)",
-      "contextWindow": 32768
-    }
-  ],
-  "auriko": [
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimax-m2-7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2-7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "qwen-3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    }
-  ],
-  "azure": [
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "codestral-2501",
-      "name": "Codestral 25.01",
-      "contextWindow": 256000
-    },
-    {
-      "id": "codex-mini",
-      "name": "Codex Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "cohere-command-a",
-      "name": "Command A",
-      "contextWindow": 256000
-    },
-    {
-      "id": "cohere-command-r-08-2024",
-      "name": "Command R",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere-command-r-plus-08-2024",
-      "name": "Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-r1-0528",
-      "name": "DeepSeek-R1-0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v3-0324",
-      "name": "DeepSeek-V3-0324",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v3.1",
-      "name": "DeepSeek-V3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8192
-    },
-    {
-      "id": "gpt-4-32k",
-      "name": "GPT-4 32K",
-      "contextWindow": 32768
-    },
-    {
-      "id": "gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4-turbo-vision",
-      "name": "GPT-4 Turbo Vision",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5.1-chat",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-chat",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-chat",
-      "name": "GPT-5.3 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok-4-fast-reasoning",
-      "name": "Grok 4 Fast (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-non-reasoning",
-      "name": "Grok 4.1 Fast (Non-Reasoning)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "Grok 4.1 Fast (Reasoning)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "grok-4-20-non-reasoning",
-      "name": "Grok 4.20 (Non-Reasoning)",
-      "contextWindow": 262000
-    },
-    {
-      "id": "grok-4-20-reasoning",
-      "name": "Grok 4.20 (Reasoning)",
-      "contextWindow": 262000
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "llama-4-maverick-17b-128e-instruct-fp8",
-      "name": "Llama 4 Maverick 17B 128E Instruct FP8",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-4-scout-17b-16e-instruct",
-      "name": "Llama 4 Scout 17B 16E Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.2-11b-vision-instruct",
-      "name": "Llama-3.2-11B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.2-90b-vision-instruct",
-      "name": "Llama-3.2-90B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama-3.1-405b-instruct",
-      "name": "Meta-Llama-3.1-405B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama-3.1-70b-instruct",
-      "name": "Meta-Llama-3.1-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama-3.1-8b-instruct",
-      "name": "Meta-Llama-3.1-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "ministral-3b",
-      "name": "Ministral 3B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-large-2411",
-      "name": "Mistral Large 24.11",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-medium-2505",
-      "name": "Mistral Medium 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-nemo",
-      "name": "Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-small-2503",
-      "name": "Mistral Small 3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "model-router",
-      "name": "Model Router",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o1-mini",
-      "name": "o1-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o1-preview",
-      "name": "o1-preview",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "phi-4-mini",
-      "name": "Phi-4-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "phi-4-mini-reasoning",
-      "name": "Phi-4-mini-reasoning",
-      "contextWindow": 128000
-    }
-  ],
-  "azure-cognitive-services": [
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "codestral-2501",
-      "name": "Codestral 25.01",
-      "contextWindow": 256000
-    },
-    {
-      "id": "codex-mini",
-      "name": "Codex Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "cohere-command-a",
-      "name": "Command A",
-      "contextWindow": 256000
-    },
-    {
-      "id": "cohere-command-r-08-2024",
-      "name": "Command R",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere-command-r-plus-08-2024",
-      "name": "Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-r1-0528",
-      "name": "DeepSeek-R1-0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v3-0324",
-      "name": "DeepSeek-V3-0324",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v3.1",
-      "name": "DeepSeek-V3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8192
-    },
-    {
-      "id": "gpt-4-32k",
-      "name": "GPT-4 32K",
-      "contextWindow": 32768
-    },
-    {
-      "id": "gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4-turbo-vision",
-      "name": "GPT-4 Turbo Vision",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5.1-chat",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-chat",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok-4-fast-reasoning",
-      "name": "Grok 4 Fast (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "llama-4-maverick-17b-128e-instruct-fp8",
-      "name": "Llama 4 Maverick 17B 128E Instruct FP8",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-4-scout-17b-16e-instruct",
-      "name": "Llama 4 Scout 17B 16E Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.2-11b-vision-instruct",
-      "name": "Llama-3.2-11B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.2-90b-vision-instruct",
-      "name": "Llama-3.2-90B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama-3.1-405b-instruct",
-      "name": "Meta-Llama-3.1-405B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama-3.1-70b-instruct",
-      "name": "Meta-Llama-3.1-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama-3.1-8b-instruct",
-      "name": "Meta-Llama-3.1-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "ministral-3b",
-      "name": "Ministral 3B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-large-2411",
-      "name": "Mistral Large 24.11",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-medium-2505",
-      "name": "Mistral Medium 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-nemo",
-      "name": "Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-small-2503",
-      "name": "Mistral Small 3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "model-router",
-      "name": "Model Router",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o1-mini",
-      "name": "o1-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o1-preview",
-      "name": "o1-preview",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "phi-4-mini",
-      "name": "Phi-4-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "phi-4-mini-reasoning",
-      "name": "Phi-4-mini-reasoning",
-      "contextWindow": 128000
-    }
-  ],
-  "bailing": [
-    {
-      "id": "Ling-1T",
-      "name": "Ling-1T",
-      "contextWindow": 128000
-    }
-  ],
-  "baseten": [
-    {
-      "id": "deepseek-ai/DeepSeek-V3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163800
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "zai-org/GLM-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/GLM-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Kimi K2 Instruct 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204000
-    },
-    {
-      "id": "nvidia/Nemotron-120B-A12B",
-      "name": "Nemotron 3 Super",
-      "contextWindow": 262144
-    }
-  ],
-  "berget": [
-    {
-      "id": "google/gemma-4-31B-it",
-      "name": "Gemma 4 31B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai-org/GLM-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT-OSS-120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/Mistral-Medium-3.5-128B",
-      "name": "Mistral Medium 3.5 128B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-      "name": "Mistral Small 3.2 24B Instruct 2506",
-      "contextWindow": 32000
-    }
-  ],
-  "cerebras": [
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama3.1-8b",
-      "name": "Llama 3.1 8B",
-      "contextWindow": 32000
-    },
-    {
-      "id": "zai-glm-4.7",
-      "name": "Z.AI GLM-4.7",
-      "contextWindow": 131072
-    }
-  ],
-  "chutes": [
-    {
-      "id": "NousResearch/DeepHermes-3-Mistral-24B-Preview",
-      "name": "DeepHermes 3 Mistral 24B Preview",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-0528-TEE",
-      "name": "DeepSeek R1 0528 TEE",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
-      "name": "DeepSeek R1 Distill Llama 70B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "tngtech/DeepSeek-TNG-R1T2-Chimera-TEE",
-      "name": "DeepSeek TNG R1T2 Chimera TEE",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3-0324-TEE",
-      "name": "DeepSeek V3 0324 TEE",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1-TEE",
-      "name": "DeepSeek V3.1 TEE",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2-TEE",
-      "name": "DeepSeek V3.2 TEE",
-      "contextWindow": 131072
-    },
-    {
-      "id": "unsloth/gemma-3-27b-it",
-      "name": "gemma 3 27b it",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemma-4-31B-turbo-TEE",
-      "name": "gemma 4 31B turbo TEE",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/GLM-4.6V",
-      "name": "GLM 4.6V",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/GLM-4.7-FP8",
-      "name": "GLM 4.7 FP8",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-4.7-TEE",
-      "name": "GLM 4.7 TEE",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5-TEE",
-      "name": "GLM 5 TEE",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5-Turbo",
-      "name": "GLM 5 Turbo",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5.1-TEE",
-      "name": "GLM 5.1 TEE",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai/gpt-oss-120b-TEE",
-      "name": "gpt oss 120b TEE",
-      "contextWindow": 131072
-    },
-    {
-      "id": "NousResearch/Hermes-4-14B",
-      "name": "Hermes 4 14B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5-TEE",
-      "name": "Kimi K2.5 TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6-TEE",
-      "name": "Kimi K2.6 TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "XiaomiMiMo/MiMo-V2-Flash-TEE",
-      "name": "MiMo V2 Flash TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5-TEE",
-      "name": "MiniMax M2.5 TEE",
-      "contextWindow": 196608
-    },
-    {
-      "id": "Qwen/Qwen2.5-72B-Instruct",
-      "name": "Qwen2.5 72B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507-TEE",
-      "name": "Qwen3 235B A22B Instruct 2507 TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B",
-      "name": "Qwen3 30B A3B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "Qwen/Qwen3-32B-TEE",
-      "name": "Qwen3 32B TEE",
-      "contextWindow": 40960
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-Next-TEE",
-      "name": "Qwen3 Coder Next TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B-TEE",
-      "name": "Qwen3.5 397B A17B TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.6-27B-TEE",
-      "name": "Qwen3.6 27B TEE",
-      "contextWindow": 262144
-    }
-  ],
-  "clarifai": [
-    {
-      "id": "openai/chat-completion/models/gpt-oss-120b-high-throughput",
-      "name": "GPT OSS 120B High Throughput",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/chat-completion/models/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/chat-completion/models/Kimi-K2_6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimaxai/chat-completion/models/MiniMax-M2_5-high-throughput",
-      "name": "MiniMax-M2.5 High Throughput",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistralai/completion/models/Ministral-3-14B-Reasoning-2512",
-      "name": "Ministral 3 14B Reasoning 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/completion/models/Ministral-3-3B-Reasoning-2512",
-      "name": "Ministral 3 3B Reasoning 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwenLM/models/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen3 30B A3B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwenLM/models/Qwen3-30B-A3B-Thinking-2507",
-      "name": "Qwen3 30B A3B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwenCoder/models/Qwen3-Coder-30B-A3B-Instruct",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "arcee_ai/AFM/models/trinity-mini",
-      "name": "Trinity Mini",
-      "contextWindow": 131072
-    }
-  ],
-  "claudinio": [
-    {
-      "id": "claudinio",
-      "name": "Claudinio",
-      "contextWindow": 256000
-    }
-  ],
-  "cloudferro-sherlock": [
-    {
-      "id": "speakleash/Bielik-11B-v2.6-Instruct",
-      "name": "Bielik 11B v2.6 Instruct",
-      "contextWindow": 32000
-    },
-    {
-      "id": "speakleash/Bielik-11B-v3.0-Instruct",
-      "name": "Bielik 11B v3.0 Instruct",
-      "contextWindow": 32000
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 70000
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "OpenAI GPT OSS 120B",
-      "contextWindow": 131000
-    }
-  ],
-  "cloudflare-ai-gateway": [
-    {
-      "id": "anthropic/claude-3-haiku",
-      "name": "Claude Haiku 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.5-haiku",
-      "name": "Claude Haiku 3.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3-5-haiku",
-      "name": "Claude Haiku 3.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3-opus",
-      "name": "Claude Opus 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude Opus 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-1",
-      "name": "Claude Opus 4.1 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-5",
-      "name": "Claude Opus 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-6",
-      "name": "Claude Opus 4.6 (latest)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4-8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-3-sonnet",
-      "name": "Claude Sonnet 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.5-sonnet",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "workers-ai/@cf/zai-org/glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8192
-    },
-    {
-      "id": "openai/gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "workers-ai/@cf/moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "workers-ai/@cf/moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "workers-ai/@cf/nvidia/nemotron-3-120b-a12b",
-      "name": "Nemotron 3 Super 120B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai/o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-pro",
-      "name": "o3-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    }
-  ],
-  "cloudflare-workers-ai": [
-    {
-      "id": "@cf/google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 256000
-    },
-    {
-      "id": "@cf/zai-org/glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 131072
-    },
-    {
-      "id": "@cf/openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "@cf/openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "@cf/ibm-granite/granite-4.0-h-micro",
-      "name": "Granite 4.0 H Micro",
-      "contextWindow": 131000
-    },
-    {
-      "id": "@cf/moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-      "name": "Llama 3.3 70B Instruct fp8 Fast",
-      "contextWindow": 24000
-    },
-    {
-      "id": "@cf/meta/llama-4-scout-17b-16e-instruct",
-      "name": "Llama 4 Scout 17B 16E Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "@cf/mistralai/mistral-small-3.1-24b-instruct",
-      "name": "Mistral Small 3.1 24B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "@cf/nvidia/nemotron-3-120b-a12b",
-      "name": "Nemotron 3 Super 120B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "@cf/qwen/qwen3-30b-a3b-fp8",
-      "name": "Qwen3 30B A3b fp8",
-      "contextWindow": 32768
-    }
-  ],
-  "cohere": [
-    {
-      "id": "command-a-03-2025",
-      "name": "Command A",
-      "contextWindow": 256000
-    },
-    {
-      "id": "command-a-reasoning-08-2025",
-      "name": "Command A Reasoning",
-      "contextWindow": 256000
-    },
-    {
-      "id": "command-a-translate-08-2025",
-      "name": "Command A Translate",
-      "contextWindow": 8000
-    },
-    {
-      "id": "command-r-08-2024",
-      "name": "Command R",
-      "contextWindow": 128000
-    },
-    {
-      "id": "command-r-plus-08-2024",
-      "name": "Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "command-r7b-12-2024",
-      "name": "Command R7B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "command-r7b-arabic-02-2025",
-      "name": "Command R7B Arabic",
-      "contextWindow": 128000
-    }
-  ],
-  "cortecs": [
-    {
-      "id": "claude-4-5-sonnet",
-      "name": "Claude 4.5 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4-6-sonnet",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "codestral-2508",
-      "name": "Codestral 2508",
-      "contextWindow": 256000
-    },
-    {
-      "id": "deepseek-r1-0528",
-      "name": "DeepSeek R1 0528",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-v3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "devstral-2512",
-      "name": "Devstral 2 2512",
-      "contextWindow": 262000
-    },
-    {
-      "id": "devstral-small-2512",
-      "name": "Devstral Small 2 2512",
-      "contextWindow": 262000
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "glm-4.5",
-      "name": "GLM 4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 198000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM 5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 203000
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT 4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT Oss 120b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "hermes-4-70b",
-      "name": "Hermes 4 70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "intellect-3",
-      "name": "INTELLECT 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "kimi-k2-instruct",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "llama-3.1-405b-instruct",
-      "name": "Llama 3.1 405B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "minimax-m2",
-      "name": "MiniMax-M2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "minimax-m2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 196000
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "MiniMax-m2.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "mistral-large-2512",
-      "name": "Mistral Large 3 2512",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nemotron-3-super-120b-a12b",
-      "name": "Nemotron 3 Super 120B A12B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nova-pro-v1",
-      "name": "Nova Pro 1.0",
-      "contextWindow": 300000
-    },
-    {
-      "id": "qwen-2.5-72b-instruct",
-      "name": "Qwen2.5 72B Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 131000
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 16384
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen3-coder-next",
-      "name": "Qwen3 Coder Next 80B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3.5-122b-a10b",
-      "name": "Qwen3.5 122B A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B A17B",
-      "contextWindow": 250000
-    }
-  ],
-  "crof": [
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro-lightning",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5-lightning",
-      "name": "Kimi K2.5 (Lightning)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-9b",
-      "name": "Qwen3.5 9B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-27b",
-      "name": "Qwen3.6 27B",
-      "contextWindow": 262144
-    }
-  ],
-  "databricks": [
-    {
-      "id": "databricks-claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "databricks-claude-opus-4-1",
-      "name": "Claude Opus 4.1 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "databricks-claude-opus-4-5",
-      "name": "Claude Opus 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "databricks-claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "databricks-claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "databricks-claude-sonnet-4",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "databricks-claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "databricks-claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "databricks-gemini-2-5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "databricks-gemini-2-5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "databricks-gemini-3-flash",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "databricks-gemini-3-pro",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "databricks-gemini-3-1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "databricks-gemini-3-1-pro",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "databricks-gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "databricks-gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "databricks-gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "databricks-gpt-5-4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "databricks-gpt-5-5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    }
-  ],
-  "deepinfra": [
-    {
-      "id": "anthropic/claude-4-opus",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3-7-sonnet-latest",
-      "name": "Claude Sonnet 3.7 (Latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "google/gemma-4-26B-A4B-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31B-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai-org/GLM-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/GLM-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/GLM-4.6V",
-      "name": "GLM-4.6V",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/GLM-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-4.7-Flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct",
-      "name": "Kimi K2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/Llama-3.1-70B-Instruct",
-      "name": "Llama 3.1 70B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/Llama-3.1-70B-Instruct-Turbo",
-      "name": "Llama 3.1 70B Turbo",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/Llama-3.1-8B-Instruct",
-      "name": "Llama 3.1 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/Llama-3.1-8B-Instruct-Turbo",
-      "name": "Llama 3.1 8B Turbo",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-      "name": "Llama 3.3 70B Turbo",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "name": "Llama 4 Maverick 17B FP8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
-      "name": "Llama 4 Scout 17B",
-      "contextWindow": 10000000
-    },
-    {
-      "id": "XiaomiMiMo/MiMo-V2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "XiaomiMiMo/MiMo-V2.5-Pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2",
-      "name": "MiniMax M2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "Qwen/Qwen3.5-35B-A3B",
-      "name": "Qwen 3.5 35B A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B",
-      "name": "Qwen 3.5 397B A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo",
-      "name": "Qwen3 Coder 480B A35B Instruct Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.6-35B-A3B",
-      "name": "Qwen3.6 35B A3B",
-      "contextWindow": 262144
-    }
-  ],
-  "deepseek": [
-    {
-      "id": "deepseek-chat",
-      "name": "DeepSeek Chat",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-reasoner",
-      "name": "DeepSeek Reasoner",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    }
-  ],
-  "digitalocean": [
-    {
-      "id": "anthropic-claude-3-opus",
-      "name": "Claude 3 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-3.5-haiku",
-      "name": "Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-3.5-sonnet",
-      "name": "Claude 3.5 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-3.7-sonnet",
-      "name": "Claude 3.7 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-4.5-haiku",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-haiku-4.5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-opus-4",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-4.1-opus",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-opus-4.5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic-claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic-claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic-claude-opus-4.8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic-claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic-claude-4.5-sonnet",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic-claude-4.6-sonnet",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-r1-distill-llama-70b",
-      "name": "DeepSeek R1 Distill Llama 70B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-v3",
-      "name": "DeepSeek V3",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-4-flash",
-      "name": "Deepseek V4 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemma-4-31B-it",
-      "name": "Gemma 4 31B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM 5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai-gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai-gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai-gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai-gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5-mini",
-      "name": "GPT-5 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5-nano",
-      "name": "GPT-5 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.2-pro",
-      "name": "GPT-5.2 pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai-gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.4-pro",
-      "name": "GPT-5.4 pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai-gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai-gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "llama3-8b-instruct",
-      "name": "Llama 3.1 Instruct (8B)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama3.3-70b-instruct",
-      "name": "Llama 3.3 Instruct 70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-4-maverick",
-      "name": "Llama 4 Maverick 17B 128E Instruct",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistral-3-14B",
-      "name": "Ministral 3 14B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "ministral-3-8b-instruct-2512",
-      "name": "Ministral 3 8B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-7b-instruct-v0.3",
-      "name": "Mistral 7B Instruct v0.3",
-      "contextWindow": 32768
-    },
-    {
-      "id": "mistral-nemo-instruct-2407",
-      "name": "Mistral Nemo Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nemotron-3-nano-30b",
-      "name": "Nemotron 3 Nano 30B A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nemotron-nano-12b-v2-vl",
-      "name": "Nemotron Nano 12B v2 VL",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nemotron-3-nano-omni",
-      "name": "Nemotron Nano 3 Omni",
-      "contextWindow": 65536
-    },
-    {
-      "id": "nvidia-nemotron-3-super-120b",
-      "name": "Nemotron-3-Super-120B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai-o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai-o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai-o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "qwen-2.5-14b-instruct",
-      "name": "Qwen 2.5 14B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen 3.5 397B A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-flash",
-      "name": "Qwen3 Coder Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "alibaba-qwen3-32b",
-      "name": "Qwen3-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "arcee-trinity-large-thinking",
-      "name": "Trinity Large Thinking",
-      "contextWindow": 256000
-    }
-  ],
-  "dinference": [
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 200000
-    }
-  ],
-  "drun": [
-    {
-      "id": "public/deepseek-r1",
-      "name": "DeepSeek R1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "public/deepseek-v3",
-      "name": "DeepSeek V3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "public/minimax-m25",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    }
-  ],
-  "evroc": [
-    {
-      "id": "mistralai/devstral-small-2-24b-instruct-2512",
-      "name": "Devstral Small 2 24B Instruct 2512",
-      "contextWindow": 32768
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 65536
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8",
-      "name": "Qwen3 30B 2507",
-      "contextWindow": 64000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-      "name": "Qwen3 VL 30B",
-      "contextWindow": 100000
-    }
-  ],
-  "fastrouter": [
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "z-ai/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "x-ai/grok-4",
-      "name": "Grok 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2",
-      "name": "Kimi K2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-coder",
-      "name": "Qwen3 Coder",
-      "contextWindow": 262144
-    }
-  ],
-  "firepass": [
-    {
-      "id": "accounts/fireworks/routers/kimi-k2p6-turbo",
-      "name": "Kimi K2.6 Turbo",
-      "contextWindow": 262000
-    }
-  ],
-  "fireworks-ai": [
-    {
-      "id": "accounts/fireworks/models/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "accounts/fireworks/models/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "accounts/fireworks/models/glm-5p1",
-      "name": "GLM 5.1",
-      "contextWindow": 202800
-    },
-    {
-      "id": "accounts/fireworks/routers/glm-5p1-fast",
-      "name": "GLM 5.1 Fast",
-      "contextWindow": 202800
-    },
-    {
-      "id": "accounts/fireworks/models/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "accounts/fireworks/models/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "accounts/fireworks/models/kimi-k2p5",
-      "name": "Kimi K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "accounts/fireworks/models/kimi-k2p6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262000
-    },
-    {
-      "id": "accounts/fireworks/routers/kimi-k2p6-fast",
-      "name": "Kimi K2.6 Fast",
-      "contextWindow": 262000
-    },
-    {
-      "id": "accounts/fireworks/routers/kimi-k2p6-turbo",
-      "name": "Kimi K2.6 Turbo",
-      "contextWindow": 262000
-    },
-    {
-      "id": "accounts/fireworks/models/minimax-m2p5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "accounts/fireworks/models/minimax-m2p7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 196608
-    },
-    {
-      "id": "accounts/fireworks/models/qwen3p6-plus",
-      "name": "Qwen 3.6 Plus",
-      "contextWindow": 262144
-    }
-  ],
-  "friendli": [
-    {
-      "id": "zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "meta-llama/Llama-3.1-8B-Instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    }
-  ],
-  "frogbot": [
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek v4 Pro",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5-3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-4-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-4-nano",
-      "name": "GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-5",
-      "name": "GPT-5.5",
-      "contextWindow": 272000
-    },
-    {
-      "id": "grok-4-1-fast-non-reasoning",
-      "name": "Grok 4.1 Fast (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "Grok 4.1 Fast (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-code-fast-1",
-      "name": "Grok 4.1 Fast (Reasoning)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-4-3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi-K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2-6",
-      "name": "Kimi-K2.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "minimax-m2-5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 192000
-    },
-    {
-      "id": "minimax-m2-7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 192000
-    },
-    {
-      "id": "qwen-3-6-plus",
-      "name": "Qwen 3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "zai-glm-5-1",
-      "name": "Z.AI GLM-5.1",
-      "contextWindow": 198000
-    }
-  ],
-  "github-copilot": [
-    {
-      "id": "claude-haiku-4.5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4.5",
-      "name": "Claude Opus 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4.8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4",
-      "name": "Claude Sonnet 4 (latest)",
-      "contextWindow": 216000
-    },
-    {
-      "id": "claude-sonnet-4.5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 264000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "raptor-mini",
-      "name": "Raptor mini",
-      "contextWindow": 400000
-    }
-  ],
-  "github-models": [
-    {
-      "id": "ai21-labs/ai21-jamba-1.5-large",
-      "name": "AI21 Jamba 1.5 Large",
-      "contextWindow": 256000
-    },
-    {
-      "id": "ai21-labs/ai21-jamba-1.5-mini",
-      "name": "AI21 Jamba 1.5 Mini",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral-ai/codestral-2501",
-      "name": "Codestral 25.01",
-      "contextWindow": 32000
-    },
-    {
-      "id": "cohere/cohere-command-a",
-      "name": "Cohere Command A",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/cohere-command-r",
-      "name": "Cohere Command R",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/cohere-command-r-08-2024",
-      "name": "Cohere Command R 08-2024",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/cohere-command-r-plus",
-      "name": "Cohere Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/cohere-command-r-plus-08-2024",
-      "name": "Cohere Command R+ 08-2024",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-r1",
-      "name": "DeepSeek-R1",
-      "contextWindow": 65536
-    },
-    {
-      "id": "deepseek/deepseek-r1-0528",
-      "name": "DeepSeek-R1-0528",
-      "contextWindow": 65536
-    },
-    {
-      "id": "deepseek/deepseek-v3-0324",
-      "name": "DeepSeek-V3-0324",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1-nano",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xai/grok-3",
-      "name": "Grok 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xai/grok-3-mini",
-      "name": "Grok 3 Mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "core42/jais-30b-chat",
-      "name": "JAIS 30b Chat",
-      "contextWindow": 8192
-    },
-    {
-      "id": "meta/llama-4-maverick-17b-128e-instruct-fp8",
-      "name": "Llama 4 Maverick 17B 128E Instruct FP8",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-4-scout-17b-16e-instruct",
-      "name": "Llama 4 Scout 17B 16E Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.2-11b-vision-instruct",
-      "name": "Llama-3.2-11B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.2-90b-vision-instruct",
-      "name": "Llama-3.2-90B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/mai-ds-r1",
-      "name": "MAI-DS-R1",
-      "contextWindow": 65536
-    },
-    {
-      "id": "meta/meta-llama-3-70b-instruct",
-      "name": "Meta-Llama-3-70B-Instruct",
-      "contextWindow": 8192
-    },
-    {
-      "id": "meta/meta-llama-3-8b-instruct",
-      "name": "Meta-Llama-3-8B-Instruct",
-      "contextWindow": 8192
-    },
-    {
-      "id": "meta/meta-llama-3.1-405b-instruct",
-      "name": "Meta-Llama-3.1-405B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/meta-llama-3.1-70b-instruct",
-      "name": "Meta-Llama-3.1-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/meta-llama-3.1-8b-instruct",
-      "name": "Meta-Llama-3.1-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-ai/ministral-3b",
-      "name": "Ministral 3B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-ai/mistral-large-2411",
-      "name": "Mistral Large 24.11",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-ai/mistral-medium-2505",
-      "name": "Mistral Medium 3 (25.05)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-ai/mistral-nemo",
-      "name": "Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-ai/mistral-small-2503",
-      "name": "Mistral Small 3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-3-medium-128k-instruct",
-      "name": "Phi-3-medium instruct (128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-3-medium-4k-instruct",
-      "name": "Phi-3-medium instruct (4k)",
-      "contextWindow": 4096
-    },
-    {
-      "id": "microsoft/phi-3-mini-128k-instruct",
-      "name": "Phi-3-mini instruct (128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-3-mini-4k-instruct",
-      "name": "Phi-3-mini instruct (4k)",
-      "contextWindow": 4096
-    },
-    {
-      "id": "microsoft/phi-3-small-128k-instruct",
-      "name": "Phi-3-small instruct (128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-3-small-8k-instruct",
-      "name": "Phi-3-small instruct (8k)",
-      "contextWindow": 8192
-    },
-    {
-      "id": "microsoft/phi-3.5-mini-instruct",
-      "name": "Phi-3.5-mini instruct (128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-3.5-moe-instruct",
-      "name": "Phi-3.5-MoE instruct (128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-3.5-vision-instruct",
-      "name": "Phi-3.5-vision instruct (128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-4",
-      "name": "Phi-4",
-      "contextWindow": 16000
-    },
-    {
-      "id": "microsoft/phi-4-mini-instruct",
-      "name": "Phi-4-mini-instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-4-mini-reasoning",
-      "name": "Phi-4-mini-reasoning",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-4-multimodal-instruct",
-      "name": "Phi-4-multimodal-instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "microsoft/phi-4-reasoning",
-      "name": "Phi-4-Reasoning",
-      "contextWindow": 128000
-    }
-  ],
-  "gitlab": [
-    {
-      "id": "duo-chat-haiku-4-5",
-      "name": "Agentic Chat (Claude Haiku 4.5)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "duo-chat-opus-4-5",
-      "name": "Agentic Chat (Claude Opus 4.5)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "duo-chat-opus-4-6",
-      "name": "Agentic Chat (Claude Opus 4.6)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "duo-chat-opus-4-7",
-      "name": "Agentic Chat (Claude Opus 4.7)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "duo-chat-opus-4-8",
-      "name": "Agentic Chat (Claude Opus 4.8)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "duo-chat-sonnet-4-5",
-      "name": "Agentic Chat (Claude Sonnet 4.5)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "duo-chat-sonnet-4-6",
-      "name": "Agentic Chat (Claude Sonnet 4.6)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "duo-chat-gpt-5-codex",
-      "name": "Agentic Chat (GPT-5 Codex)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-mini",
-      "name": "Agentic Chat (GPT-5 Mini)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-1",
-      "name": "Agentic Chat (GPT-5.1)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-2-codex",
-      "name": "Agentic Chat (GPT-5.2 Codex)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-2",
-      "name": "Agentic Chat (GPT-5.2)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-3-codex",
-      "name": "Agentic Chat (GPT-5.3 Codex)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-4-mini",
-      "name": "Agentic Chat (GPT-5.4 Mini)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-4-nano",
-      "name": "Agentic Chat (GPT-5.4 Nano)",
-      "contextWindow": 400000
-    },
-    {
-      "id": "duo-chat-gpt-5-4",
-      "name": "Agentic Chat (GPT-5.4)",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "duo-chat-gpt-5-5",
-      "name": "Agentic Chat (GPT-5.5)",
-      "contextWindow": 1050000
-    }
-  ],
-  "gmicloud": [
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 409600
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 409600
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 409600
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048575
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "zai-org/GLM-5-FP8",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5.1-FP8",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 65536
-    }
-  ],
-  "google": [
-    {
-      "id": "gemini-2.0-flash",
-      "name": "Gemini 2.0 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-flash-latest",
-      "name": "Gemini Flash Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-flash-lite-latest",
-      "name": "Gemini Flash-Lite Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    }
-  ],
-  "google-vertex": [
-    {
-      "id": "claude-3-5-haiku@20241022",
-      "name": "Claude Haiku 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5@20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4@20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1@20250805",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5@20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6@default",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7@default",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8@default",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-3-5-sonnet@20241022",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet@20250219",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4@20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5@20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6@default",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-ai/deepseek-v3.1-maas",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/deepseek-v3.2-maas",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "gemini-2.0-flash",
-      "name": "Gemini 2.0 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-06-17",
-      "name": "Gemini 2.5 Flash Lite Preview 06-17",
-      "contextWindow": 65536
-    },
-    {
-      "id": "gemini-2.5-flash-preview-09-2025",
-      "name": "Gemini 2.5 Flash Preview 09-25",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-flash-latest",
-      "name": "Gemini Flash Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-flash-lite-latest",
-      "name": "Gemini Flash-Lite Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "zai-org/glm-4.7-maas",
-      "name": "GLM-4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5-maas",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai/gpt-oss-120b-maas",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b-maas",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking-maas",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta/llama-3.3-70b-instruct-maas",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-4-maverick-17b-128e-instruct-maas",
-      "name": "Llama 4 Maverick 17B 128E Instruct",
-      "contextWindow": 524288
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-instruct-2507-maas",
-      "name": "Qwen3 235B A22B Instruct",
-      "contextWindow": 262144
-    }
-  ],
-  "google-vertex-anthropic": [
-    {
-      "id": "claude-3-5-haiku@20241022",
-      "name": "Claude Haiku 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5@20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4@20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1@20250805",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5@20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6@default",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7@default",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8@default",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-3-5-sonnet@20241022",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet@20250219",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4@20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5@20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6@default",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    }
-  ],
-  "groq": [
-    {
-      "id": "groq/compound",
-      "name": "Compound",
-      "contextWindow": 131072
-    },
-    {
-      "id": "groq/compound-mini",
-      "name": "Compound Mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-r1-distill-llama-70b",
-      "name": "DeepSeek R1 Distill Llama 70B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gemma2-9b-it",
-      "name": "Gemma 2 9B",
-      "contextWindow": 8192
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct-0905",
-      "name": "Kimi K2 Instruct 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "llama3-70b-8192",
-      "name": "Llama 3 70B",
-      "contextWindow": 8192
-    },
-    {
-      "id": "llama3-8b-8192",
-      "name": "Llama 3 8B",
-      "contextWindow": 8192
-    },
-    {
-      "id": "llama-3.1-8b-instant",
-      "name": "Llama 3.1 8B Instant",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama-3.3-70b-versatile",
-      "name": "Llama 3.3 70B Versatile",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-4-maverick-17b-128e-instruct",
-      "name": "Llama 4 Maverick 17B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-4-scout-17b-16e-instruct",
-      "name": "Llama 4 Scout 17B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral-saba-24b",
-      "name": "Mistral Saba 24B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-qwq-32b",
-      "name": "Qwen QwQ 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-safeguard-20b",
-      "name": "Safety GPT OSS 20B",
-      "contextWindow": 131072
-    }
-  ],
-  "helicone": [
-    {
-      "id": "claude-3-haiku-20240307",
-      "name": "Anthropic: Claude 3 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3.5-haiku",
-      "name": "Anthropic: Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3.5-sonnet-v2",
-      "name": "Anthropic: Claude 3.5 Sonnet v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3.7-sonnet",
-      "name": "Anthropic: Claude 3.7 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.5-haiku",
-      "name": "Anthropic: Claude 4.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "Anthropic: Claude 4.5 Haiku (20251001)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4",
-      "name": "Anthropic: Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1",
-      "name": "Anthropic: Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "Anthropic: Claude Opus 4.1 (20250805)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.5-opus",
-      "name": "Anthropic: Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4",
-      "name": "Anthropic: Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.5-sonnet",
-      "name": "Anthropic: Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "Anthropic: Claude Sonnet 4.5 (20250929)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "deepseek-r1-distill-llama-70b",
-      "name": "DeepSeek R1 Distill Llama 70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-tng-r1t2-chimera",
-      "name": "DeepSeek TNG R1T2 Chimera",
-      "contextWindow": 130000
-    },
-    {
-      "id": "deepseek-v3",
-      "name": "DeepSeek V3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.1-terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Google Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "Google Gemini 2.5 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Google Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-pro-preview",
-      "name": "Google Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "hermes-2-pro-llama-3-8b",
-      "name": "Hermes 2 Pro Llama 3 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-0711",
-      "name": "Kimi K2 (07/11)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-0905",
-      "name": "Kimi K2 (09/05)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "llama-3.1-8b-instant",
-      "name": "Meta Llama 3.1 8B Instant",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama-3.1-8b-instruct",
-      "name": "Meta Llama 3.1 8B Instruct",
-      "contextWindow": 16384
-    },
-    {
-      "id": "llama-3.1-8b-instruct-turbo",
-      "name": "Meta Llama 3.1 8B Instruct Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Meta Llama 3.3 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-versatile",
-      "name": "Meta Llama 3.3 70B Versatile",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama-4-maverick",
-      "name": "Meta Llama 4 Maverick 17B 128E",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama-4-scout",
-      "name": "Meta Llama 4 Scout 17B 16E",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral-small",
-      "name": "Mistral Small 3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-large-2411",
-      "name": "Mistral-Large",
-      "contextWindow": 128000
-    },
-    {
-      "id": "chatgpt-4o-latest",
-      "name": "OpenAI ChatGPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "OpenAI GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "OpenAI GPT-4.1 Mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini-2025-04-14",
-      "name": "OpenAI GPT-4.1 Mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "OpenAI GPT-4.1 Nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o",
-      "name": "OpenAI GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "OpenAI GPT-4o-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "OpenAI GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-chat-latest",
-      "name": "OpenAI GPT-5 Chat Latest",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "OpenAI GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "OpenAI GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "OpenAI GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-chat-latest",
-      "name": "OpenAI GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "OpenAI GPT-OSS 120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-oss-20b",
-      "name": "OpenAI GPT-OSS 20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "o3",
-      "name": "OpenAI o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-mini",
-      "name": "OpenAI o3 Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-pro",
-      "name": "OpenAI o3 Pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini",
-      "name": "OpenAI o4 Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "OpenAI: GPT-5 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "OpenAI: GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "OpenAI: GPT-5.1 Codex Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "qwen3-30b-a3b",
-      "name": "Qwen3 30B A3B",
-      "contextWindow": 41000
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder",
-      "name": "Qwen3 Coder 480B A35B Instruct Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen3-vl-235b-a22b-instruct",
-      "name": "Qwen3 VL 235B A22B Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-3",
-      "name": "xAI Grok 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "grok-3-mini",
-      "name": "xAI Grok 3 Mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "grok-4",
-      "name": "xAI Grok 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-4-fast-non-reasoning",
-      "name": "xAI Grok 4 Fast Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-non-reasoning",
-      "name": "xAI Grok 4.1 Fast Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "xAI Grok 4.1 Fast Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-code-fast-1",
-      "name": "xAI Grok Code Fast 1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-4-fast-reasoning",
-      "name": "xAI: Grok 4 Fast Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "glm-4.6",
-      "name": "Zai GLM-4.6",
-      "contextWindow": 204800
-    }
-  ],
-  "hpc-ai": [
-    {
-      "id": "zai-org/glm-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 202000
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 1000000
-    }
-  ],
-  "huggingface": [
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-0528",
-      "name": "DeepSeek-R1-0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "zai-org/GLM-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/GLM-4.7-Flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct",
-      "name": "Kimi-K2-Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Kimi-K2-Instruct-0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "Kimi-K2-Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi-K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi-K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "XiaomiMiMo/MiMo-V2-Flash",
-      "name": "MiMo-V2-Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen3-235B-A22B-Thinking-2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "name": "Qwen3-Coder-480B-A35B-Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-Next",
-      "name": "Qwen3-Coder-Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "name": "Qwen3-Next-80B-A3B-Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking",
-      "name": "Qwen3-Next-80B-A3B-Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    }
-  ],
-  "iflowcn": [
-    {
-      "id": "deepseek-r1",
-      "name": "DeepSeek-R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3",
-      "name": "DeepSeek-V3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek-V3.2-Exp",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "kimi-k2",
-      "name": "Kimi-K2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "kimi-k2-0905",
-      "name": "Kimi-K2-0905",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-235b",
-      "name": "Qwen3-235B-A22B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct",
-      "name": "Qwen3-235B-A22B-Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen3-235B-A22B-Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3-32B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-coder-plus",
-      "name": "Qwen3-Coder-Plus",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-max",
-      "name": "Qwen3-Max",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-max-preview",
-      "name": "Qwen3-Max-Preview",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-vl-plus",
-      "name": "Qwen3-VL-Plus",
-      "contextWindow": 256000
-    }
-  ],
-  "inception": [
-    {
-      "id": "mercury-2",
-      "name": "Mercury 2",
-      "contextWindow": 128000
-    }
-  ],
-  "inceptron": [
-    {
-      "id": "zai-org/GLM-5.1-FP8",
-      "name": "GLM 5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/llama-3.3-70b-instruct-fp8",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 196608
-    }
-  ],
-  "inference": [
-    {
-      "id": "google/gemma-3",
-      "name": "Google Gemma 3",
-      "contextWindow": 125000
-    },
-    {
-      "id": "meta/llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "meta/llama-3.2-11b-vision-instruct",
-      "name": "Llama 3.2 11B Vision Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "meta/llama-3.2-1b-instruct",
-      "name": "Llama 3.2 1B Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "meta/llama-3.2-3b-instruct",
-      "name": "Llama 3.2 3B Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "mistral/mistral-nemo-12b-instruct",
-      "name": "Mistral Nemo 12B Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "osmosis/osmosis-structure-0.6b",
-      "name": "Osmosis Structure 0.6B",
-      "contextWindow": 4000
-    },
-    {
-      "id": "qwen/qwen-2.5-7b-vision-instruct",
-      "name": "Qwen 2.5 7B Vision Instruct",
-      "contextWindow": 125000
-    }
-  ],
-  "io-net": [
-    {
-      "id": "deepseek-ai/DeepSeek-R1-0528",
-      "name": "DeepSeek R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/Devstral-Small-2505",
-      "name": "Devstral Small 2505",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai-org/GLM-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT-OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT-OSS 20B",
-      "contextWindow": 64000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 32768
-    },
-    {
-      "id": "meta-llama/Llama-3.2-90B-Vision-Instruct",
-      "name": "Llama 3.2 90B Vision Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "name": "Llama 4 Maverick 17B 128E Instruct",
-      "contextWindow": 430000
-    },
-    {
-      "id": "mistralai/Magistral-Small-2506",
-      "name": "Magistral Small 2506",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/Mistral-Large-Instruct-2411",
-      "name": "Mistral Large Instruct 2411",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/Mistral-Nemo-Instruct-2407",
-      "name": "Mistral Nemo Instruct 2407",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-32B-Instruct",
-      "name": "Qwen 2.5 VL 32B Instruct",
-      "contextWindow": 32000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen 3 235B Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Intel/Qwen3-Coder-480B-A35B-Instruct-int4-mixed-ar",
-      "name": "Qwen 3 Coder 480B",
-      "contextWindow": 106000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "name": "Qwen 3 Next 80B Instruct",
-      "contextWindow": 262144
-    }
-  ],
-  "jiekou": [
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "claude-haiku-4-5-20251001",
-      "contextWindow": 20000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "claude-opus-4-1-20250805",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "claude-opus-4-20250514",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "claude-opus-4-5-20251101",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "claude-opus-4-6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "claude-sonnet-4-20250514",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "claude-sonnet-4-5-20250929",
-      "contextWindow": 200000
-    },
-    {
-      "id": "deepseek/deepseek-r1-0528",
-      "name": "DeepSeek R1 0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 163840
-    },
-    {
-      "id": "baidu/ernie-4.5-300b-a47b-paddle",
-      "name": "ERNIE 4.5 300B A47B",
-      "contextWindow": 123000
-    },
-    {
-      "id": "baidu/ernie-4.5-vl-424b-a47b",
-      "name": "ERNIE 4.5 VL 424B A47B",
-      "contextWindow": 123000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "gemini-2.5-flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "gemini-2.5-flash-lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-06-17",
-      "name": "gemini-2.5-flash-lite-preview-06-17",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025",
-      "name": "gemini-2.5-flash-lite-preview-09-2025",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-preview-05-20",
-      "name": "gemini-2.5-flash-preview-05-20",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "gemini-2.5-pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro-preview-06-05",
-      "name": "gemini-2.5-pro-preview-06-05",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "gemini-3-flash-preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-pro-preview",
-      "name": "gemini-3-pro-preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "zai-org/glm-4.5v",
-      "name": "GLM 4.5V",
-      "contextWindow": 65536
-    },
-    {
-      "id": "zai-org/glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-5-chat-latest",
-      "name": "gpt-5-chat-latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "gpt-5-codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "gpt-5-mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "gpt-5-nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-pro",
-      "name": "gpt-5-pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "gpt-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "gpt-5.1-codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "gpt-5.1-codex-max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "gpt-5.1-codex-mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "gpt-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "gpt-5.2-codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-pro",
-      "name": "gpt-5.2-pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "grok-4-0709",
-      "name": "grok-4-0709",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-4-1-fast-non-reasoning",
-      "name": "grok-4-1-fast-non-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "grok-4-1-fast-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-fast-non-reasoning",
-      "name": "grok-4-fast-non-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-fast-reasoning",
-      "name": "grok-4-fast-reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-code-fast-1",
-      "name": "grok-code-fast-1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimaxai/minimax-m1-80k",
-      "name": "MiniMax M1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "Minimax M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "o3",
-      "name": "o3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "qwen/qwen3-coder-next",
-      "name": "qwen/qwen3-coder-next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen3 235B A22b Thinking 2507",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 65536
-    },
-    {
-      "id": "xiaomimimo/mimo-v2-flash",
-      "name": "XiaomiMiMo/MiMo-V2-Flash",
-      "contextWindow": 262144
-    }
-  ],
-  "kilo": [
-    {
-      "id": "ai21/jamba-large-1.7",
-      "name": "AI21: Jamba Large 1.7",
-      "contextWindow": 256000
-    },
-    {
-      "id": "amazon/nova-2-lite-v1",
-      "name": "Amazon: Nova 2 Lite",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "amazon/nova-lite-v1",
-      "name": "Amazon: Nova Lite 1.0",
-      "contextWindow": 300000
-    },
-    {
-      "id": "amazon/nova-micro-v1",
-      "name": "Amazon: Nova Micro 1.0",
-      "contextWindow": 128000
-    },
-    {
-      "id": "amazon/nova-premier-v1",
-      "name": "Amazon: Nova Premier 1.0",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "amazon/nova-pro-v1",
-      "name": "Amazon: Nova Pro 1.0",
-      "contextWindow": 300000
-    },
-    {
-      "id": "anthropic/claude-3-haiku",
-      "name": "Anthropic: Claude 3 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.5-haiku",
-      "name": "Anthropic: Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-haiku-4.5",
-      "name": "Anthropic: Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "~anthropic/claude-haiku-latest",
-      "name": "Anthropic: Claude Haiku Latest",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Anthropic: Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Anthropic: Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.5",
-      "name": "Anthropic: Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Anthropic: Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6-fast",
-      "name": "Anthropic: Claude Opus 4.6 (Fast)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Anthropic: Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7-fast",
-      "name": "Anthropic: Claude Opus 4.7 (Fast)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "~anthropic/claude-opus-latest",
-      "name": "Anthropic: Claude Opus Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Anthropic: Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.5",
-      "name": "Anthropic: Claude Sonnet 4.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Anthropic: Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "~anthropic/claude-sonnet-latest",
-      "name": "Anthropic: Claude Sonnet Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "arcee-ai/trinity-large-thinking",
-      "name": "Arcee AI: Trinity Large Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "arcee-ai/trinity-mini",
-      "name": "Arcee AI: Trinity Mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "arcee-ai/virtuoso-large",
-      "name": "Arcee AI: Virtuoso Large",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openrouter/auto",
-      "name": "Auto Router",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "baidu/cobuddy:free",
-      "name": "Baidu: CoBuddy (free)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "baidu/ernie-4.5-21b-a3b",
-      "name": "Baidu: ERNIE 4.5 21B A3B",
-      "contextWindow": 120000
-    },
-    {
-      "id": "baidu/ernie-4.5-vl-28b-a3b",
-      "name": "Baidu: ERNIE 4.5 VL 28B A3B",
-      "contextWindow": 30000
-    },
-    {
-      "id": "bytedance-seed/seed-1.6",
-      "name": "ByteDance Seed: Seed 1.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "bytedance-seed/seed-1.6-flash",
-      "name": "ByteDance Seed: Seed 1.6 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "bytedance-seed/seed-2.0-lite",
-      "name": "ByteDance Seed: Seed-2.0-Lite",
-      "contextWindow": 262144
-    },
-    {
-      "id": "bytedance-seed/seed-2.0-mini",
-      "name": "ByteDance Seed: Seed-2.0-Mini",
-      "contextWindow": 262144
-    },
-    {
-      "id": "cohere/command-r-08-2024",
-      "name": "Cohere: Command R (08-2024)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/command-r-plus-08-2024",
-      "name": "Cohere: Command R+ (08-2024)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/command-r7b-12-2024",
-      "name": "Cohere: Command R7B (12-2024)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-chat",
-      "name": "DeepSeek: DeepSeek V3",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-chat-v3-0324",
-      "name": "DeepSeek: DeepSeek V3 0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-chat-v3.1",
-      "name": "DeepSeek: DeepSeek V3.1",
-      "contextWindow": 32768
-    },
-    {
-      "id": "deepseek/deepseek-v3.1-terminus",
-      "name": "DeepSeek: DeepSeek V3.1 Terminus",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.2",
-      "name": "DeepSeek: DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-exp",
-      "name": "DeepSeek: DeepSeek V3.2 Exp",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek: DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek: DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-r1",
-      "name": "DeepSeek: R1",
-      "contextWindow": 64000
-    },
-    {
-      "id": "deepseek/deepseek-r1-0528",
-      "name": "DeepSeek: R1 0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "essentialai/rnj-1-instruct",
-      "name": "EssentialAI: Rnj 1 Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "openrouter/free",
-      "name": "Free Models Router",
-      "contextWindow": 200000
-    },
-    {
-      "id": "google/gemini-2.0-flash-001",
-      "name": "Google: Gemini 2.0 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.0-flash-lite-001",
-      "name": "Google: Gemini 2.0 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Google: Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Google: Gemini 2.5 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Google: Gemini 2.5 Flash Lite Preview 09-2025",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Google: Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro-preview-05-06",
-      "name": "Google: Gemini 2.5 Pro Preview 05-06",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro-preview",
-      "name": "Google: Gemini 2.5 Pro Preview 06-05",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Google: Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Google: Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite-preview",
-      "name": "Google: Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Google: Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-customtools",
-      "name": "Google: Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Google: Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "~google/gemini-flash-latest",
-      "name": "Google: Gemini Flash Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "~google/gemini-pro-latest",
-      "name": "Google: Gemini Pro Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemma-3-27b-it",
-      "name": "Google: Gemma 3 27B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Google: Gemma 4 26B A4B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Google: Gemma 4 31B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "ibm-granite/granite-4.1-8b",
-      "name": "IBM: Granite 4.1 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "inception/mercury-2",
-      "name": "Inception: Mercury 2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "inclusionai/ling-2.6-flash",
-      "name": "inclusionAI: Ling-2.6 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "inclusionai/ling-2.6-1t",
-      "name": "inclusionAI: Ling-2.6-1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "inclusionai/ring-2.6-1t",
-      "name": "inclusionAI: Ring-2.6-1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kilo-auto/balanced",
-      "name": "Kilo Auto Balanced",
-      "contextWindow": 204800
-    },
-    {
-      "id": "kilo-auto/free",
-      "name": "Kilo Auto Free",
-      "contextWindow": 204800
-    },
-    {
-      "id": "kilo-auto/frontier",
-      "name": "Kilo Auto Frontier",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "kilo-auto/small",
-      "name": "Kilo Auto Small",
-      "contextWindow": 400000
-    },
-    {
-      "id": "kwaipilot/kat-coder-pro-v2",
-      "name": "Kwaipilot: KAT-Coder-Pro V2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "meta-llama/llama-3-8b-instruct",
-      "name": "Meta: Llama 3 8B Instruct",
-      "contextWindow": 8192
-    },
-    {
-      "id": "meta-llama/llama-3.1-70b-instruct",
-      "name": "Meta: Llama 3.1 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-3.1-8b-instruct",
-      "name": "Meta: Llama 3.1 8B Instruct",
-      "contextWindow": 16384
-    },
-    {
-      "id": "meta-llama/llama-3.3-70b-instruct",
-      "name": "Meta: Llama 3.3 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-4-maverick",
-      "name": "Meta: Llama 4 Maverick",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "meta-llama/llama-4-scout",
-      "name": "Meta: Llama 4 Scout",
-      "contextWindow": 327680
-    },
-    {
-      "id": "minimax/minimax-m1",
-      "name": "MiniMax: MiniMax M1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax: MiniMax M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax: MiniMax M2.1",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax: MiniMax M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax: MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistralai/mistral-large",
-      "name": "Mistral Large",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/mistral-large-2407",
-      "name": "Mistral Large 2407",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-large-2411",
-      "name": "Mistral Large 2411",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/codestral-2508",
-      "name": "Mistral: Codestral 2508",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistralai/devstral-2512",
-      "name": "Mistral: Devstral 2 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/devstral-medium",
-      "name": "Mistral: Devstral Medium",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/devstral-small",
-      "name": "Mistral: Devstral Small 1.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/ministral-14b-2512",
-      "name": "Mistral: Ministral 3 14B 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/ministral-3b-2512",
-      "name": "Mistral: Ministral 3 3B 2512",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/ministral-8b-2512",
-      "name": "Mistral: Ministral 3 8B 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-large-2512",
-      "name": "Mistral: Mistral Large 3 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-medium-3",
-      "name": "Mistral: Mistral Medium 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-medium-3.1",
-      "name": "Mistral: Mistral Medium 3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-medium-3-5",
-      "name": "Mistral: Mistral Medium 3.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-nemo",
-      "name": "Mistral: Mistral Nemo",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-small-24b-instruct-2501",
-      "name": "Mistral: Mistral Small 3",
-      "contextWindow": 32768
-    },
-    {
-      "id": "mistralai/mistral-small-3.2-24b-instruct",
-      "name": "Mistral: Mistral Small 3.2 24B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-small-2603",
-      "name": "Mistral: Mistral Small 4",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mixtral-8x22b-instruct",
-      "name": "Mistral: Mixtral 8x22B Instruct",
-      "contextWindow": 65536
-    },
-    {
-      "id": "mistralai/pixtral-large-2411",
-      "name": "Mistral: Pixtral Large 2411",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-saba",
-      "name": "Mistral: Saba",
-      "contextWindow": 32768
-    },
-    {
-      "id": "mistralai/voxtral-small-24b-2507",
-      "name": "Mistral: Voxtral Small 24B 2507",
-      "contextWindow": 32000
-    },
-    {
-      "id": "moonshotai/kimi-k2",
-      "name": "MoonshotAI: Kimi K2 0711",
-      "contextWindow": 131000
-    },
-    {
-      "id": "moonshotai/kimi-k2-0905",
-      "name": "MoonshotAI: Kimi K2 0905",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "MoonshotAI: Kimi K2 Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "MoonshotAI: Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "MoonshotAI: Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "~moonshotai/kimi-latest",
-      "name": "MoonshotAI: Kimi Latest",
-      "contextWindow": 262142
-    },
-    {
-      "id": "nex-agi/deepseek-v3.1-nex-n1",
-      "name": "Nex AGI: DeepSeek V3.1 Nex N1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
-      "name": "NVIDIA: Llama 3.3 Nemotron Super 49B V1.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-30b-a3b",
-      "name": "NVIDIA: Nemotron 3 Nano 30B A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b",
-      "name": "NVIDIA: Nemotron 3 Super",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b:free",
-      "name": "NVIDIA: Nemotron 3 Super (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-nano-9b-v2",
-      "name": "NVIDIA: Nemotron Nano 9B V2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-chat-latest",
-      "name": "OpenAI: GPT Chat Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "~openai/gpt-latest",
-      "name": "OpenAI: GPT Latest",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "~openai/gpt-mini-latest",
-      "name": "OpenAI: GPT Mini Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-3.5-turbo",
-      "name": "OpenAI: GPT-3.5 Turbo",
-      "contextWindow": 16385
-    },
-    {
-      "id": "openai/gpt-3.5-turbo-0613",
-      "name": "OpenAI: GPT-3.5 Turbo (older v0613)",
-      "contextWindow": 4095
-    },
-    {
-      "id": "openai/gpt-3.5-turbo-16k",
-      "name": "OpenAI: GPT-3.5 Turbo 16k",
-      "contextWindow": 16385
-    },
-    {
-      "id": "openai/gpt-4",
-      "name": "OpenAI: GPT-4",
-      "contextWindow": 8191
-    },
-    {
-      "id": "openai/gpt-4-0314",
-      "name": "OpenAI: GPT-4 (older v0314)",
-      "contextWindow": 8191
-    },
-    {
-      "id": "openai/gpt-4-turbo",
-      "name": "OpenAI: GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4-1106-preview",
-      "name": "OpenAI: GPT-4 Turbo (older v1106)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4-turbo-preview",
-      "name": "OpenAI: GPT-4 Turbo Preview",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "OpenAI: GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "OpenAI: GPT-4.1 Mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "OpenAI: GPT-4.1 Nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "OpenAI: GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-05-13",
-      "name": "OpenAI: GPT-4o (2024-05-13)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-08-06",
-      "name": "OpenAI: GPT-4o (2024-08-06)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-11-20",
-      "name": "OpenAI: GPT-4o (2024-11-20)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-audio-preview",
-      "name": "OpenAI: GPT-4o Audio",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "OpenAI: GPT-4o-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini-2024-07-18",
-      "name": "OpenAI: GPT-4o-mini (2024-07-18)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "OpenAI: GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "OpenAI: GPT-5 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-image",
-      "name": "OpenAI: GPT-5 Image",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-image-mini",
-      "name": "OpenAI: GPT-5 Image Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "OpenAI: GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "OpenAI: GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-pro",
-      "name": "OpenAI: GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "OpenAI: GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-chat",
-      "name": "OpenAI: GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "OpenAI: GPT-5.1-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "OpenAI: GPT-5.1-Codex-Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "OpenAI: GPT-5.1-Codex-Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "OpenAI: GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-chat",
-      "name": "OpenAI: GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "OpenAI: GPT-5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "OpenAI: GPT-5.2-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-chat",
-      "name": "OpenAI: GPT-5.3 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "OpenAI: GPT-5.3-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "OpenAI: GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "OpenAI: GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "OpenAI: GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "OpenAI: GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "OpenAI: GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5-pro",
-      "name": "OpenAI: GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "OpenAI: gpt-oss-120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "OpenAI: gpt-oss-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-safeguard-20b",
-      "name": "OpenAI: gpt-oss-safeguard-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/o1",
-      "name": "OpenAI: o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3",
-      "name": "OpenAI: o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-deep-research",
-      "name": "OpenAI: o3 Deep Research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "OpenAI: o3 Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini-high",
-      "name": "OpenAI: o3 Mini High",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-pro",
-      "name": "OpenAI: o3 Pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "OpenAI: o4 Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini-deep-research",
-      "name": "OpenAI: o4 Mini Deep Research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini-high",
-      "name": "OpenAI: o4 Mini High",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openrouter/owl-alpha",
-      "name": "Owl Alpha",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "poolside/laguna-m.1:free",
-      "name": "Poolside: Laguna M.1 (free)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "poolside/laguna-xs.2:free",
-      "name": "Poolside: Laguna XS.2 (free)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "prime-intellect/intellect-3",
-      "name": "Prime Intellect: INTELLECT-3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen-plus-2025-07-28",
-      "name": "Qwen: Qwen Plus 0728",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-plus-2025-07-28:thinking",
-      "name": "Qwen: Qwen Plus 0728 (thinking)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-plus",
-      "name": "Qwen: Qwen-Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-2.5-7b-instruct",
-      "name": "Qwen: Qwen2.5 7B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen/qwen3-14b",
-      "name": "Qwen: Qwen3 14B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b",
-      "name": "Qwen: Qwen3 235B A22B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-2507",
-      "name": "Qwen: Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen: Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b",
-      "name": "Qwen: Qwen3 30B A3B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b-instruct-2507",
-      "name": "Qwen: Qwen3 30B A3B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b-thinking-2507",
-      "name": "Qwen: Qwen3 30B A3B Thinking 2507",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen/qwen3-32b",
-      "name": "Qwen: Qwen3 32B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-8b",
-      "name": "Qwen: Qwen3 8B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen: Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 160000
-    },
-    {
-      "id": "qwen/qwen3-coder",
-      "name": "Qwen: Qwen3 Coder 480B A35B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-coder-flash",
-      "name": "Qwen: Qwen3 Coder Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3-coder-next",
-      "name": "Qwen: Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-coder-plus",
-      "name": "Qwen: Qwen3 Coder Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3-max",
-      "name": "Qwen: Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-max-thinking",
-      "name": "Qwen: Qwen3 Max Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-instruct",
-      "name": "Qwen: Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-thinking",
-      "name": "Qwen: Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-235b-a22b-instruct",
-      "name": "Qwen: Qwen3 VL 235B A22B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-vl-235b-a22b-thinking",
-      "name": "Qwen: Qwen3 VL 235B A22B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-30b-a3b-instruct",
-      "name": "Qwen: Qwen3 VL 30B A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-30b-a3b-thinking",
-      "name": "Qwen: Qwen3 VL 30B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-32b-instruct",
-      "name": "Qwen: Qwen3 VL 32B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-8b-instruct",
-      "name": "Qwen: Qwen3 VL 8B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-8b-thinking",
-      "name": "Qwen: Qwen3 VL 8B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3.5-397b-a17b",
-      "name": "Qwen: Qwen3.5 397B A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-plus-02-15",
-      "name": "Qwen: Qwen3.5 Plus 2026-02-15",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.5-plus-20260420",
-      "name": "Qwen: Qwen3.5 Plus 2026-04-20",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.5-122b-a10b",
-      "name": "Qwen: Qwen3.5-122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-27b",
-      "name": "Qwen: Qwen3.5-27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-35b-a3b",
-      "name": "Qwen: Qwen3.5-35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-9b",
-      "name": "Qwen: Qwen3.5-9B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen/qwen3.5-flash-02-23",
-      "name": "Qwen: Qwen3.5-Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.6-27b",
-      "name": "Qwen: Qwen3.6 27B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen/qwen3.6-flash",
-      "name": "Qwen: Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.6-max-preview",
-      "name": "Qwen: Qwen3.6 Max Preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.6-plus",
-      "name": "Qwen: Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.7-max",
-      "name": "Qwen: Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-2.5-72b-instruct",
-      "name": "Qwen2.5 72B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "rekaai/reka-edge",
-      "name": "Reka Edge",
-      "contextWindow": 16384
-    },
-    {
-      "id": "relace/relace-search",
-      "name": "Relace: Relace Search",
-      "contextWindow": 256000
-    },
-    {
-      "id": "sao10k/l3-euryale-70b",
-      "name": "Sao10k: Llama 3 Euryale 70B v2.1",
-      "contextWindow": 8192
-    },
-    {
-      "id": "sao10k/l3.1-euryale-70b",
-      "name": "Sao10K: Llama 3.1 Euryale 70B v2.2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "stealth/claude-opus-4.6",
-      "name": "Stealth: Claude Opus 4.6 (20% off)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "stealth/claude-opus-4.7",
-      "name": "Stealth: Claude Opus 4.7 (20% off)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "stealth/claude-sonnet-4.6",
-      "name": "Stealth: Claude Sonnet 4.6 (20% off)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "stepfun/step-3.5-flash",
-      "name": "StepFun: Step 3.5 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "tencent/hy3-preview",
-      "name": "Tencent: Hy3 Preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "thedrummer/rocinante-12b",
-      "name": "TheDrummer: Rocinante 12B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "thedrummer/unslopnemo-12b",
-      "name": "TheDrummer: UnslopNemo 12B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "upstage/solar-pro-3",
-      "name": "Upstage: Solar Pro 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "x-ai/grok-4.20",
-      "name": "xAI: Grok 4.20",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.3",
-      "name": "xAI: Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "x-ai/grok-build-0.1",
-      "name": "xAI: Grok Build 0.1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "xiaomi/mimo-v2.5-pro",
-      "name": "Xiaomi: MiMo V2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi/mimo-v2-flash",
-      "name": "Xiaomi: MiMo-V2-Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomi/mimo-v2-omni",
-      "name": "Xiaomi: MiMo-V2-Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomi/mimo-v2-pro",
-      "name": "Xiaomi: MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi/mimo-v2.5",
-      "name": "Xiaomi: MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "z-ai/glm-4-32b",
-      "name": "Z.ai: GLM 4 32B ",
-      "contextWindow": 128000
-    },
-    {
-      "id": "z-ai/glm-4.5",
-      "name": "Z.ai: GLM 4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.5-air",
-      "name": "Z.ai: GLM 4.5 Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.5v",
-      "name": "Z.ai: GLM 4.5V",
-      "contextWindow": 65536
-    },
-    {
-      "id": "z-ai/glm-4.6",
-      "name": "Z.ai: GLM 4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "z-ai/glm-4.6v",
-      "name": "Z.ai: GLM 4.6V",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.7",
-      "name": "Z.ai: GLM 4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-4.7-flash",
-      "name": "Z.ai: GLM 4.7 Flash",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5",
-      "name": "Z.ai: GLM 5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5-turbo",
-      "name": "Z.ai: GLM 5 Turbo",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5.1",
-      "name": "Z.ai: GLM 5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5v-turbo",
-      "name": "Z.ai: GLM 5V Turbo",
-      "contextWindow": 202752
-    }
-  ],
-  "kimi-for-coding": [
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "k2p5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "k2p6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    }
-  ],
-  "kuae-cloud-coding-plan": [
-    {
-      "id": "GLM-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    }
-  ],
-  "lilac": [
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262100
-    },
-    {
-      "id": "zai-org/glm-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 202800
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimaxai/minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    }
-  ],
-  "llama": [
-    {
-      "id": "cerebras-llama-4-maverick-17b-128e-instruct",
-      "name": "Cerebras-Llama-4-Maverick-17B-128E-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cerebras-llama-4-scout-17b-16e-instruct",
-      "name": "Cerebras-Llama-4-Scout-17B-16E-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "groq-llama-4-maverick-17b-128e-instruct",
-      "name": "Groq-Llama-4-Maverick-17B-128E-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-8b-instruct",
-      "name": "Llama-3.3-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-4-maverick-17b-128e-instruct-fp8",
-      "name": "Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-4-scout-17b-16e-instruct-fp8",
-      "name": "Llama-4-Scout-17B-16E-Instruct-FP8",
-      "contextWindow": 128000
-    }
-  ],
-  "llmgateway": [
-    {
-      "id": "auto",
-      "name": "Auto Route",
-      "contextWindow": 128000
-    },
-    {
-      "id": "claude-3-opus",
-      "name": "Claude 3 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-haiku",
-      "name": "Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet",
-      "name": "Claude 3.7 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-3-5-sonnet-20241022",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet-20250219",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "custom",
-      "name": "Custom Model",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "devstral-2512",
-      "name": "Devstral 2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "devstral-small-2507",
-      "name": "Devstral Small",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gemini-2.0-flash",
-      "name": "Gemini 2.0 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-pro-latest",
-      "name": "Gemini Pro Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "glm-4-32b-0414-128k",
-      "name": "GLM-4 32B (0414-128k)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-airx",
-      "name": "GLM-4.5 AirX",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.5-x",
-      "name": "GLM-4.5 X",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-flash",
-      "name": "GLM-4.5-Flash",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5v",
-      "name": "GLM-4.5V",
-      "contextWindow": 64000
-    },
-    {
-      "id": "glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.6v-flash",
-      "name": "GLM-4.6V Flash",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.6v-flashx",
-      "name": "GLM-4.6V FlashX",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-4.7-flashx",
-      "name": "GLM-4.7-FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8192
-    },
-    {
-      "id": "gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-chat-latest",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-pro",
-      "name": "GPT-5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-chat-latest",
-      "name": "GPT-5.3 Chat (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok-4-0709",
-      "name": "Grok 4 (0709)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-4-fast-reasoning",
-      "name": "Grok 4 Fast Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "Grok 4.1 Fast Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-20-beta-0309-non-reasoning",
-      "name": "Grok 4.20 (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-20-non-reasoning",
-      "name": "Grok 4.20 (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-20-beta-0309-reasoning",
-      "name": "Grok 4.20 (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-20-reasoning",
-      "name": "Grok 4.20 (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "kimi-k2",
-      "name": "Kimi K2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking-turbo",
-      "name": "Kimi K2 Thinking Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-4-scout",
-      "name": "Llama 4 Scout",
-      "contextWindow": 32768
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mimo-v2-flash",
-      "name": "MiMo-V2-Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-omni",
-      "name": "MiMo-V2-Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimax-m2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax-m2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistral-large-latest",
-      "name": "Mistral Large (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-large-2512",
-      "name": "Mistral Large 3",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-small-2506",
-      "name": "Mistral Small 3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "pixtral-large-latest",
-      "name": "Pixtral Large (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen-coder-plus",
-      "name": "Qwen Coder Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-flash",
-      "name": "Qwen Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-max",
-      "name": "Qwen Max",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-max-latest",
-      "name": "Qwen Max Latest",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-plus",
-      "name": "Qwen Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-plus-latest",
-      "name": "Qwen Plus Latest",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-turbo",
-      "name": "Qwen Turbo",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-omni-turbo",
-      "name": "Qwen-Omni Turbo",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen-vl-max",
-      "name": "Qwen-VL Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-vl-plus",
-      "name": "Qwen-VL Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-vl-32b-instruct",
-      "name": "Qwen2.5 VL 32B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen2-5-vl-72b-instruct",
-      "name": "Qwen2.5-VL 72B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-235b-a22b-fp8",
-      "name": "Qwen3 235B A22B FP8",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen3 235B A22B Instruct (2507)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen3 235B A22B Thinking (2507)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-30b-a3b-fp8",
-      "name": "Qwen3 30B A3B FP8",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-30b-a3b-instruct-2507",
-      "name": "Qwen3 30B A3B Instruct (2507)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-30b-a3b-thinking-2507",
-      "name": "Qwen3 30B A3B Thinking (2507)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-32b-fp8",
-      "name": "Qwen3 32B FP8",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-4b-fp8",
-      "name": "Qwen3 4B FP8",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-coder-flash",
-      "name": "Qwen3 Coder Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-max-2026-01-23",
-      "name": "Qwen3 Max (2026-01-23)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-vl-235b-a22b-instruct",
-      "name": "Qwen3 VL 235B A22B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-235b-a22b-thinking",
-      "name": "Qwen3 VL 235B A22B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-30b-a3b-instruct",
-      "name": "Qwen3 VL 30B A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-30b-a3b-thinking",
-      "name": "Qwen3 VL 30B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-flash",
-      "name": "Qwen3 VL Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3-Coder 30B-A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3-Coder 480B-A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3-Next 80B-A3B (Thinking)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3-Next 80B-A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-plus",
-      "name": "Qwen3-VL Plus",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen35-397b-a17b",
-      "name": "Qwen3.5 397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-35b-a3b",
-      "name": "Qwen3.6 35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-max-preview",
-      "name": "Qwen3.6 Max Preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwq-plus",
-      "name": "QwQ Plus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "seed-1-6-250615",
-      "name": "Seed 1.6 (250615)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "seed-1-6-250915",
-      "name": "Seed 1.6 (250915)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "seed-1-6-flash-250715",
-      "name": "Seed 1.6 Flash (250715)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "seed-1-8-251228",
-      "name": "Seed 1.8 (251228)",
-      "contextWindow": 256000
-    }
-  ],
-  "lmstudio": [
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b-2507",
-      "name": "Qwen3 30B A3B 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-coder-30b",
-      "name": "Qwen3 Coder 30B",
-      "contextWindow": 262144
-    }
-  ],
-  "lucidquery": [
-    {
-      "id": "lucidnova-rf1-100b",
-      "name": "LucidNova RF1 100B",
-      "contextWindow": 120000
-    },
-    {
-      "id": "lucidquery-nexus-coder",
-      "name": "LucidQuery Nexus Coder",
-      "contextWindow": 250000
-    }
-  ],
-  "meganova": [
-    {
-      "id": "deepseek-ai/DeepSeek-V3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2-Exp",
-      "name": "DeepSeek V3.2 Exp",
-      "contextWindow": 164000
-    },
-    {
-      "id": "zai-org/GLM-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "XiaomiMiMo/MiMo-V2-Flash",
-      "name": "MiMo V2 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistralai/Mistral-Nemo-Instruct-2407",
-      "name": "Mistral Nemo Instruct 2407",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-      "name": "Mistral Small 3.2 24B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-32B-Instruct",
-      "name": "Qwen2.5 VL 32B Instruct",
-      "contextWindow": 16384
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3.5-Plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    }
-  ],
-  "merge-gateway": [
-    {
-      "id": "anthropic/claude-haiku-4-5-20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-1-20250805",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-5-20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-5-20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistral/codestral-latest",
-      "name": "Codestral (latest)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "cohere/command-a-03-2025",
-      "name": "Command A",
-      "contextWindow": 256000
-    },
-    {
-      "id": "cohere/command-r-08-2024",
-      "name": "Command R",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/command-r-plus-08-2024",
-      "name": "Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/command-r7b-12-2024",
-      "name": "Command R7B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistral/devstral-2512",
-      "name": "Devstral 2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral/devstral-medium-latest",
-      "name": "Devstral 2 (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral/devstral-medium-2507",
-      "name": "Devstral Medium",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/devstral-small-2507",
-      "name": "Devstral Small",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-flash-latest",
-      "name": "Gemini Flash Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-flash-lite-latest",
-      "name": "Gemini Flash-Lite Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai/glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai/glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai/glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai/glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai/glm-4.7-flashx",
-      "name": "GLM-4.7-FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai/glm-5-turbo",
-      "name": "GLM-5-Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-05-13",
-      "name": "GPT-4o (2024-05-13)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-08-06",
-      "name": "GPT-4o (2024-08-06)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-11-20",
-      "name": "GPT-4o (2024-11-20)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-chat-latest",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-chat-latest",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.3-chat-latest",
-      "name": "GPT-5.3 Chat (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "xai/grok-4.20-0309-reasoning",
-      "name": "Grok 4.20 (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistral/magistral-medium-latest",
-      "name": "Magistral Medium (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistral/mistral-large-latest",
-      "name": "Mistral Large (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral/mistral-large-2411",
-      "name": "Mistral Large 2.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral/mistral-large-2512",
-      "name": "Mistral Large 3",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral/mistral-medium-latest",
-      "name": "Mistral Medium (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral/mistral-medium-2505",
-      "name": "Mistral Medium 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral/mistral-small-latest",
-      "name": "Mistral Small (latest)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai/o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "mistral/pixtral-large-latest",
-      "name": "Pixtral Large (latest)",
-      "contextWindow": 128000
-    }
-  ],
-  "minimax": [
-    {
-      "id": "MiniMax-M2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M3",
-      "name": "MiniMax-M3",
-      "contextWindow": 512000
-    }
-  ],
-  "minimax-cn": [
-    {
-      "id": "MiniMax-M2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M3",
-      "name": "MiniMax-M3",
-      "contextWindow": 512000
-    }
-  ],
-  "minimax-cn-coding-plan": [
-    {
-      "id": "MiniMax-M2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M3",
-      "name": "MiniMax-M3",
-      "contextWindow": 512000
-    }
-  ],
-  "minimax-coding-plan": [
-    {
-      "id": "MiniMax-M2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M3",
-      "name": "MiniMax-M3",
-      "contextWindow": 512000
-    }
-  ],
-  "mistral": [
-    {
-      "id": "codestral-latest",
-      "name": "Codestral (latest)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "devstral-latest",
-      "name": "Devstral 2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "devstral-2512",
-      "name": "Devstral 2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "devstral-medium-latest",
-      "name": "Devstral 2 (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "devstral-medium-2507",
-      "name": "Devstral Medium",
-      "contextWindow": 128000
-    },
-    {
-      "id": "devstral-small-2507",
-      "name": "Devstral Small",
-      "contextWindow": 128000
-    },
-    {
-      "id": "labs-devstral-small-2512",
-      "name": "Devstral Small 2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "devstral-small-2505",
-      "name": "Devstral Small 2505",
-      "contextWindow": 128000
-    },
-    {
-      "id": "magistral-medium-latest",
-      "name": "Magistral Medium (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "magistral-small",
-      "name": "Magistral Small",
-      "contextWindow": 128000
-    },
-    {
-      "id": "ministral-3b-latest",
-      "name": "Ministral 3B (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "ministral-8b-latest",
-      "name": "Ministral 8B (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "open-mistral-7b",
-      "name": "Mistral 7B",
-      "contextWindow": 8000
-    },
-    {
-      "id": "mistral-large-latest",
-      "name": "Mistral Large (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-large-2411",
-      "name": "Mistral Large 2.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral-large-2512",
-      "name": "Mistral Large 3",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-medium-latest",
-      "name": "Mistral Medium (latest)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-medium-2505",
-      "name": "Mistral Medium 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral-medium-2508",
-      "name": "Mistral Medium 3.1",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-medium-2604",
-      "name": "Mistral Medium 3.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-nemo",
-      "name": "Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-small-latest",
-      "name": "Mistral Small (latest)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral-small-2506",
-      "name": "Mistral Small 3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral-small-2603",
-      "name": "Mistral Small 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "open-mixtral-8x22b",
-      "name": "Mixtral 8x22B",
-      "contextWindow": 64000
-    },
-    {
-      "id": "open-mixtral-8x7b",
-      "name": "Mixtral 8x7B",
-      "contextWindow": 32000
-    },
-    {
-      "id": "open-mistral-nemo",
-      "name": "Open Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "pixtral-12b",
-      "name": "Pixtral 12B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "pixtral-large-latest",
-      "name": "Pixtral Large (latest)",
-      "contextWindow": 128000
-    }
-  ],
-  "mixlayer": [
-    {
-      "id": "qwen/qwen3.5-122b-a10b",
-      "name": "Qwen3.5 122B A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-27b",
-      "name": "Qwen3.5 27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-35b-a3b",
-      "name": "Qwen3.5 35B A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-9b",
-      "name": "Qwen3.5 9B",
-      "contextWindow": 262144
-    }
-  ],
-  "moark": [
-    {
-      "id": "GLM-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    }
-  ],
-  "modelscope": [
-    {
-      "id": "ZhipuAI/GLM-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "ZhipuAI/GLM-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 202752
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen3 30B A3B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Thinking-2507",
-      "name": "Qwen3 30B A3B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen3-235B-A22B-Thinking-2507",
-      "contextWindow": 262144
-    }
-  ],
-  "moonshotai": [
-    {
-      "id": "kimi-k2-0711-preview",
-      "name": "Kimi K2 0711",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-0905-preview",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking-turbo",
-      "name": "Kimi K2 Thinking Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-turbo-preview",
-      "name": "Kimi K2 Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    }
-  ],
-  "moonshotai-cn": [
-    {
-      "id": "kimi-k2-0711-preview",
-      "name": "Kimi K2 0711",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-0905-preview",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking-turbo",
-      "name": "Kimi K2 Thinking Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-turbo-preview",
-      "name": "Kimi K2 Turbo",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    }
-  ],
-  "nano-gpt": [
-    {
-      "id": "azure-gpt-4o",
-      "name": "Azure gpt-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "azure-gpt-4o-mini",
-      "name": "Azure gpt-4o-mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "claude-3-5-haiku-20241022",
-      "name": "Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "Claude 4 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-thinking",
-      "name": "Claude 4 Opus Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-thinking:1024",
-      "name": "Claude 4 Opus Thinking (1K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-thinking:32768",
-      "name": "Claude 4 Opus Thinking (32K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-thinking:32000",
-      "name": "Claude 4 Opus Thinking (32K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-thinking:8192",
-      "name": "Claude 4 Opus Thinking (8K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "Claude 4 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-thinking",
-      "name": "Claude 4 Sonnet Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-thinking:1024",
-      "name": "Claude 4 Sonnet Thinking (1K)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-thinking:32768",
-      "name": "Claude 4 Sonnet Thinking (32K)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-thinking:64000",
-      "name": "Claude 4 Sonnet Thinking (64K)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-thinking:8192",
-      "name": "Claude 4 Sonnet Thinking (8K)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-1-20250805",
-      "name": "Claude 4.1 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-thinking",
-      "name": "Claude 4.1 Opus Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-thinking:1024",
-      "name": "Claude 4.1 Opus Thinking (1K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-thinking:32000",
-      "name": "Claude 4.1 Opus Thinking (32K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-thinking:32768",
-      "name": "Claude 4.1 Opus Thinking (32K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1-thinking:8192",
-      "name": "Claude 4.1 Opus Thinking (8K)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "Claude 4.5 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101:thinking",
-      "name": "Claude 4.5 Opus Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude 4.6 Opus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6:thinking",
-      "name": "Claude 4.6 Opus Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6:thinking:low",
-      "name": "Claude 4.6 Opus Thinking Low",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6:thinking:max",
-      "name": "Claude 4.6 Opus Thinking Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6:thinking:medium",
-      "name": "Claude 4.6 Opus Thinking Medium",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude 4.7 Opus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7:thinking",
-      "name": "Claude 4.7 Opus Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5-20251001-thinking",
-      "name": "Claude Haiku 4.5 Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-haiku-latest",
-      "name": "Claude Haiku Latest",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.8:thinking",
-      "name": "Claude Opus 4.8 Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-latest",
-      "name": "Claude Opus Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929-thinking",
-      "name": "Claude Sonnet 4.5 Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6:thinking",
-      "name": "Claude Sonnet 4.6 Thinking",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-latest",
-      "name": "Claude Sonnet Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claw-high",
-      "name": "Claw High",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claw-low",
-      "name": "Claw Low",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "claw-medium",
-      "name": "Claw Medium",
-      "contextWindow": 204800
-    },
-    {
-      "id": "nanogpt/coding-router",
-      "name": "Coding Router",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "nanogpt/coding-router:high",
-      "name": "Coding Router High",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "nanogpt/coding-router:low",
-      "name": "Coding Router Low",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "nanogpt/coding-router:max",
-      "name": "Coding Router Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "nanogpt/coding-router:medium",
-      "name": "Coding Router Medium",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "cohere/command-r-plus-08-2024",
-      "name": "Cohere: Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3-0324",
-      "name": "DeepSeek Chat 0324",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-latest",
-      "name": "DeepSeek Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1-Terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1-Terminus:thinking",
-      "name": "DeepSeek V3.1 Terminus (Thinking)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2:thinking",
-      "name": "DeepSeek V3.2 Thinking",
-      "contextWindow": 163000
-    },
-    {
-      "id": "deepseek-chat-cheaper",
-      "name": "DeepSeek V3/Chat Cheaper",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-chat",
-      "name": "DeepSeek V3/Deepseek Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash:thinking",
-      "name": "DeepSeek V4 Flash (Thinking)",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro:thinking",
-      "name": "DeepSeek V4 Pro (Thinking)",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro-cheaper",
-      "name": "DeepSeek V4 Pro Cheaper",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro-cheaper:thinking",
-      "name": "DeepSeek V4 Pro Cheaper (Thinking)",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "TEE/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro TEE",
-      "contextWindow": 800000
-    },
-    {
-      "id": "TEE/deepseek-v4-pro:thinking",
-      "name": "DeepSeek V4 Pro Thinking TEE",
-      "contextWindow": 800000
-    },
-    {
-      "id": "gemini-2.0-flash-001",
-      "name": "Gemini 2.0 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Gemini 2.5 Flash Lite Preview (09/2025)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "gemini-2.5-flash-lite-preview-09-2025-thinking",
-      "name": "Gemini 2.5 Flash Lite Preview (09/2025) – Thinking",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "gemini-2.5-flash-preview-09-2025",
-      "name": "Gemini 2.5 Flash Preview (09/2025)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "gemini-2.5-flash-preview-09-2025-thinking",
-      "name": "Gemini 2.5 Flash Preview (09/2025) – Thinking",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash (Preview)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro (Preview Custom Tools)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-high",
-      "name": "Gemini 3.1 Pro (Preview High)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-low",
-      "name": "Gemini 3.1 Pro (Preview Low)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro (Preview)",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-flash-lite-latest",
-      "name": "Gemini Flash Lite Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-pro-latest",
-      "name": "Gemini Pro Latest",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "TEE/gemma-4-26b-a4b-uncensored",
-      "name": "Gemma 4 26B A4B Uncensored TEE",
-      "contextWindow": 65536
-    },
-    {
-      "id": "TEE/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai-org/GLM-4.5-Air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai-org/GLM-4.5-Air:thinking",
-      "name": "GLM 4.5 Air (Thinking)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "z-ai/glm-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.6:thinking",
-      "name": "GLM 4.6 Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-4.7-flash",
-      "name": "GLM 4.7 Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-4.7-flash-original",
-      "name": "GLM 4.7 Flash Original",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-4.7-original",
-      "name": "GLM 4.7 Original",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-4.7-original:thinking",
-      "name": "GLM 4.7 Original Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-4.7:thinking",
-      "name": "GLM 4.7 Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5",
-      "name": "GLM 5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5-original",
-      "name": "GLM 5 Original",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5-original:thinking",
-      "name": "GLM 5 Original Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5:thinking",
-      "name": "GLM 5 Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-5-turbo",
-      "name": "GLM 5 Turbo",
-      "contextWindow": 202800
-    },
-    {
-      "id": "zai-org/glm-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5.1:thinking",
-      "name": "GLM 5.1 Thinking",
-      "contextWindow": 200000
-    },
-    {
-      "id": "TEE/glm-5.1-thinking",
-      "name": "GLM 5.1 Thinking TEE",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5v-turbo",
-      "name": "GLM 5V Turbo",
-      "contextWindow": 202800
-    },
-    {
-      "id": "z-ai/glm-5v-turbo:thinking",
-      "name": "GLM 5V Turbo Thinking",
-      "contextWindow": 202800
-    },
-    {
-      "id": "zai-org/glm-latest",
-      "name": "GLM Latest",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-z1-air",
-      "name": "GLM Z1 Air",
-      "contextWindow": 32000
-    },
-    {
-      "id": "glm-z1-airx",
-      "name": "GLM Z1 AirX",
-      "contextWindow": 32000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT 4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT 5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT 5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT 5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT 5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT 5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT 5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT 5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT 5.4",
-      "contextWindow": 922000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT 5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT 5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT 5.4 Pro",
-      "contextWindow": 922000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT 5.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai/gpt-chat-latest",
-      "name": "GPT Chat Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-latest",
-      "name": "GPT Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "ibm-granite/granite-4.1-8b",
-      "name": "Granite 4.1 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "x-ai/grok-4.20",
-      "name": "Grok 4.20",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.20-multi-agent",
-      "name": "Grok 4.20 Multi-Agent",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "x-ai/grok-build-0.1",
-      "name": "Grok Build 0.1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "x-ai/grok-latest",
-      "name": "Grok Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "hermes-high",
-      "name": "Hermes High",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "hermes-low",
-      "name": "Hermes Low",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "hermes-medium",
-      "name": "Hermes Medium",
-      "contextWindow": 204800
-    },
-    {
-      "id": "holo3-35b-a3b",
-      "name": "Holo3-35B-A3B",
-      "contextWindow": 65536
-    },
-    {
-      "id": "holo3-35b-a3b:thinking",
-      "name": "Holo3-35B-A3B Thinking",
-      "contextWindow": 65536
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct-0711",
-      "name": "Kimi K2 0711",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2.5:thinking",
-      "name": "Kimi K2.5 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "TEE/kimi-k2.6",
-      "name": "Kimi K2.6 TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6:thinking",
-      "name": "Kimi K2.6 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-latest",
-      "name": "Kimi Latest",
-      "contextWindow": 256000
-    },
-    {
-      "id": "inclusionai/ling-2.6-1t",
-      "name": "Ling 2.6 1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "inclusionai/ling-2.6-flash",
-      "name": "Ling 2.6 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/llama-3.3-70b-instruct",
-      "name": "Llama 3.3 70b Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-4-maverick",
-      "name": "Llama 4 Maverick",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "meta-llama/llama-4-scout",
-      "name": "Llama 4 Scout",
-      "contextWindow": 328000
-    },
-    {
-      "id": "mercury-2",
-      "name": "Mercury 2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xiaomi/mimo-v2-omni",
-      "name": "MiMo V2 Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomi/mimo-v2-pro",
-      "name": "MiMo V2 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi/mimo-v2.5",
-      "name": "MiMo V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi/mimo-v2.5-pro",
-      "name": "MiMo V2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimax/minimax-latest",
-      "name": "MiniMax Latest",
-      "contextWindow": 512000
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "TEE/minimax-m2.5",
-      "name": "MiniMax M2.5 TEE",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7-turbo",
-      "name": "MiniMax M2.7 Turbo",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m3",
-      "name": "MiniMax M3",
-      "contextWindow": 512000
-    },
-    {
-      "id": "minimax/minimax-m3:thinking",
-      "name": "MiniMax M3 Thinking",
-      "contextWindow": 512000
-    },
-    {
-      "id": "mistral-code-agent-latest",
-      "name": "Mistral Code Agent Latest",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-code-latest",
-      "name": "Mistral Code Latest",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral/mistral-medium-3.5",
-      "name": "Mistral Medium 3.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral/mistral-medium-3.5:thinking",
-      "name": "Mistral Medium 3.5 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistralai/mistral-small-4-119b-2603",
-      "name": "Mistral Small 4 119B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-small-4-119b-2603:thinking",
-      "name": "Mistral Small 4 119B Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
-      "name": "Nvidia Nemotron 3 Nano Omni",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b",
-      "name": "Nvidia Nemotron 3 Super 120B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b:thinking",
-      "name": "Nvidia Nemotron 3 Super 120B Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "OpenAI o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini-high",
-      "name": "OpenAI o3-mini (High)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini-low",
-      "name": "OpenAI o3-mini (Low)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-pro-2025-06-10",
-      "name": "OpenAI o3-pro (2025-06-10)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "OpenAI o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini-high",
-      "name": "OpenAI o4-mini high",
-      "contextWindow": 200000
-    },
-    {
-      "id": "owl",
-      "name": "OWL",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b",
-      "name": "Qwen 3 235b A22B",
-      "contextWindow": 41000
-    },
-    {
-      "id": "qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen 3 235b A22B 2507",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen/Qwen3-235B-A22B-Instruct-2507-TEE",
-      "name": "Qwen 3 235b A22B 2507 (TEE)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen/qwen3-coder",
-      "name": "Qwen 3 Coder 480B",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen/qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/Qwen3-Next-80B-A3B-Instruct",
-      "name": "Qwen3 Next 80B A3B (Instruct)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "TEE/qwen3.5-122b-a10b",
-      "name": "Qwen3.5 122B A10B TEE",
-      "contextWindow": 262144
-    },
-    {
-      "id": "TEE/qwen3.6-35b-a3b-uncensored",
-      "name": "Qwen3.6 35B A3B Uncensored TEE",
-      "contextWindow": 131072
-    },
-    {
-      "id": "inclusionai/ring-2.6-1t",
-      "name": "Ring 2.6 1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "sarvam-105b",
-      "name": "Sarvam 105B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "sarvam-30b",
-      "name": "Sarvam 30B",
-      "contextWindow": 65536
-    },
-    {
-      "id": "stepfun/step-3.7-flash:thinking",
-      "name": "Step 3.7 Flash Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "arcee-ai/trinity-large-thinking",
-      "name": "Trinity Large Thinking",
-      "contextWindow": 262144
-    }
-  ],
-  "nearai": [
-    {
-      "id": "anthropic/claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-pro",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemma-4-31B-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai-org/GLM-5.1-FP8",
-      "name": "GLM-5.1 FP8",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT-OSS 120B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "Qwen/Qwen3.6-35B-A3B-FP8",
-      "name": "Qwen 3.6 35B A3B FP8",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen3 30B-A3B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-      "name": "Qwen3-VL 30B-A3B Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "Qwen/Qwen3.5-122B-A10B",
-      "name": "Qwen3.5 122B-A10B",
-      "contextWindow": 131072
-    }
-  ],
-  "nebius": [
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 163000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2-fast",
-      "name": "DeepSeek-V3.2-fast",
-      "contextWindow": 8000
-    },
-    {
-      "id": "google/gemma-3-27b-it",
-      "name": "Gemma-3-27b-it",
-      "contextWindow": 110000
-    },
-    {
-      "id": "zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-oss-120b-fast",
-      "name": "gpt-oss-120b-fast",
-      "contextWindow": 8000
-    },
-    {
-      "id": "NousResearch/Hermes-4-405B",
-      "name": "Hermes-4-405B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "NousResearch/Hermes-4-70B",
-      "name": "Hermes-4-70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "PrimeIntellect/INTELLECT-3",
-      "name": "INTELLECT-3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi-K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5-fast",
-      "name": "Kimi-K2.5-fast",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia/Llama-3_1-Nemotron-Ultra-253B-v1",
-      "name": "Llama-3.1-Nemotron-Ultra-253B-v1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-      "name": "Meta-Llama-3.1-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5-fast",
-      "name": "MiniMax-M2.5-fast",
-      "contextWindow": 8000
-    },
-    {
-      "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-      "name": "Nemotron-3-Nano-30B-A3B",
-      "contextWindow": 32000
-    },
-    {
-      "id": "nvidia/Nemotron-3-Nano-Omni",
-      "name": "Nemotron-3-Nano-Omni",
-      "contextWindow": 65536
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b",
-      "name": "Nemotron-3-Super-120B-A12B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-72B-Instruct",
-      "name": "Qwen2.5-VL-72B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507-fast",
-      "name": "Qwen3-235B-A22B-Thinking-2507-fast",
-      "contextWindow": 8000
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen3-30B-A3B-Instruct-2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-32B",
-      "name": "Qwen3-32B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking",
-      "name": "Qwen3-Next-80B-A3B-Thinking",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking-fast",
-      "name": "Qwen3-Next-80B-A3B-Thinking-fast",
-      "contextWindow": 8000
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B-fast",
-      "name": "Qwen3.5-397B-A17B-fast",
-      "contextWindow": 8000
-    }
-  ],
-  "neuralwatt": [
-    {
-      "id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
-      "name": "Devstral Small 2 24B Instruct 2512",
-      "contextWindow": 262128
-    },
-    {
-      "id": "glm-5-fast",
-      "name": "GLM 5 Fast",
-      "contextWindow": 202736
-    },
-    {
-      "id": "glm-5.1-fast",
-      "name": "GLM 5.1 Fast",
-      "contextWindow": 202736
-    },
-    {
-      "id": "zai-org/GLM-5.1-FP8",
-      "name": "GLM 5.1 FP8",
-      "contextWindow": 202736
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 16368
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262128
-    },
-    {
-      "id": "kimi-k2.5-fast",
-      "name": "Kimi K2.5 Fast",
-      "contextWindow": 262128
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262128
-    },
-    {
-      "id": "kimi-k2.6-fast",
-      "name": "Kimi K2.6 Fast",
-      "contextWindow": 262128
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 196592
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B-FP8",
-      "name": "Qwen3.5 397B A17B FP8",
-      "contextWindow": 262128
-    },
-    {
-      "id": "qwen3.5-397b-fast",
-      "name": "Qwen3.5 397B Fast",
-      "contextWindow": 262128
-    },
-    {
-      "id": "Qwen/Qwen3.6-35B-A3B",
-      "name": "Qwen3.6 35B A3B",
-      "contextWindow": 131056
-    },
-    {
-      "id": "qwen3.6-35b-fast",
-      "name": "Qwen3.6 35B Fast",
-      "contextWindow": 131056
-    }
-  ],
-  "nova": [
-    {
-      "id": "nova-2-lite-v1",
-      "name": "Nova 2 Lite",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "nova-2-pro-v1",
-      "name": "Nova 2 Pro",
-      "contextWindow": 1000000
-    }
-  ],
-  "novita-ai": [
-    {
-      "id": "deepseek/deepseek-r1-turbo",
-      "name": "DeepSeek R1 (Turbo)\t",
-      "contextWindow": 64000
-    },
-    {
-      "id": "deepseek/deepseek-r1-0528",
-      "name": "DeepSeek R1 0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3-turbo",
-      "name": "DeepSeek V3 (Turbo)\t",
-      "contextWindow": 64000
-    },
-    {
-      "id": "deepseek/deepseek-v3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek/deepseek-v3.1-terminus",
-      "name": "Deepseek V3.1 Terminus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek/deepseek-v3.2",
-      "name": "Deepseek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-exp",
-      "name": "Deepseek V3.2 Exp",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "baidu/ernie-4.5-21B-a3b",
-      "name": "ERNIE 4.5 21B A3B",
-      "contextWindow": 120000
-    },
-    {
-      "id": "baidu/ernie-4.5-vl-28b-a3b",
-      "name": "ERNIE 4.5 VL 28B A3B",
-      "contextWindow": 30000
-    },
-    {
-      "id": "baidu/ernie-4.5-vl-28b-a3b-thinking",
-      "name": "ERNIE-4.5-VL-28B-A3B-Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai-org/glm-4.5-air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/glm-4.5v",
-      "name": "GLM 4.5V",
-      "contextWindow": 65536
-    },
-    {
-      "id": "zai-org/glm-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/glm-4.6v",
-      "name": "GLM 4.6V",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "zai-org/glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202800
-    },
-    {
-      "id": "zai-org/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "kwaipilot/kat-coder-pro",
-      "name": "Kat Coder Pro",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "sao10K/l3-70b-euryale-v2.1",
-      "name": "L3 70B Euryale V2.1\t",
-      "contextWindow": 8192
-    },
-    {
-      "id": "sao10K/L3-8B-stheno-v3.2",
-      "name": "L3 8B Stheno V3.2",
-      "contextWindow": 8192
-    },
-    {
-      "id": "sao10K/l31-70b-euryale-v2.2",
-      "name": "L31 70B Euryale V2.2",
-      "contextWindow": 8192
-    },
-    {
-      "id": "inclusionai/ling-2.6-1t",
-      "name": "Ling-2.6-1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "inclusionai/ling-2.6-flash",
-      "name": "Ling-2.6-flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/llama-3.3-70b-instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "xiaomimimo/mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomimimo/mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimaxai/minimax-m1-80k",
-      "name": "MiniMax M1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "Minimax M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5-highspeed",
-      "name": "MiniMax M2.5 Highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax-M2",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "OpenAI GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen-2.5-72b-instruct",
-      "name": "Qwen 2.5 72B Instruct",
-      "contextWindow": 32000
-    },
-    {
-      "id": "qwen/qwen3-vl-30b-a3b-instruct",
-      "name": "qwen/qwen3-vl-30b-a3b-instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-30b-a3b-thinking",
-      "name": "qwen/qwen3-vl-30b-a3b-thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-8b-instruct",
-      "name": "qwen/qwen3-vl-8b-instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen2.5-7b-instruct",
-      "name": "Qwen2.5 7B Instruct",
-      "contextWindow": 32000
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen3 235B A22b Thinking 2507",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3 Coder 30b A3B Instruct",
-      "contextWindow": 160000
-    },
-    {
-      "id": "qwen/qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-omni-30b-a3b-instruct",
-      "name": "Qwen3 Omni 30B A3B Instruct",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen/qwen3-omni-30b-a3b-thinking",
-      "name": "Qwen3 Omni 30B A3B Thinking",
-      "contextWindow": 65536
-    },
-    {
-      "id": "qwen/qwen3-vl-235b-a22b-instruct",
-      "name": "Qwen3 VL 235B A22B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3.5-122b-a10b",
-      "name": "Qwen3.5-122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-27b",
-      "name": "Qwen3.5-27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-35b-a3b",
-      "name": "Qwen3.5-35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-397b-a17b",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.7-max",
-      "name": "Qwen3.7-Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "inclusionai/ring-2.6-1t",
-      "name": "Ring-2.6-1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomimimo/mimo-v2-flash",
-      "name": "XiaomiMiMo/MiMo-V2-Flash",
-      "contextWindow": 262144
-    }
-  ],
-  "nvidia": [
-    {
-      "id": "bytedance/seed-oss-36b-instruct",
-      "name": "ByteDance-Seed/Seed-OSS-36B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "deepseek-ai/deepseek-v3.1-terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-ai/deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-ai/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-ai/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mistralai/devstral-2-123b-instruct-2512",
-      "name": "Devstral-2-123B-Instruct-2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "abacusai/dracarys-llama-3_1-70b-instruct",
-      "name": "dracarys-llama-3.1-70b-instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemma-2-2b-it",
-      "name": "Gemma 2 2b It",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemma-3n-e2b-it",
-      "name": "Gemma 3n E2b It",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemma-3n-e4b-it",
-      "name": "Gemma 3n E4b It",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemma-3-27b-it",
-      "name": "Gemma-3-27B-IT",
-      "contextWindow": 131072
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma-4-31B-IT",
-      "contextWindow": 256000
-    },
-    {
-      "id": "z-ai/glm4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "z-ai/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2-instruct",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta/llama-3.1-70b-instruct",
-      "name": "Llama 3.1 70b Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 16000
-    },
-    {
-      "id": "meta/llama-3.2-11b-vision-instruct",
-      "name": "Llama 3.2 11b Vision Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.2-1b-instruct",
-      "name": "Llama 3.2 1b Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.3-70b-instruct",
-      "name": "Llama 3.3 70b Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nvidia/llama-3_3-nemotron-super-49b-v1",
-      "name": "Llama 3.3 Nemotron Super 49B v1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "nvidia/llama-3_3-nemotron-super-49b-v1_5",
-      "name": "Llama 3.3 Nemotron Super 49B v1.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta/llama-4-maverick-17b-128e-instruct",
-      "name": "Llama 4 Maverick 17b 128e Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.2-90b-vision-instruct",
-      "name": "Llama-3.2-90B-Vision-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "minimaxai/minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimaxai/minimax-m2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistralai/mistral-large-3-675b-instruct-2512",
-      "name": "Mistral Large 3 675B Instruct 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-7b-instruct-v03",
-      "name": "Mistral-7B-Instruct-v0.3",
-      "contextWindow": 65536
-    },
-    {
-      "id": "mistralai/mistral-nemotron",
-      "name": "mistral-nemotron",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/mistral-small-4-119b-2603",
-      "name": "mistral-small-4-119b-2603",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/mixtral-8x22b-instruct",
-      "name": "Mistral: Mixtral 8x22B Instruct",
-      "contextWindow": 65536
-    },
-    {
-      "id": "mistralai/mixtral-8x7b-instruct",
-      "name": "Mistral: Mixtral 8x7B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
-      "name": "Nemotron 3 Nano Omni",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b",
-      "name": "Nemotron 3 Super",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-30b-a3b",
-      "name": "nemotron-3-nano-30b-a3b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "nvidia/nemotron-mini-4b-instruct",
-      "name": "nemotron-mini-4b-instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nvidia/nemotron-voicechat",
-      "name": "nemotron-voicechat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nvidia/nvidia-nemotron-nano-9b-v2",
-      "name": "nvidia-nemotron-nano-9b-v2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "microsoft/phi-4-mini-instruct",
-      "name": "Phi-4-Mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen2.5-coder-32b-instruct",
-      "name": "Qwen2.5 Coder 32b Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen/qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3-Next-80B-A3B-Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3-Next-80B-A3B-Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-122b-a10b",
-      "name": "Qwen3.5 122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-397b-a17b",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "sarvamai/sarvam-m",
-      "name": "sarvam-m",
-      "contextWindow": 128000
-    },
-    {
-      "id": "upstage/solar-10_7b-instruct",
-      "name": "solar-10.7b-instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "stepfun-ai/step-3.5-flash",
-      "name": "Step 3.5 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "stepfun-ai/step-3.7-flash",
-      "name": "Step 3.7 Flash",
-      "contextWindow": 256000
-    }
-  ],
-  "ollama-cloud": [
-    {
-      "id": "cogito-2.1:671b",
-      "name": "cogito-2.1:671b",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v3.1:671b",
-      "name": "deepseek-v3.1:671b",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "deepseek-v3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "deepseek-v4-flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "deepseek-v4-pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "devstral-2:123b",
-      "name": "devstral-2:123b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "devstral-small-2:24b",
-      "name": "devstral-small-2:24b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "gemini-3-flash-preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemma4:31b",
-      "name": "gemma4:31b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "glm-4.6",
-      "name": "glm-4.6",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-4.7",
-      "name": "glm-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5",
-      "name": "glm-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5.1",
-      "name": "glm-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "gpt-oss:120b",
-      "name": "gpt-oss:120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-oss:20b",
-      "name": "gpt-oss:20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "kimi-k2-thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2:1t",
-      "name": "kimi-k2:1t",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "kimi-k2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "kimi-k2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimax-m2",
-      "name": "minimax-m2",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.1",
-      "name": "minimax-m2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "minimax-m2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "minimax-m2.7",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax-m3",
-      "name": "minimax-m3",
-      "contextWindow": 512000
-    },
-    {
-      "id": "ministral-3:14b",
-      "name": "ministral-3:14b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "ministral-3:3b",
-      "name": "ministral-3:3b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "ministral-3:8b",
-      "name": "ministral-3:8b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistral-large-3:675b",
-      "name": "mistral-large-3:675b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nemotron-3-nano:30b",
-      "name": "nemotron-3-nano:30b",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "nemotron-3-super",
-      "name": "nemotron-3-super",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder-next",
-      "name": "qwen3-coder-next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-coder:480b",
-      "name": "qwen3-coder:480b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-next:80b",
-      "name": "qwen3-next:80b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-vl:235b",
-      "name": "qwen3-vl:235b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-vl:235b-instruct",
-      "name": "qwen3-vl:235b-instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5:397b",
-      "name": "qwen3.5:397b",
-      "contextWindow": 262144
-    },
-    {
-      "id": "rnj-1:8b",
-      "name": "rnj-1:8b",
-      "contextWindow": 32768
-    }
-  ],
-  "openai": [
-    {
-      "id": "gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8192
-    },
-    {
-      "id": "gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-2024-05-13",
-      "name": "GPT-4o (2024-05-13)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-2024-08-06",
-      "name": "GPT-4o (2024-08-06)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-2024-11-20",
-      "name": "GPT-4o (2024-11-20)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-chat-latest",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-chat-latest",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-pro",
-      "name": "GPT-5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-chat-latest",
-      "name": "GPT-5.3 Chat (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex-spark",
-      "name": "GPT-5.3 Codex Spark",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o1-pro",
-      "name": "o1-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-deep-research",
-      "name": "o3-deep-research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o3-pro",
-      "name": "o3-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini-deep-research",
-      "name": "o4-mini-deep-research",
-      "contextWindow": 200000
-    }
-  ],
-  "opencode": [
-    {
-      "id": "big-pickle",
-      "name": "Big Pickle",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-haiku",
-      "name": "Claude Haiku 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-flash-free",
-      "name": "DeepSeek V4 Flash Free",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gemini-3-flash",
-      "name": "Gemini 3 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-pro",
-      "name": "Gemini 3 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.7-free",
-      "name": "GLM-4.7 Free",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5-free",
-      "name": "GLM-5 Free",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-codex",
-      "name": "GPT-5 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex-spark",
-      "name": "GPT-5.3 Codex Spark",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok-build-0.1",
-      "name": "Grok Build 0.1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "grok-code",
-      "name": "Grok Code Fast 1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "hy3-preview-free",
-      "name": "Hy3 preview Free",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2",
-      "name": "Kimi K2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.5-free",
-      "name": "Kimi K2.5 Free",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "ling-2.6-flash-free",
-      "name": "Ling 2.6 Flash Free",
-      "contextWindow": 262100
-    },
-    {
-      "id": "mimo-v2-flash-free",
-      "name": "MiMo V2 Flash Free",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-omni-free",
-      "name": "MiMo V2 Omni Free",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro-free",
-      "name": "MiMo V2 Pro Free",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5-free",
-      "name": "MiMo V2.5 Free",
-      "contextWindow": 200000
-    },
-    {
-      "id": "minimax-m2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.1-free",
-      "name": "MiniMax M2.1 Free",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.5-free",
-      "name": "MiniMax M2.5 Free",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m3-free",
-      "name": "MiniMax M3 Free",
-      "contextWindow": 200000
-    },
-    {
-      "id": "nemotron-3-super-free",
-      "name": "Nemotron 3 Super Free",
-      "contextWindow": 204800
-    },
-    {
-      "id": "nemotron-3-ultra-free",
-      "name": "Nemotron 3 Ultra Free",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-coder",
-      "name": "Qwen3 Coder",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-plus-free",
-      "name": "Qwen3.6 Plus Free",
-      "contextWindow": 262144
-    },
-    {
-      "id": "ring-2.6-1t-free",
-      "name": "Ring 2.6 1T Free",
-      "contextWindow": 262000
-    },
-    {
-      "id": "trinity-large-preview-free",
-      "name": "Trinity Large Preview",
-      "contextWindow": 131072
-    }
-  ],
-  "opencode-go": [
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-omni",
-      "name": "MiMo V2 Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo V2 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5",
-      "name": "MiMo V2.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo V2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax-m3",
-      "name": "MiniMax M3",
-      "contextWindow": 512000
-    },
-    {
-      "id": "qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3.7-plus",
-      "name": "Qwen3.7 Plus",
-      "contextWindow": 1000000
-    }
-  ],
-  "openrouter": [
-    {
-      "id": "~anthropic/claude-haiku-latest",
-      "name": "Anthropic Claude Haiku Latest",
-      "contextWindow": 200000
-    },
-    {
-      "id": "~anthropic/claude-sonnet-latest",
-      "name": "Anthropic Claude Sonnet Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openrouter/auto",
-      "name": "Auto Router",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "anthropic/claude-3-haiku",
-      "name": "Claude 3 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.5-haiku",
-      "name": "Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-haiku-4.5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Claude Opus 4.1 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.5",
-      "name": "Claude Opus 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6-fast",
-      "name": "Claude Opus 4.6 (Fast)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7-fast",
-      "name": "Claude Opus 4.7 (Fast)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.8-fast",
-      "name": "Claude Opus 4.8 (Fast)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "~anthropic/claude-opus-latest",
-      "name": "Claude Opus Latest",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistralai/codestral-2508",
-      "name": "Codestral 2508",
-      "contextWindow": 256000
-    },
-    {
-      "id": "cohere/command-r-08-2024",
-      "name": "Command R",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cohere/command-r-plus-08-2024",
-      "name": "Command R+",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-chat",
-      "name": "DeepSeek Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-chat-v3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-chat-v3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 163840
-    },
-    {
-      "id": "nex-agi/deepseek-v3.1-nex-n1",
-      "name": "DeepSeek V3.1 Nex N1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek/deepseek-v3.1-terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-exp",
-      "name": "DeepSeek V3.2 Exp",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mistralai/devstral-2512",
-      "name": "Devstral 2",
-      "contextWindow": 262144
-    },
-    {
-      "id": "baidu/ernie-4.5-vl-28b-a3b",
-      "name": "ERNIE 4.5 VL 28B A3B",
-      "contextWindow": 30000
-    },
-    {
-      "id": "openrouter/free",
-      "name": "Free Models Router",
-      "contextWindow": 200000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Gemini 2.5 Flash Lite Preview 09-2025",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro-preview-05-06",
-      "name": "Gemini 2.5 Pro Preview 05-06",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro-preview",
-      "name": "Gemini 2.5 Pro Preview 06-05",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemma-3-12b-it",
-      "name": "Gemma 3 12B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "google/gemma-3-27b-it",
-      "name": "Gemma 3 27B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it:free",
-      "name": "Gemma 4 26B A4B  (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it:free",
-      "name": "Gemma 4 31B (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "z-ai/glm-4-32b",
-      "name": "GLM 4 32B ",
-      "contextWindow": 128000
-    },
-    {
-      "id": "z-ai/glm-4.5-air:free",
-      "name": "GLM 4.5 Air (free)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131070
-    },
-    {
-      "id": "z-ai/glm-4.5v",
-      "name": "GLM-4.5V",
-      "contextWindow": 65536
-    },
-    {
-      "id": "z-ai/glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5-turbo",
-      "name": "GLM-5-Turbo",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "z-ai/glm-5v-turbo",
-      "name": "GLM-5V-Turbo",
-      "contextWindow": 202752
-    },
-    {
-      "id": "~google/gemini-flash-latest",
-      "name": "Google Gemini Flash Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "~google/gemini-pro-latest",
-      "name": "Google Gemini Pro Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "openai/gpt-audio",
-      "name": "GPT Audio",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-audio-mini",
-      "name": "GPT Audio Mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-chat-latest",
-      "name": "GPT Chat Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-3.5-turbo-0613",
-      "name": "GPT-3.5 Turbo (older v0613)",
-      "contextWindow": 4095
-    },
-    {
-      "id": "openai/gpt-3.5-turbo-16k",
-      "name": "GPT-3.5 Turbo 16k",
-      "contextWindow": 16385
-    },
-    {
-      "id": "openai/gpt-3.5-turbo",
-      "name": "GPT-3.5-turbo",
-      "contextWindow": 16385
-    },
-    {
-      "id": "openai/gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8191
-    },
-    {
-      "id": "openai/gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4-1106-preview",
-      "name": "GPT-4 Turbo (older v1106)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4-turbo-preview",
-      "name": "GPT-4 Turbo Preview",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-05-13",
-      "name": "GPT-4o (2024-05-13)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-08-06",
-      "name": "GPT-4o (2024-08-06)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-11-20",
-      "name": "GPT-4o (2024-11-20)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini-2024-07-18",
-      "name": "GPT-4o-mini (2024-07-18)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-chat",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-chat",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT-5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-chat",
-      "name": "GPT-5.3 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-120b:free",
-      "name": "gpt-oss-120b (free)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b:free",
-      "name": "gpt-oss-20b (free)",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-safeguard-20b",
-      "name": "gpt-oss-safeguard-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "ibm-granite/granite-4.1-8b",
-      "name": "Granite 4.1 8B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "x-ai/grok-4.20",
-      "name": "Grok 4.20",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "x-ai/grok-build-0.1",
-      "name": "Grok Build 0.1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "tencent/hy3-preview",
-      "name": "Hy3 preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "prime-intellect/intellect-3",
-      "name": "INTELLECT-3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "ai21/jamba-large-1.7",
-      "name": "Jamba Large 1.7",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kwaipilot/kat-coder-pro-v2",
-      "name": "KAT-Coder-Pro V2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2",
-      "name": "Kimi K2 0711",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6:free",
-      "name": "Kimi K2.6 (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "poolside/laguna-m.1:free",
-      "name": "Laguna M.1 (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "poolside/laguna-xs.2:free",
-      "name": "Laguna XS.2 (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "inclusionai/ling-2.6-1t",
-      "name": "Ling-2.6-1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "inclusionai/ling-2.6-flash",
-      "name": "Ling-2.6-flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/llama-3.1-70b-instruct",
-      "name": "Llama 3.1 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "sao10k/l3.1-euryale-70b",
-      "name": "Llama 3.1 Euryale 70B v2.2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-3.3-70b-instruct:free",
-      "name": "Llama 3.3 70B Instruct (free)",
-      "contextWindow": 65536
-    },
-    {
-      "id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
-      "name": "Llama 3.3 Nemotron Super 49B V1.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama/llama-4-maverick",
-      "name": "Llama 4 Maverick",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "meta-llama/llama-4-scout",
-      "name": "Llama 4 Scout",
-      "contextWindow": 327680
-    },
-    {
-      "id": "meta-llama/llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "inception/mercury-2",
-      "name": "Mercury 2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xiaomi/mimo-v2-flash",
-      "name": "MiMo-V2-Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomi/mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi/mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimax/minimax-m1",
-      "name": "MiniMax M1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 196608
-    },
-    {
-      "id": "minimax/minimax-m3",
-      "name": "MiniMax-M3",
-      "contextWindow": 524288
-    },
-    {
-      "id": "mistralai/ministral-14b-2512",
-      "name": "Ministral 3 14B 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/ministral-3b-2512",
-      "name": "Ministral 3 3B 2512",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/ministral-8b-2512",
-      "name": "Ministral 3 8B 2512",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-large",
-      "name": "Mistral Large",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/mistral-large-2407",
-      "name": "Mistral Large 2407",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-large-2512",
-      "name": "Mistral Large 3",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-medium-3",
-      "name": "Mistral Medium 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-medium-3.1",
-      "name": "Mistral Medium 3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-medium-3-5",
-      "name": "Mistral Medium 3.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mistral-nemo",
-      "name": "Mistral Nemo",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/mistral-small-3.2-24b-instruct",
-      "name": "Mistral Small 3.2 24B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistralai/mistral-small-2603",
-      "name": "Mistral Small 4",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mistralai/mixtral-8x22b-instruct",
-      "name": "Mixtral 8x22B Instruct",
-      "contextWindow": 65536
-    },
-    {
-      "id": "~moonshotai/kimi-latest",
-      "name": "MoonshotAI Kimi Latest",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-30b-a3b",
-      "name": "Nemotron 3 Nano 30B A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-30b-a3b:free",
-      "name": "Nemotron 3 Nano 30B A3B (free)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-      "name": "Nemotron 3 Nano Omni (free)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b",
-      "name": "Nemotron 3 Super",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b:free",
-      "name": "Nemotron 3 Super (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-ultra-550b-a55b",
-      "name": "Nemotron 3 Ultra",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "name": "Nemotron 3 Ultra (free)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "nvidia/nemotron-nano-12b-v2-vl:free",
-      "name": "Nemotron Nano 12B 2 VL (free)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "nvidia/nemotron-nano-9b-v2",
-      "name": "Nemotron Nano 9B V2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "nvidia/nemotron-nano-9b-v2:free",
-      "name": "Nemotron Nano 9B V2 (free)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "amazon/nova-2-lite-v1",
-      "name": "Nova 2 Lite",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "amazon/nova-lite-v1",
-      "name": "Nova Lite 1.0",
-      "contextWindow": 300000
-    },
-    {
-      "id": "amazon/nova-micro-v1",
-      "name": "Nova Micro 1.0",
-      "contextWindow": 128000
-    },
-    {
-      "id": "amazon/nova-premier-v1",
-      "name": "Nova Premier 1.0",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "amazon/nova-pro-v1",
-      "name": "Nova Pro 1.0",
-      "contextWindow": 300000
-    },
-    {
-      "id": "openai/o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini-high",
-      "name": "o3 Mini High",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-deep-research",
-      "name": "o3-deep-research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-pro",
-      "name": "o3-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini-high",
-      "name": "o4 Mini High",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini-deep-research",
-      "name": "o4-mini-deep-research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "~openai/gpt-latest",
-      "name": "OpenAI GPT Latest",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "~openai/gpt-mini-latest",
-      "name": "OpenAI GPT Mini Latest",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openrouter/owl-alpha",
-      "name": "Owl Alpha",
-      "contextWindow": 1048756
-    },
-    {
-      "id": "qwen/qwen-plus-2025-07-28",
-      "name": "Qwen Plus 0728",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-plus-2025-07-28:thinking",
-      "name": "Qwen Plus 0728 (thinking)",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-plus",
-      "name": "Qwen-Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen-2.5-72b-instruct",
-      "name": "Qwen2.5 72B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen/qwen3-14b",
-      "name": "Qwen3 14B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b",
-      "name": "Qwen3 235B A22B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b",
-      "name": "Qwen3 30B A3B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b-instruct-2507",
-      "name": "Qwen3 30B A3B Instruct 2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen/qwen3-30b-a3b-thinking-2507",
-      "name": "Qwen3 30B A3B Thinking 2507",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-8b",
-      "name": "Qwen3 8B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "qwen/qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3 Coder 30B A3B Instruct",
-      "contextWindow": 160000
-    },
-    {
-      "id": "qwen/qwen3-coder",
-      "name": "Qwen3 Coder 480B A35B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-coder:free",
-      "name": "Qwen3 Coder 480B A35B (free)",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen/qwen3-coder-flash",
-      "name": "Qwen3 Coder Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-max-thinking",
-      "name": "Qwen3 Max Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-instruct:free",
-      "name": "Qwen3 Next 80B A3B Instruct (free)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-235b-a22b-instruct",
-      "name": "Qwen3 VL 235B A22B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3-vl-235b-a22b-thinking",
-      "name": "Qwen3 VL 235B A22B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-30b-a3b-instruct",
-      "name": "Qwen3 VL 30B A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-30b-a3b-thinking",
-      "name": "Qwen3 VL 30B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-32b-instruct",
-      "name": "Qwen3 VL 32B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-8b-instruct",
-      "name": "Qwen3 VL 8B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3-vl-8b-thinking",
-      "name": "Qwen3 VL 8B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen/qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-plus-02-15",
-      "name": "Qwen3.5 Plus 2026-02-15",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.5-plus-20260420",
-      "name": "Qwen3.5 Plus 2026-04-20",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.5-122b-a10b",
-      "name": "Qwen3.5-122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-27b",
-      "name": "Qwen3.5-27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-35b-a3b",
-      "name": "Qwen3.5-35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-9b",
-      "name": "Qwen3.5-9B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-flash-02-23",
-      "name": "Qwen3.5-Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.6-27b",
-      "name": "Qwen3.6 27B",
-      "contextWindow": 262140
-    },
-    {
-      "id": "qwen/qwen3.6-35b-a3b",
-      "name": "Qwen3.6 35B A3B",
-      "contextWindow": 262140
-    },
-    {
-      "id": "qwen/qwen3.6-flash",
-      "name": "Qwen3.6 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.6-max-preview",
-      "name": "Qwen3.6 Max Preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.7-max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.7-plus",
-      "name": "Qwen3.7 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-r1",
-      "name": "R1",
-      "contextWindow": 64000
-    },
-    {
-      "id": "deepseek/deepseek-r1-0528",
-      "name": "R1 0528",
-      "contextWindow": 163840
-    },
-    {
-      "id": "rekaai/reka-edge",
-      "name": "Reka Edge",
-      "contextWindow": 16384
-    },
-    {
-      "id": "relace/relace-search",
-      "name": "Relace Search",
-      "contextWindow": 256000
-    },
-    {
-      "id": "inclusionai/ring-2.6-1t",
-      "name": "Ring-2.6-1T",
-      "contextWindow": 262144
-    },
-    {
-      "id": "essentialai/rnj-1-instruct",
-      "name": "Rnj 1 Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "thedrummer/rocinante-12b",
-      "name": "Rocinante 12B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "mistralai/mistral-saba",
-      "name": "Saba",
-      "contextWindow": 32768
-    },
-    {
-      "id": "bytedance-seed/seed-1.6",
-      "name": "Seed 1.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "bytedance-seed/seed-1.6-flash",
-      "name": "Seed 1.6 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "bytedance-seed/seed-2.0-lite",
-      "name": "Seed-2.0-Lite",
-      "contextWindow": 262144
-    },
-    {
-      "id": "bytedance-seed/seed-2.0-mini",
-      "name": "Seed-2.0-Mini",
-      "contextWindow": 262144
-    },
-    {
-      "id": "upstage/solar-pro-3",
-      "name": "Solar Pro 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "stepfun/step-3.5-flash",
-      "name": "Step 3.5 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "stepfun/step-3.7-flash",
-      "name": "Step 3.7 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "arcee-ai/trinity-large-thinking",
-      "name": "Trinity Large Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "arcee-ai/trinity-mini",
-      "name": "Trinity Mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "thedrummer/unslopnemo-12b",
-      "name": "UnslopNemo 12B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "arcee-ai/virtuoso-large",
-      "name": "Virtuoso Large",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistralai/voxtral-small-24b-2507",
-      "name": "Voxtral Small 24B 2507",
-      "contextWindow": 32000
-    }
-  ],
-  "orcarouter": [
-    {
-      "id": "anthropic/claude-haiku-4.5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude Opus 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Claude Opus 4.1 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.5",
-      "name": "Claude Opus 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-chat",
-      "name": "DeepSeek Chat",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-reasoner",
-      "name": "DeepSeek Reasoner",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview-customtools",
-      "name": "Gemini 3.1 Pro Preview Custom Tools",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-flash-latest",
-      "name": "Gemini Flash Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-flash-lite-latest",
-      "name": "Gemini Flash-Lite Latest",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "z-ai/glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "z-ai/glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "z-ai/glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "z-ai/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "z-ai/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/gpt-4",
-      "name": "GPT-4",
-      "contextWindow": 8192
-    },
-    {
-      "id": "openai/gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-05-13",
-      "name": "GPT-4o (2024-05-13)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-08-06",
-      "name": "GPT-4o (2024-08-06)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-2024-11-20",
-      "name": "GPT-4o (2024-11-20)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-chat-latest",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-chat-latest",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT-5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-chat-latest",
-      "name": "GPT-5.3 Chat (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4 nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "grok/grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "kimi/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "kimi/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5-highspeed",
-      "name": "MiniMax-M2.5-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7-highspeed",
-      "name": "MiniMax-M2.7-highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "orcarouter/auto",
-      "name": "OrcaRouter Auto",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen/qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-122b-a10b",
-      "name": "Qwen3.5 122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-27b",
-      "name": "Qwen3.5 27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-35b-a3b",
-      "name": "Qwen3.5 35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.6-35b-a3b",
-      "name": "Qwen3.6 35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen/qwen3.6-plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    }
-  ],
-  "ovhcloud": [
-    {
-      "id": "gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "llama-3.1-8b-instruct",
-      "name": "Llama-3.1-8B-Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta-llama-3_3-70b-instruct",
-      "name": "Meta-Llama-3_3-70B-Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "mistral-7b-instruct-v0.3",
-      "name": "Mistral-7B-Instruct-v0.3",
-      "contextWindow": 65536
-    },
-    {
-      "id": "mistral-nemo-instruct-2407",
-      "name": "Mistral-Nemo-Instruct-2407",
-      "contextWindow": 65536
-    },
-    {
-      "id": "mistral-small-3.2-24b-instruct-2506",
-      "name": "Mistral-Small-3.2-24B-Instruct-2506",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3-32B",
-      "contextWindow": 32768
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3-Coder-30B-A3B-Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-9b",
-      "name": "Qwen3.5-9B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.6-27b",
-      "name": "Qwen3.6-27B",
-      "contextWindow": 262144
-    }
-  ],
-  "perplexity-agent": [
-    {
-      "id": "anthropic/claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "xai/grok-4-1-fast-non-reasoning",
-      "name": "Grok 4.1 Fast (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "nvidia/nemotron-3-super-120b-a12b",
-      "name": "Nemotron 3 Super 120B",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "perplexity/sonar",
-      "name": "Sonar",
-      "contextWindow": 128000
-    }
-  ],
-  "poe": [
-    {
-      "id": "openai/chatgpt-4o-latest",
-      "name": "ChatGPT-4o-Latest",
-      "contextWindow": 128000
-    },
-    {
-      "id": "poetools/claude-code",
-      "name": "claude-code"
-    },
-    {
-      "id": "anthropic/claude-haiku-3",
-      "name": "Claude-Haiku-3",
-      "contextWindow": 189096
-    },
-    {
-      "id": "anthropic/claude-haiku-3.5",
-      "name": "Claude-Haiku-3.5",
-      "contextWindow": 189096
-    },
-    {
-      "id": "anthropic/claude-haiku-4.5",
-      "name": "Claude-Haiku-4.5",
-      "contextWindow": 192000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude-Opus-4",
-      "contextWindow": 192512
-    },
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Claude-Opus-4.1",
-      "contextWindow": 196608
-    },
-    {
-      "id": "anthropic/claude-opus-4.5",
-      "name": "Claude-Opus-4.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude-Opus-4.6",
-      "contextWindow": 983040
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude-Opus-4.7",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "anthropic/claude-opus-4.8",
-      "name": "Claude-Opus-4.8",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "anthropic/claude-sonnet-3.5",
-      "name": "Claude-Sonnet-3.5",
-      "contextWindow": 189096
-    },
-    {
-      "id": "anthropic/claude-sonnet-3.5-june",
-      "name": "Claude-Sonnet-3.5-June",
-      "contextWindow": 189096
-    },
-    {
-      "id": "anthropic/claude-sonnet-3.7",
-      "name": "Claude-Sonnet-3.7",
-      "contextWindow": 196608
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude-Sonnet-4",
-      "contextWindow": 983040
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.5",
-      "name": "Claude-Sonnet-4.5",
-      "contextWindow": 983040
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude-Sonnet-4.6",
-      "contextWindow": 983040
-    },
-    {
-      "id": "openai/dall-e-3",
-      "name": "DALL-E-3",
-      "contextWindow": 800
-    },
-    {
-      "id": "novita/deepseek-v3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "empiriolabs/deepseek-v4-flash-el",
-      "name": "DeepSeek-V4-Flash-EL",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "empiriolabs/deepseek-v4-pro-el",
-      "name": "DeepSeek-V4-Pro-EL",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "elevenlabs/elevenlabs-music",
-      "name": "ElevenLabs-Music",
-      "contextWindow": 2000
-    },
-    {
-      "id": "elevenlabs/elevenlabs-v2.5-turbo",
-      "name": "ElevenLabs-v2.5-Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "elevenlabs/elevenlabs-v3",
-      "name": "ElevenLabs-v3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemini-2.0-flash",
-      "name": "Gemini-2.0-Flash",
-      "contextWindow": 990000
-    },
-    {
-      "id": "google/gemini-2.0-flash-lite",
-      "name": "Gemini-2.0-Flash-Lite",
-      "contextWindow": 990000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini-2.5-Flash",
-      "contextWindow": 1065535
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini-2.5-Flash-Lite",
-      "contextWindow": 1024000
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini-2.5-Pro",
-      "contextWindow": 1065535
-    },
-    {
-      "id": "google/gemini-3-flash",
-      "name": "Gemini-3-Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-pro",
-      "name": "Gemini-3-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Gemini-3.1-Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.1-pro",
-      "name": "Gemini-3.1-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Gemini-3.5-Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-deep-research",
-      "name": "gemini-deep-research",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemma-4-31b",
-      "name": "Gemma-4-31B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "novita/glm-4.6",
-      "name": "GLM-4.6"
-    },
-    {
-      "id": "novita/glm-4.6v",
-      "name": "glm-4.6v",
-      "contextWindow": 131000
-    },
-    {
-      "id": "novita/glm-4.7",
-      "name": "glm-4.7",
-      "contextWindow": 205000
-    },
-    {
-      "id": "novita/glm-4.7-flash",
-      "name": "glm-4.7-flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "novita/glm-4.7-n",
-      "name": "glm-4.7-n",
-      "contextWindow": 205000
-    },
-    {
-      "id": "novita/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 205000
-    },
-    {
-      "id": "openai/gpt-3.5-turbo",
-      "name": "GPT-3.5-Turbo",
-      "contextWindow": 16384
-    },
-    {
-      "id": "openai/gpt-3.5-turbo-instruct",
-      "name": "GPT-3.5-Turbo-Instruct",
-      "contextWindow": 3500
-    },
-    {
-      "id": "openai/gpt-3.5-turbo-raw",
-      "name": "GPT-3.5-Turbo-Raw",
-      "contextWindow": 4524
-    },
-    {
-      "id": "openai/gpt-4-classic",
-      "name": "GPT-4-Classic",
-      "contextWindow": 8192
-    },
-    {
-      "id": "openai/gpt-4-classic-0314",
-      "name": "GPT-4-Classic-0314",
-      "contextWindow": 8192
-    },
-    {
-      "id": "openai/gpt-4-turbo",
-      "name": "GPT-4-Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1-mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1-nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-aug",
-      "name": "GPT-4o-Aug",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o-mini",
-      "contextWindow": 124096
-    },
-    {
-      "id": "openai/gpt-4o-mini-search",
-      "name": "GPT-4o-mini-Search",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-search",
-      "name": "GPT-4o-Search",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-chat",
-      "name": "GPT-5-Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5-mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5-nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-pro",
-      "name": "GPT-5-Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT-5.1-Codex-Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1-Codex-Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-instant",
-      "name": "GPT-5.1-Instant",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-instant",
-      "name": "GPT-5.2-Instant",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT-5.2-Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-codex-spark",
-      "name": "GPT-5.3-Codex-Spark",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.3-instant",
-      "name": "GPT-5.3-Instant",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4-Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4-Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT-5.4-Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.5-pro",
-      "name": "GPT-5.5-Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-image-1",
-      "name": "GPT-Image-1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-image-1-mini",
-      "name": "GPT-Image-1-Mini"
-    },
-    {
-      "id": "cerebras/gpt-oss-120b-cs",
-      "name": "GPT-OSS-120B-CS",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xai/grok-3",
-      "name": "Grok 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "xai/grok-3-mini",
-      "name": "Grok 3 Mini",
-      "contextWindow": 131072
-    },
-    {
-      "id": "xai/grok-code-fast-1",
-      "name": "Grok Code Fast 1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "xai/grok-4",
-      "name": "Grok-4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "xai/grok-4-fast-non-reasoning",
-      "name": "Grok-4-Fast-Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4-fast-reasoning",
-      "name": "Grok-4-Fast-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.1-fast-non-reasoning",
-      "name": "Grok-4.1-Fast-Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.1-fast-reasoning",
-      "name": "Grok-4.1-Fast-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-multi-agent",
-      "name": "Grok-4.20-Multi-Agent",
-      "contextWindow": 128000
-    },
-    {
-      "id": "ideogramai/ideogram",
-      "name": "Ideogram",
-      "contextWindow": 150
-    },
-    {
-      "id": "ideogramai/ideogram-v2",
-      "name": "Ideogram-v2",
-      "contextWindow": 150
-    },
-    {
-      "id": "ideogramai/ideogram-v2a",
-      "name": "Ideogram-v2a",
-      "contextWindow": 150
-    },
-    {
-      "id": "ideogramai/ideogram-v2a-turbo",
-      "name": "Ideogram-v2a-Turbo",
-      "contextWindow": 150
-    },
-    {
-      "id": "google/imagen-3",
-      "name": "Imagen-3",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/imagen-3-fast",
-      "name": "Imagen-3-Fast",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/imagen-4",
-      "name": "Imagen-4",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/imagen-4-fast",
-      "name": "Imagen-4-Fast",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/imagen-4-ultra",
-      "name": "Imagen-4-Ultra",
-      "contextWindow": 480
-    },
-    {
-      "id": "novita/kimi-k2-thinking",
-      "name": "kimi-k2-thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "novita/kimi-k2.5",
-      "name": "Kimi-K2.5",
-      "contextWindow": 128000
-    },
-    {
-      "id": "fireworks-ai/kimi-k2.5-fw",
-      "name": "Kimi-K2.5-FW",
-      "contextWindow": 262144
-    },
-    {
-      "id": "novita/kimi-k2.6",
-      "name": "Kimi-K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "cerebras/llama-3.1-8b-cs",
-      "name": "Llama-3.1-8B-CS",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/lyria",
-      "name": "Lyria"
-    },
-    {
-      "id": "novita/minimax-m2.1",
-      "name": "minimax-m2.1",
-      "contextWindow": 205000
-    },
-    {
-      "id": "google/nano-banana",
-      "name": "Nano-Banana",
-      "contextWindow": 65536
-    },
-    {
-      "id": "google/nano-banana-pro",
-      "name": "Nano-Banana-Pro",
-      "contextWindow": 65536
-    },
-    {
-      "id": "openai/o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o1-pro",
-      "name": "o1-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-deep-research",
-      "name": "o3-deep-research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini-high",
-      "name": "o3-mini-high",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-pro",
-      "name": "o3-pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini-deep-research",
-      "name": "o4-mini-deep-research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "cerebras/qwen3-235b-2507-cs",
-      "name": "qwen3-235b-2507-cs"
-    },
-    {
-      "id": "cerebras/qwen3-32b-cs",
-      "name": "qwen3-32b-cs"
-    },
-    {
-      "id": "lumalabs/ray2",
-      "name": "Ray2",
-      "contextWindow": 5000
-    },
-    {
-      "id": "runwayml/runway",
-      "name": "Runway",
-      "contextWindow": 256
-    },
-    {
-      "id": "runwayml/runway-gen-4-turbo",
-      "name": "Runway-Gen-4-Turbo",
-      "contextWindow": 256
-    },
-    {
-      "id": "openai/sora-2",
-      "name": "Sora-2"
-    },
-    {
-      "id": "openai/sora-2-pro",
-      "name": "Sora-2-Pro"
-    },
-    {
-      "id": "stabilityai/stablediffusionxl",
-      "name": "StableDiffusionXL",
-      "contextWindow": 200
-    },
-    {
-      "id": "trytako/tako",
-      "name": "Tako",
-      "contextWindow": 2048
-    },
-    {
-      "id": "topazlabs-co/topazlabs",
-      "name": "TopazLabs",
-      "contextWindow": 204
-    },
-    {
-      "id": "google/veo-2",
-      "name": "Veo-2",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/veo-3",
-      "name": "Veo-3",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/veo-3-fast",
-      "name": "Veo-3-Fast",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/veo-3.1",
-      "name": "Veo-3.1",
-      "contextWindow": 480
-    },
-    {
-      "id": "google/veo-3.1-fast",
-      "name": "Veo-3.1-Fast",
-      "contextWindow": 480
-    }
-  ],
-  "poolside": [
-    {
-      "id": "poolside/laguna-m.1",
-      "name": "Laguna M.1",
-      "contextWindow": 131040
-    },
-    {
-      "id": "poolside/laguna-xs.2",
-      "name": "Laguna XS.2",
-      "contextWindow": 131040
-    }
-  ],
-  "privatemode-ai": [
-    {
-      "id": "gemma-3-27b",
-      "name": "Gemma 3 27B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-coder-30b-a3b",
-      "name": "Qwen3-Coder 30B-A3B",
-      "contextWindow": 128000
-    }
-  ],
-  "qihang-ai": [
-    {
-      "id": "claude-haiku-4-5-20251001",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-5-20251101",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-5-20250929",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5-Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    }
-  ],
-  "qiniu-ai": [
-    {
-      "id": "claude-3.5-haiku",
-      "name": "Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3.5-sonnet",
-      "name": "Claude 3.5 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3.7-sonnet",
-      "name": "Claude 3.7 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.0-opus",
-      "name": "Claude 4.0 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.0-sonnet",
-      "name": "Claude 4.0 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.1-opus",
-      "name": "Claude 4.1 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.5-haiku",
-      "name": "Claude 4.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.5-opus",
-      "name": "Claude 4.5 Opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-4.5-sonnet",
-      "name": "Claude 4.5 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "deepseek-r1",
-      "name": "DeepSeek-R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-r1-0528",
-      "name": "DeepSeek-R1-0528",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3-0324",
-      "name": "DeepSeek-V3-0324",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek-v3.1",
-      "name": "DeepSeek-V3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.1-terminus",
-      "name": "DeepSeek/DeepSeek-V3.1-Terminus",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-251201",
-      "name": "Deepseek/DeepSeek-V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-exp",
-      "name": "DeepSeek/DeepSeek-V3.2-Exp",
-      "contextWindow": 128000
-    },
-    {
-      "id": "doubao-1.5-pro-32k",
-      "name": "Doubao 1.5 Pro 32k",
-      "contextWindow": 128000
-    },
-    {
-      "id": "doubao-1.5-thinking-pro",
-      "name": "Doubao 1.5 Thinking Pro",
-      "contextWindow": 128000
-    },
-    {
-      "id": "doubao-seed-2.0-code",
-      "name": "Doubao Seed 2.0 Code",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-2.0-lite",
-      "name": "Doubao Seed 2.0 Lite",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-2.0-mini",
-      "name": "Doubao Seed 2.0 Mini",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-2.0-pro",
-      "name": "Doubao Seed 2.0 Pro",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-1.6",
-      "name": "Doubao-Seed 1.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-1.6-flash",
-      "name": "Doubao-Seed 1.6 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "doubao-seed-1.6-thinking",
-      "name": "Doubao-Seed 1.6 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "gemini-2.0-flash",
-      "name": "Gemini 2.0 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.0-flash-preview",
-      "name": "Gemini 3.0 Flash Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-3.0-pro-preview",
-      "name": "Gemini 3.0 Pro Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "glm-4.5",
-      "name": "GLM 4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 131000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 128000
-    },
-    {
-      "id": "kimi-k2",
-      "name": "Kimi K2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/kimi-k2-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "meituan/longcat-flash-lite",
-      "name": "Meituan/Longcat-Flash-Lite",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mimo-v2-flash",
-      "name": "Mimo-V2-Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "MiniMax-M1",
-      "name": "MiniMax M1",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "Minimax/Minimax-M2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "Minimax/Minimax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "Minimax/Minimax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5-highspeed",
-      "name": "Minimax/Minimax-M2.5 Highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Moonshotai/Kimi-K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "OpenAI/GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "OpenAI/GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "qwen2.5-vl-72b-instruct",
-      "name": "Qwen 2.5 VL 72B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen2.5-vl-7b-instruct",
-      "name": "Qwen 2.5 VL 7B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b",
-      "name": "Qwen 3 235B A22B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen-vl-max-2025-01-25",
-      "name": "Qwen VL-MAX-2025-01-25",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen-turbo",
-      "name": "Qwen-Turbo",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-max-2025-01-25",
-      "name": "Qwen2.5-Max-2025-01-25",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen3 235b A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-30b-a3b",
-      "name": "Qwen3 30B A3B",
-      "contextWindow": 40000
-    },
-    {
-      "id": "qwen3-30b-a3b-instruct-2507",
-      "name": "Qwen3 30b A3b Instruct 2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-30b-a3b-thinking-2507",
-      "name": "Qwen3 30b A3b Thinking 2507",
-      "contextWindow": 126000
-    },
-    {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "contextWindow": 40000
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3-max-preview",
-      "name": "Qwen3 Max Preview",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen3-vl-30b-a3b-thinking",
-      "name": "Qwen3-Vl 30b A3b Thinking",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B A17B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "stepfun-ai/gelab-zero-4b-preview",
-      "name": "Stepfun-Ai/Gelab Zero 4b Preview",
-      "contextWindow": 8192
-    },
-    {
-      "id": "x-ai/grok-4.1-fast-non-reasoning",
-      "name": "X-Ai/Grok 4.1 Fast Non Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.1-fast-reasoning",
-      "name": "X-Ai/Grok 4.1 Fast Reasoning",
-      "contextWindow": 20000000
-    },
-    {
-      "id": "x-ai/grok-4-fast",
-      "name": "x-AI/Grok-4-Fast",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4-fast-non-reasoning",
-      "name": "X-Ai/Grok-4-Fast-Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4-fast-reasoning",
-      "name": "X-Ai/Grok-4-Fast-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.1-fast",
-      "name": "x-AI/Grok-4.1-Fast",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-code-fast-1",
-      "name": "x-AI/Grok-Code-Fast 1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "xiaomi/mimo-v2-flash",
-      "name": "Xiaomi/Mimo-V2-Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "z-ai/autoglm-phone-9b",
-      "name": "Z-Ai/Autoglm Phone 9b",
-      "contextWindow": 12800
-    },
-    {
-      "id": "z-ai/glm-4.6",
-      "name": "Z-AI/GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.7",
-      "name": "Z-Ai/GLM 4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-5",
-      "name": "Z-Ai/GLM 5",
-      "contextWindow": 200000
-    }
-  ],
-  "regolo-ai": [
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT-OSS-120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-oss-20b",
-      "name": "GPT-OSS-20B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.1-8b-instruct",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 120000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama 3.3 70B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax 2.5",
-      "contextWindow": 190000
-    },
-    {
-      "id": "mistral-small3.2",
-      "name": "Mistral Small 3.2",
-      "contextWindow": 120000
-    },
-    {
-      "id": "mistral-small-4-119b",
-      "name": "Mistral Small 4 119B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-coder-next",
-      "name": "Qwen3-Coder-Next",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-122b",
-      "name": "Qwen3.5-122B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "qwen3.5-9b",
-      "name": "Qwen3.5-9B",
-      "contextWindow": 262144
-    }
-  ],
-  "requesty": [
-    {
-      "id": "anthropic/claude-haiku-4-5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-3-7-sonnet",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-pro-preview",
-      "name": "Gemini 3 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 Mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o Mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-image",
-      "name": "GPT-5 Image",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 16000
-    },
-    {
-      "id": "openai/gpt-5-pro",
-      "name": "GPT-5 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-chat",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT-5.1-Codex-Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1-Codex-Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-chat",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT-5.2 Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "xai/grok-4",
-      "name": "Grok 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "xai/grok-4-fast",
-      "name": "Grok 4 Fast",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4 Mini",
-      "contextWindow": 200000
-    }
-  ],
-  "routing-run": [
-    {
-      "id": "route/deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 163840
-    },
-    {
-      "id": "route/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/deepseek-v4-flash-6bit",
-      "name": "DeepSeek V4 Flash 6bit",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/deepseek-v4-pro-6bit",
-      "name": "DeepSeek V4 Pro 6bit",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 131072
-    },
-    {
-      "id": "route/glm-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "route/glm-5.1-6bit",
-      "name": "GLM 5.1 6bit",
-      "contextWindow": 202752
-    },
-    {
-      "id": "route/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "route/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "route/kimi-k2.6-6bit",
-      "name": "Kimi K2.6 6bit",
-      "contextWindow": 262144
-    },
-    {
-      "id": "route/mimo-v2.5",
-      "name": "MiMo V2.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/mimo-v2.5-pro",
-      "name": "MiMo V2.5 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/mimo-v2.5-pro-6bit",
-      "name": "MiMo V2.5 Pro 6bit",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "route/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 100000
-    },
-    {
-      "id": "route/minimax-m2.5-highspeed",
-      "name": "MiniMax M2.5 Highspeed",
-      "contextWindow": 100000
-    },
-    {
-      "id": "route/minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 100000
-    },
-    {
-      "id": "route/minimax-m2.7-highspeed",
-      "name": "MiniMax M2.7 Highspeed",
-      "contextWindow": 100000
-    },
-    {
-      "id": "route/mistral-large-3",
-      "name": "Mistral Large 3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "route/mistral-medium-2505",
-      "name": "Mistral Medium 2505",
-      "contextWindow": 128000
-    },
-    {
-      "id": "route/mistral-small-2503",
-      "name": "Mistral Small 2503",
-      "contextWindow": 128000
-    },
-    {
-      "id": "route/qwen3.6-27b",
-      "name": "Qwen3.6 27B",
-      "contextWindow": 202000
-    },
-    {
-      "id": "route/qwen3.6-27b-202k",
-      "name": "Qwen3.6 27B 202K",
-      "contextWindow": 202000
-    },
-    {
-      "id": "route/step-3.5-flash",
-      "name": "Step 3.5 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "route/step-3.5-flash-2603",
-      "name": "Step 3.5 Flash 2603",
-      "contextWindow": 262144
-    },
-    {
-      "id": "route/stepfun-3.5-flash",
-      "name": "StepFun 3.5 Flash",
-      "contextWindow": 262144
-    }
-  ],
-  "sap-ai-core": [
-    {
-      "id": "anthropic--claude-3-haiku",
-      "name": "anthropic--claude-3-haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-3-opus",
-      "name": "anthropic--claude-3-opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-3-sonnet",
-      "name": "anthropic--claude-3-sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-3.5-sonnet",
-      "name": "anthropic--claude-3.5-sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-3.7-sonnet",
-      "name": "anthropic--claude-3.7-sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-4-opus",
-      "name": "anthropic--claude-4-opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-4-sonnet",
-      "name": "anthropic--claude-4-sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-4.5-haiku",
-      "name": "anthropic--claude-4.5-haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-4.5-opus",
-      "name": "anthropic--claude-4.5-opus",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-4.5-sonnet",
-      "name": "anthropic--claude-4.5-sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic--claude-4.6-opus",
-      "name": "anthropic--claude-4.6-opus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic--claude-4.6-sonnet",
-      "name": "anthropic--claude-4.6-sonnet",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic--claude-4.7-opus",
-      "name": "anthropic--claude-4.7-opus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "name": "gemini-2.5-flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-flash-lite",
-      "name": "gemini-2.5-flash-lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "name": "gemini-2.5-pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gpt-4.1",
-      "name": "gpt-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-4.1-mini",
-      "name": "gpt-4.1-mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "gpt-5",
-      "name": "gpt-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "gpt-5-mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5-nano",
-      "name": "gpt-5-nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "gpt-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "gpt-5.5",
-      "contextWindow": 1050000
-    }
-  ],
-  "sarvam": [
-    {
-      "id": "sarvam-105b",
-      "name": "Sarvam-105B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "sarvam-30b",
-      "name": "Sarvam-30B",
-      "contextWindow": 65536
-    }
-  ],
-  "scaleway": [
-    {
-      "id": "devstral-2-123b-instruct-2512",
-      "name": "Devstral 2 123B Instruct (2512)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 256000
-    },
-    {
-      "id": "gemma-3-27b-it",
-      "name": "Gemma-3-27B-IT",
-      "contextWindow": 40000
-    },
-    {
-      "id": "gpt-oss-120b",
-      "name": "GPT-OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b-instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 100000
-    },
-    {
-      "id": "mistral-medium-3.5-128b",
-      "name": "Mistral Medium 3.5 128B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral-small-3.2-24b-instruct-2506",
-      "name": "Mistral Small 3.2 24B Instruct (2506)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "pixtral-12b-2409",
-      "name": "Pixtral 12B 2409",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 260000
-    },
-    {
-      "id": "qwen3-coder-30b-a3b-instruct",
-      "name": "Qwen3-Coder 30B-A3B Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3.5-397b-a17b",
-      "name": "Qwen3.5 397B A17B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3.6-35b-a3b",
-      "name": "Qwen3.6 35B A3B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "voxtral-small-24b-2507",
-      "name": "Voxtral Small 24B 2507",
-      "contextWindow": 32000
-    }
-  ],
-  "siliconflow": [
-    {
-      "id": "baidu/ERNIE-4.5-300B-A47B",
-      "name": "baidu/ERNIE-4.5-300B-A47B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "ByteDance-Seed/Seed-OSS-36B-Instruct",
-      "name": "ByteDance-Seed/Seed-OSS-36B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "deepseek-ai/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-ai/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1",
-      "name": "deepseek-ai/DeepSeek-R1",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
-      "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-      "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3",
-      "name": "deepseek-ai/DeepSeek-V3",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1",
-      "name": "deepseek-ai/DeepSeek-V3.1",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1-Terminus",
-      "name": "deepseek-ai/DeepSeek-V3.1-Terminus",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "deepseek-ai/DeepSeek-V3.2",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2-Exp",
-      "name": "deepseek-ai/DeepSeek-V3.2-Exp",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/deepseek-vl2",
-      "name": "deepseek-ai/deepseek-vl2",
-      "contextWindow": 4000
-    },
-    {
-      "id": "inclusionAI/Ling-flash-2.0",
-      "name": "inclusionAI/Ling-flash-2.0",
-      "contextWindow": 131000
-    },
-    {
-      "id": "inclusionAI/Ling-mini-2.0",
-      "name": "inclusionAI/Ling-mini-2.0",
-      "contextWindow": 131000
-    },
-    {
-      "id": "inclusionAI/Ring-flash-2.0",
-      "name": "inclusionAI/Ring-flash-2.0",
-      "contextWindow": 131000
-    },
-    {
-      "id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-      "name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.1",
-      "name": "MiniMaxAI/MiniMax-M2.1",
-      "contextWindow": 197000
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMaxAI/MiniMax-M2.5",
-      "contextWindow": 197000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct",
-      "name": "moonshotai/Kimi-K2-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "moonshotai/Kimi-K2-Instruct-0905",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "moonshotai/Kimi-K2-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "moonshotai/Kimi-K2.5",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "moonshotai/Kimi-K2.6",
-      "contextWindow": 262000
-    },
-    {
-      "id": "nex-agi/DeepSeek-V3.1-Nex-N1",
-      "name": "nex-agi/DeepSeek-V3.1-Nex-N1",
-      "contextWindow": 131000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "openai/gpt-oss-120b",
-      "contextWindow": 131000
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "openai/gpt-oss-20b",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen2.5-14B-Instruct",
-      "name": "Qwen/Qwen2.5-14B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-32B-Instruct",
-      "name": "Qwen/Qwen2.5-32B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-72B-Instruct",
-      "name": "Qwen/Qwen2.5-72B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-72B-Instruct-128K",
-      "name": "Qwen/Qwen2.5-72B-Instruct-128K",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen2.5-7B-Instruct",
-      "name": "Qwen/Qwen2.5-7B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-Coder-32B-Instruct",
-      "name": "Qwen/Qwen2.5-Coder-32B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-32B-Instruct",
-      "name": "Qwen/Qwen2.5-VL-32B-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-72B-Instruct",
-      "name": "Qwen/Qwen2.5-VL-72B-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-7B-Instruct",
-      "name": "Qwen/Qwen2.5-VL-7B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen3-14B",
-      "name": "Qwen/Qwen3-14B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B",
-      "name": "Qwen/Qwen3-235B-A22B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Thinking-2507",
-      "name": "Qwen/Qwen3-30B-A3B-Thinking-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-32B",
-      "name": "Qwen/Qwen3-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-8B",
-      "name": "Qwen/Qwen3-8B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-      "name": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "name": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "name": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking",
-      "name": "Qwen/Qwen3-Next-80B-A3B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Omni-30B-A3B-Captioner",
-      "name": "Qwen/Qwen3-Omni-30B-A3B-Captioner",
-      "contextWindow": 66000
-    },
-    {
-      "id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
-      "name": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
-      "contextWindow": 66000
-    },
-    {
-      "id": "Qwen/Qwen3-Omni-30B-A3B-Thinking",
-      "name": "Qwen/Qwen3-Omni-30B-A3B-Thinking",
-      "contextWindow": 66000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-235B-A22B-Instruct",
-      "name": "Qwen/Qwen3-VL-235B-A22B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-235B-A22B-Thinking",
-      "name": "Qwen/Qwen3-VL-235B-A22B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-      "name": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-30B-A3B-Thinking",
-      "name": "Qwen/Qwen3-VL-30B-A3B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-32B-Instruct",
-      "name": "Qwen/Qwen3-VL-32B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-32B-Thinking",
-      "name": "Qwen/Qwen3-VL-32B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-8B-Instruct",
-      "name": "Qwen/Qwen3-VL-8B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-8B-Thinking",
-      "name": "Qwen/Qwen3-VL-8B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/QwQ-32B",
-      "name": "Qwen/QwQ-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "stepfun-ai/Step-3.5-Flash",
-      "name": "stepfun-ai/Step-3.5-Flash",
-      "contextWindow": 262000
-    },
-    {
-      "id": "tencent/Hunyuan-A13B-Instruct",
-      "name": "tencent/Hunyuan-A13B-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "tencent/Hunyuan-MT-7B",
-      "name": "tencent/Hunyuan-MT-7B",
-      "contextWindow": 33000
-    },
-    {
-      "id": "THUDM/GLM-4-32B-0414",
-      "name": "THUDM/GLM-4-32B-0414",
-      "contextWindow": 33000
-    },
-    {
-      "id": "THUDM/GLM-4-9B-0414",
-      "name": "THUDM/GLM-4-9B-0414",
-      "contextWindow": 33000
-    },
-    {
-      "id": "THUDM/GLM-Z1-32B-0414",
-      "name": "THUDM/GLM-Z1-32B-0414",
-      "contextWindow": 131000
-    },
-    {
-      "id": "THUDM/GLM-Z1-9B-0414",
-      "name": "THUDM/GLM-Z1-9B-0414",
-      "contextWindow": 131000
-    },
-    {
-      "id": "zai-org/GLM-4.5",
-      "name": "zai-org/GLM-4.5",
-      "contextWindow": 131000
-    },
-    {
-      "id": "zai-org/GLM-4.5-Air",
-      "name": "zai-org/GLM-4.5-Air",
-      "contextWindow": 131000
-    },
-    {
-      "id": "zai-org/GLM-4.5V",
-      "name": "zai-org/GLM-4.5V",
-      "contextWindow": 66000
-    },
-    {
-      "id": "zai-org/GLM-4.6",
-      "name": "zai-org/GLM-4.6",
-      "contextWindow": 205000
-    },
-    {
-      "id": "zai-org/GLM-4.6V",
-      "name": "zai-org/GLM-4.6V",
-      "contextWindow": 131000
-    },
-    {
-      "id": "zai-org/GLM-4.7",
-      "name": "zai-org/GLM-4.7",
-      "contextWindow": 205000
-    },
-    {
-      "id": "zai-org/GLM-5",
-      "name": "zai-org/GLM-5",
-      "contextWindow": 205000
-    },
-    {
-      "id": "zai-org/GLM-5.1",
-      "name": "zai-org/GLM-5.1",
-      "contextWindow": 205000
-    },
-    {
-      "id": "zai-org/GLM-5V-Turbo",
-      "name": "zai-org/GLM-5V-Turbo",
-      "contextWindow": 200000
-    }
-  ],
-  "siliconflow-cn": [
-    {
-      "id": "baidu/ERNIE-4.5-300B-A47B",
-      "name": "baidu/ERNIE-4.5-300B-A47B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "ByteDance-Seed/Seed-OSS-36B-Instruct",
-      "name": "ByteDance-Seed/Seed-OSS-36B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1",
-      "name": "deepseek-ai/DeepSeek-R1",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
-      "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-      "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3",
-      "name": "deepseek-ai/DeepSeek-V3",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1-Terminus",
-      "name": "deepseek-ai/DeepSeek-V3.1-Terminus",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.2",
-      "name": "deepseek-ai/DeepSeek-V3.2",
-      "contextWindow": 164000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "deepseek-ai/DeepSeek-V4-Pro",
-      "contextWindow": 1049000
-    },
-    {
-      "id": "deepseek-ai/deepseek-vl2",
-      "name": "deepseek-ai/deepseek-vl2",
-      "contextWindow": 4000
-    },
-    {
-      "id": "inclusionAI/Ling-flash-2.0",
-      "name": "inclusionAI/Ling-flash-2.0",
-      "contextWindow": 131000
-    },
-    {
-      "id": "inclusionAI/Ling-mini-2.0",
-      "name": "inclusionAI/Ling-mini-2.0",
-      "contextWindow": 131000
-    },
-    {
-      "id": "inclusionAI/Ring-flash-2.0",
-      "name": "inclusionAI/Ring-flash-2.0",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Kwaipilot/KAT-Dev",
-      "name": "Kwaipilot/KAT-Dev",
-      "contextWindow": 128000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Instruct-0905",
-      "name": "moonshotai/Kimi-K2-Instruct-0905",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/Kimi-K2-Thinking",
-      "name": "moonshotai/Kimi-K2-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Pro/deepseek-ai/DeepSeek-R1",
-      "name": "Pro/deepseek-ai/DeepSeek-R1",
-      "contextWindow": 164000
-    },
-    {
-      "id": "Pro/deepseek-ai/DeepSeek-V3",
-      "name": "Pro/deepseek-ai/DeepSeek-V3",
-      "contextWindow": 164000
-    },
-    {
-      "id": "Pro/deepseek-ai/DeepSeek-V3.1-Terminus",
-      "name": "Pro/deepseek-ai/DeepSeek-V3.1-Terminus",
-      "contextWindow": 164000
-    },
-    {
-      "id": "Pro/deepseek-ai/DeepSeek-V3.2",
-      "name": "Pro/deepseek-ai/DeepSeek-V3.2",
-      "contextWindow": 164000
-    },
-    {
-      "id": "Pro/MiniMaxAI/MiniMax-M2.1",
-      "name": "Pro/MiniMaxAI/MiniMax-M2.1",
-      "contextWindow": 197000
-    },
-    {
-      "id": "Pro/MiniMaxAI/MiniMax-M2.5",
-      "name": "Pro/MiniMaxAI/MiniMax-M2.5",
-      "contextWindow": 192000
-    },
-    {
-      "id": "Pro/moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Pro/moonshotai/Kimi-K2-Instruct-0905",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Pro/moonshotai/Kimi-K2-Thinking",
-      "name": "Pro/moonshotai/Kimi-K2-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Pro/moonshotai/Kimi-K2.5",
-      "name": "Pro/moonshotai/Kimi-K2.5",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Pro/moonshotai/Kimi-K2.6",
-      "name": "Pro/moonshotai/Kimi-K2.6",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Pro/zai-org/GLM-4.7",
-      "name": "Pro/zai-org/GLM-4.7",
-      "contextWindow": 205000
-    },
-    {
-      "id": "Pro/zai-org/GLM-5",
-      "name": "Pro/zai-org/GLM-5",
-      "contextWindow": 205000
-    },
-    {
-      "id": "Pro/zai-org/GLM-5.1",
-      "name": "Pro/zai-org/GLM-5.1",
-      "contextWindow": 205000
-    },
-    {
-      "id": "Qwen/Qwen2.5-14B-Instruct",
-      "name": "Qwen/Qwen2.5-14B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-32B-Instruct",
-      "name": "Qwen/Qwen2.5-32B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-72B-Instruct",
-      "name": "Qwen/Qwen2.5-72B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-72B-Instruct-128K",
-      "name": "Qwen/Qwen2.5-72B-Instruct-128K",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen2.5-7B-Instruct",
-      "name": "Qwen/Qwen2.5-7B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-Coder-32B-Instruct",
-      "name": "Qwen/Qwen2.5-Coder-32B-Instruct",
-      "contextWindow": 33000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-32B-Instruct",
-      "name": "Qwen/Qwen2.5-VL-32B-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen2.5-VL-72B-Instruct",
-      "name": "Qwen/Qwen2.5-VL-72B-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-14B",
-      "name": "Qwen/Qwen3-14B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Thinking-2507",
-      "name": "Qwen/Qwen3-30B-A3B-Thinking-2507",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-32B",
-      "name": "Qwen/Qwen3-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-8B",
-      "name": "Qwen/Qwen3-8B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-      "name": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "name": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "name": "Qwen/Qwen3-Next-80B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking",
-      "name": "Qwen/Qwen3-Next-80B-A3B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-Omni-30B-A3B-Captioner",
-      "name": "Qwen/Qwen3-Omni-30B-A3B-Captioner",
-      "contextWindow": 66000
-    },
-    {
-      "id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
-      "name": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
-      "contextWindow": 66000
-    },
-    {
-      "id": "Qwen/Qwen3-Omni-30B-A3B-Thinking",
-      "name": "Qwen/Qwen3-Omni-30B-A3B-Thinking",
-      "contextWindow": 66000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-235B-A22B-Instruct",
-      "name": "Qwen/Qwen3-VL-235B-A22B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-235B-A22B-Thinking",
-      "name": "Qwen/Qwen3-VL-235B-A22B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-      "name": "Qwen/Qwen3-VL-30B-A3B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-30B-A3B-Thinking",
-      "name": "Qwen/Qwen3-VL-30B-A3B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-32B-Instruct",
-      "name": "Qwen/Qwen3-VL-32B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-32B-Thinking",
-      "name": "Qwen/Qwen3-VL-32B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-8B-Instruct",
-      "name": "Qwen/Qwen3-VL-8B-Instruct",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-8B-Thinking",
-      "name": "Qwen/Qwen3-VL-8B-Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "Qwen/Qwen3.5-122B-A10B",
-      "name": "Qwen/Qwen3.5-122B-A10B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-27B",
-      "name": "Qwen/Qwen3.5-27B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-35B-A3B",
-      "name": "Qwen/Qwen3.5-35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B",
-      "name": "Qwen/Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-4B",
-      "name": "Qwen/Qwen3.5-4B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-9B",
-      "name": "Qwen/Qwen3.5-9B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.6-35B-A3B",
-      "name": "Qwen/Qwen3.6-35B-A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/QwQ-32B",
-      "name": "Qwen/QwQ-32B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "stepfun-ai/Step-3.5-Flash",
-      "name": "stepfun-ai/Step-3.5-Flash",
-      "contextWindow": 262000
-    },
-    {
-      "id": "tencent/Hunyuan-A13B-Instruct",
-      "name": "tencent/Hunyuan-A13B-Instruct",
-      "contextWindow": 131000
-    },
-    {
-      "id": "tencent/Hunyuan-MT-7B",
-      "name": "tencent/Hunyuan-MT-7B",
-      "contextWindow": 33000
-    },
-    {
-      "id": "THUDM/GLM-4-32B-0414",
-      "name": "THUDM/GLM-4-32B-0414",
-      "contextWindow": 33000
-    },
-    {
-      "id": "THUDM/GLM-4-9B-0414",
-      "name": "THUDM/GLM-4-9B-0414",
-      "contextWindow": 33000
-    },
-    {
-      "id": "THUDM/GLM-Z1-32B-0414",
-      "name": "THUDM/GLM-Z1-32B-0414",
-      "contextWindow": 131000
-    },
-    {
-      "id": "THUDM/GLM-Z1-9B-0414",
-      "name": "THUDM/GLM-Z1-9B-0414",
-      "contextWindow": 131000
-    },
-    {
-      "id": "zai-org/GLM-4.5-Air",
-      "name": "zai-org/GLM-4.5-Air",
-      "contextWindow": 131000
-    },
-    {
-      "id": "zai-org/GLM-4.5V",
-      "name": "zai-org/GLM-4.5V",
-      "contextWindow": 66000
-    },
-    {
-      "id": "zai-org/GLM-4.6",
-      "name": "zai-org/GLM-4.6",
-      "contextWindow": 205000
-    },
-    {
-      "id": "zai-org/GLM-4.6V",
-      "name": "zai-org/GLM-4.6V",
-      "contextWindow": 131000
-    }
-  ],
-  "snowflake-cortex": [
-    {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai-gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai-gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 272000
-    },
-    {
-      "id": "openai-gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    }
-  ],
-  "stackit": [
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT-OSS 120B",
-      "contextWindow": 131000
-    },
-    {
-      "id": "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8",
-      "name": "Llama 3.1 8B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "cortecs/Llama-3.3-70B-Instruct-FP8-Dynamic",
-      "name": "Llama 3.3 70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "neuralmagic/Mistral-Nemo-Instruct-2407-FP8",
-      "name": "Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-VL-235B-A22B-Instruct-FP8",
-      "name": "Qwen3-VL 235B",
-      "contextWindow": 218000
-    }
-  ],
-  "stepfun": [
-    {
-      "id": "step-1-32k",
-      "name": "Step 1 (32K)",
-      "contextWindow": 32768
-    },
-    {
-      "id": "step-2-16k",
-      "name": "Step 2 (16K)",
-      "contextWindow": 16384
-    },
-    {
-      "id": "step-3.5-flash",
-      "name": "Step 3.5 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "step-3.5-flash-2603",
-      "name": "Step 3.5 Flash 2603",
-      "contextWindow": 256000
-    }
-  ],
-  "stepfun-ai": [
-    {
-      "id": "step-3.5-flash",
-      "name": "Step 3.5 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "step-3.5-flash-2603",
-      "name": "Step 3.5 Flash 2603",
-      "contextWindow": 256000
-    }
-  ],
-  "submodel": [
-    {
-      "id": "deepseek-ai/DeepSeek-R1-0528",
-      "name": "DeepSeek R1 0528",
-      "contextWindow": 75000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3-0324",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 75000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 75000
-    },
-    {
-      "id": "zai-org/GLM-4.5-Air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/GLM-4.5-FP8",
-      "name": "GLM 4.5 FP8",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    }
-  ],
-  "synthetic": [
-    {
-      "id": "hf:deepseek-ai/DeepSeek-R1",
-      "name": "DeepSeek R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:deepseek-ai/DeepSeek-R1-0528",
-      "name": "DeepSeek R1 (0528)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:deepseek-ai/DeepSeek-V3",
-      "name": "DeepSeek V3",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:deepseek-ai/DeepSeek-V3-0324",
-      "name": "DeepSeek V3 (0324)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:deepseek-ai/DeepSeek-V3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:deepseek-ai/DeepSeek-V3.1-Terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:deepseek-ai/DeepSeek-V3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 162816
-    },
-    {
-      "id": "hf:zai-org/GLM-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "hf:zai-org/GLM-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "hf:zai-org/GLM-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 196608
-    },
-    {
-      "id": "hf:zai-org/GLM-4.7-Flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 196608
-    },
-    {
-      "id": "hf:zai-org/GLM-5",
-      "name": "GLM-5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "hf:openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:moonshotai/Kimi-K2-Instruct-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262144
-    },
-    {
-      "id": "hf:moonshotai/Kimi-K2-Thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262144
-    },
-    {
-      "id": "hf:moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "hf:nvidia/Kimi-K2.5-NVFP4",
-      "name": "Kimi K2.5 (NVFP4)",
-      "contextWindow": 262144
-    },
-    {
-      "id": "hf:moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "hf:meta-llama/Llama-3.1-405B-Instruct",
-      "name": "Llama-3.1-405B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:meta-llama/Llama-3.1-70B-Instruct",
-      "name": "Llama-3.1-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:meta-llama/Llama-3.1-8B-Instruct",
-      "name": "Llama-3.1-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "name": "Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "contextWindow": 524000
-    },
-    {
-      "id": "hf:meta-llama/Llama-4-Scout-17B-16E-Instruct",
-      "name": "Llama-4-Scout-17B-16E-Instruct",
-      "contextWindow": 328000
-    },
-    {
-      "id": "hf:MiniMaxAI/MiniMax-M2",
-      "name": "MiniMax-M2",
-      "contextWindow": 196608
-    },
-    {
-      "id": "hf:MiniMaxAI/MiniMax-M2.1",
-      "name": "MiniMax-M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "hf:MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 191488
-    },
-    {
-      "id": "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
-      "name": "Nemotron 3 Super 120B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "hf:Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen 3 235B Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "hf:Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "name": "Qwen 3 Coder 480B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "hf:Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 256000
-    },
-    {
-      "id": "hf:Qwen/Qwen3.5-397B-A17B",
-      "name": "Qwen3.5-97B-A17B",
-      "contextWindow": 262144
-    }
-  ],
-  "tencent-coding-plan": [
-    {
-      "id": "tc-code-latest",
-      "name": "Auto",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202752
-    },
-    {
-      "id": "hunyuan-t1",
-      "name": "Hunyuan-T1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "hunyuan-turbos",
-      "name": "Hunyuan-TurboS",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kimi-k2.5",
-      "name": "Kimi-K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "minimax-m2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "hunyuan-2.0-instruct",
-      "name": "Tencent HY 2.0 Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "hunyuan-2.0-thinking",
-      "name": "Tencent HY 2.0 Think",
-      "contextWindow": 131072
-    }
-  ],
-  "tencent-tokenhub": [
-    {
-      "id": "hy3-preview",
-      "name": "Hy3 preview",
-      "contextWindow": 256000
-    }
-  ],
-  "the-grid-ai": [
-    {
-      "id": "agent-max",
-      "name": "Agent Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "agent-prime",
-      "name": "Agent Prime",
-      "contextWindow": 128000
-    },
-    {
-      "id": "agent-standard",
-      "name": "Agent Standard",
-      "contextWindow": 128000
-    },
-    {
-      "id": "code-max",
-      "name": "Code Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "code-prime",
-      "name": "Code Prime",
-      "contextWindow": 128000
-    },
-    {
-      "id": "code-standard",
-      "name": "Code Standard",
-      "contextWindow": 128000
-    },
-    {
-      "id": "text-max",
-      "name": "Text Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "text-prime",
-      "name": "Text Prime",
-      "contextWindow": 128000
-    },
-    {
-      "id": "text-standard",
-      "name": "Text Standard",
-      "contextWindow": 128000
-    }
-  ],
-  "togetherai": [
-    {
-      "id": "deepseek-ai/DeepSeek-V3-1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V4-Pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 512000
-    },
-    {
-      "id": "deepseek-ai/DeepSeek-V3",
-      "name": "DeepSeek-V3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "google/gemma-4-31B-it",
-      "name": "Gemma 4 31B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai-org/GLM-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-      "name": "Llama 3.3 70B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax-M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "nvidia/nemotron-3-ultra-550b-a55b",
-      "name": "Nemotron 3 Ultra 550B A55B",
-      "contextWindow": 512300
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
-      "name": "Qwen3 235B A22B Instruct 2507 FP8",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-Next-FP8",
-      "name": "Qwen3 Coder Next FP8",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.5-397B-A17B",
-      "name": "Qwen3.5 397B A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3.6-Plus",
-      "name": "Qwen3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "Qwen/Qwen3.7-Max",
-      "name": "Qwen3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "essentialai/Rnj-1-Instruct",
-      "name": "Rnj-1 Instruct",
-      "contextWindow": 32768
-    }
-  ],
-  "umans-ai-coding-plan": [
-    {
-      "id": "umans-glm-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "umans-kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "umans-qwen3.6-35b-a3b",
-      "name": "Qwen3.6 35B A3B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "umans-coder",
-      "name": "Umans Coder",
-      "contextWindow": 262144
-    },
-    {
-      "id": "umans-flash",
-      "name": "Umans Flash",
-      "contextWindow": 262144
-    }
-  ],
-  "upstage": [
-    {
-      "id": "solar-mini",
-      "name": "solar-mini",
-      "contextWindow": 32768
-    },
-    {
-      "id": "solar-pro2",
-      "name": "solar-pro2",
-      "contextWindow": 65536
-    },
-    {
-      "id": "solar-pro3",
-      "name": "solar-pro3",
-      "contextWindow": 131072
-    }
-  ],
-  "v0": [
-    {
-      "id": "v0-1.0-md",
-      "name": "v0-1.0-md",
-      "contextWindow": 128000
-    },
-    {
-      "id": "v0-1.5-lg",
-      "name": "v0-1.5-lg",
-      "contextWindow": 512000
-    },
-    {
-      "id": "v0-1.5-md",
-      "name": "v0-1.5-md",
-      "contextWindow": 128000
-    }
-  ],
-  "venice": [
-    {
-      "id": "claude-opus-4-5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 198000
-    },
-    {
-      "id": "claude-opus-4-6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-6-fast",
-      "name": "Claude Opus 4.6 Fast",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-7-fast",
-      "name": "Claude Opus 4.7 Fast",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-opus-4-8-fast",
-      "name": "Claude Opus 4.8 Fast",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "claude-sonnet-4-5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 198000
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 160000
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 256000
-    },
-    {
-      "id": "gemini-3-1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemini-3-5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "gemma-4-uncensored",
-      "name": "Gemma 4 Uncensored",
-      "contextWindow": 256000
-    },
-    {
-      "id": "zai-org-glm-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 198000
-    },
-    {
-      "id": "zai-org-glm-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 198000
-    },
-    {
-      "id": "zai-org-glm-4.7-flash",
-      "name": "GLM 4.7 Flash",
-      "contextWindow": 128000
-    },
-    {
-      "id": "olafangensan-glm-4.7-flash-heretic",
-      "name": "GLM 4.7 Flash Heretic",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org-glm-5",
-      "name": "GLM 5",
-      "contextWindow": 198000
-    },
-    {
-      "id": "z-ai-glm-5-turbo",
-      "name": "GLM 5 Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org-glm-5-1",
-      "name": "GLM 5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai-glm-5v-turbo",
-      "name": "GLM 5V Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "google-gemma-3-27b-it",
-      "name": "Google Gemma 3 27B Instruct",
-      "contextWindow": 198000
-    },
-    {
-      "id": "google-gemma-4-26b-a4b-it",
-      "name": "Google Gemma 4 26B A4B Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "google-gemma-4-31b-it",
-      "name": "Google Gemma 4 31B Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai-gpt-4o-2024-11-20",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai-gpt-4o-mini-2024-07-18",
-      "name": "GPT-4o Mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai-gpt-52",
-      "name": "GPT-5.2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai-gpt-52-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai-gpt-53-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-54",
-      "name": "GPT-5.4",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai-gpt-54-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai-gpt-54-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai-gpt-55",
-      "name": "GPT-5.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai-gpt-55-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "grok-4-20",
-      "name": "Grok 4.20",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4-3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "grok-build-0-1",
-      "name": "Grok Build 0.1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2-5",
-      "name": "Kimi K2.5",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kimi-k2-6",
-      "name": "Kimi K2.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "llama-3.2-3b",
-      "name": "Llama 3.2 3B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "llama-3.3-70b",
-      "name": "Llama 3.3 70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mercury-2",
-      "name": "Mercury 2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "minimax-m25",
-      "name": "MiniMax M2.5",
-      "contextWindow": 198000
-    },
-    {
-      "id": "minimax-m27",
-      "name": "MiniMax M2.7",
-      "contextWindow": 198000
-    },
-    {
-      "id": "minimax-m3",
-      "name": "MiniMax M3",
-      "contextWindow": 500000
-    },
-    {
-      "id": "mistral-small-3-2-24b-instruct",
-      "name": "Mistral Small 3.2 24B Instruct",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral-small-2603",
-      "name": "Mistral Small 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia-nemotron-cascade-2-30b-a3b",
-      "name": "Nemotron Cascade 2 30B A3B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "nvidia-nemotron-3-nano-30b-a3b",
-      "name": "NVIDIA Nemotron 3 Nano 30B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai-gpt-oss-120b",
-      "name": "OpenAI GPT OSS 120B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b-instruct-2507",
-      "name": "Qwen 3 235B A22B Instruct 2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-235b-a22b-thinking-2507",
-      "name": "Qwen 3 235B A22B Thinking 2507",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-coder-480b-a35b-instruct-turbo",
-      "name": "Qwen 3 Coder 480B Turbo",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-next-80b",
-      "name": "Qwen 3 Next 80b",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-5-35b-a3b",
-      "name": "Qwen 3.5 35B A3B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-5-397b-a17b",
-      "name": "Qwen 3.5 397B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "qwen3-5-9b",
-      "name": "Qwen 3.5 9B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3-6-27b",
-      "name": "Qwen 3.6 27B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen-3-6-plus",
-      "name": "Qwen 3.6 Plus Uncensored",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-3-7-max",
-      "name": "Qwen 3.7 Max",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen-3-7-plus",
-      "name": "Qwen 3.7 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen3-vl-235b-a22b",
-      "name": "Qwen3 VL 235B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "arcee-trinity-large-thinking",
-      "name": "Trinity Large Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "venice-uncensored-role-play",
-      "name": "Venice Role Play Uncensored",
-      "contextWindow": 128000
-    },
-    {
-      "id": "venice-uncensored-1-2",
-      "name": "Venice Uncensored 1.2",
-      "contextWindow": 128000
-    }
-  ],
-  "vercel": [
-    {
-      "id": "anthropic/claude-3.5-sonnet-20240620",
-      "name": "Claude 3.5 Sonnet (2024-06-20)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3-haiku",
-      "name": "Claude Haiku 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.5-haiku",
-      "name": "Claude Haiku 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-haiku-4.5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3-opus",
-      "name": "Claude Opus 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.8",
-      "name": "Claude Opus 4.8",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-3.5-sonnet",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.7-sonnet",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "mistral/codestral",
-      "name": "Codestral (latest)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "openai/codex-mini",
-      "name": "Codex Mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "cohere/command-a",
-      "name": "Command A",
-      "contextWindow": 256000
-    },
-    {
-      "id": "deepseek/deepseek-v3",
-      "name": "DeepSeek V3 0324",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.1-terminus",
-      "name": "DeepSeek V3.1 Terminus",
-      "contextWindow": 131072
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-exp",
-      "name": "DeepSeek V3.2 Exp",
-      "contextWindow": 163840
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-thinking",
-      "name": "DeepSeek V3.2 Thinking",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-r1",
-      "name": "DeepSeek-R1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.1",
-      "name": "DeepSeek-V3.1",
-      "contextWindow": 163840
-    },
-    {
-      "id": "mistral/devstral-2",
-      "name": "Devstral 2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral/devstral-small",
-      "name": "Devstral Small 1.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/devstral-small-2",
-      "name": "Devstral Small 2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "google/gemini-2.0-flash",
-      "name": "Gemini 2.0 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.0-flash-lite",
-      "name": "Gemini 2.0 Flash-Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite-preview-09-2025",
-      "name": "Gemini 2.5 Flash Lite Preview 09-25",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-flash-preview-09-2025",
-      "name": "Gemini 2.5 Flash Preview 09-25",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "google/gemini-3-flash",
-      "name": "Gemini 3 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-3-pro-preview",
-      "name": "Gemini 3 Pro Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite",
-      "name": "Gemini 3.1 Flash Lite",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemini-3.5-flash",
-      "name": "Gemini 3.5 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "google/gemma-4-26b-a4b-it",
-      "name": "Gemma 4 26B A4B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "google/gemma-4-31b-it",
-      "name": "Gemma 4 31B IT",
-      "contextWindow": 262144
-    },
-    {
-      "id": "zai/glm-4.5",
-      "name": "GLM 4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai/glm-4.5-air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai/glm-4.5v",
-      "name": "GLM 4.5V",
-      "contextWindow": 66000
-    },
-    {
-      "id": "zai/glm-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai/glm-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai/glm-4.7-flash",
-      "name": "GLM 4.7 Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai/glm-4.7-flashx",
-      "name": "GLM 4.7 FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai/glm-5-turbo",
-      "name": "GLM 5 Turbo",
-      "contextWindow": 202800
-    },
-    {
-      "id": "zai/glm-5.1",
-      "name": "GLM 5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "zai/glm-5v-turbo",
-      "name": "GLM 5V Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai/glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai/glm-4.6v-flash",
-      "name": "GLM-4.6V-Flash",
-      "contextWindow": 128000
-    },
-    {
-      "id": "zai/glm-5",
-      "name": "GLM-5",
-      "contextWindow": 202800
-    },
-    {
-      "id": "openai/gpt-5.1-codex-max",
-      "name": "GPT 5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-thinking",
-      "name": "GPT 5.1 Thinking",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT 5.2 ",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT 5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT 5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT 5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT 5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT 5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT 5.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai/gpt-5.5-pro",
-      "name": "GPT 5.5 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "GPT OSS 120B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-4-turbo",
-      "name": "GPT-4 Turbo",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4.1",
-      "name": "GPT-4.1",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-mini",
-      "name": "GPT-4.1 mini",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4.1-nano",
-      "name": "GPT-4.1 nano",
-      "contextWindow": 1047576
-    },
-    {
-      "id": "openai/gpt-4o",
-      "name": "GPT-4o",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o mini",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-chat",
-      "name": "GPT-5 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-nano",
-      "name": "GPT-5 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-pro",
-      "name": "GPT-5 pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-instant",
-      "name": "GPT-5.1 Instant",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-chat",
-      "name": "GPT-5.2 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-chat",
-      "name": "GPT-5.3 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-oss-safeguard-20b",
-      "name": "gpt-oss-safeguard-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "xai/grok-4-fast-reasoning",
-      "name": "Grok 4 Fast Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.1-fast-non-reasoning",
-      "name": "Grok 4.1 Fast Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.1-fast-reasoning",
-      "name": "Grok 4.1 Fast Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-non-reasoning-beta",
-      "name": "Grok 4.20 Beta Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-reasoning-beta",
-      "name": "Grok 4.20 Beta Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-multi-agent-beta",
-      "name": "Grok 4.20 Multi Agent Beta",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-multi-agent",
-      "name": "Grok 4.20 Multi-Agent",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-non-reasoning",
-      "name": "Grok 4.20 Non-Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.20-reasoning",
-      "name": "Grok 4.20 Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "xai/grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "xai/grok-build-0.1",
-      "name": "Grok Build 0.1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "prime-intellect/intellect-3",
-      "name": "INTELLECT 3",
-      "contextWindow": 131072
-    },
-    {
-      "id": "kwaipilot/kat-coder-pro-v2",
-      "name": "Kat Coder Pro V2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2",
-      "name": "Kimi K2 Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 216144
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking-turbo",
-      "name": "Kimi K2 Thinking Turbo",
-      "contextWindow": 262114
-    },
-    {
-      "id": "moonshotai/kimi-k2-turbo",
-      "name": "Kimi K2 Turbo",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262000
-    },
-    {
-      "id": "meta/llama-3.1-70b",
-      "name": "Llama 3.1 70B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta/llama-3.1-8b",
-      "name": "Llama 3.1 8B Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "meta/llama-3.2-11b",
-      "name": "Llama 3.2 11B Vision Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.2-90b",
-      "name": "Llama 3.2 90B Vision Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-3.3-70b",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-4-maverick",
-      "name": "Llama-4-Maverick-17B-128E-Instruct-FP8",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta/llama-4-scout",
-      "name": "Llama-4-Scout-17B-16E-Instruct-FP8",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meituan/longcat-flash-chat",
-      "name": "LongCat Flash Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meituan/longcat-flash-thinking",
-      "name": "LongCat Flash Thinking",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/magistral-medium",
-      "name": "Magistral Medium (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/magistral-small",
-      "name": "Magistral Small",
-      "contextWindow": 128000
-    },
-    {
-      "id": "inception/mercury-2",
-      "name": "Mercury 2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xiaomi/mimo-v2.5",
-      "name": "MiMo M2.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "xiaomi/mimo-v2-flash",
-      "name": "MiMo V2 Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomi/mimo-v2-pro",
-      "name": "MiMo V2 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "xiaomi/mimo-v2.5-pro",
-      "name": "MiMo V2.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax M2",
-      "contextWindow": 262114
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.1-lightning",
-      "name": "MiniMax M2.1 Lightning",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5-highspeed",
-      "name": "MiniMax M2.5 High Speed"
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "Minimax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7-highspeed",
-      "name": "MiniMax M2.7 High Speed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "mistral/ministral-3b",
-      "name": "Ministral 3B (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/ministral-8b",
-      "name": "Ministral 8B (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/mistral-medium",
-      "name": "Mistral Medium 3.1",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/mistral-medium-3.5",
-      "name": "Mistral Medium Latest",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral/mistral-nemo",
-      "name": "Mistral Nemo",
-      "contextWindow": 60288
-    },
-    {
-      "id": "mistral/mistral-small",
-      "name": "Mistral Small (latest)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mistral/mixtral-8x22b-instruct",
-      "name": "Mixtral 8x22B",
-      "contextWindow": 64000
-    },
-    {
-      "id": "amazon/nova-lite",
-      "name": "Nova Lite",
-      "contextWindow": 300000
-    },
-    {
-      "id": "amazon/nova-micro",
-      "name": "Nova Micro",
-      "contextWindow": 128000
-    },
-    {
-      "id": "amazon/nova-pro",
-      "name": "Nova Pro",
-      "contextWindow": 300000
-    },
-    {
-      "id": "nvidia/nemotron-nano-12b-v2-vl",
-      "name": "Nvidia Nemotron Nano 12B V2 VL",
-      "contextWindow": 131072
-    },
-    {
-      "id": "nvidia/nemotron-nano-9b-v2",
-      "name": "Nvidia Nemotron Nano 9B V2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/o1",
-      "name": "o1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3",
-      "name": "o3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-pro",
-      "name": "o3 Pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-deep-research",
-      "name": "o3-deep-research",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o3-mini",
-      "name": "o3-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/o4-mini",
-      "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "mistral/pixtral-12b",
-      "name": "Pixtral 12B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "mistral/pixtral-large",
-      "name": "Pixtral Large (latest)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "alibaba/qwen3-coder-30b-a3b",
-      "name": "Qwen 3 Coder 30B A3B Instruct",
-      "contextWindow": 160000
-    },
-    {
-      "id": "alibaba/qwen3-max-thinking",
-      "name": "Qwen 3 Max Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "alibaba/qwen-3-32b",
-      "name": "Qwen 3.32B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "alibaba/qwen3.5-flash",
-      "name": "Qwen 3.5 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "alibaba/qwen3.5-plus",
-      "name": "Qwen 3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "alibaba/qwen3.6-27b",
-      "name": "Qwen 3.6 27B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "alibaba/qwen-3.6-max-preview",
-      "name": "Qwen 3.6 Max Preview",
-      "contextWindow": 240000
-    },
-    {
-      "id": "alibaba/qwen3.6-plus",
-      "name": "Qwen 3.6 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "alibaba/qwen3.7-max",
-      "name": "Qwen 3.7 Max",
-      "contextWindow": 991000
-    },
-    {
-      "id": "alibaba/qwen-3-235b",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 40960
-    },
-    {
-      "id": "alibaba/qwen3-235b-a22b-thinking",
-      "name": "Qwen3 235B A22B Thinking 2507",
-      "contextWindow": 262114
-    },
-    {
-      "id": "alibaba/qwen3-coder",
-      "name": "Qwen3 Coder 480B A35B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "alibaba/qwen3-coder-next",
-      "name": "Qwen3 Coder Next",
-      "contextWindow": 256000
-    },
-    {
-      "id": "alibaba/qwen3-coder-plus",
-      "name": "Qwen3 Coder Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "alibaba/qwen3-max",
-      "name": "Qwen3 Max",
-      "contextWindow": 262144
-    },
-    {
-      "id": "alibaba/qwen3-max-preview",
-      "name": "Qwen3 Max Preview",
-      "contextWindow": 262144
-    },
-    {
-      "id": "alibaba/qwen3-next-80b-a3b-instruct",
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "contextWindow": 262144
-    },
-    {
-      "id": "alibaba/qwen3-next-80b-a3b-thinking",
-      "name": "Qwen3 Next 80B A3B Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "alibaba/qwen3-vl-instruct",
-      "name": "Qwen3 VL Instruct",
-      "contextWindow": 131072
-    },
-    {
-      "id": "alibaba/qwen3-vl-thinking",
-      "name": "Qwen3 VL Thinking",
-      "contextWindow": 131072
-    },
-    {
-      "id": "alibaba/qwen-3-14b",
-      "name": "Qwen3-14B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "alibaba/qwen-3-30b",
-      "name": "Qwen3-30B-A3B",
-      "contextWindow": 40960
-    },
-    {
-      "id": "bytedance/seed-1.6",
-      "name": "Seed 1.6",
-      "contextWindow": 256000
-    },
-    {
-      "id": "bytedance/seed-1.8",
-      "name": "Seed 1.8",
-      "contextWindow": 256000
-    },
-    {
-      "id": "perplexity/sonar",
-      "name": "Sonar",
-      "contextWindow": 127000
-    },
-    {
-      "id": "perplexity/sonar-pro",
-      "name": "Sonar Pro",
-      "contextWindow": 200000
-    },
-    {
-      "id": "arcee-ai/trinity-large-preview",
-      "name": "Trinity Large Preview",
-      "contextWindow": 131000
-    },
-    {
-      "id": "arcee-ai/trinity-large-thinking",
-      "name": "Trinity Large Thinking",
-      "contextWindow": 262100
-    },
-    {
-      "id": "vercel/v0-1.0-md",
-      "name": "v0-1.0-md",
-      "contextWindow": 128000
-    },
-    {
-      "id": "vercel/v0-1.5-md",
-      "name": "v0-1.5-md",
-      "contextWindow": 128000
-    }
-  ],
-  "vivgrid": [
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v3.2",
-      "name": "DeepSeek-V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "gpt-5-mini",
-      "name": "GPT-5 Mini",
-      "contextWindow": 272000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.4-nano",
-      "name": "GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    }
-  ],
-  "vultr": [
-    {
-      "id": "nvidia/DeepSeek-V3.2-NVFP4",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 131072
-    },
-    {
-      "id": "zai-org/GLM-5.1-FP8",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "moonshotai/Kimi-K2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.7",
-      "name": "MiniMax-M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16",
-      "name": "NVIDIA Nemotron 3 Nano Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "nvidia/Nemotron-Cascade-2-30B-A3B",
-      "name": "NVIDIA Nemotron Cascade 2",
-      "contextWindow": 262144
-    }
-  ],
-  "wafer.ai": [
-    {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "GLM-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 202752
-    },
-    {
-      "id": "Kimi-K2.6",
-      "name": "Kimi-K2.6",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen3.5-397B-A17B",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen3.6-35B-A3B",
-      "name": "Qwen3.6-35B-A3B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7-Max",
-      "contextWindow": 256000
-    }
-  ],
-  "wandb": [
-    {
-      "id": "deepseek-ai/DeepSeek-V3.1",
-      "name": "DeepSeek V3.1",
-      "contextWindow": 161000
-    },
-    {
-      "id": "zai-org/GLM-5-FP8",
-      "name": "GLM 5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "zai-org/GLM-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/gpt-oss-120b",
-      "name": "gpt-oss-120b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "openai/gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 131072
-    },
-    {
-      "id": "moonshotai/Kimi-K2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262144
-    },
-    {
-      "id": "meta-llama/Llama-3.1-70B-Instruct",
-      "name": "Llama 3.1 70B",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
-      "name": "Llama 4 Scout 17B 16E Instruct",
-      "contextWindow": 64000
-    },
-    {
-      "id": "meta-llama/Llama-3.3-70B-Instruct",
-      "name": "Llama-3.3-70B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "meta-llama/Llama-3.1-8B-Instruct",
-      "name": "Meta-Llama-3.1-8B-Instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 196608
-    },
-    {
-      "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8",
-      "name": "NVIDIA Nemotron 3 Super 120B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "OpenPipe/Qwen3-14B-Instruct",
-      "name": "OpenPipe Qwen3 14B Instruct",
-      "contextWindow": 32768
-    },
-    {
-      "id": "microsoft/Phi-4-mini-instruct",
-      "name": "Phi-4-mini-instruct",
-      "contextWindow": 128000
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-      "name": "Qwen3 235B A22B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "name": "Qwen3 30B A3B Instruct 2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
-      "name": "Qwen3-235B-A22B-Thinking-2507",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-      "name": "Qwen3-Coder-480B-A35B-Instruct",
-      "contextWindow": 262144
-    }
-  ],
-  "xai": [
-    {
-      "id": "grok-4.20-0309-non-reasoning",
-      "name": "Grok 4.20 (Non-Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4.20-0309-reasoning",
-      "name": "Grok 4.20 (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "grok-4.3",
-      "name": "Grok 4.3",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "grok-build-0.1",
-      "name": "Grok Build 0.1",
-      "contextWindow": 256000
-    }
-  ],
-  "xiaomi": [
-    {
-      "id": "mimo-v2-flash",
-      "name": "MiMo-V2-Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-omni",
-      "name": "MiMo-V2-Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    }
-  ],
-  "xiaomi-token-plan-ams": [
-    {
-      "id": "mimo-v2-omni",
-      "name": "MiMo-V2-Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    }
-  ],
-  "xiaomi-token-plan-cn": [
-    {
-      "id": "mimo-v2-omni",
-      "name": "MiMo-V2-Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    }
-  ],
-  "xiaomi-token-plan-sgp": [
-    {
-      "id": "mimo-v2-omni",
-      "name": "MiMo-V2-Omni",
-      "contextWindow": 262144
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    }
-  ],
-  "xpersona": [
-    {
-      "id": "xpersona-gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "xpersona-frieren-coder",
-      "name": "Xpersona Frieren 1",
-      "contextWindow": 1000000
-    }
-  ],
-  "zai": [
-    {
-      "id": "glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-flash",
-      "name": "GLM-4.5-Flash",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5v",
-      "name": "GLM-4.5V",
-      "contextWindow": 64000
-    },
-    {
-      "id": "glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-4.7-flashx",
-      "name": "GLM-4.7-FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5-turbo",
-      "name": "GLM-5-Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5v-turbo",
-      "name": "GLM-5V-Turbo",
-      "contextWindow": 200000
-    }
-  ],
-  "zai-coding-plan": [
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5-turbo",
-      "name": "GLM-5-Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5v-turbo",
-      "name": "GLM-5V-Turbo",
-      "contextWindow": 200000
-    }
-  ],
-  "zenmux": [
-    {
-      "id": "sapiens-ai/agnes-1.5-lite",
-      "name": "Agnes 1.5 Lite",
-      "contextWindow": 256000
-    },
-    {
-      "id": "sapiens-ai/agnes-1.5-pro",
-      "name": "Agnes 1.5 Pro",
-      "contextWindow": 256000
-    },
-    {
-      "id": "anthropic/claude-3.5-haiku",
-      "name": "Claude 3.5 Haiku",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-3.7-sonnet",
-      "name": "Claude 3.7 Sonnet",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-haiku-4.5",
-      "name": "Claude Haiku 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.1",
-      "name": "Claude Opus 4.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.5",
-      "name": "Claude Opus 4.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "anthropic/claude-opus-4.6",
-      "name": "Claude Opus 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-opus-4.7",
-      "name": "Claude Opus 4.7",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.5",
-      "name": "Claude Sonnet 4.5",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "anthropic/claude-sonnet-4.6",
-      "name": "Claude Sonnet 4.6",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2",
-      "name": "DeepSeek V3.2",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek/deepseek-chat",
-      "name": "DeepSeek-V3.2 (Non-thinking Mode)",
-      "contextWindow": 128000
-    },
-    {
-      "id": "deepseek/deepseek-v3.2-exp",
-      "name": "DeepSeek-V3.2-Exp",
-      "contextWindow": 163000
-    },
-    {
-      "id": "volcengine/doubao-seed-2.0-code",
-      "name": "Doubao Seed 2.0 Code",
-      "contextWindow": 256000
-    },
-    {
-      "id": "volcengine/doubao-seed-1.8",
-      "name": "Doubao-Seed-1.8",
-      "contextWindow": 256000
-    },
-    {
-      "id": "volcengine/doubao-seed-2.0-lite",
-      "name": "Doubao-Seed-2.0-lite",
-      "contextWindow": 256000
-    },
-    {
-      "id": "volcengine/doubao-seed-2.0-mini",
-      "name": "Doubao-Seed-2.0-mini",
-      "contextWindow": 256000
-    },
-    {
-      "id": "volcengine/doubao-seed-2.0-pro",
-      "name": "Doubao-Seed-2.0-pro",
-      "contextWindow": 256000
-    },
-    {
-      "id": "volcengine/doubao-seed-code",
-      "name": "Doubao-Seed-Code",
-      "contextWindow": 256000
-    },
-    {
-      "id": "baidu/ernie-5.0-thinking-preview",
-      "name": "ERNIE 5.0",
-      "contextWindow": 128000
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "contextWindow": 1048000
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite",
-      "contextWindow": 1048000
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "contextWindow": 1048000
-    },
-    {
-      "id": "google/gemini-3-flash-preview",
-      "name": "Gemini 3 Flash Preview",
-      "contextWindow": 1048000
-    },
-    {
-      "id": "google/gemini-3.1-flash-lite-preview",
-      "name": "Gemini 3.1 Flash Lite Preview",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "google/gemini-3.1-pro-preview",
-      "name": "Gemini 3.1 Pro Preview",
-      "contextWindow": 1048000
-    },
-    {
-      "id": "z-ai/glm-4.5",
-      "name": "GLM 4.5",
-      "contextWindow": 128000
-    },
-    {
-      "id": "z-ai/glm-4.5-air",
-      "name": "GLM 4.5 Air",
-      "contextWindow": 128000
-    },
-    {
-      "id": "z-ai/glm-4.6",
-      "name": "GLM 4.6",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.6v",
-      "name": "GLM 4.6V",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.6v-flash-free",
-      "name": "GLM 4.6V Flash (Free)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.6v-flash",
-      "name": "GLM 4.6V FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.7",
-      "name": "GLM 4.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.7-flash-free",
-      "name": "GLM 4.7 Flash (Free)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-4.7-flashx",
-      "name": "GLM 4.7 FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-5",
-      "name": "GLM 5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-5-turbo",
-      "name": "GLM 5 Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-5v-turbo",
-      "name": "GLM 5V Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "z-ai/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "openai/gpt-5",
-      "name": "GPT-5",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5-codex",
-      "name": "GPT-5 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1",
-      "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-chat",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.1-codex-mini",
-      "name": "GPT-5.1-Codex-Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2",
-      "name": "GPT-5.2",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-codex",
-      "name": "GPT-5.2-Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.2-pro",
-      "name": "GPT-5.2-Pro",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.3-chat",
-      "name": "GPT-5.3 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "openai/gpt-5.3-codex",
-      "name": "GPT-5.3 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4",
-      "name": "GPT-5.4",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.4-mini",
-      "name": "GPT-5.4 Mini",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-nano",
-      "name": "GPT-5.4 Nano",
-      "contextWindow": 400000
-    },
-    {
-      "id": "openai/gpt-5.4-pro",
-      "name": "GPT-5.4 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5",
-      "name": "GPT-5.5",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "openai/gpt-5.5-pro",
-      "name": "GPT-5.5 Pro",
-      "contextWindow": 1050000
-    },
-    {
-      "id": "x-ai/grok-4",
-      "name": "Grok 4",
-      "contextWindow": 256000
-    },
-    {
-      "id": "x-ai/grok-4-fast",
-      "name": "Grok 4 Fast",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.1-fast",
-      "name": "Grok 4.1 Fast",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.1-fast-non-reasoning",
-      "name": "Grok 4.1 Fast Non Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.2-fast",
-      "name": "Grok 4.2 Fast",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-4.2-fast-non-reasoning",
-      "name": "Grok 4.2 Fast Non Reasoning",
-      "contextWindow": 2000000
-    },
-    {
-      "id": "x-ai/grok-code-fast-1",
-      "name": "Grok Code Fast 1",
-      "contextWindow": 256000
-    },
-    {
-      "id": "tencent/hy3-preview",
-      "name": "Hy3 preview",
-      "contextWindow": 256000
-    },
-    {
-      "id": "kuaishou/kat-coder-pro-v2",
-      "name": "KAT-Coder-Pro-V2",
-      "contextWindow": 256000
-    },
-    {
-      "id": "moonshotai/kimi-k2-0905",
-      "name": "Kimi K2 0905",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking",
-      "name": "Kimi K2 Thinking",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/kimi-k2-thinking-turbo",
-      "name": "Kimi K2 Thinking Turbo",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/kimi-k2.5",
-      "name": "Kimi K2.5",
-      "contextWindow": 262000
-    },
-    {
-      "id": "moonshotai/kimi-k2.6",
-      "name": "Kimi K2.6",
-      "contextWindow": 262140
-    },
-    {
-      "id": "inclusionai/ling-1t",
-      "name": "Ling-1T",
-      "contextWindow": 128000
-    },
-    {
-      "id": "xiaomi/mimo-v2-omni",
-      "name": "MiMo V2 Omni",
-      "contextWindow": 265000
-    },
-    {
-      "id": "xiaomi/mimo-v2-pro",
-      "name": "MiMo V2 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "xiaomi/mimo-v2-flash",
-      "name": "MiMo-V2-Flash",
-      "contextWindow": 262144
-    },
-    {
-      "id": "xiaomi/mimo-v2.5",
-      "name": "MiMo-V2.5",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "xiaomi/mimo-v2.5-pro",
-      "name": "MiMo-V2.5-Pro",
-      "contextWindow": 1048576
-    },
-    {
-      "id": "minimax/minimax-m2",
-      "name": "MiniMax M2",
-      "contextWindow": 204000
-    },
-    {
-      "id": "minimax/minimax-m2.1",
-      "name": "MiniMax M2.1",
-      "contextWindow": 204000
-    },
-    {
-      "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.5-lightning",
-      "name": "MiniMax M2.5 highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7",
-      "name": "MiniMax M2.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "minimax/minimax-m2.7-highspeed",
-      "name": "MiniMax M2.7 highspeed",
-      "contextWindow": 204800
-    },
-    {
-      "id": "qwen/qwen3-coder-plus",
-      "name": "Qwen3-Coder-Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3-max",
-      "name": "Qwen3-Max-Thinking",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen/qwen3.5-flash",
-      "name": "Qwen3.5 Flash",
-      "contextWindow": 1020000
-    },
-    {
-      "id": "qwen/qwen3.5-plus",
-      "name": "Qwen3.5 Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "qwen/qwen3.6-plus",
-      "name": "Qwen3.6-Plus",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "inclusionai/ring-1t",
-      "name": "Ring-1T",
-      "contextWindow": 128000
-    },
-    {
-      "id": "stepfun/step-3.5-flash",
-      "name": "Step 3.5 Flash",
-      "contextWindow": 256000
-    },
-    {
-      "id": "stepfun/step-3.5-flash-free",
-      "name": "Step 3.5 Flash (Free)",
-      "contextWindow": 256000
-    },
-    {
-      "id": "stepfun/step-3",
-      "name": "Step-3",
-      "contextWindow": 65536
-    }
-  ],
-  "zhipuai": [
-    {
-      "id": "glm-4.5",
-      "name": "GLM-4.5",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5-flash",
-      "name": "GLM-4.5-Flash",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.5v",
-      "name": "GLM-4.5V",
-      "contextWindow": 64000
-    },
-    {
-      "id": "glm-4.6",
-      "name": "GLM-4.6",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-4.7-flash",
-      "name": "GLM-4.7-Flash",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-4.7-flashx",
-      "name": "GLM-4.7-FlashX",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5",
-      "name": "GLM-5",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5v-turbo",
-      "name": "GLM-5V-Turbo",
-      "contextWindow": 200000
-    }
-  ],
-  "zhipuai-coding-plan": [
-    {
-      "id": "glm-4.5-air",
-      "name": "GLM-4.5-Air",
-      "contextWindow": 131072
-    },
-    {
-      "id": "glm-4.6v",
-      "name": "GLM-4.6V",
-      "contextWindow": 128000
-    },
-    {
-      "id": "glm-4.7",
-      "name": "GLM-4.7",
-      "contextWindow": 204800
-    },
-    {
-      "id": "glm-5-turbo",
-      "name": "GLM-5-Turbo",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 200000
-    },
-    {
-      "id": "glm-5v-turbo",
-      "name": "GLM-5V-Turbo",
-      "contextWindow": 200000
-    }
-  ]
+	'302ai': [
+		{
+			id: 'claude-3-5-haiku-20241022',
+			name: 'claude-3-5-haiku-20241022',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-5-haiku-latest',
+			name: 'claude-3-5-haiku-latest',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5',
+			name: 'claude-haiku-4-5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'claude-haiku-4-5-20251001',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'claude-opus-4-1-20250805',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805-thinking',
+			name: 'claude-opus-4-1-20250805-thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-20250514',
+			name: 'claude-opus-4-20250514',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5',
+			name: 'claude-opus-4-5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'claude-opus-4-5-20251101',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101-thinking',
+			name: 'claude-opus-4-5-20251101-thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'claude-opus-4-6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-6-thinking',
+			name: 'claude-opus-4-6-thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'claude-opus-4-7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-20250514',
+			name: 'claude-sonnet-4-20250514',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'claude-sonnet-4-5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'claude-sonnet-4-5-20250929',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929-thinking',
+			name: 'claude-sonnet-4-5-20250929-thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'claude-sonnet-4-6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-6-thinking',
+			name: 'claude-sonnet-4-6-thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-chat',
+			name: 'Deepseek-Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-reasoner',
+			name: 'Deepseek-Reasoner',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'deepseek-v3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.2-thinking',
+			name: 'DeepSeek-V3.2-Thinking',
+			contextWindow: 128000,
+		},
+		{
+			id: 'doubao-seed-1-6-thinking-250715',
+			name: 'doubao-seed-1-6-thinking-250715',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-1-6-vision-250815',
+			name: 'doubao-seed-1-6-vision-250815',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-1-8-251215',
+			name: 'doubao-seed-1-8-251215',
+			contextWindow: 224000,
+		},
+		{
+			id: 'doubao-seed-code-preview-251028',
+			name: 'doubao-seed-code-preview-251028',
+			contextWindow: 256000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'gemini-2.5-flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-flash-lite-preview-09-2025',
+			name: 'gemini-2.5-flash-lite-preview-09-2025',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-flash-nothink',
+			name: 'gemini-2.5-flash-nothink',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-flash-preview-09-2025',
+			name: 'gemini-2.5-flash-preview-09-2025',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'gemini-2.5-pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'gemini-3-flash-preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-3-pro-preview',
+			name: 'gemini-3-pro-preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-air',
+			name: 'glm-4.5-air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-airx',
+			name: 'glm-4.5-airx',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.5-x',
+			name: 'glm-4.5-x',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.5v',
+			name: 'GLM-4.5V',
+			contextWindow: 64000,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'glm-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'glm-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.7-flashx',
+			name: 'glm-4.7-flashx',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5',
+			name: 'glm-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5-turbo',
+			name: 'glm-5-turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'glm-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5v-turbo',
+			name: 'GLM-5V-Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-for-coding',
+			name: 'glm-for-coding',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'gpt-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'gpt-4.1-mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'gpt-4.1-nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'gpt-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'gpt-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'gpt-5-mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-pro',
+			name: 'gpt-5-pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-thinking',
+			name: 'gpt-5-thinking',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'gpt-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-chat-latest',
+			name: 'gpt-5.1-chat-latest',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'gpt-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-chat-latest',
+			name: 'gpt-5.2-chat-latest',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'gpt-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'gpt-5.4-mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-mini-2026-03-17',
+			name: 'gpt-5.4-mini-2026-03-17',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'gpt-5.4-nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano-2026-03-17',
+			name: 'gpt-5.4-nano-2026-03-17',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-pro',
+			name: 'gpt-5.4-pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok-4-1-fast-non-reasoning',
+			name: 'grok-4-1-fast-non-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-reasoning',
+			name: 'grok-4-1-fast-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-fast-non-reasoning',
+			name: 'grok-4-fast-non-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-fast-reasoning',
+			name: 'grok-4-fast-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4.1',
+			name: 'grok-4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'grok-4.20-beta-0309-non-reasoning',
+			name: 'grok-4.20-beta-0309-non-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4.20-beta-0309-reasoning',
+			name: 'grok-4.20-beta-0309-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4.20-multi-agent-beta-0309',
+			name: 'grok-4.20-multi-agent-beta-0309',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'kimi-k2-0905-preview',
+			name: 'kimi-k2-0905-preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'kimi-k2-thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking-turbo',
+			name: 'kimi-k2-thinking-turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMax-M1',
+			name: 'MiniMax-M1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'MiniMax-M2',
+			name: 'MiniMax-M2',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'ministral-14b-2512',
+			name: 'ministral-14b-2512',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-large-2512',
+			name: 'mistral-large-2512',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen-flash',
+			name: 'Qwen-Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-max-latest',
+			name: 'Qwen-Max-Latest',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-plus',
+			name: 'Qwen-Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-235b-a22b',
+			name: 'Qwen3-235B-A22B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct-2507',
+			name: 'qwen3-235b-a22b-instruct-2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-30b-a3b',
+			name: 'Qwen3-30B-A3B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct',
+			name: 'qwen3-coder-480b-a35b-instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-max-2025-09-23',
+			name: 'qwen3-max-2025-09-23',
+			contextWindow: 258048,
+		},
+	],
+	abacus: [
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-20250514',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-7-sonnet-20250219',
+			name: 'Claude Sonnet 3.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-20250514',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1',
+			name: 'DeepSeek R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1-Terminus',
+			name: 'DeepSeek V3.1 Terminus',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'zai-org/glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai-org/glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai-org/glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai-org/glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'GPT-4.1 Mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'GPT-4.1 Nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o-2024-11-20',
+			name: 'GPT-4o (2024-11-20)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-mini',
+			name: 'GPT-4o Mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'GPT-5 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-chat-latest',
+			name: 'GPT-5.1 Chat Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-chat-latest',
+			name: 'GPT-5.2 Chat Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-chat-latest',
+			name: 'GPT-5.3 Chat Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex-xhigh',
+			name: 'GPT-5.3 Codex XHigh',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT-OSS 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'grok-4-0709',
+			name: 'Grok 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-4-fast-non-reasoning',
+			name: 'Grok 4 Fast (Non-Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-non-reasoning',
+			name: 'Grok 4.1 Fast (Non-Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-code-fast-1',
+			name: 'Grok Code Fast 1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2-turbo-preview',
+			name: 'Kimi K2 Turbo Preview',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo',
+			name: 'Llama 3.1 405B Instruct Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-versatile',
+			name: 'Llama 3.3 70B Versatile',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
+			name: 'Llama 4 Maverick 17B 128E Instruct FP8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-pro',
+			name: 'o3-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-72B-Instruct',
+			name: 'Qwen 2.5 72B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen-2.5-coder-32b',
+			name: 'Qwen 2.5 Coder 32B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-32B',
+			name: 'Qwen3 32B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'Qwen/QwQ-32B',
+			name: 'QwQ 32B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'route-llm',
+			name: 'Route LLM',
+			contextWindow: 128000,
+		},
+	],
+	'abliteration-ai': [
+		{
+			id: 'abliterated-model',
+			name: 'Abliterated Model',
+			contextWindow: 150000,
+		},
+	],
+	aihubmix: [
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-6-think',
+			name: 'Claude Opus 4.6 Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7-think',
+			name: 'Claude Opus 4.7 Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-6-think',
+			name: 'Claude Sonnet 4.6 Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'coding-glm-5.1',
+			name: 'Coding GLM 5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'coding-glm-5.1-free',
+			name: 'Coding GLM 5.1 (free)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'coding-minimax-m2.7',
+			name: 'Coding MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'coding-minimax-m2.7-free',
+			name: 'Coding MiniMax M2.7 (Free)',
+			contextWindow: 204800,
+		},
+		{
+			id: 'coding-minimax-m2.7-highspeed',
+			name: 'Coding MiniMax M2.7 Highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'coding-xiaomi-mimo-v2.5',
+			name: 'Coding Xiaomi MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'coding-xiaomi-mimo-v2.5-pro',
+			name: 'Coding Xiaomi MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'alicloud-deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash (Alibaba Cloud)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deep-deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash (DeepSeek)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'alicloud-deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro (Alibaba Cloud)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deep-deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro (DeepSeek)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'doubao-seed-2-0-code-preview',
+			name: 'Doubao Seed 2.0 Code Preview',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-2-0-lite-260428',
+			name: 'Doubao Seed 2.0 Lite 260428',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-2-0-mini-260428',
+			name: 'Doubao Seed 2.0 Mini 260428',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-2-0-pro',
+			name: 'Doubao Seed 2.0 Pro',
+			contextWindow: 256000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'glm-5v-turbo',
+			name: 'GLM 5 Vision Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'alicloud-glm-5.1',
+			name: 'GLM-5.1 (Alibaba Cloud)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-glm-5.1',
+			name: 'GLM-5.1 (Z.ai)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 991000,
+		},
+		{
+			id: 'qwen3.6-max-preview',
+			name: 'Qwen3.6 Max Preview',
+			contextWindow: 240000,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 991000,
+		},
+		{
+			id: 'xiaomi-mimo-v2.5',
+			name: 'Xiaomi MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi-mimo-v2.5-free',
+			name: 'Xiaomi MiMo-V2.5 (free)',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi-mimo-v2.5-pro',
+			name: 'Xiaomi MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi-mimo-v2.5-pro-free',
+			name: 'Xiaomi MiMo-V2.5-Pro (free)',
+			contextWindow: 1048576,
+		},
+	],
+	alibaba: [
+		{
+			id: 'qvq-max',
+			name: 'QVQ Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-flash',
+			name: 'Qwen Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-max',
+			name: 'Qwen Max',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-plus',
+			name: 'Qwen Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-plus-character-ja',
+			name: 'Qwen Plus Character (Japanese)',
+			contextWindow: 8192,
+		},
+		{
+			id: 'qwen-turbo',
+			name: 'Qwen Turbo',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-omni-turbo',
+			name: 'Qwen-Omni Turbo',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-omni-turbo-realtime',
+			name: 'Qwen-Omni Turbo Realtime',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-vl-max',
+			name: 'Qwen-VL Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-vl-plus',
+			name: 'Qwen-VL Plus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-14b-instruct',
+			name: 'Qwen2.5 14B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-32b-instruct',
+			name: 'Qwen2.5 32B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-72b-instruct',
+			name: 'Qwen2.5 72B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-7b-instruct',
+			name: 'Qwen2.5 7B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-omni-7b',
+			name: 'Qwen2.5-Omni 7B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen2-5-vl-72b-instruct',
+			name: 'Qwen2.5-VL 72B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-vl-7b-instruct',
+			name: 'Qwen2.5-VL 7B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-14b',
+			name: 'Qwen3 14B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-235b-a22b',
+			name: 'Qwen3 235B-A22B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-8b',
+			name: 'Qwen3 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-coder-flash',
+			name: 'Qwen3 Coder Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3-Coder 30B-A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3-Coder 480B-A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3-Next 80B-A3B (Thinking)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3-Next 80B-A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-omni-flash',
+			name: 'Qwen3-Omni Flash',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen3-omni-flash-realtime',
+			name: 'Qwen3-Omni Flash Realtime',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen3-vl-235b-a22b',
+			name: 'Qwen3-VL 235B-A22B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-30b-a3b',
+			name: 'Qwen3-VL 30B-A3B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-plus',
+			name: 'Qwen3-VL Plus',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-27b',
+			name: 'Qwen3.5 27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-35b-a3b',
+			name: 'Qwen3.5 35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-27b',
+			name: 'Qwen3.6 27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-35b-a3b',
+			name: 'Qwen3.6 35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-max-preview',
+			name: 'Qwen3.6 Max Preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwq-plus',
+			name: 'QwQ Plus',
+			contextWindow: 131072,
+		},
+	],
+	'alibaba-cn': [
+		{
+			id: 'deepseek-r1',
+			name: 'DeepSeek R1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-r1-0528',
+			name: 'DeepSeek R1 0528',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-r1-distill-llama-70b',
+			name: 'DeepSeek R1 Distill Llama 70B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-r1-distill-llama-8b',
+			name: 'DeepSeek R1 Distill Llama 8B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-r1-distill-qwen-1-5b',
+			name: 'DeepSeek R1 Distill Qwen 1.5B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-r1-distill-qwen-14b',
+			name: 'DeepSeek R1 Distill Qwen 14B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-r1-distill-qwen-32b',
+			name: 'DeepSeek R1 Distill Qwen 32B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-r1-distill-qwen-7b',
+			name: 'DeepSeek R1 Distill Qwen 7B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-v3',
+			name: 'DeepSeek V3',
+			contextWindow: 65536,
+		},
+		{
+			id: 'deepseek-v3-1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v3-2-exp',
+			name: 'DeepSeek V3.2 Exp',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'kimi/kimi-k2.5',
+			name: 'kimi/kimi-k2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax/MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'moonshot-kimi-k2-instruct',
+			name: 'Moonshot Kimi K2 Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Moonshot Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Moonshot Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Moonshot Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qvq-max',
+			name: 'QVQ Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-deep-research',
+			name: 'Qwen Deep Research',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-doc-turbo',
+			name: 'Qwen Doc Turbo',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-flash',
+			name: 'Qwen Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-long',
+			name: 'Qwen Long',
+			contextWindow: 10000000,
+		},
+		{
+			id: 'qwen-math-plus',
+			name: 'Qwen Math Plus',
+			contextWindow: 4096,
+		},
+		{
+			id: 'qwen-math-turbo',
+			name: 'Qwen Math Turbo',
+			contextWindow: 4096,
+		},
+		{
+			id: 'qwen-max',
+			name: 'Qwen Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-plus',
+			name: 'Qwen Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-plus-character',
+			name: 'Qwen Plus Character',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-turbo',
+			name: 'Qwen Turbo',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-omni-turbo',
+			name: 'Qwen-Omni Turbo',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-omni-turbo-realtime',
+			name: 'Qwen-Omni Turbo Realtime',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-vl-max',
+			name: 'Qwen-VL Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-vl-plus',
+			name: 'Qwen-VL Plus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-14b-instruct',
+			name: 'Qwen2.5 14B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-32b-instruct',
+			name: 'Qwen2.5 32B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-72b-instruct',
+			name: 'Qwen2.5 72B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-7b-instruct',
+			name: 'Qwen2.5 7B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-coder-32b-instruct',
+			name: 'Qwen2.5-Coder 32B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-coder-7b-instruct',
+			name: 'Qwen2.5-Coder 7B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-math-72b-instruct',
+			name: 'Qwen2.5-Math 72B Instruct',
+			contextWindow: 4096,
+		},
+		{
+			id: 'qwen2-5-math-7b-instruct',
+			name: 'Qwen2.5-Math 7B Instruct',
+			contextWindow: 4096,
+		},
+		{
+			id: 'qwen2-5-omni-7b',
+			name: 'Qwen2.5-Omni 7B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen2-5-vl-72b-instruct',
+			name: 'Qwen2.5-VL 72B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-vl-7b-instruct',
+			name: 'Qwen2.5-VL 7B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-14b',
+			name: 'Qwen3 14B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-235b-a22b',
+			name: 'Qwen3 235B-A22B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-8b',
+			name: 'Qwen3 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-coder-flash',
+			name: 'Qwen3 Coder Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3-Coder 30B-A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3-Coder 480B-A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3-Next 80B-A3B (Thinking)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3-Next 80B-A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-omni-flash',
+			name: 'Qwen3-Omni Flash',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen3-omni-flash-realtime',
+			name: 'Qwen3-Omni Flash Realtime',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen3-vl-235b-a22b',
+			name: 'Qwen3-VL 235B-A22B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-30b-a3b',
+			name: 'Qwen3-VL 30B-A3B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-plus',
+			name: 'Qwen3-VL Plus',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-flash',
+			name: 'Qwen3.5 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-max-preview',
+			name: 'Qwen3.6 Max Preview',
+			contextWindow: 245800,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwq-32b',
+			name: 'QwQ 32B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwq-plus',
+			name: 'QwQ Plus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'siliconflow/deepseek-r1-0528',
+			name: 'siliconflow/deepseek-r1-0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'siliconflow/deepseek-v3-0324',
+			name: 'siliconflow/deepseek-v3-0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'siliconflow/deepseek-v3.1-terminus',
+			name: 'siliconflow/deepseek-v3.1-terminus',
+			contextWindow: 163840,
+		},
+		{
+			id: 'siliconflow/deepseek-v3.2',
+			name: 'siliconflow/deepseek-v3.2',
+			contextWindow: 163840,
+		},
+	],
+	'alibaba-coding-plan': [
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-max-2026-01-23',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+	],
+	'alibaba-coding-plan-cn': [
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-max-2026-01-23',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+	],
+	'alibaba-token-plan': [
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+	],
+	'amazon-bedrock': [
+		{
+			id: 'au.anthropic.claude-opus-4-6-v1',
+			name: 'AU Anthropic Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'au.anthropic.claude-sonnet-4-6',
+			name: 'AU Anthropic Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'eu.anthropic.claude-fable-5',
+			name: 'Claude Fable 5 (EU)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'global.anthropic.claude-fable-5',
+			name: 'Claude Fable 5 (Global)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'us.anthropic.claude-fable-5',
+			name: 'Claude Fable 5 (US)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic.claude-haiku-4-5-20251001-v1:0',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'au.anthropic.claude-haiku-4-5-20251001-v1:0',
+			name: 'Claude Haiku 4.5 (AU)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
+			name: 'Claude Haiku 4.5 (EU)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'global.anthropic.claude-haiku-4-5-20251001-v1:0',
+			name: 'Claude Haiku 4.5 (Global)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+			name: 'Claude Haiku 4.5 (US)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic.claude-opus-4-1-20250805-v1:0',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'us.anthropic.claude-opus-4-1-20250805-v1:0',
+			name: 'Claude Opus 4.1 (US)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic.claude-opus-4-5-20251101-v1:0',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'eu.anthropic.claude-opus-4-5-20251101-v1:0',
+			name: 'Claude Opus 4.5 (EU)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'global.anthropic.claude-opus-4-5-20251101-v1:0',
+			name: 'Claude Opus 4.5 (Global)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'us.anthropic.claude-opus-4-5-20251101-v1:0',
+			name: 'Claude Opus 4.5 (US)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic.claude-opus-4-6-v1',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'eu.anthropic.claude-opus-4-6-v1',
+			name: 'Claude Opus 4.6 (EU)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'global.anthropic.claude-opus-4-6-v1',
+			name: 'Claude Opus 4.6 (Global)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'us.anthropic.claude-opus-4-6-v1',
+			name: 'Claude Opus 4.6 (US)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic.claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'eu.anthropic.claude-opus-4-7',
+			name: 'Claude Opus 4.7 (EU)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'global.anthropic.claude-opus-4-7',
+			name: 'Claude Opus 4.7 (Global)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'jp.anthropic.claude-opus-4-7',
+			name: 'Claude Opus 4.7 (JP)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'us.anthropic.claude-opus-4-7',
+			name: 'Claude Opus 4.7 (US)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic.claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'au.anthropic.claude-opus-4-8',
+			name: 'Claude Opus 4.8 (AU)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'eu.anthropic.claude-opus-4-8',
+			name: 'Claude Opus 4.8 (EU)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'global.anthropic.claude-opus-4-8',
+			name: 'Claude Opus 4.8 (Global)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'jp.anthropic.claude-opus-4-8',
+			name: 'Claude Opus 4.8 (JP)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'us.anthropic.claude-opus-4-8',
+			name: 'Claude Opus 4.8 (US)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'au.anthropic.claude-sonnet-4-5-20250929-v1:0',
+			name: 'Claude Sonnet 4.5 (AU)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
+			name: 'Claude Sonnet 4.5 (EU)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+			name: 'Claude Sonnet 4.5 (Global)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+			name: 'Claude Sonnet 4.5 (JP)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+			name: 'Claude Sonnet 4.5 (US)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic.claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'eu.anthropic.claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6 (EU)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'global.anthropic.claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6 (Global)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'jp.anthropic.claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6 (JP)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'us.anthropic.claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6 (US)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek.r1-v1:0',
+			name: 'DeepSeek-R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'us.deepseek.r1-v1:0',
+			name: 'DeepSeek-R1 (US)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek.v3-v1:0',
+			name: 'DeepSeek-V3.1',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek.v3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'mistral.devstral-2-123b',
+			name: 'Devstral 2 123B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'google.gemma-3-4b-it',
+			name: 'Gemma 3 4B IT',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai.glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai.glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai.glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'google.gemma-3-27b-it',
+			name: 'Google Gemma 3 27B Instruct',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai.gpt-oss-safeguard-120b',
+			name: 'GPT OSS Safeguard 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai.gpt-oss-safeguard-20b',
+			name: 'GPT OSS Safeguard 20B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai.gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 272000,
+		},
+		{
+			id: 'openai.gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 272000,
+		},
+		{
+			id: 'openai.gpt-oss-120b-1:0',
+			name: 'gpt-oss-120b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai.gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai.gpt-oss-20b-1:0',
+			name: 'gpt-oss-20b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai.gpt-oss-20b',
+			name: 'gpt-oss-20b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshot.kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262143,
+		},
+		{
+			id: 'moonshotai.kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262143,
+		},
+		{
+			id: 'meta.llama3-1-70b-instruct-v1:0',
+			name: 'Llama 3.1 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta.llama3-1-8b-instruct-v1:0',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta.llama3-3-70b-instruct-v1:0',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta.llama4-maverick-17b-instruct-v1:0',
+			name: 'Llama 4 Maverick 17B Instruct',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'us.meta.llama4-maverick-17b-instruct-v1:0',
+			name: 'Llama 4 Maverick 17B Instruct (US)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'meta.llama4-scout-17b-instruct-v1:0',
+			name: 'Llama 4 Scout 17B Instruct',
+			contextWindow: 3500000,
+		},
+		{
+			id: 'us.meta.llama4-scout-17b-instruct-v1:0',
+			name: 'Llama 4 Scout 17B Instruct (US)',
+			contextWindow: 3500000,
+		},
+		{
+			id: 'mistral.magistral-small-2509',
+			name: 'Magistral Small 1.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'minimax.minimax-m2',
+			name: 'MiniMax M2',
+			contextWindow: 204608,
+		},
+		{
+			id: 'minimax.minimax-m2.1',
+			name: 'MiniMax M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax.minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'mistral.ministral-3-14b-instruct',
+			name: 'Ministral 14B 3.0',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral.ministral-3-3b-instruct',
+			name: 'Ministral 3 3B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral.ministral-3-8b-instruct',
+			name: 'Ministral 3 8B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral.mistral-large-3-675b-instruct',
+			name: 'Mistral Large 3',
+			contextWindow: 256000,
+		},
+		{
+			id: 'amazon.nova-2-lite-v1:0',
+			name: 'Nova 2 Lite',
+			contextWindow: 128000,
+		},
+		{
+			id: 'amazon.nova-lite-v1:0',
+			name: 'Nova Lite',
+			contextWindow: 300000,
+		},
+		{
+			id: 'amazon.nova-micro-v1:0',
+			name: 'Nova Micro',
+			contextWindow: 128000,
+		},
+		{
+			id: 'amazon.nova-pro-v1:0',
+			name: 'Nova Pro',
+			contextWindow: 300000,
+		},
+		{
+			id: 'nvidia.nemotron-super-3-120b',
+			name: 'NVIDIA Nemotron 3 Super 120B A12B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia.nemotron-nano-12b-v2',
+			name: 'NVIDIA Nemotron Nano 12B v2 VL BF16',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nvidia.nemotron-nano-3-30b',
+			name: 'NVIDIA Nemotron Nano 3 30B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nvidia.nemotron-nano-9b-v2',
+			name: 'NVIDIA Nemotron Nano 9B v2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'writer.palmyra-x4-v1:0',
+			name: 'Palmyra X4',
+			contextWindow: 122880,
+		},
+		{
+			id: 'writer.palmyra-x5-v1:0',
+			name: 'Palmyra X5',
+			contextWindow: 1040000,
+		},
+		{
+			id: 'mistral.pixtral-large-2502-v1:0',
+			name: 'Pixtral Large (25.02)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen.qwen3-next-80b-a3b',
+			name: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen.qwen3-vl-235b-a22b',
+			name: 'Qwen/Qwen3-VL-235B-A22B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen.qwen3-235b-a22b-2507-v1:0',
+			name: 'Qwen3 235B A22B 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen.qwen3-32b-v1:0',
+			name: 'Qwen3 32B (dense)',
+			contextWindow: 16384,
+		},
+		{
+			id: 'qwen.qwen3-coder-30b-a3b-v1:0',
+			name: 'Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen.qwen3-coder-480b-a35b-v1:0',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen.qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral.voxtral-mini-3b-2507',
+			name: 'Voxtral Mini 3B 2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral.voxtral-small-24b-2507',
+			name: 'Voxtral Small 24B 2507',
+			contextWindow: 32000,
+		},
+	],
+	ambient: [
+		{
+			id: 'zai-org/GLM-5.1-FP8',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+	],
+	anthropic: [
+		{
+			id: 'claude-fable-5',
+			name: 'Claude Fable 5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-3-haiku-20240307',
+			name: 'Claude Haiku 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-5-haiku-20241022',
+			name: 'Claude Haiku 3.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-5-haiku-latest',
+			name: 'Claude Haiku 3.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-opus-20240229',
+			name: 'Claude Opus 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-20250514',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-0',
+			name: 'Claude Opus 4 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1',
+			name: 'Claude Opus 4.1 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5',
+			name: 'Claude Opus 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-3-sonnet-20240229',
+			name: 'Claude Sonnet 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-5-sonnet-20240620',
+			name: 'Claude Sonnet 3.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-5-sonnet-20241022',
+			name: 'Claude Sonnet 3.5 v2',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-7-sonnet-20250219',
+			name: 'Claude Sonnet 3.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-20250514',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-0',
+			name: 'Claude Sonnet 4 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+	],
+	anyapi: [
+		{
+			id: 'anthropic/claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'cohere/command-r-plus-08-2024',
+			name: 'Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-chat',
+			name: 'DeepSeek Chat',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-r1',
+			name: 'DeepSeek Reasoner',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistralai/devstral-2512',
+			name: 'Devstral 2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-pro-preview',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'xai/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistralai/mistral-large-2512',
+			name: 'Mistral Large 3',
+			contextWindow: 262144,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+	],
+	'atomic-chat': [
+		{
+			id: 'Meta-Llama-3_1-8B-Instruct-GGUF',
+			name: 'Meta Llama 3.1 8B Instruct (GGUF)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'Qwen3_5-9B-MLX-4bit',
+			name: 'Qwen 3.5 9B (MLX 4-bit)',
+			contextWindow: 32768,
+		},
+		{
+			id: 'Qwen3_5-9B-Q4_K_M',
+			name: 'Qwen 3.5 9B (Q4_K_M)',
+			contextWindow: 32768,
+		},
+	],
+	auriko: [
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimax-m2-7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2-7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'qwen-3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+	],
+	azure: [
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'codestral-2501',
+			name: 'Codestral 25.01',
+			contextWindow: 256000,
+		},
+		{
+			id: 'codex-mini',
+			name: 'Codex Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'cohere-command-a',
+			name: 'Command A',
+			contextWindow: 256000,
+		},
+		{
+			id: 'cohere-command-r-08-2024',
+			name: 'Command R',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere-command-r-plus-08-2024',
+			name: 'Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-r1-0528',
+			name: 'DeepSeek-R1-0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v3-0324',
+			name: 'DeepSeek-V3-0324',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v3.1',
+			name: 'DeepSeek-V3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8192,
+		},
+		{
+			id: 'gpt-4-32k',
+			name: 'GPT-4 32K',
+			contextWindow: 32768,
+		},
+		{
+			id: 'gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4-turbo-vision',
+			name: 'GPT-4 Turbo Vision',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'GPT-5',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5.1-chat',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-chat',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-chat',
+			name: 'GPT-5.3 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok-4-fast-reasoning',
+			name: 'Grok 4 Fast (Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-non-reasoning',
+			name: 'Grok 4.1 Fast (Non-Reasoning)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'grok-4-1-fast-reasoning',
+			name: 'Grok 4.1 Fast (Reasoning)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'grok-4-20-non-reasoning',
+			name: 'Grok 4.20 (Non-Reasoning)',
+			contextWindow: 262000,
+		},
+		{
+			id: 'grok-4-20-reasoning',
+			name: 'Grok 4.20 (Reasoning)',
+			contextWindow: 262000,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'llama-4-maverick-17b-128e-instruct-fp8',
+			name: 'Llama 4 Maverick 17B 128E Instruct FP8',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-4-scout-17b-16e-instruct',
+			name: 'Llama 4 Scout 17B 16E Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.2-11b-vision-instruct',
+			name: 'Llama-3.2-11B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.2-90b-vision-instruct',
+			name: 'Llama-3.2-90B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama-3.1-405b-instruct',
+			name: 'Meta-Llama-3.1-405B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama-3.1-70b-instruct',
+			name: 'Meta-Llama-3.1-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama-3.1-8b-instruct',
+			name: 'Meta-Llama-3.1-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'ministral-3b',
+			name: 'Ministral 3B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-large-2411',
+			name: 'Mistral Large 24.11',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-medium-2505',
+			name: 'Mistral Medium 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-nemo',
+			name: 'Mistral Nemo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-small-2503',
+			name: 'Mistral Small 3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'model-router',
+			name: 'Model Router',
+			contextWindow: 128000,
+		},
+		{
+			id: 'o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o1-mini',
+			name: 'o1-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'phi-4-mini',
+			name: 'Phi-4-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'phi-4-mini-reasoning',
+			name: 'Phi-4-mini-reasoning',
+			contextWindow: 128000,
+		},
+	],
+	'azure-cognitive-services': [
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'codestral-2501',
+			name: 'Codestral 25.01',
+			contextWindow: 256000,
+		},
+		{
+			id: 'codex-mini',
+			name: 'Codex Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'cohere-command-a',
+			name: 'Command A',
+			contextWindow: 256000,
+		},
+		{
+			id: 'cohere-command-r-08-2024',
+			name: 'Command R',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere-command-r-plus-08-2024',
+			name: 'Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-r1-0528',
+			name: 'DeepSeek-R1-0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v3-0324',
+			name: 'DeepSeek-V3-0324',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v3.1',
+			name: 'DeepSeek-V3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8192,
+		},
+		{
+			id: 'gpt-4-32k',
+			name: 'GPT-4 32K',
+			contextWindow: 32768,
+		},
+		{
+			id: 'gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4-turbo-vision',
+			name: 'GPT-4 Turbo Vision',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'GPT-5',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5.1-chat',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-chat',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok-4-fast-reasoning',
+			name: 'Grok 4 Fast (Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'llama-4-maverick-17b-128e-instruct-fp8',
+			name: 'Llama 4 Maverick 17B 128E Instruct FP8',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-4-scout-17b-16e-instruct',
+			name: 'Llama 4 Scout 17B 16E Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.2-11b-vision-instruct',
+			name: 'Llama-3.2-11B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.2-90b-vision-instruct',
+			name: 'Llama-3.2-90B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama-3.1-405b-instruct',
+			name: 'Meta-Llama-3.1-405B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama-3.1-70b-instruct',
+			name: 'Meta-Llama-3.1-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama-3.1-8b-instruct',
+			name: 'Meta-Llama-3.1-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'ministral-3b',
+			name: 'Ministral 3B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-large-2411',
+			name: 'Mistral Large 24.11',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-medium-2505',
+			name: 'Mistral Medium 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-nemo',
+			name: 'Mistral Nemo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-small-2503',
+			name: 'Mistral Small 3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'model-router',
+			name: 'Model Router',
+			contextWindow: 128000,
+		},
+		{
+			id: 'o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o1-mini',
+			name: 'o1-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'phi-4-mini',
+			name: 'Phi-4-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'phi-4-mini-reasoning',
+			name: 'Phi-4-mini-reasoning',
+			contextWindow: 128000,
+		},
+	],
+	bailing: [
+		{
+			id: 'Ling-1T',
+			name: 'Ling-1T',
+			contextWindow: 128000,
+		},
+	],
+	baseten: [
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'Deepseek V4 Pro',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/GLM-5',
+			name: 'GLM 5',
+			contextWindow: 202800,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 202800,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262000,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204000,
+		},
+		{
+			id: 'nvidia/Nemotron-120B-A12B',
+			name: 'Nemotron Super',
+			contextWindow: 202800,
+		},
+		{
+			id: 'nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B',
+			name: 'Nemotron Ultra',
+			contextWindow: 202800,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'OpenAI GPT 120B',
+			contextWindow: 128072,
+		},
+	],
+	berget: [
+		{
+			id: 'google/gemma-4-31B-it',
+			name: 'Gemma 4 31B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai-org/GLM-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT-OSS-120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/Mistral-Medium-3.5-128B',
+			name: 'Mistral Medium 3.5 128B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/Mistral-Small-3.2-24B-Instruct-2506',
+			name: 'Mistral Small 3.2 24B Instruct 2506',
+			contextWindow: 32000,
+		},
+	],
+	cerebras: [
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama3.1-8b',
+			name: 'Llama 3.1 8B',
+			contextWindow: 32000,
+		},
+		{
+			id: 'zai-glm-4.7',
+			name: 'Z.AI GLM-4.7',
+			contextWindow: 131072,
+		},
+	],
+	chutes: [
+		{
+			id: 'NousResearch/DeepHermes-3-Mistral-24B-Preview',
+			name: 'DeepHermes 3 Mistral 24B Preview',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-0528-TEE',
+			name: 'DeepSeek R1 0528 TEE',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B',
+			name: 'DeepSeek R1 Distill Llama 70B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'tngtech/DeepSeek-TNG-R1T2-Chimera-TEE',
+			name: 'DeepSeek TNG R1T2 Chimera TEE',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3-0324-TEE',
+			name: 'DeepSeek V3 0324 TEE',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1-TEE',
+			name: 'DeepSeek V3.1 TEE',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2-TEE',
+			name: 'DeepSeek V3.2 TEE',
+			contextWindow: 131072,
+		},
+		{
+			id: 'unsloth/gemma-3-27b-it',
+			name: 'gemma 3 27b it',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemma-4-31B-turbo-TEE',
+			name: 'gemma 4 31B turbo TEE',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/GLM-4.6V',
+			name: 'GLM 4.6V',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/GLM-4.7-FP8',
+			name: 'GLM 4.7 FP8',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-4.7-TEE',
+			name: 'GLM 4.7 TEE',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5-TEE',
+			name: 'GLM 5 TEE',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5-Turbo',
+			name: 'GLM 5 Turbo',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5.1-TEE',
+			name: 'GLM 5.1 TEE',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai/gpt-oss-120b-TEE',
+			name: 'gpt oss 120b TEE',
+			contextWindow: 131072,
+		},
+		{
+			id: 'NousResearch/Hermes-4-14B',
+			name: 'Hermes 4 14B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5-TEE',
+			name: 'Kimi K2.5 TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6-TEE',
+			name: 'Kimi K2.6 TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'XiaomiMiMo/MiMo-V2-Flash-TEE',
+			name: 'MiMo V2 Flash TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5-TEE',
+			name: 'MiniMax M2.5 TEE',
+			contextWindow: 196608,
+		},
+		{
+			id: 'Qwen/Qwen2.5-72B-Instruct',
+			name: 'Qwen2.5 72B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507-TEE',
+			name: 'Qwen3 235B A22B Instruct 2507 TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen3 235B A22B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B',
+			name: 'Qwen3 30B A3B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'Qwen/Qwen3-32B-TEE',
+			name: 'Qwen3 32B TEE',
+			contextWindow: 40960,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-Next-TEE',
+			name: 'Qwen3 Coder Next TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			name: 'Qwen3 Next 80B A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B-TEE',
+			name: 'Qwen3.5 397B A17B TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.6-27B-TEE',
+			name: 'Qwen3.6 27B TEE',
+			contextWindow: 262144,
+		},
+	],
+	clarifai: [
+		{
+			id: 'openai/chat-completion/models/gpt-oss-120b-high-throughput',
+			name: 'GPT OSS 120B High Throughput',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/chat-completion/models/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/chat-completion/models/Kimi-K2_6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimaxai/chat-completion/models/MiniMax-M2_5-high-throughput',
+			name: 'MiniMax-M2.5 High Throughput',
+			contextWindow: 204800,
+		},
+		{
+			id: 'mistralai/completion/models/Ministral-3-14B-Reasoning-2512',
+			name: 'Ministral 3 14B Reasoning 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/completion/models/Ministral-3-3B-Reasoning-2512',
+			name: 'Ministral 3 3B Reasoning 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwenLM/models/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen3 30B A3B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwenLM/models/Qwen3-30B-A3B-Thinking-2507',
+			name: 'Qwen3 30B A3B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwenCoder/models/Qwen3-Coder-30B-A3B-Instruct',
+			name: 'Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'arcee_ai/AFM/models/trinity-mini',
+			name: 'Trinity Mini',
+			contextWindow: 131072,
+		},
+	],
+	claudinio: [
+		{
+			id: 'claudinio',
+			name: 'Claudinio',
+			contextWindow: 256000,
+		},
+	],
+	'cloudferro-sherlock': [
+		{
+			id: 'speakleash/Bielik-11B-v2.6-Instruct',
+			name: 'Bielik 11B v2.6 Instruct',
+			contextWindow: 32000,
+		},
+		{
+			id: 'speakleash/Bielik-11B-v3.0-Instruct',
+			name: 'Bielik 11B v3.0 Instruct',
+			contextWindow: 32000,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 70000,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'OpenAI GPT OSS 120B',
+			contextWindow: 131000,
+		},
+	],
+	'cloudflare-ai-gateway': [
+		{
+			id: 'anthropic/claude-fable-5',
+			name: 'Claude Fable 5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-3-haiku',
+			name: 'Claude Haiku 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3.5-haiku',
+			name: 'Claude Haiku 3.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3-5-haiku',
+			name: 'Claude Haiku 3.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3-opus',
+			name: 'Claude Opus 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude Opus 4 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-1',
+			name: 'Claude Opus 4.1 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-5',
+			name: 'Claude Opus 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-6',
+			name: 'Claude Opus 4.6 (latest)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-3-sonnet',
+			name: 'Claude Sonnet 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3.5-sonnet',
+			name: 'Claude Sonnet 3.5 v2',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'workers-ai/@cf/zai-org/glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8192,
+		},
+		{
+			id: 'openai/gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'workers-ai/@cf/moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'workers-ai/@cf/moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'workers-ai/@cf/nvidia/nemotron-3-120b-a12b',
+			name: 'Nemotron 3 Super 120B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai/o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-pro',
+			name: 'o3-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+	],
+	'cloudflare-workers-ai': [
+		{
+			id: '@cf/google/gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 256000,
+		},
+		{
+			id: '@cf/zai-org/glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 131072,
+		},
+		{
+			id: '@cf/openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: '@cf/openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 128000,
+		},
+		{
+			id: '@cf/ibm-granite/granite-4.0-h-micro',
+			name: 'Granite 4.0 H Micro',
+			contextWindow: 131000,
+		},
+		{
+			id: '@cf/moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+			name: 'Llama 3.3 70B Instruct fp8 Fast',
+			contextWindow: 24000,
+		},
+		{
+			id: '@cf/meta/llama-4-scout-17b-16e-instruct',
+			name: 'Llama 4 Scout 17B 16E Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: '@cf/mistralai/mistral-small-3.1-24b-instruct',
+			name: 'Mistral Small 3.1 24B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: '@cf/nvidia/nemotron-3-120b-a12b',
+			name: 'Nemotron 3 Super 120B',
+			contextWindow: 256000,
+		},
+		{
+			id: '@cf/qwen/qwen3-30b-a3b-fp8',
+			name: 'Qwen3 30B A3b fp8',
+			contextWindow: 32768,
+		},
+	],
+	cohere: [
+		{
+			id: 'command-a-03-2025',
+			name: 'Command A',
+			contextWindow: 256000,
+		},
+		{
+			id: 'command-a-plus-05-2026',
+			name: 'Command A Plus',
+			contextWindow: 128000,
+		},
+		{
+			id: 'command-a-reasoning-08-2025',
+			name: 'Command A Reasoning',
+			contextWindow: 256000,
+		},
+		{
+			id: 'command-a-translate-08-2025',
+			name: 'Command A Translate',
+			contextWindow: 8000,
+		},
+		{
+			id: 'command-r-08-2024',
+			name: 'Command R',
+			contextWindow: 128000,
+		},
+		{
+			id: 'command-r-plus-08-2024',
+			name: 'Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'command-r7b-12-2024',
+			name: 'Command R7B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'command-r7b-arabic-02-2025',
+			name: 'Command R7B Arabic',
+			contextWindow: 128000,
+		},
+		{
+			id: 'north-mini-code-1-0',
+			name: 'North Mini Code',
+			contextWindow: 256000,
+		},
+	],
+	cortecs: [
+		{
+			id: 'claude-4-5-sonnet',
+			name: 'Claude 4.5 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4-6-sonnet',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'codestral-2508',
+			name: 'Codestral 2508',
+			contextWindow: 256000,
+		},
+		{
+			id: 'deepseek-r1-0528',
+			name: 'DeepSeek R1 0528',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-v3-0324',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'devstral-2512',
+			name: 'Devstral 2 2512',
+			contextWindow: 262000,
+		},
+		{
+			id: 'devstral-small-2512',
+			name: 'Devstral Small 2 2512',
+			contextWindow: 262000,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'glm-4.5',
+			name: 'GLM 4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 198000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM 5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 203000,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT 4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT Oss 120b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'hermes-4-70b',
+			name: 'Hermes 4 70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'intellect-3',
+			name: 'INTELLECT 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'kimi-k2-instruct',
+			name: 'Kimi K2 Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'llama-3.1-405b-instruct',
+			name: 'Llama 3.1 405B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'minimax-m2',
+			name: 'MiniMax-M2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'minimax-m2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 196000,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax-m2.7',
+			name: 'MiniMax-m2.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'mistral-large-2512',
+			name: 'Mistral Large 3 2512',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nemotron-3-super-120b-a12b',
+			name: 'Nemotron 3 Super 120B A12B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nova-pro-v1',
+			name: 'Nova Pro 1.0',
+			contextWindow: 300000,
+		},
+		{
+			id: 'qwen-2.5-72b-instruct',
+			name: 'Qwen2.5 72B Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 131000,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 16384,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen3-coder-next',
+			name: 'Qwen3 Coder Next 80B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3 Next 80B A3B Thinking',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B A17B',
+			contextWindow: 250000,
+		},
+	],
+	crof: [
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro-lightning',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5-lightning',
+			name: 'Kimi K2.5 (Lightning)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-9b',
+			name: 'Qwen3.5 9B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-27b',
+			name: 'Qwen3.6 27B',
+			contextWindow: 262144,
+		},
+	],
+	databricks: [
+		{
+			id: 'databricks-claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'databricks-claude-opus-4-1',
+			name: 'Claude Opus 4.1 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'databricks-claude-opus-4-5',
+			name: 'Claude Opus 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'databricks-claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'databricks-claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'databricks-claude-sonnet-4',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'databricks-claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'databricks-claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'databricks-gemini-2-5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'databricks-gemini-2-5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'databricks-gemini-3-flash',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'databricks-gemini-3-pro',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'databricks-gemini-3-1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'databricks-gemini-3-1-pro',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'databricks-gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'databricks-gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'databricks-gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'databricks-gpt-5-4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'databricks-gpt-5-5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+	],
+	deepinfra: [
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'google/gemma-4-26B-A4B-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31B-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai-org/GLM-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai-org/GLM-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-4.7-Flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+			name: 'Llama 3.3 70B Turbo',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
+			name: 'Llama 4 Maverick 17B FP8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'meta-llama/Llama-4-Scout-17B-16E-Instruct',
+			name: 'Llama 4 Scout 17B',
+			contextWindow: 10000000,
+		},
+		{
+			id: 'XiaomiMiMo/MiMo-V2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'XiaomiMiMo/MiMo-V2.5-Pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'Qwen/Qwen3.5-35B-A3B',
+			name: 'Qwen 3.5 35B A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B',
+			name: 'Qwen 3.5 397B A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo',
+			name: 'Qwen3 Coder 480B A35B Instruct Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.6-35B-A3B',
+			name: 'Qwen3.6 35B A3B',
+			contextWindow: 262144,
+		},
+	],
+	deepseek: [
+		{
+			id: 'deepseek-chat',
+			name: 'DeepSeek Chat',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-reasoner',
+			name: 'DeepSeek Reasoner',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+	],
+	digitalocean: [
+		{
+			id: 'anthropic-claude-3-opus',
+			name: 'Claude 3 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-3.5-haiku',
+			name: 'Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-3.5-sonnet',
+			name: 'Claude 3.5 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-3.7-sonnet',
+			name: 'Claude 3.7 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-4.5-haiku',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-haiku-4.5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-opus-4',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-4.1-opus',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-opus-4.5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic-claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic-claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic-claude-opus-4.8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic-claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic-claude-4.5-sonnet',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic-claude-4.6-sonnet',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-r1-distill-llama-70b',
+			name: 'DeepSeek R1 Distill Llama 70B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-v3',
+			name: 'DeepSeek V3',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-4-flash',
+			name: 'Deepseek V4 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemma-4-31B-it',
+			name: 'Gemma 4 31B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM 5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai-gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai-gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai-gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai-gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5-mini',
+			name: 'GPT-5 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5-nano',
+			name: 'GPT-5 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.2-pro',
+			name: 'GPT-5.2 pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai-gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.4-pro',
+			name: 'GPT-5.4 pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai-gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai-gpt-oss-20b',
+			name: 'gpt-oss-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'llama3-8b-instruct',
+			name: 'Llama 3.1 Instruct (8B)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama3.3-70b-instruct',
+			name: 'Llama 3.3 Instruct 70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-4-maverick',
+			name: 'Llama 4 Maverick 17B 128E Instruct',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'mistral-3-14B',
+			name: 'Ministral 3 14B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'ministral-3-8b-instruct-2512',
+			name: 'Ministral 3 8B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-7b-instruct-v0.3',
+			name: 'Mistral 7B Instruct v0.3',
+			contextWindow: 32768,
+		},
+		{
+			id: 'mistral-nemo-instruct-2407',
+			name: 'Mistral Nemo Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nemotron-3-nano-30b',
+			name: 'Nemotron 3 Nano 30B A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nemotron-nano-12b-v2-vl',
+			name: 'Nemotron Nano 12B v2 VL',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nemotron-3-nano-omni',
+			name: 'Nemotron Nano 3 Omni',
+			contextWindow: 65536,
+		},
+		{
+			id: 'nvidia-nemotron-3-super-120b',
+			name: 'Nemotron-3-Super-120B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai-o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai-o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai-o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'qwen-2.5-14b-instruct',
+			name: 'Qwen 2.5 14B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen 3.5 397B A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-flash',
+			name: 'Qwen3 Coder Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'alibaba-qwen3-32b',
+			name: 'Qwen3-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'arcee-trinity-large-thinking',
+			name: 'Trinity Large Thinking',
+			contextWindow: 256000,
+		},
+	],
+	dinference: [
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 200000,
+		},
+	],
+	drun: [
+		{
+			id: 'public/deepseek-r1',
+			name: 'DeepSeek R1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'public/deepseek-v3',
+			name: 'DeepSeek V3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'public/minimax-m25',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+	],
+	evroc: [
+		{
+			id: 'mistralai/devstral-small-2-24b-instruct-2512',
+			name: 'Devstral Small 2 24B Instruct 2512',
+			contextWindow: 32768,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 65536,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507-FP8',
+			name: 'Qwen3 30B 2507',
+			contextWindow: 64000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+			name: 'Qwen3 VL 30B',
+			contextWindow: 100000,
+		},
+	],
+	fastrouter: [
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'z-ai/glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'x-ai/grok-4',
+			name: 'Grok 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2',
+			name: 'Kimi K2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-coder',
+			name: 'Qwen3 Coder',
+			contextWindow: 262144,
+		},
+	],
+	firepass: [
+		{
+			id: 'accounts/fireworks/routers/kimi-k2p6-turbo',
+			name: 'Kimi K2.6 Turbo',
+			contextWindow: 262000,
+		},
+	],
+	'fireworks-ai': [
+		{
+			id: 'accounts/fireworks/models/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'accounts/fireworks/models/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'accounts/fireworks/models/glm-5p1',
+			name: 'GLM 5.1',
+			contextWindow: 202800,
+		},
+		{
+			id: 'accounts/fireworks/routers/glm-5p1-fast',
+			name: 'GLM 5.1 Fast',
+			contextWindow: 202800,
+		},
+		{
+			id: 'accounts/fireworks/models/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'accounts/fireworks/models/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'accounts/fireworks/models/kimi-k2p5',
+			name: 'Kimi K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'accounts/fireworks/models/kimi-k2p6',
+			name: 'Kimi K2.6',
+			contextWindow: 262000,
+		},
+		{
+			id: 'accounts/fireworks/routers/kimi-k2p6-fast',
+			name: 'Kimi K2.6 Fast',
+			contextWindow: 262000,
+		},
+		{
+			id: 'accounts/fireworks/routers/kimi-k2p6-turbo',
+			name: 'Kimi K2.6 Turbo',
+			contextWindow: 262000,
+		},
+		{
+			id: 'accounts/fireworks/models/minimax-m2p5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'accounts/fireworks/models/minimax-m2p7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 196608,
+		},
+		{
+			id: 'accounts/fireworks/models/qwen3p6-plus',
+			name: 'Qwen 3.6 Plus',
+			contextWindow: 262144,
+		},
+	],
+	freemodel: [
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+	],
+	friendli: [
+		{
+			id: 'zai-org/GLM-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'meta-llama/Llama-3.1-8B-Instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+	],
+	frogbot: [
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek v4 Pro',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5-3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-4-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-4-nano',
+			name: 'GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-5',
+			name: 'GPT-5.5',
+			contextWindow: 272000,
+		},
+		{
+			id: 'grok-4-1-fast-non-reasoning',
+			name: 'Grok 4.1 Fast (Non-Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-reasoning',
+			name: 'Grok 4.1 Fast (Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-code-fast-1',
+			name: 'Grok 4.1 Fast (Reasoning)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-4-3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi-K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2-6',
+			name: 'Kimi-K2.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'minimax-m2-5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 192000,
+		},
+		{
+			id: 'minimax-m2-7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 192000,
+		},
+		{
+			id: 'qwen-3-6-plus',
+			name: 'Qwen 3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'zai-glm-5-1',
+			name: 'Z.AI GLM-5.1',
+			contextWindow: 198000,
+		},
+	],
+	'github-copilot': [
+		{
+			id: 'claude-haiku-4.5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4.5',
+			name: 'Claude Opus 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4.8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4',
+			name: 'Claude Sonnet 4 (latest)',
+			contextWindow: 216000,
+		},
+		{
+			id: 'claude-sonnet-4.5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 264000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'raptor-mini',
+			name: 'Raptor mini',
+			contextWindow: 400000,
+		},
+	],
+	'github-models': [
+		{
+			id: 'ai21-labs/ai21-jamba-1.5-large',
+			name: 'AI21 Jamba 1.5 Large',
+			contextWindow: 256000,
+		},
+		{
+			id: 'ai21-labs/ai21-jamba-1.5-mini',
+			name: 'AI21 Jamba 1.5 Mini',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral-ai/codestral-2501',
+			name: 'Codestral 25.01',
+			contextWindow: 32000,
+		},
+		{
+			id: 'cohere/cohere-command-a',
+			name: 'Cohere Command A',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/cohere-command-r',
+			name: 'Cohere Command R',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/cohere-command-r-08-2024',
+			name: 'Cohere Command R 08-2024',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/cohere-command-r-plus',
+			name: 'Cohere Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/cohere-command-r-plus-08-2024',
+			name: 'Cohere Command R+ 08-2024',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-r1',
+			name: 'DeepSeek-R1',
+			contextWindow: 65536,
+		},
+		{
+			id: 'deepseek/deepseek-r1-0528',
+			name: 'DeepSeek-R1-0528',
+			contextWindow: 65536,
+		},
+		{
+			id: 'deepseek/deepseek-v3-0324',
+			name: 'DeepSeek-V3-0324',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1-nano',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'xai/grok-3',
+			name: 'Grok 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'xai/grok-3-mini',
+			name: 'Grok 3 Mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'core42/jais-30b-chat',
+			name: 'JAIS 30b Chat',
+			contextWindow: 8192,
+		},
+		{
+			id: 'meta/llama-4-maverick-17b-128e-instruct-fp8',
+			name: 'Llama 4 Maverick 17B 128E Instruct FP8',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-4-scout-17b-16e-instruct',
+			name: 'Llama 4 Scout 17B 16E Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.2-11b-vision-instruct',
+			name: 'Llama-3.2-11B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.2-90b-vision-instruct',
+			name: 'Llama-3.2-90B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/mai-ds-r1',
+			name: 'MAI-DS-R1',
+			contextWindow: 65536,
+		},
+		{
+			id: 'meta/meta-llama-3-70b-instruct',
+			name: 'Meta-Llama-3-70B-Instruct',
+			contextWindow: 8192,
+		},
+		{
+			id: 'meta/meta-llama-3-8b-instruct',
+			name: 'Meta-Llama-3-8B-Instruct',
+			contextWindow: 8192,
+		},
+		{
+			id: 'meta/meta-llama-3.1-405b-instruct',
+			name: 'Meta-Llama-3.1-405B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/meta-llama-3.1-70b-instruct',
+			name: 'Meta-Llama-3.1-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/meta-llama-3.1-8b-instruct',
+			name: 'Meta-Llama-3.1-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-ai/ministral-3b',
+			name: 'Ministral 3B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-ai/mistral-large-2411',
+			name: 'Mistral Large 24.11',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-ai/mistral-medium-2505',
+			name: 'Mistral Medium 3 (25.05)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-ai/mistral-nemo',
+			name: 'Mistral Nemo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-ai/mistral-small-2503',
+			name: 'Mistral Small 3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-3-medium-128k-instruct',
+			name: 'Phi-3-medium instruct (128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-3-medium-4k-instruct',
+			name: 'Phi-3-medium instruct (4k)',
+			contextWindow: 4096,
+		},
+		{
+			id: 'microsoft/phi-3-mini-128k-instruct',
+			name: 'Phi-3-mini instruct (128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-3-mini-4k-instruct',
+			name: 'Phi-3-mini instruct (4k)',
+			contextWindow: 4096,
+		},
+		{
+			id: 'microsoft/phi-3-small-128k-instruct',
+			name: 'Phi-3-small instruct (128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-3-small-8k-instruct',
+			name: 'Phi-3-small instruct (8k)',
+			contextWindow: 8192,
+		},
+		{
+			id: 'microsoft/phi-3.5-mini-instruct',
+			name: 'Phi-3.5-mini instruct (128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-3.5-moe-instruct',
+			name: 'Phi-3.5-MoE instruct (128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-3.5-vision-instruct',
+			name: 'Phi-3.5-vision instruct (128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-4',
+			name: 'Phi-4',
+			contextWindow: 16000,
+		},
+		{
+			id: 'microsoft/phi-4-mini-instruct',
+			name: 'Phi-4-mini-instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-4-mini-reasoning',
+			name: 'Phi-4-mini-reasoning',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-4-multimodal-instruct',
+			name: 'Phi-4-multimodal-instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'microsoft/phi-4-reasoning',
+			name: 'Phi-4-Reasoning',
+			contextWindow: 128000,
+		},
+	],
+	gitlab: [
+		{
+			id: 'duo-chat-haiku-4-5',
+			name: 'Agentic Chat (Claude Haiku 4.5)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'duo-chat-opus-4-5',
+			name: 'Agentic Chat (Claude Opus 4.5)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'duo-chat-opus-4-6',
+			name: 'Agentic Chat (Claude Opus 4.6)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'duo-chat-opus-4-7',
+			name: 'Agentic Chat (Claude Opus 4.7)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'duo-chat-opus-4-8',
+			name: 'Agentic Chat (Claude Opus 4.8)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'duo-chat-sonnet-4-5',
+			name: 'Agentic Chat (Claude Sonnet 4.5)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'duo-chat-sonnet-4-6',
+			name: 'Agentic Chat (Claude Sonnet 4.6)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'duo-chat-gpt-5-codex',
+			name: 'Agentic Chat (GPT-5 Codex)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-mini',
+			name: 'Agentic Chat (GPT-5 Mini)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-1',
+			name: 'Agentic Chat (GPT-5.1)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-2-codex',
+			name: 'Agentic Chat (GPT-5.2 Codex)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-2',
+			name: 'Agentic Chat (GPT-5.2)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-3-codex',
+			name: 'Agentic Chat (GPT-5.3 Codex)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-4-mini',
+			name: 'Agentic Chat (GPT-5.4 Mini)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-4-nano',
+			name: 'Agentic Chat (GPT-5.4 Nano)',
+			contextWindow: 400000,
+		},
+		{
+			id: 'duo-chat-gpt-5-4',
+			name: 'Agentic Chat (GPT-5.4)',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'duo-chat-gpt-5-5',
+			name: 'Agentic Chat (GPT-5.5)',
+			contextWindow: 1050000,
+		},
+	],
+	gmicloud: [
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 409600,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 409600,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 409600,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048575,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'zai-org/GLM-5-FP8',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5.1-FP8',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 65536,
+		},
+	],
+	google: [
+		{
+			id: 'gemini-2.0-flash',
+			name: 'Gemini 2.0 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.0-flash-lite',
+			name: 'Gemini 2.0 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-pro-preview',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-flash-latest',
+			name: 'Gemini Flash Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-flash-lite-latest',
+			name: 'Gemini Flash-Lite Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+	],
+	'google-vertex': [
+		{
+			id: 'claude-3-5-haiku@20241022',
+			name: 'Claude Haiku 3.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5@20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4@20250514',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1@20250805',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5@20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6@default',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7@default',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8@default',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4@20250514',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5@20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6@default',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-ai/deepseek-v3.1-maas',
+			name: 'DeepSeek V3.1',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/deepseek-v3.2-maas',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-flash-latest',
+			name: 'Gemini Flash Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-flash-lite-latest',
+			name: 'Gemini Flash-Lite Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'zai-org/glm-4.7-maas',
+			name: 'GLM-4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5-maas',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai/gpt-oss-120b-maas',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b-maas',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking-maas',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta/llama-3.3-70b-instruct-maas',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-4-maverick-17b-128e-instruct-maas',
+			name: 'Llama 4 Maverick 17B 128E Instruct',
+			contextWindow: 524288,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-instruct-2507-maas',
+			name: 'Qwen3 235B A22B Instruct',
+			contextWindow: 262144,
+		},
+	],
+	'google-vertex-anthropic': [
+		{
+			id: 'claude-3-5-haiku@20241022',
+			name: 'Claude Haiku 3.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5@20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4@20250514',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1@20250805',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5@20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6@default',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7@default',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8@default',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4@20250514',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5@20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6@default',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+	],
+	groq: [
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama-3.1-8b-instant',
+			name: 'Llama 3.1 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama-3.3-70b-versatile',
+			name: 'Llama 3.3 70B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-4-scout-17b-16e-instruct',
+			name: 'Llama 4 Scout 17B 16E',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-32b',
+			name: 'Qwen3-32B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-safeguard-20b',
+			name: 'Safety GPT OSS 20B',
+			contextWindow: 131072,
+		},
+	],
+	helicone: [
+		{
+			id: 'claude-3-haiku-20240307',
+			name: 'Anthropic: Claude 3 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3.5-haiku',
+			name: 'Anthropic: Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3.5-sonnet-v2',
+			name: 'Anthropic: Claude 3.5 Sonnet v2',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3.7-sonnet',
+			name: 'Anthropic: Claude 3.7 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.5-haiku',
+			name: 'Anthropic: Claude 4.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Anthropic: Claude 4.5 Haiku (20251001)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4',
+			name: 'Anthropic: Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1',
+			name: 'Anthropic: Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'Anthropic: Claude Opus 4.1 (20250805)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.5-opus',
+			name: 'Anthropic: Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4',
+			name: 'Anthropic: Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.5-sonnet',
+			name: 'Anthropic: Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'Anthropic: Claude Sonnet 4.5 (20250929)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'deepseek-r1-distill-llama-70b',
+			name: 'DeepSeek R1 Distill Llama 70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-tng-r1t2-chimera',
+			name: 'DeepSeek TNG R1T2 Chimera',
+			contextWindow: 130000,
+		},
+		{
+			id: 'deepseek-v3',
+			name: 'DeepSeek V3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.1-terminus',
+			name: 'DeepSeek V3.1 Terminus',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Google Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'Google Gemini 2.5 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Google Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-pro-preview',
+			name: 'Google Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'hermes-2-pro-llama-3-8b',
+			name: 'Hermes 2 Pro Llama 3 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-0711',
+			name: 'Kimi K2 (07/11)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-0905',
+			name: 'Kimi K2 (09/05)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'llama-3.1-8b-instant',
+			name: 'Meta Llama 3.1 8B Instant',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama-3.1-8b-instruct',
+			name: 'Meta Llama 3.1 8B Instruct',
+			contextWindow: 16384,
+		},
+		{
+			id: 'llama-3.1-8b-instruct-turbo',
+			name: 'Meta Llama 3.1 8B Instruct Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Meta Llama 3.3 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-versatile',
+			name: 'Meta Llama 3.3 70B Versatile',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama-4-maverick',
+			name: 'Meta Llama 4 Maverick 17B 128E',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama-4-scout',
+			name: 'Meta Llama 4 Scout 17B 16E',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral-small',
+			name: 'Mistral Small 3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-large-2411',
+			name: 'Mistral-Large',
+			contextWindow: 128000,
+		},
+		{
+			id: 'chatgpt-4o-latest',
+			name: 'OpenAI ChatGPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'OpenAI GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'OpenAI GPT-4.1 Mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini-2025-04-14',
+			name: 'OpenAI GPT-4.1 Mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'OpenAI GPT-4.1 Nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'OpenAI GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-mini',
+			name: 'OpenAI GPT-4o-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'OpenAI GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-chat-latest',
+			name: 'OpenAI GPT-5 Chat Latest',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'OpenAI GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'OpenAI GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'OpenAI GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-chat-latest',
+			name: 'OpenAI GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'OpenAI GPT-OSS 120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-oss-20b',
+			name: 'OpenAI GPT-OSS 20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'o3',
+			name: 'OpenAI o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-mini',
+			name: 'OpenAI o3 Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-pro',
+			name: 'OpenAI o3 Pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini',
+			name: 'OpenAI o4 Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'OpenAI: GPT-5 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'OpenAI: GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'OpenAI: GPT-5.1 Codex Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'qwen3-30b-a3b',
+			name: 'Qwen3 30B A3B',
+			contextWindow: 41000,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder',
+			name: 'Qwen3 Coder 480B A35B Instruct Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3 Next 80B A3B Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen3-vl-235b-a22b-instruct',
+			name: 'Qwen3 VL 235B A22B Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-3',
+			name: 'xAI Grok 3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'grok-3-mini',
+			name: 'xAI Grok 3 Mini',
+			contextWindow: 131072,
+		},
+		{
+			id: 'grok-4',
+			name: 'xAI Grok 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-4-fast-non-reasoning',
+			name: 'xAI Grok 4 Fast Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-non-reasoning',
+			name: 'xAI Grok 4.1 Fast Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-reasoning',
+			name: 'xAI Grok 4.1 Fast Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-code-fast-1',
+			name: 'xAI Grok Code Fast 1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-4-fast-reasoning',
+			name: 'xAI: Grok 4 Fast Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'Zai GLM-4.6',
+			contextWindow: 204800,
+		},
+	],
+	'hpc-ai': [
+		{
+			id: 'zai-org/glm-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 202000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 1000000,
+		},
+	],
+	huggingface: [
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-0528',
+			name: 'DeepSeek-R1-0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'zai-org/GLM-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai-org/GLM-4.7-Flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/GLM-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct',
+			name: 'Kimi-K2-Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct-0905',
+			name: 'Kimi-K2-Instruct-0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Thinking',
+			name: 'Kimi-K2-Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi-K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi-K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'XiaomiMiMo/MiMo-V2-Flash',
+			name: 'MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen3-235B-A22B-Thinking-2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			name: 'Qwen3-Coder-480B-A35B-Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-Next',
+			name: 'Qwen3-Coder-Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			name: 'Qwen3-Next-80B-A3B-Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Thinking',
+			name: 'Qwen3-Next-80B-A3B-Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B',
+			name: 'Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+	],
+	iflowcn: [
+		{
+			id: 'deepseek-r1',
+			name: 'DeepSeek-R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3',
+			name: 'DeepSeek-V3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek-V3.2-Exp',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'kimi-k2',
+			name: 'Kimi-K2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'kimi-k2-0905',
+			name: 'Kimi-K2-0905',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-235b',
+			name: 'Qwen3-235B-A22B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct',
+			name: 'Qwen3-235B-A22B-Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen3-235B-A22B-Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3-32B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-coder-plus',
+			name: 'Qwen3-Coder-Plus',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-max',
+			name: 'Qwen3-Max',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-max-preview',
+			name: 'Qwen3-Max-Preview',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-vl-plus',
+			name: 'Qwen3-VL-Plus',
+			contextWindow: 256000,
+		},
+	],
+	inception: [
+		{
+			id: 'mercury-2',
+			name: 'Mercury 2',
+			contextWindow: 128000,
+		},
+	],
+	inceptron: [
+		{
+			id: 'zai-org/GLM-5.1-FP8',
+			name: 'GLM 5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/llama-3.3-70b-instruct-fp8',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 196608,
+		},
+	],
+	inference: [
+		{
+			id: 'google/gemma-3',
+			name: 'Google Gemma 3',
+			contextWindow: 125000,
+		},
+		{
+			id: 'meta/llama-3.1-8b-instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'meta/llama-3.2-11b-vision-instruct',
+			name: 'Llama 3.2 11B Vision Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'meta/llama-3.2-1b-instruct',
+			name: 'Llama 3.2 1B Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'meta/llama-3.2-3b-instruct',
+			name: 'Llama 3.2 3B Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'mistral/mistral-nemo-12b-instruct',
+			name: 'Mistral Nemo 12B Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'osmosis/osmosis-structure-0.6b',
+			name: 'Osmosis Structure 0.6B',
+			contextWindow: 4000,
+		},
+		{
+			id: 'qwen/qwen-2.5-7b-vision-instruct',
+			name: 'Qwen 2.5 7B Vision Instruct',
+			contextWindow: 125000,
+		},
+	],
+	'io-net': [
+		{
+			id: 'deepseek-ai/DeepSeek-R1-0528',
+			name: 'DeepSeek R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/Devstral-Small-2505',
+			name: 'Devstral Small 2505',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai-org/GLM-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT-OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT-OSS 20B',
+			contextWindow: 64000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct-0905',
+			name: 'Kimi K2 Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 32768,
+		},
+		{
+			id: 'meta-llama/Llama-3.2-90B-Vision-Instruct',
+			name: 'Llama 3.2 90B Vision Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
+			name: 'Llama 4 Maverick 17B 128E Instruct',
+			contextWindow: 430000,
+		},
+		{
+			id: 'mistralai/Magistral-Small-2506',
+			name: 'Magistral Small 2506',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/Mistral-Large-Instruct-2411',
+			name: 'Mistral Large Instruct 2411',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/Mistral-Nemo-Instruct-2407',
+			name: 'Mistral Nemo Instruct 2407',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-32B-Instruct',
+			name: 'Qwen 2.5 VL 32B Instruct',
+			contextWindow: 32000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen 3 235B Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Intel/Qwen3-Coder-480B-A35B-Instruct-int4-mixed-ar',
+			name: 'Qwen 3 Coder 480B',
+			contextWindow: 106000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			name: 'Qwen 3 Next 80B Instruct',
+			contextWindow: 262144,
+		},
+	],
+	jiekou: [
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'claude-haiku-4-5-20251001',
+			contextWindow: 20000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'claude-opus-4-1-20250805',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-20250514',
+			name: 'claude-opus-4-20250514',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'claude-opus-4-5-20251101',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'claude-opus-4-6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-20250514',
+			name: 'claude-sonnet-4-20250514',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'claude-sonnet-4-5-20250929',
+			contextWindow: 200000,
+		},
+		{
+			id: 'deepseek/deepseek-r1-0528',
+			name: 'DeepSeek R1 0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3-0324',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 163840,
+		},
+		{
+			id: 'baidu/ernie-4.5-300b-a47b-paddle',
+			name: 'ERNIE 4.5 300B A47B',
+			contextWindow: 123000,
+		},
+		{
+			id: 'baidu/ernie-4.5-vl-424b-a47b',
+			name: 'ERNIE 4.5 VL 424B A47B',
+			contextWindow: 123000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'gemini-2.5-flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'gemini-2.5-flash-lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite-preview-06-17',
+			name: 'gemini-2.5-flash-lite-preview-06-17',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite-preview-09-2025',
+			name: 'gemini-2.5-flash-lite-preview-09-2025',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-preview-05-20',
+			name: 'gemini-2.5-flash-preview-05-20',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'gemini-2.5-pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro-preview-06-05',
+			name: 'gemini-2.5-pro-preview-06-05',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'gemini-3-flash-preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-pro-preview',
+			name: 'gemini-3-pro-preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'zai-org/glm-4.5v',
+			name: 'GLM 4.5V',
+			contextWindow: 65536,
+		},
+		{
+			id: 'zai-org/glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai-org/glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-5-chat-latest',
+			name: 'gpt-5-chat-latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'gpt-5-codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'gpt-5-mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'gpt-5-nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-pro',
+			name: 'gpt-5-pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'gpt-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'gpt-5.1-codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-max',
+			name: 'gpt-5.1-codex-max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'gpt-5.1-codex-mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'gpt-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'gpt-5.2-codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-pro',
+			name: 'gpt-5.2-pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'grok-4-0709',
+			name: 'grok-4-0709',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-4-1-fast-non-reasoning',
+			name: 'grok-4-1-fast-non-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-reasoning',
+			name: 'grok-4-1-fast-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-fast-non-reasoning',
+			name: 'grok-4-fast-non-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-fast-reasoning',
+			name: 'grok-4-fast-reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-code-fast-1',
+			name: 'grok-code-fast-1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2-instruct',
+			name: 'Kimi K2 Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimaxai/minimax-m1-80k',
+			name: 'MiniMax M1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'Minimax M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'o3',
+			name: 'o3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'o3-mini',
+			name: 'o3-mini',
+			contextWindow: 131072,
+		},
+		{
+			id: 'o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'qwen/qwen3-coder-next',
+			name: 'qwen/qwen3-coder-next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen3 235B A22b Thinking 2507',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3 Next 80B A3B Instruct',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3 Next 80B A3B Thinking',
+			contextWindow: 65536,
+		},
+		{
+			id: 'xiaomimimo/mimo-v2-flash',
+			name: 'XiaomiMiMo/MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+	],
+	kilo: [
+		{
+			id: 'ai21/jamba-large-1.7',
+			name: 'AI21: Jamba Large 1.7',
+			contextWindow: 256000,
+		},
+		{
+			id: 'amazon/nova-2-lite-v1',
+			name: 'Amazon: Nova 2 Lite',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'amazon/nova-lite-v1',
+			name: 'Amazon: Nova Lite 1.0',
+			contextWindow: 300000,
+		},
+		{
+			id: 'amazon/nova-micro-v1',
+			name: 'Amazon: Nova Micro 1.0',
+			contextWindow: 128000,
+		},
+		{
+			id: 'amazon/nova-premier-v1',
+			name: 'Amazon: Nova Premier 1.0',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'amazon/nova-pro-v1',
+			name: 'Amazon: Nova Pro 1.0',
+			contextWindow: 300000,
+		},
+		{
+			id: 'anthropic/claude-3-haiku',
+			name: 'Anthropic: Claude 3 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3.5-haiku',
+			name: 'Anthropic: Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-haiku-4.5',
+			name: 'Anthropic: Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: '~anthropic/claude-haiku-latest',
+			name: 'Anthropic: Claude Haiku Latest',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Anthropic: Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Anthropic: Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.5',
+			name: 'Anthropic: Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Anthropic: Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6-fast',
+			name: 'Anthropic: Claude Opus 4.6 (Fast)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Anthropic: Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7-fast',
+			name: 'Anthropic: Claude Opus 4.7 (Fast)',
+			contextWindow: 1000000,
+		},
+		{
+			id: '~anthropic/claude-opus-latest',
+			name: 'Anthropic: Claude Opus Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Anthropic: Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.5',
+			name: 'Anthropic: Claude Sonnet 4.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Anthropic: Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: '~anthropic/claude-sonnet-latest',
+			name: 'Anthropic: Claude Sonnet Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'arcee-ai/trinity-large-thinking',
+			name: 'Arcee AI: Trinity Large Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'arcee-ai/trinity-mini',
+			name: 'Arcee AI: Trinity Mini',
+			contextWindow: 131072,
+		},
+		{
+			id: 'arcee-ai/virtuoso-large',
+			name: 'Arcee AI: Virtuoso Large',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openrouter/auto',
+			name: 'Auto Router',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'baidu/cobuddy:free',
+			name: 'Baidu: CoBuddy (free)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'baidu/ernie-4.5-21b-a3b',
+			name: 'Baidu: ERNIE 4.5 21B A3B',
+			contextWindow: 120000,
+		},
+		{
+			id: 'baidu/ernie-4.5-vl-28b-a3b',
+			name: 'Baidu: ERNIE 4.5 VL 28B A3B',
+			contextWindow: 30000,
+		},
+		{
+			id: 'bytedance-seed/seed-1.6',
+			name: 'ByteDance Seed: Seed 1.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'bytedance-seed/seed-1.6-flash',
+			name: 'ByteDance Seed: Seed 1.6 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'bytedance-seed/seed-2.0-lite',
+			name: 'ByteDance Seed: Seed-2.0-Lite',
+			contextWindow: 262144,
+		},
+		{
+			id: 'bytedance-seed/seed-2.0-mini',
+			name: 'ByteDance Seed: Seed-2.0-Mini',
+			contextWindow: 262144,
+		},
+		{
+			id: 'cohere/command-r-08-2024',
+			name: 'Cohere: Command R (08-2024)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/command-r-plus-08-2024',
+			name: 'Cohere: Command R+ (08-2024)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/command-r7b-12-2024',
+			name: 'Cohere: Command R7B (12-2024)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-chat',
+			name: 'DeepSeek: DeepSeek V3',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-chat-v3-0324',
+			name: 'DeepSeek: DeepSeek V3 0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-chat-v3.1',
+			name: 'DeepSeek: DeepSeek V3.1',
+			contextWindow: 32768,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1-terminus',
+			name: 'DeepSeek: DeepSeek V3.1 Terminus',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2',
+			name: 'DeepSeek: DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-exp',
+			name: 'DeepSeek: DeepSeek V3.2 Exp',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek: DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek: DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-r1',
+			name: 'DeepSeek: R1',
+			contextWindow: 64000,
+		},
+		{
+			id: 'deepseek/deepseek-r1-0528',
+			name: 'DeepSeek: R1 0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'essentialai/rnj-1-instruct',
+			name: 'EssentialAI: Rnj 1 Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'openrouter/free',
+			name: 'Free Models Router',
+			contextWindow: 200000,
+		},
+		{
+			id: 'google/gemini-2.0-flash-001',
+			name: 'Google: Gemini 2.0 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.0-flash-lite-001',
+			name: 'Google: Gemini 2.0 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Google: Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Google: Gemini 2.5 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite-preview-09-2025',
+			name: 'Google: Gemini 2.5 Flash Lite Preview 09-2025',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Google: Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro-preview-05-06',
+			name: 'Google: Gemini 2.5 Pro Preview 05-06',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro-preview',
+			name: 'Google: Gemini 2.5 Pro Preview 06-05',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Google: Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Google: Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite-preview',
+			name: 'Google: Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Google: Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-customtools',
+			name: 'Google: Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Google: Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: '~google/gemini-flash-latest',
+			name: 'Google: Gemini Flash Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: '~google/gemini-pro-latest',
+			name: 'Google: Gemini Pro Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemma-3-27b-it',
+			name: 'Google: Gemma 3 27B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it',
+			name: 'Google: Gemma 4 26B A4B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Google: Gemma 4 31B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'ibm-granite/granite-4.1-8b',
+			name: 'IBM: Granite 4.1 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'inception/mercury-2',
+			name: 'Inception: Mercury 2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'inclusionai/ling-2.6-flash',
+			name: 'inclusionAI: Ling-2.6 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'inclusionai/ling-2.6-1t',
+			name: 'inclusionAI: Ling-2.6-1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'inclusionai/ring-2.6-1t',
+			name: 'inclusionAI: Ring-2.6-1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kilo-auto/balanced',
+			name: 'Kilo Auto Balanced',
+			contextWindow: 204800,
+		},
+		{
+			id: 'kilo-auto/free',
+			name: 'Kilo Auto Free',
+			contextWindow: 204800,
+		},
+		{
+			id: 'kilo-auto/frontier',
+			name: 'Kilo Auto Frontier',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'kilo-auto/small',
+			name: 'Kilo Auto Small',
+			contextWindow: 400000,
+		},
+		{
+			id: 'kwaipilot/kat-coder-pro-v2',
+			name: 'Kwaipilot: KAT-Coder-Pro V2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'meta-llama/llama-3-8b-instruct',
+			name: 'Meta: Llama 3 8B Instruct',
+			contextWindow: 8192,
+		},
+		{
+			id: 'meta-llama/llama-3.1-70b-instruct',
+			name: 'Meta: Llama 3.1 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-3.1-8b-instruct',
+			name: 'Meta: Llama 3.1 8B Instruct',
+			contextWindow: 16384,
+		},
+		{
+			id: 'meta-llama/llama-3.3-70b-instruct',
+			name: 'Meta: Llama 3.3 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-4-maverick',
+			name: 'Meta: Llama 4 Maverick',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'meta-llama/llama-4-scout',
+			name: 'Meta: Llama 4 Scout',
+			contextWindow: 327680,
+		},
+		{
+			id: 'minimax/minimax-m1',
+			name: 'MiniMax: MiniMax M1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'MiniMax: MiniMax M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'MiniMax: MiniMax M2.1',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax: MiniMax M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax: MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'mistralai/mistral-large',
+			name: 'Mistral Large',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/mistral-large-2407',
+			name: 'Mistral Large 2407',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-large-2411',
+			name: 'Mistral Large 2411',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/codestral-2508',
+			name: 'Mistral: Codestral 2508',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistralai/devstral-2512',
+			name: 'Mistral: Devstral 2 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/devstral-medium',
+			name: 'Mistral: Devstral Medium',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/devstral-small',
+			name: 'Mistral: Devstral Small 1.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/ministral-14b-2512',
+			name: 'Mistral: Ministral 3 14B 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/ministral-3b-2512',
+			name: 'Mistral: Ministral 3 3B 2512',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/ministral-8b-2512',
+			name: 'Mistral: Ministral 3 8B 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-large-2512',
+			name: 'Mistral: Mistral Large 3 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-medium-3',
+			name: 'Mistral: Mistral Medium 3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-medium-3.1',
+			name: 'Mistral: Mistral Medium 3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-medium-3-5',
+			name: 'Mistral: Mistral Medium 3.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-nemo',
+			name: 'Mistral: Mistral Nemo',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-small-24b-instruct-2501',
+			name: 'Mistral: Mistral Small 3',
+			contextWindow: 32768,
+		},
+		{
+			id: 'mistralai/mistral-small-3.2-24b-instruct',
+			name: 'Mistral: Mistral Small 3.2 24B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-small-2603',
+			name: 'Mistral: Mistral Small 4',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mixtral-8x22b-instruct',
+			name: 'Mistral: Mixtral 8x22B Instruct',
+			contextWindow: 65536,
+		},
+		{
+			id: 'mistralai/pixtral-large-2411',
+			name: 'Mistral: Pixtral Large 2411',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-saba',
+			name: 'Mistral: Saba',
+			contextWindow: 32768,
+		},
+		{
+			id: 'mistralai/voxtral-small-24b-2507',
+			name: 'Mistral: Voxtral Small 24B 2507',
+			contextWindow: 32000,
+		},
+		{
+			id: 'moonshotai/kimi-k2',
+			name: 'MoonshotAI: Kimi K2 0711',
+			contextWindow: 131000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-0905',
+			name: 'MoonshotAI: Kimi K2 0905',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'MoonshotAI: Kimi K2 Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'MoonshotAI: Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'MoonshotAI: Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: '~moonshotai/kimi-latest',
+			name: 'MoonshotAI: Kimi Latest',
+			contextWindow: 262142,
+		},
+		{
+			id: 'nex-agi/deepseek-v3.1-nex-n1',
+			name: 'Nex AGI: DeepSeek V3.1 Nex N1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+			name: 'NVIDIA: Llama 3.3 Nemotron Super 49B V1.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-30b-a3b',
+			name: 'NVIDIA: Nemotron 3 Nano 30B A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+			name: 'NVIDIA: Nemotron 3 Nano Omni (free)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b',
+			name: 'NVIDIA: Nemotron 3 Super',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b:free',
+			name: 'NVIDIA: Nemotron 3 Super (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-nano-9b-v2',
+			name: 'NVIDIA: Nemotron Nano 9B V2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-chat-latest',
+			name: 'OpenAI: GPT Chat Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: '~openai/gpt-latest',
+			name: 'OpenAI: GPT Latest',
+			contextWindow: 1050000,
+		},
+		{
+			id: '~openai/gpt-mini-latest',
+			name: 'OpenAI: GPT Mini Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo',
+			name: 'OpenAI: GPT-3.5 Turbo',
+			contextWindow: 16385,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo-0613',
+			name: 'OpenAI: GPT-3.5 Turbo (older v0613)',
+			contextWindow: 4095,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo-16k',
+			name: 'OpenAI: GPT-3.5 Turbo 16k',
+			contextWindow: 16385,
+		},
+		{
+			id: 'openai/gpt-4',
+			name: 'OpenAI: GPT-4',
+			contextWindow: 8191,
+		},
+		{
+			id: 'openai/gpt-4-0314',
+			name: 'OpenAI: GPT-4 (older v0314)',
+			contextWindow: 8191,
+		},
+		{
+			id: 'openai/gpt-4-turbo',
+			name: 'OpenAI: GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4-1106-preview',
+			name: 'OpenAI: GPT-4 Turbo (older v1106)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4-turbo-preview',
+			name: 'OpenAI: GPT-4 Turbo Preview',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'OpenAI: GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'OpenAI: GPT-4.1 Mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'OpenAI: GPT-4.1 Nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'OpenAI: GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-05-13',
+			name: 'OpenAI: GPT-4o (2024-05-13)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-08-06',
+			name: 'OpenAI: GPT-4o (2024-08-06)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-11-20',
+			name: 'OpenAI: GPT-4o (2024-11-20)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-audio-preview',
+			name: 'OpenAI: GPT-4o Audio',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'OpenAI: GPT-4o-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini-2024-07-18',
+			name: 'OpenAI: GPT-4o-mini (2024-07-18)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'OpenAI: GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'OpenAI: GPT-5 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-image',
+			name: 'OpenAI: GPT-5 Image',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-image-mini',
+			name: 'OpenAI: GPT-5 Image Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'OpenAI: GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'OpenAI: GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-pro',
+			name: 'OpenAI: GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'OpenAI: GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-chat',
+			name: 'OpenAI: GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'OpenAI: GPT-5.1-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'OpenAI: GPT-5.1-Codex-Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'OpenAI: GPT-5.1-Codex-Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'OpenAI: GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-chat',
+			name: 'OpenAI: GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'OpenAI: GPT-5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'OpenAI: GPT-5.2-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-chat',
+			name: 'OpenAI: GPT-5.3 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'OpenAI: GPT-5.3-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'OpenAI: GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'OpenAI: GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'OpenAI: GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'OpenAI: GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'OpenAI: GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5-pro',
+			name: 'OpenAI: GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'OpenAI: gpt-oss-120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'OpenAI: gpt-oss-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-safeguard-20b',
+			name: 'OpenAI: gpt-oss-safeguard-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/o1',
+			name: 'OpenAI: o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'OpenAI: o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-deep-research',
+			name: 'OpenAI: o3 Deep Research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'OpenAI: o3 Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini-high',
+			name: 'OpenAI: o3 Mini High',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-pro',
+			name: 'OpenAI: o3 Pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'OpenAI: o4 Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini-deep-research',
+			name: 'OpenAI: o4 Mini Deep Research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini-high',
+			name: 'OpenAI: o4 Mini High',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openrouter/owl-alpha',
+			name: 'Owl Alpha',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'poolside/laguna-m.1:free',
+			name: 'Poolside: Laguna M.1 (free)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'poolside/laguna-xs.2:free',
+			name: 'Poolside: Laguna XS.2 (free)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'prime-intellect/intellect-3',
+			name: 'Prime Intellect: INTELLECT-3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen-plus-2025-07-28',
+			name: 'Qwen: Qwen Plus 0728',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-plus-2025-07-28:thinking',
+			name: 'Qwen: Qwen Plus 0728 (thinking)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-plus',
+			name: 'Qwen: Qwen-Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-2.5-7b-instruct',
+			name: 'Qwen: Qwen2.5 7B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen/qwen3-14b',
+			name: 'Qwen: Qwen3 14B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b',
+			name: 'Qwen: Qwen3 235B A22B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-2507',
+			name: 'Qwen: Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen: Qwen3 235B A22B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b',
+			name: 'Qwen: Qwen3 30B A3B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b-instruct-2507',
+			name: 'Qwen: Qwen3 30B A3B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b-thinking-2507',
+			name: 'Qwen: Qwen3 30B A3B Thinking 2507',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen/qwen3-32b',
+			name: 'Qwen: Qwen3 32B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-8b',
+			name: 'Qwen: Qwen3 8B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen: Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 160000,
+		},
+		{
+			id: 'qwen/qwen3-coder',
+			name: 'Qwen: Qwen3 Coder 480B A35B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-coder-flash',
+			name: 'Qwen: Qwen3 Coder Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3-coder-next',
+			name: 'Qwen: Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-coder-plus',
+			name: 'Qwen: Qwen3 Coder Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3-max',
+			name: 'Qwen: Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-max-thinking',
+			name: 'Qwen: Qwen3 Max Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-instruct',
+			name: 'Qwen: Qwen3 Next 80B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-thinking',
+			name: 'Qwen: Qwen3 Next 80B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-235b-a22b-instruct',
+			name: 'Qwen: Qwen3 VL 235B A22B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-vl-235b-a22b-thinking',
+			name: 'Qwen: Qwen3 VL 235B A22B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-30b-a3b-instruct',
+			name: 'Qwen: Qwen3 VL 30B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-30b-a3b-thinking',
+			name: 'Qwen: Qwen3 VL 30B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-32b-instruct',
+			name: 'Qwen: Qwen3 VL 32B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-8b-instruct',
+			name: 'Qwen: Qwen3 VL 8B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-8b-thinking',
+			name: 'Qwen: Qwen3 VL 8B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3.5-397b-a17b',
+			name: 'Qwen: Qwen3.5 397B A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-plus-02-15',
+			name: 'Qwen: Qwen3.5 Plus 2026-02-15',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.5-plus-20260420',
+			name: 'Qwen: Qwen3.5 Plus 2026-04-20',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.5-122b-a10b',
+			name: 'Qwen: Qwen3.5-122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-27b',
+			name: 'Qwen: Qwen3.5-27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-35b-a3b',
+			name: 'Qwen: Qwen3.5-35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-9b',
+			name: 'Qwen: Qwen3.5-9B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen/qwen3.5-flash-02-23',
+			name: 'Qwen: Qwen3.5-Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.6-27b',
+			name: 'Qwen: Qwen3.6 27B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen/qwen3.6-flash',
+			name: 'Qwen: Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.6-max-preview',
+			name: 'Qwen: Qwen3.6 Max Preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.6-plus',
+			name: 'Qwen: Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.7-max',
+			name: 'Qwen: Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-2.5-72b-instruct',
+			name: 'Qwen2.5 72B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'rekaai/reka-edge',
+			name: 'Reka Edge',
+			contextWindow: 16384,
+		},
+		{
+			id: 'relace/relace-search',
+			name: 'Relace: Relace Search',
+			contextWindow: 256000,
+		},
+		{
+			id: 'sao10k/l3-euryale-70b',
+			name: 'Sao10k: Llama 3 Euryale 70B v2.1',
+			contextWindow: 8192,
+		},
+		{
+			id: 'sao10k/l3.1-euryale-70b',
+			name: 'Sao10K: Llama 3.1 Euryale 70B v2.2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'stealth/claude-opus-4.6',
+			name: 'Stealth: Claude Opus 4.6 (20% off)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'stealth/claude-opus-4.7',
+			name: 'Stealth: Claude Opus 4.7 (20% off)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'stealth/claude-sonnet-4.6',
+			name: 'Stealth: Claude Sonnet 4.6 (20% off)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'stepfun/step-3.5-flash',
+			name: 'StepFun: Step 3.5 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'tencent/hy3-preview',
+			name: 'Tencent: Hy3 Preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'thedrummer/rocinante-12b',
+			name: 'TheDrummer: Rocinante 12B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'thedrummer/unslopnemo-12b',
+			name: 'TheDrummer: UnslopNemo 12B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'upstage/solar-pro-3',
+			name: 'Upstage: Solar Pro 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'x-ai/grok-4.20',
+			name: 'xAI: Grok 4.20',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.3',
+			name: 'xAI: Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'x-ai/grok-build-0.1',
+			name: 'xAI: Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5-pro',
+			name: 'Xiaomi: MiMo V2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi/mimo-v2-flash',
+			name: 'Xiaomi: MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomi/mimo-v2-omni',
+			name: 'Xiaomi: MiMo-V2-Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomi/mimo-v2-pro',
+			name: 'Xiaomi: MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5',
+			name: 'Xiaomi: MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'z-ai/glm-4-32b',
+			name: 'Z.ai: GLM 4 32B ',
+			contextWindow: 128000,
+		},
+		{
+			id: 'z-ai/glm-4.5',
+			name: 'Z.ai: GLM 4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.5-air',
+			name: 'Z.ai: GLM 4.5 Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.5v',
+			name: 'Z.ai: GLM 4.5V',
+			contextWindow: 65536,
+		},
+		{
+			id: 'z-ai/glm-4.6',
+			name: 'Z.ai: GLM 4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'z-ai/glm-4.6v',
+			name: 'Z.ai: GLM 4.6V',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.7',
+			name: 'Z.ai: GLM 4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-4.7-flash',
+			name: 'Z.ai: GLM 4.7 Flash',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5',
+			name: 'Z.ai: GLM 5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5-turbo',
+			name: 'Z.ai: GLM 5 Turbo',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5.1',
+			name: 'Z.ai: GLM 5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5v-turbo',
+			name: 'Z.ai: GLM 5V Turbo',
+			contextWindow: 202752,
+		},
+	],
+	'kimi-for-coding': [
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'k2p5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'k2p6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+	],
+	'kuae-cloud-coding-plan': [
+		{
+			id: 'GLM-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+	],
+	lilac: [
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262100,
+		},
+		{
+			id: 'zai-org/glm-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 202800,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimaxai/minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+	],
+	llama: [
+		{
+			id: 'cerebras-llama-4-maverick-17b-128e-instruct',
+			name: 'Cerebras-Llama-4-Maverick-17B-128E-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cerebras-llama-4-scout-17b-16e-instruct',
+			name: 'Cerebras-Llama-4-Scout-17B-16E-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'groq-llama-4-maverick-17b-128e-instruct',
+			name: 'Groq-Llama-4-Maverick-17B-128E-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-8b-instruct',
+			name: 'Llama-3.3-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-4-maverick-17b-128e-instruct-fp8',
+			name: 'Llama-4-Maverick-17B-128E-Instruct-FP8',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-4-scout-17b-16e-instruct-fp8',
+			name: 'Llama-4-Scout-17B-16E-Instruct-FP8',
+			contextWindow: 128000,
+		},
+	],
+	llmgateway: [
+		{
+			id: 'auto',
+			name: 'Auto Route',
+			contextWindow: 128000,
+		},
+		{
+			id: 'claude-3-opus',
+			name: 'Claude 3 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-5-haiku',
+			name: 'Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-7-sonnet',
+			name: 'Claude 3.7 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-20250514',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-3-5-sonnet-20241022',
+			name: 'Claude Sonnet 3.5 v2',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3-7-sonnet-20250219',
+			name: 'Claude Sonnet 3.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-20250514',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'custom',
+			name: 'Custom Model',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'devstral-2512',
+			name: 'Devstral 2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'devstral-small-2507',
+			name: 'Devstral Small',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gemini-2.0-flash',
+			name: 'Gemini 2.0 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.0-flash-lite',
+			name: 'Gemini 2.0 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-pro-latest',
+			name: 'Gemini Pro Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'glm-4-32b-0414-128k',
+			name: 'GLM-4 32B (0414-128k)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-airx',
+			name: 'GLM-4.5 AirX',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.5-x',
+			name: 'GLM-4.5 X',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-flash',
+			name: 'GLM-4.5-Flash',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5v',
+			name: 'GLM-4.5V',
+			contextWindow: 64000,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.6v-flash',
+			name: 'GLM-4.6V Flash',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.6v-flashx',
+			name: 'GLM-4.6V FlashX',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-4.7-flashx',
+			name: 'GLM-4.7-FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8192,
+		},
+		{
+			id: 'gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-chat-latest',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-pro',
+			name: 'GPT-5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-chat-latest',
+			name: 'GPT-5.3 Chat (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok-4-0709',
+			name: 'Grok 4 (0709)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-4-fast-reasoning',
+			name: 'Grok 4 Fast Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-1-fast-reasoning',
+			name: 'Grok 4.1 Fast Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-20-beta-0309-non-reasoning',
+			name: 'Grok 4.20 (Non-Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4-20-non-reasoning',
+			name: 'Grok 4.20 (Non-Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4-20-beta-0309-reasoning',
+			name: 'Grok 4.20 (Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4-20-reasoning',
+			name: 'Grok 4.20 (Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4-3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'kimi-k2',
+			name: 'Kimi K2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking-turbo',
+			name: 'Kimi K2 Thinking Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'llama-3.1-8b-instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-4-scout',
+			name: 'Llama 4 Scout',
+			contextWindow: 32768,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mimo-v2-flash',
+			name: 'MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-omni',
+			name: 'MiMo-V2-Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro',
+			name: 'MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimax-m2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax-m2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m3',
+			name: 'MiniMax-M3',
+			contextWindow: 512000,
+		},
+		{
+			id: 'mistral-large-latest',
+			name: 'Mistral Large (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-large-2512',
+			name: 'Mistral Large 3',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-small-2506',
+			name: 'Mistral Small 3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'pixtral-large-latest',
+			name: 'Pixtral Large (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen-coder-plus',
+			name: 'Qwen Coder Plus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-flash',
+			name: 'Qwen Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-max',
+			name: 'Qwen Max',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-max-latest',
+			name: 'Qwen Max Latest',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-plus',
+			name: 'Qwen Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-plus-latest',
+			name: 'Qwen Plus Latest',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-turbo',
+			name: 'Qwen Turbo',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-omni-turbo',
+			name: 'Qwen-Omni Turbo',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen-vl-max',
+			name: 'Qwen-VL Max',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen-vl-plus',
+			name: 'Qwen-VL Plus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-vl-32b-instruct',
+			name: 'Qwen2.5 VL 32B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen2-5-vl-72b-instruct',
+			name: 'Qwen2.5-VL 72B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-235b-a22b-fp8',
+			name: 'Qwen3 235B A22B FP8',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen3 235B A22B Instruct (2507)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen3 235B A22B Thinking (2507)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-30b-a3b-fp8',
+			name: 'Qwen3 30B A3B FP8',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-30b-a3b-instruct-2507',
+			name: 'Qwen3 30B A3B Instruct (2507)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-30b-a3b-thinking-2507',
+			name: 'Qwen3 30B A3B Thinking (2507)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-32b-fp8',
+			name: 'Qwen3 32B FP8',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-4b-fp8',
+			name: 'Qwen3 4B FP8',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-coder-flash',
+			name: 'Qwen3 Coder Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-max-2026-01-23',
+			name: 'Qwen3 Max (2026-01-23)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-vl-235b-a22b-instruct',
+			name: 'Qwen3 VL 235B A22B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-235b-a22b-thinking',
+			name: 'Qwen3 VL 235B A22B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-30b-a3b-instruct',
+			name: 'Qwen3 VL 30B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-30b-a3b-thinking',
+			name: 'Qwen3 VL 30B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-flash',
+			name: 'Qwen3 VL Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3-Coder 30B-A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3-Coder 480B-A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3-Next 80B-A3B (Thinking)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3-Next 80B-A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-plus',
+			name: 'Qwen3-VL Plus',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen35-397b-a17b',
+			name: 'Qwen3.5 397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-35b-a3b',
+			name: 'Qwen3.6 35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-max-preview',
+			name: 'Qwen3.6 Max Preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwq-plus',
+			name: 'QwQ Plus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'seed-1-6-250615',
+			name: 'Seed 1.6 (250615)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'seed-1-6-250915',
+			name: 'Seed 1.6 (250915)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'seed-1-6-flash-250715',
+			name: 'Seed 1.6 Flash (250715)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'seed-1-8-251228',
+			name: 'Seed 1.8 (251228)',
+			contextWindow: 256000,
+		},
+	],
+	lmstudio: [
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b-2507',
+			name: 'Qwen3 30B A3B 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-coder-30b',
+			name: 'Qwen3 Coder 30B',
+			contextWindow: 262144,
+		},
+	],
+	lucidquery: [
+		{
+			id: 'lucidnova-rf1-100b',
+			name: 'LucidNova RF1 100B',
+			contextWindow: 120000,
+		},
+		{
+			id: 'lucidquery-nexus-coder',
+			name: 'LucidQuery Nexus Coder',
+			contextWindow: 250000,
+		},
+	],
+	meganova: [
+		{
+			id: 'deepseek-ai/DeepSeek-V3-0324',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2-Exp',
+			name: 'DeepSeek V3.2 Exp',
+			contextWindow: 164000,
+		},
+		{
+			id: 'zai-org/GLM-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'zai-org/GLM-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'XiaomiMiMo/MiMo-V2-Flash',
+			name: 'MiMo V2 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.1',
+			name: 'MiniMax M2.1',
+			contextWindow: 196608,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'mistralai/Mistral-Nemo-Instruct-2407',
+			name: 'Mistral Nemo Instruct 2407',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/Mistral-Small-3.2-24B-Instruct-2506',
+			name: 'Mistral Small 3.2 24B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-32B-Instruct',
+			name: 'Qwen2.5 VL 32B Instruct',
+			contextWindow: 16384,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3.5-Plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+	],
+	'merge-gateway': [
+		{
+			id: 'anthropic/claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-20250514',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-1-20250805',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-5-20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-20250514',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-5-20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistral/codestral-latest',
+			name: 'Codestral (latest)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'cohere/command-a-03-2025',
+			name: 'Command A',
+			contextWindow: 256000,
+		},
+		{
+			id: 'cohere/command-r-08-2024',
+			name: 'Command R',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/command-r-plus-08-2024',
+			name: 'Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/command-r7b-12-2024',
+			name: 'Command R7B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistral/devstral-2512',
+			name: 'Devstral 2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral/devstral-medium-latest',
+			name: 'Devstral 2 (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral/devstral-medium-2507',
+			name: 'Devstral Medium',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/devstral-small-2507',
+			name: 'Devstral Small',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-pro-preview',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-flash-latest',
+			name: 'Gemini Flash Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-flash-lite-latest',
+			name: 'Gemini Flash-Lite Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai/glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai/glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai/glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai/glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai/glm-4.7-flashx',
+			name: 'GLM-4.7-FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai/glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai/glm-5-turbo',
+			name: 'GLM-5-Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai/glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-05-13',
+			name: 'GPT-4o (2024-05-13)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-08-06',
+			name: 'GPT-4o (2024-08-06)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-11-20',
+			name: 'GPT-4o (2024-11-20)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-chat-latest',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-chat-latest',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.3-chat-latest',
+			name: 'GPT-5.3 Chat (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'xai/grok-4.20-0309-reasoning',
+			name: 'Grok 4.20 (Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xai/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistral/magistral-medium-latest',
+			name: 'Magistral Medium (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'mistral/mistral-large-latest',
+			name: 'Mistral Large (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral/mistral-large-2411',
+			name: 'Mistral Large 2.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral/mistral-large-2512',
+			name: 'Mistral Large 3',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral/mistral-medium-latest',
+			name: 'Mistral Medium (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral/mistral-medium-2505',
+			name: 'Mistral Medium 3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral/mistral-small-latest',
+			name: 'Mistral Small (latest)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai/o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'mistral/pixtral-large-latest',
+			name: 'Pixtral Large (latest)',
+			contextWindow: 128000,
+		},
+	],
+	minimax: [
+		{
+			id: 'MiniMax-M2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M3',
+			name: 'MiniMax-M3',
+			contextWindow: 512000,
+		},
+	],
+	'minimax-cn': [
+		{
+			id: 'MiniMax-M2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M3',
+			name: 'MiniMax-M3',
+			contextWindow: 512000,
+		},
+	],
+	'minimax-cn-coding-plan': [
+		{
+			id: 'MiniMax-M2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M3',
+			name: 'MiniMax-M3',
+			contextWindow: 512000,
+		},
+	],
+	'minimax-coding-plan': [
+		{
+			id: 'MiniMax-M2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M3',
+			name: 'MiniMax-M3',
+			contextWindow: 512000,
+		},
+	],
+	mistral: [
+		{
+			id: 'codestral-latest',
+			name: 'Codestral (latest)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'devstral-latest',
+			name: 'Devstral 2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'devstral-2512',
+			name: 'Devstral 2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'devstral-medium-latest',
+			name: 'Devstral 2 (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'devstral-medium-2507',
+			name: 'Devstral Medium',
+			contextWindow: 128000,
+		},
+		{
+			id: 'devstral-small-2507',
+			name: 'Devstral Small',
+			contextWindow: 128000,
+		},
+		{
+			id: 'labs-devstral-small-2512',
+			name: 'Devstral Small 2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'devstral-small-2505',
+			name: 'Devstral Small 2505',
+			contextWindow: 128000,
+		},
+		{
+			id: 'magistral-medium-latest',
+			name: 'Magistral Medium (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'magistral-small',
+			name: 'Magistral Small',
+			contextWindow: 128000,
+		},
+		{
+			id: 'ministral-3b-latest',
+			name: 'Ministral 3B (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'ministral-8b-latest',
+			name: 'Ministral 8B (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'open-mistral-7b',
+			name: 'Mistral 7B',
+			contextWindow: 8000,
+		},
+		{
+			id: 'mistral-large-latest',
+			name: 'Mistral Large (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-large-2411',
+			name: 'Mistral Large 2.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral-large-2512',
+			name: 'Mistral Large 3',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-medium-latest',
+			name: 'Mistral Medium (latest)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-medium-2505',
+			name: 'Mistral Medium 3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral-medium-2508',
+			name: 'Mistral Medium 3.1',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-medium-2604',
+			name: 'Mistral Medium 3.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-nemo',
+			name: 'Mistral Nemo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-small-latest',
+			name: 'Mistral Small (latest)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral-small-2506',
+			name: 'Mistral Small 3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral-small-2603',
+			name: 'Mistral Small 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'open-mixtral-8x22b',
+			name: 'Mixtral 8x22B',
+			contextWindow: 64000,
+		},
+		{
+			id: 'open-mixtral-8x7b',
+			name: 'Mixtral 8x7B',
+			contextWindow: 32000,
+		},
+		{
+			id: 'open-mistral-nemo',
+			name: 'Open Mistral Nemo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'pixtral-12b',
+			name: 'Pixtral 12B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'pixtral-large-latest',
+			name: 'Pixtral Large (latest)',
+			contextWindow: 128000,
+		},
+	],
+	mixlayer: [
+		{
+			id: 'qwen/qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-27b',
+			name: 'Qwen3.5 27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-35b-a3b',
+			name: 'Qwen3.5 35B A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-9b',
+			name: 'Qwen3.5 9B',
+			contextWindow: 262144,
+		},
+	],
+	moark: [
+		{
+			id: 'GLM-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+	],
+	modelscope: [
+		{
+			id: 'ZhipuAI/GLM-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'ZhipuAI/GLM-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 202752,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen3 30B A3B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Thinking-2507',
+			name: 'Qwen3 30B A3B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-30B-A3B-Instruct',
+			name: 'Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen3-235B-A22B-Thinking-2507',
+			contextWindow: 262144,
+		},
+	],
+	moonshotai: [
+		{
+			id: 'kimi-k2-0711-preview',
+			name: 'Kimi K2 0711',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-0905-preview',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking-turbo',
+			name: 'Kimi K2 Thinking Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-turbo-preview',
+			name: 'Kimi K2 Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+	],
+	'moonshotai-cn': [
+		{
+			id: 'kimi-k2-0711-preview',
+			name: 'Kimi K2 0711',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-0905-preview',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking-turbo',
+			name: 'Kimi K2 Thinking Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-turbo-preview',
+			name: 'Kimi K2 Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+	],
+	'nano-gpt': [
+		{
+			id: 'azure-gpt-4o',
+			name: 'Azure gpt-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'azure-gpt-4o-mini',
+			name: 'Azure gpt-4o-mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'claude-3-5-haiku-20241022',
+			name: 'Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-20250514',
+			name: 'Claude 4 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-thinking',
+			name: 'Claude 4 Opus Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-thinking:1024',
+			name: 'Claude 4 Opus Thinking (1K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-thinking:32768',
+			name: 'Claude 4 Opus Thinking (32K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-thinking:32000',
+			name: 'Claude 4 Opus Thinking (32K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-thinking:8192',
+			name: 'Claude 4 Opus Thinking (8K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-20250514',
+			name: 'Claude 4 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-thinking',
+			name: 'Claude 4 Sonnet Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-thinking:1024',
+			name: 'Claude 4 Sonnet Thinking (1K)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-thinking:32768',
+			name: 'Claude 4 Sonnet Thinking (32K)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-thinking:64000',
+			name: 'Claude 4 Sonnet Thinking (64K)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-thinking:8192',
+			name: 'Claude 4 Sonnet Thinking (8K)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-1-20250805',
+			name: 'Claude 4.1 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-thinking',
+			name: 'Claude 4.1 Opus Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-thinking:1024',
+			name: 'Claude 4.1 Opus Thinking (1K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-thinking:32000',
+			name: 'Claude 4.1 Opus Thinking (32K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-thinking:32768',
+			name: 'Claude 4.1 Opus Thinking (32K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1-thinking:8192',
+			name: 'Claude 4.1 Opus Thinking (8K)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'Claude 4.5 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101:thinking',
+			name: 'Claude 4.5 Opus Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude 4.6 Opus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6:thinking',
+			name: 'Claude 4.6 Opus Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6:thinking:low',
+			name: 'Claude 4.6 Opus Thinking Low',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6:thinking:max',
+			name: 'Claude 4.6 Opus Thinking Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6:thinking:medium',
+			name: 'Claude 4.6 Opus Thinking Medium',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude 4.7 Opus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7:thinking',
+			name: 'Claude 4.7 Opus Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5-20251001-thinking',
+			name: 'Claude Haiku 4.5 Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-haiku-latest',
+			name: 'Claude Haiku Latest',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8:thinking',
+			name: 'Claude Opus 4.8 Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-latest',
+			name: 'Claude Opus Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929-thinking',
+			name: 'Claude Sonnet 4.5 Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6:thinking',
+			name: 'Claude Sonnet 4.6 Thinking',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-latest',
+			name: 'Claude Sonnet Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claw-high',
+			name: 'Claw High',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claw-low',
+			name: 'Claw Low',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'claw-medium',
+			name: 'Claw Medium',
+			contextWindow: 204800,
+		},
+		{
+			id: 'nanogpt/coding-router',
+			name: 'Coding Router',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nanogpt/coding-router:high',
+			name: 'Coding Router High',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nanogpt/coding-router:low',
+			name: 'Coding Router Low',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nanogpt/coding-router:max',
+			name: 'Coding Router Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nanogpt/coding-router:medium',
+			name: 'Coding Router Medium',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'cohere/command-r-plus-08-2024',
+			name: 'Cohere: Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3-0324',
+			name: 'DeepSeek Chat 0324',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-latest',
+			name: 'DeepSeek Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1-Terminus',
+			name: 'DeepSeek V3.1 Terminus',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1-Terminus:thinking',
+			name: 'DeepSeek V3.1 Terminus (Thinking)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2:thinking',
+			name: 'DeepSeek V3.2 Thinking',
+			contextWindow: 163000,
+		},
+		{
+			id: 'deepseek-chat-cheaper',
+			name: 'DeepSeek V3/Chat Cheaper',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-chat',
+			name: 'DeepSeek V3/Deepseek Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash:thinking',
+			name: 'DeepSeek V4 Flash (Thinking)',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro:thinking',
+			name: 'DeepSeek V4 Pro (Thinking)',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro-cheaper',
+			name: 'DeepSeek V4 Pro Cheaper',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro-cheaper:thinking',
+			name: 'DeepSeek V4 Pro Cheaper (Thinking)',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'TEE/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro TEE',
+			contextWindow: 800000,
+		},
+		{
+			id: 'TEE/deepseek-v4-pro:thinking',
+			name: 'DeepSeek V4 Pro Thinking TEE',
+			contextWindow: 800000,
+		},
+		{
+			id: 'gemini-2.0-flash-001',
+			name: 'Gemini 2.0 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-flash-lite-preview-09-2025',
+			name: 'Gemini 2.5 Flash Lite Preview (09/2025)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'gemini-2.5-flash-lite-preview-09-2025-thinking',
+			name: 'Gemini 2.5 Flash Lite Preview (09/2025) – Thinking',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'gemini-2.5-flash-preview-09-2025',
+			name: 'Gemini 2.5 Flash Preview (09/2025)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'gemini-2.5-flash-preview-09-2025-thinking',
+			name: 'Gemini 2.5 Flash Preview (09/2025) – Thinking',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash (Preview)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro (Preview Custom Tools)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-high',
+			name: 'Gemini 3.1 Pro (Preview High)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-low',
+			name: 'Gemini 3.1 Pro (Preview Low)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro (Preview)',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-flash-lite-latest',
+			name: 'Gemini Flash Lite Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-pro-latest',
+			name: 'Gemini Pro Latest',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'TEE/gemma-4-26b-a4b-uncensored',
+			name: 'Gemma 4 26B A4B Uncensored TEE',
+			contextWindow: 65536,
+		},
+		{
+			id: 'TEE/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai-org/GLM-4.5-Air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai-org/GLM-4.5-Air:thinking',
+			name: 'GLM 4.5 Air (Thinking)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'z-ai/glm-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.6:thinking',
+			name: 'GLM 4.6 Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-4.7-flash',
+			name: 'GLM 4.7 Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-4.7-flash-original',
+			name: 'GLM 4.7 Flash Original',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-4.7-original',
+			name: 'GLM 4.7 Original',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-4.7-original:thinking',
+			name: 'GLM 4.7 Original Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-4.7:thinking',
+			name: 'GLM 4.7 Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5',
+			name: 'GLM 5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5-original',
+			name: 'GLM 5 Original',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5-original:thinking',
+			name: 'GLM 5 Original Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5:thinking',
+			name: 'GLM 5 Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-5-turbo',
+			name: 'GLM 5 Turbo',
+			contextWindow: 202800,
+		},
+		{
+			id: 'zai-org/glm-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5.1:thinking',
+			name: 'GLM 5.1 Thinking',
+			contextWindow: 200000,
+		},
+		{
+			id: 'TEE/glm-5.1-thinking',
+			name: 'GLM 5.1 Thinking TEE',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5v-turbo',
+			name: 'GLM 5V Turbo',
+			contextWindow: 202800,
+		},
+		{
+			id: 'z-ai/glm-5v-turbo:thinking',
+			name: 'GLM 5V Turbo Thinking',
+			contextWindow: 202800,
+		},
+		{
+			id: 'zai-org/glm-latest',
+			name: 'GLM Latest',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-z1-air',
+			name: 'GLM Z1 Air',
+			contextWindow: 32000,
+		},
+		{
+			id: 'glm-z1-airx',
+			name: 'GLM Z1 AirX',
+			contextWindow: 32000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT 4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT 5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT 5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'GPT 5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT 5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT 5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT 5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT 5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT 5.4',
+			contextWindow: 922000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT 5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT 5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT 5.4 Pro',
+			contextWindow: 922000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT 5.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai/gpt-chat-latest',
+			name: 'GPT Chat Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-latest',
+			name: 'GPT Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'ibm-granite/granite-4.1-8b',
+			name: 'Granite 4.1 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'x-ai/grok-4.20',
+			name: 'Grok 4.20',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.20-multi-agent',
+			name: 'Grok 4.20 Multi-Agent',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'x-ai/grok-build-0.1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'x-ai/grok-latest',
+			name: 'Grok Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'hermes-high',
+			name: 'Hermes High',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'hermes-low',
+			name: 'Hermes Low',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'hermes-medium',
+			name: 'Hermes Medium',
+			contextWindow: 204800,
+		},
+		{
+			id: 'holo3-35b-a3b',
+			name: 'Holo3-35B-A3B',
+			contextWindow: 65536,
+		},
+		{
+			id: 'holo3-35b-a3b:thinking',
+			name: 'Holo3-35B-A3B Thinking',
+			contextWindow: 65536,
+		},
+		{
+			id: 'moonshotai/kimi-k2-instruct-0711',
+			name: 'Kimi K2 0711',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-instruct',
+			name: 'Kimi K2 Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5:thinking',
+			name: 'Kimi K2.5 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'TEE/kimi-k2.6',
+			name: 'Kimi K2.6 TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6:thinking',
+			name: 'Kimi K2.6 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-latest',
+			name: 'Kimi Latest',
+			contextWindow: 256000,
+		},
+		{
+			id: 'inclusionai/ling-2.6-1t',
+			name: 'Ling 2.6 1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'inclusionai/ling-2.6-flash',
+			name: 'Ling 2.6 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/llama-3.3-70b-instruct',
+			name: 'Llama 3.3 70b Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-4-maverick',
+			name: 'Llama 4 Maverick',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'meta-llama/llama-4-scout',
+			name: 'Llama 4 Scout',
+			contextWindow: 328000,
+		},
+		{
+			id: 'mercury-2',
+			name: 'Mercury 2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-omni',
+			name: 'MiMo V2 Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomi/mimo-v2-pro',
+			name: 'MiMo V2 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5',
+			name: 'MiMo V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5-pro',
+			name: 'MiMo V2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimax/minimax-latest',
+			name: 'MiniMax Latest',
+			contextWindow: 512000,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'MiniMax M2.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'TEE/minimax-m2.5',
+			name: 'MiniMax M2.5 TEE',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7-turbo',
+			name: 'MiniMax M2.7 Turbo',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m3',
+			name: 'MiniMax M3',
+			contextWindow: 512000,
+		},
+		{
+			id: 'minimax/minimax-m3:thinking',
+			name: 'MiniMax M3 Thinking',
+			contextWindow: 512000,
+		},
+		{
+			id: 'mistral-code-agent-latest',
+			name: 'Mistral Code Agent Latest',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-code-latest',
+			name: 'Mistral Code Latest',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral/mistral-medium-3.5',
+			name: 'Mistral Medium 3.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral/mistral-medium-3.5:thinking',
+			name: 'Mistral Medium 3.5 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistralai/mistral-small-4-119b-2603',
+			name: 'Mistral Small 4 119B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-small-4-119b-2603:thinking',
+			name: 'Mistral Small 4 119B Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
+			name: 'Nvidia Nemotron 3 Nano Omni',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b',
+			name: 'Nvidia Nemotron 3 Super 120B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b:thinking',
+			name: 'Nvidia Nemotron 3 Super 120B Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'OpenAI o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini-high',
+			name: 'OpenAI o3-mini (High)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini-low',
+			name: 'OpenAI o3-mini (Low)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-pro-2025-06-10',
+			name: 'OpenAI o3-pro (2025-06-10)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'OpenAI o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini-high',
+			name: 'OpenAI o4-mini high',
+			contextWindow: 200000,
+		},
+		{
+			id: 'owl',
+			name: 'OWL',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b',
+			name: 'Qwen 3 235b A22B',
+			contextWindow: 41000,
+		},
+		{
+			id: 'qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen 3 235b A22B 2507',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen/Qwen3-235B-A22B-Instruct-2507-TEE',
+			name: 'Qwen 3 235b A22B 2507 (TEE)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen/qwen3-coder',
+			name: 'Qwen 3 Coder 480B',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3 Coder 30B A3B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen/qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/Qwen3-Next-80B-A3B-Instruct',
+			name: 'Qwen3 Next 80B A3B (Instruct)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'TEE/qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B A10B TEE',
+			contextWindow: 262144,
+		},
+		{
+			id: 'TEE/qwen3.6-35b-a3b-uncensored',
+			name: 'Qwen3.6 35B A3B Uncensored TEE',
+			contextWindow: 131072,
+		},
+		{
+			id: 'inclusionai/ring-2.6-1t',
+			name: 'Ring 2.6 1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'sarvam-105b',
+			name: 'Sarvam 105B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'sarvam-30b',
+			name: 'Sarvam 30B',
+			contextWindow: 65536,
+		},
+		{
+			id: 'stepfun/step-3.7-flash:thinking',
+			name: 'Step 3.7 Flash Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'arcee-ai/trinity-large-thinking',
+			name: 'Trinity Large Thinking',
+			contextWindow: 262144,
+		},
+	],
+	nearai: [
+		{
+			id: 'anthropic/claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-pro',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemma-4-31B-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai-org/GLM-5.1-FP8',
+			name: 'GLM-5.1 FP8',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT-OSS 120B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'Qwen/Qwen3.6-35B-A3B-FP8',
+			name: 'Qwen 3.6 35B A3B FP8',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen3 30B-A3B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+			name: 'Qwen3-VL 30B-A3B Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'Qwen/Qwen3.5-122B-A10B',
+			name: 'Qwen3.5 122B-A10B',
+			contextWindow: 131072,
+		},
+	],
+	nebius: [
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 163000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2-fast',
+			name: 'DeepSeek-V3.2-fast',
+			contextWindow: 8000,
+		},
+		{
+			id: 'google/gemma-3-27b-it',
+			name: 'Gemma-3-27b-it',
+			contextWindow: 110000,
+		},
+		{
+			id: 'zai-org/GLM-5',
+			name: 'GLM-5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-oss-120b-fast',
+			name: 'gpt-oss-120b-fast',
+			contextWindow: 8000,
+		},
+		{
+			id: 'NousResearch/Hermes-4-405B',
+			name: 'Hermes-4-405B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'NousResearch/Hermes-4-70B',
+			name: 'Hermes-4-70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'PrimeIntellect/INTELLECT-3',
+			name: 'INTELLECT-3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi-K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5-fast',
+			name: 'Kimi-K2.5-fast',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/Llama-3_1-Nemotron-Ultra-253B-v1',
+			name: 'Llama-3.1-Nemotron-Ultra-253B-v1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+			name: 'Meta-Llama-3.1-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5-fast',
+			name: 'MiniMax-M2.5-fast',
+			contextWindow: 8000,
+		},
+		{
+			id: 'nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B',
+			name: 'Nemotron-3-Nano-30B-A3B',
+			contextWindow: 32000,
+		},
+		{
+			id: 'nvidia/Nemotron-3-Nano-Omni',
+			name: 'Nemotron-3-Nano-Omni',
+			contextWindow: 65536,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b',
+			name: 'Nemotron-3-Super-120B-A12B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-72B-Instruct',
+			name: 'Qwen2.5-VL-72B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507-fast',
+			name: 'Qwen3-235B-A22B-Thinking-2507-fast',
+			contextWindow: 8000,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen3-30B-A3B-Instruct-2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-32B',
+			name: 'Qwen3-32B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Thinking',
+			name: 'Qwen3-Next-80B-A3B-Thinking',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Thinking-fast',
+			name: 'Qwen3-Next-80B-A3B-Thinking-fast',
+			contextWindow: 8000,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B',
+			name: 'Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B-fast',
+			name: 'Qwen3.5-397B-A17B-fast',
+			contextWindow: 8000,
+		},
+	],
+	neuralwatt: [
+		{
+			id: 'mistralai/Devstral-Small-2-24B-Instruct-2512',
+			name: 'Devstral Small 2 24B Instruct 2512',
+			contextWindow: 262128,
+		},
+		{
+			id: 'glm-5-fast',
+			name: 'GLM 5 Fast',
+			contextWindow: 202736,
+		},
+		{
+			id: 'glm-5.1-fast',
+			name: 'GLM 5.1 Fast',
+			contextWindow: 202736,
+		},
+		{
+			id: 'zai-org/GLM-5.1-FP8',
+			name: 'GLM 5.1 FP8',
+			contextWindow: 202736,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 16368,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262128,
+		},
+		{
+			id: 'kimi-k2.5-fast',
+			name: 'Kimi K2.5 Fast',
+			contextWindow: 262128,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262128,
+		},
+		{
+			id: 'kimi-k2.6-fast',
+			name: 'Kimi K2.6 Fast',
+			contextWindow: 262128,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 196592,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B-FP8',
+			name: 'Qwen3.5 397B A17B FP8',
+			contextWindow: 262128,
+		},
+		{
+			id: 'qwen3.5-397b-fast',
+			name: 'Qwen3.5 397B Fast',
+			contextWindow: 262128,
+		},
+		{
+			id: 'Qwen/Qwen3.6-35B-A3B',
+			name: 'Qwen3.6 35B A3B',
+			contextWindow: 131056,
+		},
+		{
+			id: 'qwen3.6-35b-fast',
+			name: 'Qwen3.6 35B Fast',
+			contextWindow: 131056,
+		},
+	],
+	nova: [
+		{
+			id: 'nova-2-lite-v1',
+			name: 'Nova 2 Lite',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nova-2-pro-v1',
+			name: 'Nova 2 Pro',
+			contextWindow: 1000000,
+		},
+	],
+	'novita-ai': [
+		{
+			id: 'deepseek/deepseek-r1-turbo',
+			name: 'DeepSeek R1 (Turbo)\t',
+			contextWindow: 64000,
+		},
+		{
+			id: 'deepseek/deepseek-r1-0528',
+			name: 'DeepSeek R1 0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3-turbo',
+			name: 'DeepSeek V3 (Turbo)\t',
+			contextWindow: 64000,
+		},
+		{
+			id: 'deepseek/deepseek-v3-0324',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1-terminus',
+			name: 'Deepseek V3.1 Terminus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2',
+			name: 'Deepseek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-exp',
+			name: 'Deepseek V3.2 Exp',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'baidu/ernie-4.5-21B-a3b',
+			name: 'ERNIE 4.5 21B A3B',
+			contextWindow: 120000,
+		},
+		{
+			id: 'baidu/ernie-4.5-vl-28b-a3b',
+			name: 'ERNIE 4.5 VL 28B A3B',
+			contextWindow: 30000,
+		},
+		{
+			id: 'baidu/ernie-4.5-vl-28b-a3b-thinking',
+			name: 'ERNIE-4.5-VL-28B-A3B-Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma 4 31B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai-org/glm-4.5-air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/glm-4.5v',
+			name: 'GLM 4.5V',
+			contextWindow: 65536,
+		},
+		{
+			id: 'zai-org/glm-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai-org/glm-4.6v',
+			name: 'GLM 4.6V',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'zai-org/glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/glm-5',
+			name: 'GLM-5',
+			contextWindow: 202800,
+		},
+		{
+			id: 'zai-org/glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'kwaipilot/kat-coder-pro',
+			name: 'Kat Coder Pro',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2-instruct',
+			name: 'Kimi K2 Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'sao10K/l3-70b-euryale-v2.1',
+			name: 'L3 70B Euryale V2.1\t',
+			contextWindow: 8192,
+		},
+		{
+			id: 'sao10K/L3-8B-stheno-v3.2',
+			name: 'L3 8B Stheno V3.2',
+			contextWindow: 8192,
+		},
+		{
+			id: 'sao10K/l31-70b-euryale-v2.2',
+			name: 'L31 70B Euryale V2.2',
+			contextWindow: 8192,
+		},
+		{
+			id: 'inclusionai/ling-2.6-1t',
+			name: 'Ling-2.6-1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'inclusionai/ling-2.6-flash',
+			name: 'Ling-2.6-flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/llama-3.3-70b-instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'xiaomimimo/mimo-v2-pro',
+			name: 'MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomimimo/mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimaxai/minimax-m1-80k',
+			name: 'MiniMax M1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'Minimax M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5-highspeed',
+			name: 'MiniMax M2.5 Highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'MiniMax-M2',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'OpenAI GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen-2.5-72b-instruct',
+			name: 'Qwen 2.5 72B Instruct',
+			contextWindow: 32000,
+		},
+		{
+			id: 'qwen/qwen3-vl-30b-a3b-instruct',
+			name: 'qwen/qwen3-vl-30b-a3b-instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-30b-a3b-thinking',
+			name: 'qwen/qwen3-vl-30b-a3b-thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-8b-instruct',
+			name: 'qwen/qwen3-vl-8b-instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen2.5-7b-instruct',
+			name: 'Qwen2.5 7B Instruct',
+			contextWindow: 32000,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen3 235B A22b Thinking 2507',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3 Coder 30b A3B Instruct',
+			contextWindow: 160000,
+		},
+		{
+			id: 'qwen/qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3 Next 80B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3 Next 80B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-omni-30b-a3b-instruct',
+			name: 'Qwen3 Omni 30B A3B Instruct',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen/qwen3-omni-30b-a3b-thinking',
+			name: 'Qwen3 Omni 30B A3B Thinking',
+			contextWindow: 65536,
+		},
+		{
+			id: 'qwen/qwen3-vl-235b-a22b-instruct',
+			name: 'Qwen3 VL 235B A22B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3.5-122b-a10b',
+			name: 'Qwen3.5-122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-27b',
+			name: 'Qwen3.5-27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-35b-a3b',
+			name: 'Qwen3.5-35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-397b-a17b',
+			name: 'Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.7-max',
+			name: 'Qwen3.7-Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'inclusionai/ring-2.6-1t',
+			name: 'Ring-2.6-1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomimimo/mimo-v2-flash',
+			name: 'XiaomiMiMo/MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+	],
+	nvidia: [
+		{
+			id: 'bytedance/seed-oss-36b-instruct',
+			name: 'ByteDance-Seed/Seed-OSS-36B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'deepseek-ai/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-ai/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'abacusai/dracarys-llama-3_1-70b-instruct',
+			name: 'dracarys-llama-3.1-70b-instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemma-2-2b-it',
+			name: 'Gemma 2 2b It',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemma-3n-e2b-it',
+			name: 'Gemma 3n E2b It',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemma-3n-e4b-it',
+			name: 'Gemma 3n E4b It',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma-4-31B-IT',
+			contextWindow: 256000,
+		},
+		{
+			id: 'z-ai/glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT-OSS-120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-instruct-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta/llama-3.1-70b-instruct',
+			name: 'Llama 3.1 70b Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.1-8b-instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 16000,
+		},
+		{
+			id: 'meta/llama-3.2-11b-vision-instruct',
+			name: 'Llama 3.2 11b Vision Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.2-1b-instruct',
+			name: 'Llama 3.2 1b Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.3-70b-instruct',
+			name: 'Llama 3.3 70b Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-4-maverick-17b-128e-instruct',
+			name: 'Llama 4 Maverick 17b 128e Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.2-90b-vision-instruct',
+			name: 'Llama-3.2-90B-Vision-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'minimaxai/minimax-m2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'mistralai/mistral-large-3-675b-instruct-2512',
+			name: 'Mistral Large 3 675B Instruct 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-7b-instruct-v03',
+			name: 'Mistral-7B-Instruct-v0.3',
+			contextWindow: 65536,
+		},
+		{
+			id: 'mistralai/mistral-nemotron',
+			name: 'mistral-nemotron',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/mistral-small-4-119b-2603',
+			name: 'mistral-small-4-119b-2603',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/mixtral-8x22b-instruct',
+			name: 'Mistral: Mixtral 8x22B Instruct',
+			contextWindow: 65536,
+		},
+		{
+			id: 'mistralai/mixtral-8x7b-instruct',
+			name: 'Mistral: Mixtral 8x7B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
+			name: 'Nemotron 3 Nano Omni',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b',
+			name: 'Nemotron 3 Super',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-ultra-550b-a55b',
+			name: 'Nemotron 3 Ultra 550B A55B',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-30b-a3b',
+			name: 'nemotron-3-nano-30b-a3b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'nvidia/nemotron-mini-4b-instruct',
+			name: 'nemotron-mini-4b-instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nvidia/nemotron-voicechat',
+			name: 'nemotron-voicechat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nvidia/nvidia-nemotron-nano-9b-v2',
+			name: 'nvidia-nemotron-nano-9b-v2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'microsoft/phi-4-mini-instruct',
+			name: 'Phi-4-Mini',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen2.5-coder-32b-instruct',
+			name: 'Qwen2.5 Coder 32b Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen/qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3-Next-80B-A3B-Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-397b-a17b',
+			name: 'Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'sarvamai/sarvam-m',
+			name: 'sarvam-m',
+			contextWindow: 128000,
+		},
+		{
+			id: 'upstage/solar-10_7b-instruct',
+			name: 'solar-10.7b-instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'stepfun-ai/step-3.5-flash',
+			name: 'Step 3.5 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'stepfun-ai/step-3.7-flash',
+			name: 'Step 3.7 Flash',
+			contextWindow: 256000,
+		},
+	],
+	'ollama-cloud': [
+		{
+			id: 'cogito-2.1:671b',
+			name: 'cogito-2.1:671b',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v3.1:671b',
+			name: 'deepseek-v3.1:671b',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'deepseek-v3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'deepseek-v4-flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'deepseek-v4-pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'devstral-2:123b',
+			name: 'devstral-2:123b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'devstral-small-2:24b',
+			name: 'devstral-small-2:24b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'gemini-3-flash-preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemma4:31b',
+			name: 'gemma4:31b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'glm-4.6',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'glm-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5',
+			name: 'glm-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'glm-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'gpt-oss:120b',
+			name: 'gpt-oss:120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-oss:20b',
+			name: 'gpt-oss:20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'kimi-k2-thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2:1t',
+			name: 'kimi-k2:1t',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'kimi-k2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'kimi-k2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimax-m2',
+			name: 'minimax-m2',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.1',
+			name: 'minimax-m2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'minimax-m2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.7',
+			name: 'minimax-m2.7',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax-m3',
+			name: 'minimax-m3',
+			contextWindow: 512000,
+		},
+		{
+			id: 'ministral-3:14b',
+			name: 'ministral-3:14b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'ministral-3:3b',
+			name: 'ministral-3:3b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'ministral-3:8b',
+			name: 'ministral-3:8b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistral-large-3:675b',
+			name: 'mistral-large-3:675b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nemotron-3-nano:30b',
+			name: 'nemotron-3-nano:30b',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'nemotron-3-super',
+			name: 'nemotron-3-super',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nemotron-3-ultra',
+			name: 'nemotron-3-ultra',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder-next',
+			name: 'qwen3-coder-next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-coder:480b',
+			name: 'qwen3-coder:480b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-next:80b',
+			name: 'qwen3-next:80b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-vl:235b',
+			name: 'qwen3-vl:235b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-vl:235b-instruct',
+			name: 'qwen3-vl:235b-instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5:397b',
+			name: 'qwen3.5:397b',
+			contextWindow: 262144,
+		},
+		{
+			id: 'rnj-1:8b',
+			name: 'rnj-1:8b',
+			contextWindow: 32768,
+		},
+	],
+	openai: [
+		{
+			id: 'gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8192,
+		},
+		{
+			id: 'gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-2024-05-13',
+			name: 'GPT-4o (2024-05-13)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-2024-08-06',
+			name: 'GPT-4o (2024-08-06)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-2024-11-20',
+			name: 'GPT-4o (2024-11-20)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-chat-latest',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-chat-latest',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-pro',
+			name: 'GPT-5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-chat-latest',
+			name: 'GPT-5.3 Chat (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex-spark',
+			name: 'GPT-5.3 Codex Spark',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o1-pro',
+			name: 'o1-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-deep-research',
+			name: 'o3-deep-research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o3-pro',
+			name: 'o3-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'o4-mini-deep-research',
+			name: 'o4-mini-deep-research',
+			contextWindow: 200000,
+		},
+	],
+	opencode: [
+		{
+			id: 'big-pickle',
+			name: 'Big Pickle',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-fable-5',
+			name: 'Claude Fable 5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-3-5-haiku',
+			name: 'Claude Haiku 3.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-flash-free',
+			name: 'DeepSeek V4 Flash Free',
+			contextWindow: 200000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-3-flash',
+			name: 'Gemini 3 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-pro',
+			name: 'Gemini 3 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.7-free',
+			name: 'GLM-4.7 Free',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5-free',
+			name: 'GLM-5 Free',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-codex',
+			name: 'GPT-5 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex-spark',
+			name: 'GPT-5.3 Codex Spark',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok-build-0.1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'grok-code',
+			name: 'Grok Code Fast 1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'hy3-preview-free',
+			name: 'Hy3 preview Free',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2',
+			name: 'Kimi K2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.5-free',
+			name: 'Kimi K2.5 Free',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'ling-2.6-flash-free',
+			name: 'Ling 2.6 Flash Free',
+			contextWindow: 262100,
+		},
+		{
+			id: 'mimo-v2-flash-free',
+			name: 'MiMo V2 Flash Free',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-omni-free',
+			name: 'MiMo V2 Omni Free',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro-free',
+			name: 'MiMo V2 Pro Free',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-free',
+			name: 'MiMo V2.5 Free',
+			contextWindow: 200000,
+		},
+		{
+			id: 'minimax-m2.1',
+			name: 'MiniMax M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.1-free',
+			name: 'MiniMax M2.1 Free',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.5-free',
+			name: 'MiniMax M2.5 Free',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m3-free',
+			name: 'MiniMax M3 Free',
+			contextWindow: 200000,
+		},
+		{
+			id: 'nemotron-3-super-free',
+			name: 'Nemotron 3 Super Free',
+			contextWindow: 204800,
+		},
+		{
+			id: 'nemotron-3-ultra-free',
+			name: 'Nemotron 3 Ultra Free',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'north-mini-code-free',
+			name: 'North Mini Code Free',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-coder',
+			name: 'Qwen3 Coder',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-plus-free',
+			name: 'Qwen3.6 Plus Free',
+			contextWindow: 262144,
+		},
+		{
+			id: 'ring-2.6-1t-free',
+			name: 'Ring 2.6 1T Free',
+			contextWindow: 262000,
+		},
+		{
+			id: 'trinity-large-preview-free',
+			name: 'Trinity Large Preview',
+			contextWindow: 131072,
+		},
+	],
+	'opencode-go': [
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-omni',
+			name: 'MiMo V2 Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro',
+			name: 'MiMo V2 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5',
+			name: 'MiMo V2.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo V2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax-m3',
+			name: 'MiniMax M3',
+			contextWindow: 512000,
+		},
+		{
+			id: 'qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+	],
+	openrouter: [
+		{
+			id: '~anthropic/claude-haiku-latest',
+			name: 'Anthropic Claude Haiku Latest',
+			contextWindow: 200000,
+		},
+		{
+			id: '~anthropic/claude-sonnet-latest',
+			name: 'Anthropic Claude Sonnet Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openrouter/auto',
+			name: 'Auto Router',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'anthropic/claude-3-haiku',
+			name: 'Claude 3 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3.5-haiku',
+			name: 'Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-fable-5',
+			name: 'Claude Fable 5',
+			contextWindow: 1000000,
+		},
+		{
+			id: '~anthropic/claude-fable-latest',
+			name: 'Claude Fable Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-haiku-4.5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Claude Opus 4.1 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.5',
+			name: 'Claude Opus 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6-fast',
+			name: 'Claude Opus 4.6 (Fast)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7-fast',
+			name: 'Claude Opus 4.7 (Fast)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8-fast',
+			name: 'Claude Opus 4.8 (Fast)',
+			contextWindow: 1000000,
+		},
+		{
+			id: '~anthropic/claude-opus-latest',
+			name: 'Claude Opus Latest',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistralai/codestral-2508',
+			name: 'Codestral 2508',
+			contextWindow: 256000,
+		},
+		{
+			id: 'cohere/command-r-08-2024',
+			name: 'Command R',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cohere/command-r-plus-08-2024',
+			name: 'Command R+',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-chat',
+			name: 'DeepSeek Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-chat-v3-0324',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-chat-v3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1-terminus',
+			name: 'DeepSeek V3.1 Terminus',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-exp',
+			name: 'DeepSeek V3.2 Exp',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'deepseek/deepseek-r1',
+			name: 'DeepSeek-R1',
+			contextWindow: 64000,
+		},
+		{
+			id: 'mistralai/devstral-2512',
+			name: 'Devstral 2',
+			contextWindow: 262144,
+		},
+		{
+			id: 'openrouter/free',
+			name: 'Free Models Router',
+			contextWindow: 200000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite-preview-09-2025',
+			name: 'Gemini 2.5 Flash Lite Preview 09-2025',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro-preview-05-06',
+			name: 'Gemini 2.5 Pro Preview 05-06',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro-preview',
+			name: 'Gemini 2.5 Pro Preview 06-05',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemma-3-12b-it',
+			name: 'Gemma 3 12B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'google/gemma-3-27b-it',
+			name: 'Gemma 3 27B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it:free',
+			name: 'Gemma 4 26B A4B  (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it:free',
+			name: 'Gemma 4 31B (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 256000,
+		},
+		{
+			id: 'z-ai/glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131070,
+		},
+		{
+			id: 'z-ai/glm-4.5v',
+			name: 'GLM-4.5V',
+			contextWindow: 65536,
+		},
+		{
+			id: 'z-ai/glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'z-ai/glm-5-turbo',
+			name: 'GLM-5-Turbo',
+			contextWindow: 262144,
+		},
+		{
+			id: 'z-ai/glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: '~google/gemini-flash-latest',
+			name: 'Google Gemini Flash Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: '~google/gemini-pro-latest',
+			name: 'Google Gemini Pro Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'openai/gpt-audio',
+			name: 'GPT Audio',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-audio-mini',
+			name: 'GPT Audio Mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-chat-latest',
+			name: 'GPT Chat Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo-0613',
+			name: 'GPT-3.5 Turbo (older v0613)',
+			contextWindow: 4095,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo-16k',
+			name: 'GPT-3.5 Turbo 16k',
+			contextWindow: 16385,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo',
+			name: 'GPT-3.5-turbo',
+			contextWindow: 16385,
+		},
+		{
+			id: 'openai/gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8191,
+		},
+		{
+			id: 'openai/gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4-turbo-preview',
+			name: 'GPT-4 Turbo Preview',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-05-13',
+			name: 'GPT-4o (2024-05-13)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-08-06',
+			name: 'GPT-4o (2024-08-06)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-11-20',
+			name: 'GPT-4o (2024-11-20)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini-2024-07-18',
+			name: 'GPT-4o-mini (2024-07-18)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-chat',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-chat',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT-5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-chat',
+			name: 'GPT-5.3 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-120b:free',
+			name: 'gpt-oss-120b (free)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'gpt-oss-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b:free',
+			name: 'gpt-oss-20b (free)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-safeguard-20b',
+			name: 'gpt-oss-safeguard-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'ibm-granite/granite-4.1-8b',
+			name: 'Granite 4.1 8B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'x-ai/grok-4.20',
+			name: 'Grok 4.20',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'x-ai/grok-build-0.1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'tencent/hy3-preview',
+			name: 'Hy3 preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'prime-intellect/intellect-3',
+			name: 'INTELLECT-3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'ai21/jamba-large-1.7',
+			name: 'Jamba Large 1.7',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kwaipilot/kat-coder-pro-v2',
+			name: 'KAT-Coder-Pro V2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2',
+			name: 'Kimi K2 0711',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/kimi-k2-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262142,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6:free',
+			name: 'Kimi K2.6 (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'poolside/laguna-m.1:free',
+			name: 'Laguna M.1 (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'poolside/laguna-xs.2:free',
+			name: 'Laguna XS.2 (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'inclusionai/ling-2.6-1t',
+			name: 'Ling-2.6-1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'inclusionai/ling-2.6-flash',
+			name: 'Ling-2.6-flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/llama-3.1-70b-instruct',
+			name: 'Llama 3.1 70B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-3.1-8b-instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'sao10k/l3.1-euryale-70b',
+			name: 'Llama 3.1 Euryale 70B v2.2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-3.3-70b-instruct:free',
+			name: 'Llama 3.3 70B Instruct (free)',
+			contextWindow: 65536,
+		},
+		{
+			id: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+			name: 'Llama 3.3 Nemotron Super 49B v1.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama/llama-4-maverick',
+			name: 'Llama 4 Maverick',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'meta-llama/llama-4-scout',
+			name: 'Llama 4 Scout',
+			contextWindow: 327680,
+		},
+		{
+			id: 'meta-llama/llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'inception/mercury-2',
+			name: 'Mercury 2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-flash',
+			name: 'MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimax/minimax-m1',
+			name: 'MiniMax M1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m3',
+			name: 'MiniMax-M3',
+			contextWindow: 524288,
+		},
+		{
+			id: 'mistralai/ministral-14b-2512',
+			name: 'Ministral 3 14B 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/ministral-3b-2512',
+			name: 'Ministral 3 3B 2512',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/ministral-8b-2512',
+			name: 'Ministral 3 8B 2512',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-large',
+			name: 'Mistral Large',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/mistral-large-2407',
+			name: 'Mistral Large 2407',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-large-2512',
+			name: 'Mistral Large 3',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-medium-3',
+			name: 'Mistral Medium 3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-medium-3.1',
+			name: 'Mistral Medium 3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-medium-3-5',
+			name: 'Mistral Medium 3.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mistral-nemo',
+			name: 'Mistral Nemo',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/mistral-small-3.2-24b-instruct',
+			name: 'Mistral Small 3.2 24B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistralai/mistral-small-2603',
+			name: 'Mistral Small 4',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mistralai/mixtral-8x22b-instruct',
+			name: 'Mixtral 8x22B Instruct',
+			contextWindow: 65536,
+		},
+		{
+			id: '~moonshotai/kimi-latest',
+			name: 'MoonshotAI Kimi Latest',
+			contextWindow: 262142,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-30b-a3b',
+			name: 'Nemotron 3 Nano 30B A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-30b-a3b:free',
+			name: 'Nemotron 3 Nano 30B A3B (free)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+			name: 'Nemotron 3 Nano Omni (free)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b:free',
+			name: 'Nemotron 3 Super (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b',
+			name: 'Nemotron 3 Super 120B A12B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+			name: 'Nemotron 3 Ultra (free)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'nvidia/nemotron-3-ultra-550b-a55b',
+			name: 'Nemotron 3 Ultra 550B A55B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/nemotron-nano-12b-v2-vl:free',
+			name: 'Nemotron Nano 12B 2 VL (free)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nvidia/nemotron-nano-9b-v2',
+			name: 'Nemotron Nano 9B v2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'nvidia/nemotron-nano-9b-v2:free',
+			name: 'Nemotron Nano 9B V2 (free)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nex-agi/nex-n2-pro:free',
+			name: 'Nex-N2-Pro (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'amazon/nova-2-lite-v1',
+			name: 'Nova 2 Lite',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'amazon/nova-lite-v1',
+			name: 'Nova Lite 1.0',
+			contextWindow: 300000,
+		},
+		{
+			id: 'amazon/nova-micro-v1',
+			name: 'Nova Micro 1.0',
+			contextWindow: 128000,
+		},
+		{
+			id: 'amazon/nova-premier-v1',
+			name: 'Nova Premier 1.0',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'amazon/nova-pro-v1',
+			name: 'Nova Pro 1.0',
+			contextWindow: 300000,
+		},
+		{
+			id: 'openai/o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini-high',
+			name: 'o3 Mini High',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-deep-research',
+			name: 'o3-deep-research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-pro',
+			name: 'o3-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini-high',
+			name: 'o4 Mini High',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini-deep-research',
+			name: 'o4-mini-deep-research',
+			contextWindow: 200000,
+		},
+		{
+			id: '~openai/gpt-latest',
+			name: 'OpenAI GPT Latest',
+			contextWindow: 1050000,
+		},
+		{
+			id: '~openai/gpt-mini-latest',
+			name: 'OpenAI GPT Mini Latest',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openrouter/owl-alpha',
+			name: 'Owl Alpha',
+			contextWindow: 1048756,
+		},
+		{
+			id: 'qwen/qwen-plus',
+			name: 'Qwen Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-plus-2025-07-28',
+			name: 'Qwen Plus 0728',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-plus-2025-07-28:thinking',
+			name: 'Qwen Plus 0728 (thinking)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen-2.5-72b-instruct',
+			name: 'Qwen2.5 72B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen/qwen3-14b',
+			name: 'Qwen3 14B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen3 235B A22B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-235b-a22b',
+			name: 'Qwen3 235B-A22B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b',
+			name: 'Qwen3 30B A3B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b-instruct-2507',
+			name: 'Qwen3 30B A3B Instruct 2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen/qwen3-30b-a3b-thinking-2507',
+			name: 'Qwen3 30B A3B Thinking 2507',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-8b',
+			name: 'Qwen3 8B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'qwen/qwen3-coder',
+			name: 'Qwen3 Coder 480B A35B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-coder:free',
+			name: 'Qwen3 Coder 480B A35B (free)',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen/qwen3-coder-flash',
+			name: 'Qwen3 Coder Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-max-thinking',
+			name: 'Qwen3 Max Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-instruct:free',
+			name: 'Qwen3 Next 80B A3B Instruct (free)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-vl-235b-a22b-instruct',
+			name: 'Qwen3 VL 235B A22B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3-vl-235b-a22b-thinking',
+			name: 'Qwen3 VL 235B A22B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-30b-a3b-instruct',
+			name: 'Qwen3 VL 30B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-30b-a3b-thinking',
+			name: 'Qwen3 VL 30B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-32b-instruct',
+			name: 'Qwen3 VL 32B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-8b-instruct',
+			name: 'Qwen3 VL 8B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-vl-8b-thinking',
+			name: 'Qwen3 VL 8B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3-Coder 30B-A3B Instruct',
+			contextWindow: 160000,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3-Next 80B-A3B (Thinking)',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3-Next 80B-A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-27b',
+			name: 'Qwen3.5 27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-35b-a3b',
+			name: 'Qwen3.5 35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-plus-02-15',
+			name: 'Qwen3.5 Plus 2026-02-15',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.5-plus-20260420',
+			name: 'Qwen3.5 Plus 2026-04-20',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.5-9b',
+			name: 'Qwen3.5-9B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-flash-02-23',
+			name: 'Qwen3.5-Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.6-27b',
+			name: 'Qwen3.6 27B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen/qwen3.6-35b-a3b',
+			name: 'Qwen3.6 35B-A3B',
+			contextWindow: 262140,
+		},
+		{
+			id: 'qwen/qwen3.6-flash',
+			name: 'Qwen3.6 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.6-max-preview',
+			name: 'Qwen3.6 Max Preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-r1-0528',
+			name: 'R1 0528',
+			contextWindow: 163840,
+		},
+		{
+			id: 'rekaai/reka-edge',
+			name: 'Reka Edge',
+			contextWindow: 16384,
+		},
+		{
+			id: 'relace/relace-search',
+			name: 'Relace Search',
+			contextWindow: 256000,
+		},
+		{
+			id: 'inclusionai/ring-2.6-1t',
+			name: 'Ring-2.6-1T',
+			contextWindow: 262144,
+		},
+		{
+			id: 'essentialai/rnj-1-instruct',
+			name: 'Rnj 1 Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'thedrummer/rocinante-12b',
+			name: 'Rocinante 12B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'mistralai/mistral-saba',
+			name: 'Saba',
+			contextWindow: 32768,
+		},
+		{
+			id: 'bytedance-seed/seed-1.6',
+			name: 'Seed 1.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'bytedance-seed/seed-1.6-flash',
+			name: 'Seed 1.6 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'bytedance-seed/seed-2.0-lite',
+			name: 'Seed-2.0-Lite',
+			contextWindow: 262144,
+		},
+		{
+			id: 'bytedance-seed/seed-2.0-mini',
+			name: 'Seed-2.0-Mini',
+			contextWindow: 262144,
+		},
+		{
+			id: 'upstage/solar-pro-3',
+			name: 'Solar Pro 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'stepfun/step-3.5-flash',
+			name: 'Step 3.5 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'stepfun/step-3.7-flash',
+			name: 'Step 3.7 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'arcee-ai/trinity-large-thinking',
+			name: 'Trinity Large Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'arcee-ai/trinity-mini',
+			name: 'Trinity Mini',
+			contextWindow: 131072,
+		},
+		{
+			id: 'thedrummer/unslopnemo-12b',
+			name: 'UnslopNemo 12B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'arcee-ai/virtuoso-large',
+			name: 'Virtuoso Large',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistralai/voxtral-small-24b-2507',
+			name: 'Voxtral Small 24B 2507',
+			contextWindow: 32000,
+		},
+	],
+	orcarouter: [
+		{
+			id: 'anthropic/claude-haiku-4.5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude Opus 4 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Claude Opus 4.1 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.5',
+			name: 'Claude Opus 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-chat',
+			name: 'DeepSeek Chat',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-reasoner',
+			name: 'DeepSeek Reasoner',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-pro-preview',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview-customtools',
+			name: 'Gemini 3.1 Pro Preview Custom Tools',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-flash-latest',
+			name: 'Gemini Flash Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-flash-lite-latest',
+			name: 'Gemini Flash-Lite Latest',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'z-ai/glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'z-ai/glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'z-ai/glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'z-ai/glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'z-ai/glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/gpt-4',
+			name: 'GPT-4',
+			contextWindow: 8192,
+		},
+		{
+			id: 'openai/gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-05-13',
+			name: 'GPT-4o (2024-05-13)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-08-06',
+			name: 'GPT-4o (2024-08-06)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-2024-11-20',
+			name: 'GPT-4o (2024-11-20)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-chat-latest',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-chat-latest',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT-5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-chat-latest',
+			name: 'GPT-5.3 Chat (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT-5.4 mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT-5.4 nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'grok/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'kimi/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'kimi/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5-highspeed',
+			name: 'MiniMax-M2.5-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7-highspeed',
+			name: 'MiniMax-M2.7-highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'orcarouter/auto',
+			name: 'OrcaRouter Auto',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen/qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-122b-a10b',
+			name: 'Qwen3.5 122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-27b',
+			name: 'Qwen3.5 27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-35b-a3b',
+			name: 'Qwen3.5 35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.6-35b-a3b',
+			name: 'Qwen3.6 35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen/qwen3.6-plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+	],
+	ovhcloud: [
+		{
+			id: 'gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'gpt-oss-20b',
+			name: 'gpt-oss-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'llama-3.1-8b-instruct',
+			name: 'Llama-3.1-8B-Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'meta-llama-3_3-70b-instruct',
+			name: 'Meta-Llama-3_3-70B-Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral-7b-instruct-v0.3',
+			name: 'Mistral-7B-Instruct-v0.3',
+			contextWindow: 65536,
+		},
+		{
+			id: 'mistral-nemo-instruct-2407',
+			name: 'Mistral-Nemo-Instruct-2407',
+			contextWindow: 65536,
+		},
+		{
+			id: 'mistral-small-3.2-24b-instruct-2506',
+			name: 'Mistral-Small-3.2-24B-Instruct-2506',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3-32B',
+			contextWindow: 32768,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3-Coder-30B-A3B-Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-9b',
+			name: 'Qwen3.5-9B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.6-27b',
+			name: 'Qwen3.6-27B',
+			contextWindow: 262144,
+		},
+	],
+	'perplexity-agent': [
+		{
+			id: 'anthropic/claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'xai/grok-4-1-fast-non-reasoning',
+			name: 'Grok 4.1 Fast (Non-Reasoning)',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'nvidia/nemotron-3-super-120b-a12b',
+			name: 'Nemotron 3 Super 120B',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'perplexity/sonar',
+			name: 'Sonar',
+			contextWindow: 128000,
+		},
+	],
+	poe: [
+		{
+			id: 'openai/chatgpt-4o-latest',
+			name: 'ChatGPT-4o-Latest',
+			contextWindow: 128000,
+		},
+		{
+			id: 'poetools/claude-code',
+			name: 'claude-code',
+		},
+		{
+			id: 'anthropic/claude-haiku-3',
+			name: 'Claude-Haiku-3',
+			contextWindow: 189096,
+		},
+		{
+			id: 'anthropic/claude-haiku-3.5',
+			name: 'Claude-Haiku-3.5',
+			contextWindow: 189096,
+		},
+		{
+			id: 'anthropic/claude-haiku-4.5',
+			name: 'Claude-Haiku-4.5',
+			contextWindow: 192000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude-Opus-4',
+			contextWindow: 192512,
+		},
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Claude-Opus-4.1',
+			contextWindow: 196608,
+		},
+		{
+			id: 'anthropic/claude-opus-4.5',
+			name: 'Claude-Opus-4.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude-Opus-4.6',
+			contextWindow: 983040,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude-Opus-4.7',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8',
+			name: 'Claude-Opus-4.8',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'anthropic/claude-sonnet-3.5',
+			name: 'Claude-Sonnet-3.5',
+			contextWindow: 189096,
+		},
+		{
+			id: 'anthropic/claude-sonnet-3.5-june',
+			name: 'Claude-Sonnet-3.5-June',
+			contextWindow: 189096,
+		},
+		{
+			id: 'anthropic/claude-sonnet-3.7',
+			name: 'Claude-Sonnet-3.7',
+			contextWindow: 196608,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude-Sonnet-4',
+			contextWindow: 983040,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.5',
+			name: 'Claude-Sonnet-4.5',
+			contextWindow: 983040,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude-Sonnet-4.6',
+			contextWindow: 983040,
+		},
+		{
+			id: 'openai/dall-e-3',
+			name: 'DALL-E-3',
+			contextWindow: 800,
+		},
+		{
+			id: 'novita/deepseek-v3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'empiriolabs/deepseek-v4-flash-el',
+			name: 'DeepSeek-V4-Flash-EL',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'empiriolabs/deepseek-v4-pro-el',
+			name: 'DeepSeek-V4-Pro-EL',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'elevenlabs/elevenlabs-music',
+			name: 'ElevenLabs-Music',
+			contextWindow: 2000,
+		},
+		{
+			id: 'elevenlabs/elevenlabs-v2.5-turbo',
+			name: 'ElevenLabs-v2.5-Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'elevenlabs/elevenlabs-v3',
+			name: 'ElevenLabs-v3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemini-2.0-flash',
+			name: 'Gemini-2.0-Flash',
+			contextWindow: 990000,
+		},
+		{
+			id: 'google/gemini-2.0-flash-lite',
+			name: 'Gemini-2.0-Flash-Lite',
+			contextWindow: 990000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini-2.5-Flash',
+			contextWindow: 1065535,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini-2.5-Flash-Lite',
+			contextWindow: 1024000,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini-2.5-Pro',
+			contextWindow: 1065535,
+		},
+		{
+			id: 'google/gemini-3-flash',
+			name: 'Gemini-3-Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-pro',
+			name: 'Gemini-3-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini-3.1-Flash-Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-pro',
+			name: 'Gemini-3.1-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini-3.5-Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-deep-research',
+			name: 'gemini-deep-research',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemma-4-31b',
+			name: 'Gemma-4-31B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'novita/glm-4.6',
+			name: 'GLM-4.6',
+		},
+		{
+			id: 'novita/glm-4.6v',
+			name: 'glm-4.6v',
+			contextWindow: 131000,
+		},
+		{
+			id: 'novita/glm-4.7',
+			name: 'glm-4.7',
+			contextWindow: 205000,
+		},
+		{
+			id: 'novita/glm-4.7-flash',
+			name: 'glm-4.7-flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'novita/glm-4.7-n',
+			name: 'glm-4.7-n',
+			contextWindow: 205000,
+		},
+		{
+			id: 'novita/glm-5',
+			name: 'GLM-5',
+			contextWindow: 205000,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo',
+			name: 'GPT-3.5-Turbo',
+			contextWindow: 16384,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo-instruct',
+			name: 'GPT-3.5-Turbo-Instruct',
+			contextWindow: 3500,
+		},
+		{
+			id: 'openai/gpt-3.5-turbo-raw',
+			name: 'GPT-3.5-Turbo-Raw',
+			contextWindow: 4524,
+		},
+		{
+			id: 'openai/gpt-4-classic',
+			name: 'GPT-4-Classic',
+			contextWindow: 8192,
+		},
+		{
+			id: 'openai/gpt-4-classic-0314',
+			name: 'GPT-4-Classic-0314',
+			contextWindow: 8192,
+		},
+		{
+			id: 'openai/gpt-4-turbo',
+			name: 'GPT-4-Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1-mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1-nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-aug',
+			name: 'GPT-4o-Aug',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o-mini',
+			contextWindow: 124096,
+		},
+		{
+			id: 'openai/gpt-4o-mini-search',
+			name: 'GPT-4o-mini-Search',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-search',
+			name: 'GPT-4o-Search',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-chat',
+			name: 'GPT-5-Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5-mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5-nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-pro',
+			name: 'GPT-5-Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'GPT-5.1-Codex-Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'GPT-5.1-Codex-Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-instant',
+			name: 'GPT-5.1-Instant',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-instant',
+			name: 'GPT-5.2-Instant',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT-5.2-Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT-5.3-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex-spark',
+			name: 'GPT-5.3-Codex-Spark',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.3-instant',
+			name: 'GPT-5.3-Instant',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT-5.4-Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT-5.4-Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT-5.4-Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.5-pro',
+			name: 'GPT-5.5-Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-image-1',
+			name: 'GPT-Image-1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-image-1-mini',
+			name: 'GPT-Image-1-Mini',
+		},
+		{
+			id: 'cerebras/gpt-oss-120b-cs',
+			name: 'GPT-OSS-120B-CS',
+			contextWindow: 128000,
+		},
+		{
+			id: 'xai/grok-3',
+			name: 'Grok 3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'xai/grok-3-mini',
+			name: 'Grok 3 Mini',
+			contextWindow: 131072,
+		},
+		{
+			id: 'xai/grok-code-fast-1',
+			name: 'Grok Code Fast 1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'xai/grok-4',
+			name: 'Grok-4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'xai/grok-4-fast-non-reasoning',
+			name: 'Grok-4-Fast-Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4-fast-reasoning',
+			name: 'Grok-4-Fast-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.1-fast-non-reasoning',
+			name: 'Grok-4.1-Fast-Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.1-fast-reasoning',
+			name: 'Grok-4.1-Fast-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.20-multi-agent',
+			name: 'Grok-4.20-Multi-Agent',
+			contextWindow: 128000,
+		},
+		{
+			id: 'ideogramai/ideogram',
+			name: 'Ideogram',
+			contextWindow: 150,
+		},
+		{
+			id: 'ideogramai/ideogram-v2',
+			name: 'Ideogram-v2',
+			contextWindow: 150,
+		},
+		{
+			id: 'ideogramai/ideogram-v2a',
+			name: 'Ideogram-v2a',
+			contextWindow: 150,
+		},
+		{
+			id: 'ideogramai/ideogram-v2a-turbo',
+			name: 'Ideogram-v2a-Turbo',
+			contextWindow: 150,
+		},
+		{
+			id: 'google/imagen-3',
+			name: 'Imagen-3',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/imagen-3-fast',
+			name: 'Imagen-3-Fast',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/imagen-4',
+			name: 'Imagen-4',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/imagen-4-fast',
+			name: 'Imagen-4-Fast',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/imagen-4-ultra',
+			name: 'Imagen-4-Ultra',
+			contextWindow: 480,
+		},
+		{
+			id: 'novita/kimi-k2-thinking',
+			name: 'kimi-k2-thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'novita/kimi-k2.5',
+			name: 'Kimi-K2.5',
+			contextWindow: 128000,
+		},
+		{
+			id: 'fireworks-ai/kimi-k2.5-fw',
+			name: 'Kimi-K2.5-FW',
+			contextWindow: 262144,
+		},
+		{
+			id: 'novita/kimi-k2.6',
+			name: 'Kimi-K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'cerebras/llama-3.1-8b-cs',
+			name: 'Llama-3.1-8B-CS',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/lyria',
+			name: 'Lyria',
+		},
+		{
+			id: 'novita/minimax-m2.1',
+			name: 'minimax-m2.1',
+			contextWindow: 205000,
+		},
+		{
+			id: 'google/nano-banana',
+			name: 'Nano-Banana',
+			contextWindow: 65536,
+		},
+		{
+			id: 'google/nano-banana-pro',
+			name: 'Nano-Banana-Pro',
+			contextWindow: 65536,
+		},
+		{
+			id: 'openai/o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o1-pro',
+			name: 'o1-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-deep-research',
+			name: 'o3-deep-research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini-high',
+			name: 'o3-mini-high',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-pro',
+			name: 'o3-pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini-deep-research',
+			name: 'o4-mini-deep-research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'cerebras/qwen3-235b-2507-cs',
+			name: 'qwen3-235b-2507-cs',
+		},
+		{
+			id: 'cerebras/qwen3-32b-cs',
+			name: 'qwen3-32b-cs',
+		},
+		{
+			id: 'lumalabs/ray2',
+			name: 'Ray2',
+			contextWindow: 5000,
+		},
+		{
+			id: 'runwayml/runway',
+			name: 'Runway',
+			contextWindow: 256,
+		},
+		{
+			id: 'runwayml/runway-gen-4-turbo',
+			name: 'Runway-Gen-4-Turbo',
+			contextWindow: 256,
+		},
+		{
+			id: 'openai/sora-2',
+			name: 'Sora-2',
+		},
+		{
+			id: 'openai/sora-2-pro',
+			name: 'Sora-2-Pro',
+		},
+		{
+			id: 'stabilityai/stablediffusionxl',
+			name: 'StableDiffusionXL',
+			contextWindow: 200,
+		},
+		{
+			id: 'trytako/tako',
+			name: 'Tako',
+			contextWindow: 2048,
+		},
+		{
+			id: 'topazlabs-co/topazlabs',
+			name: 'TopazLabs',
+			contextWindow: 204,
+		},
+		{
+			id: 'google/veo-2',
+			name: 'Veo-2',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/veo-3',
+			name: 'Veo-3',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/veo-3-fast',
+			name: 'Veo-3-Fast',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/veo-3.1',
+			name: 'Veo-3.1',
+			contextWindow: 480,
+		},
+		{
+			id: 'google/veo-3.1-fast',
+			name: 'Veo-3.1-Fast',
+			contextWindow: 480,
+		},
+	],
+	poolside: [
+		{
+			id: 'poolside/laguna-m.1',
+			name: 'Laguna M.1',
+			contextWindow: 131040,
+		},
+		{
+			id: 'poolside/laguna-xs.2',
+			name: 'Laguna XS.2',
+			contextWindow: 131040,
+		},
+	],
+	'privatemode-ai': [
+		{
+			id: 'gemma-3-27b',
+			name: 'Gemma 3 27B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b',
+			name: 'Qwen3-Coder 30B-A3B',
+			contextWindow: 128000,
+		},
+	],
+	'qihang-ai': [
+		{
+			id: 'claude-haiku-4-5-20251001',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-5-20251101',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-5-20250929',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3-pro-preview',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5-Mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+	],
+	'qiniu-ai': [
+		{
+			id: 'claude-3.5-haiku',
+			name: 'Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3.5-sonnet',
+			name: 'Claude 3.5 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-3.7-sonnet',
+			name: 'Claude 3.7 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.0-opus',
+			name: 'Claude 4.0 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.0-sonnet',
+			name: 'Claude 4.0 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.1-opus',
+			name: 'Claude 4.1 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.5-haiku',
+			name: 'Claude 4.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.5-opus',
+			name: 'Claude 4.5 Opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-4.5-sonnet',
+			name: 'Claude 4.5 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'deepseek-r1',
+			name: 'DeepSeek-R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-r1-0528',
+			name: 'DeepSeek-R1-0528',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3-0324',
+			name: 'DeepSeek-V3-0324',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek-v3.1',
+			name: 'DeepSeek-V3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1-terminus',
+			name: 'DeepSeek/DeepSeek-V3.1-Terminus',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-251201',
+			name: 'Deepseek/DeepSeek-V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-exp',
+			name: 'DeepSeek/DeepSeek-V3.2-Exp',
+			contextWindow: 128000,
+		},
+		{
+			id: 'doubao-1.5-pro-32k',
+			name: 'Doubao 1.5 Pro 32k',
+			contextWindow: 128000,
+		},
+		{
+			id: 'doubao-1.5-thinking-pro',
+			name: 'Doubao 1.5 Thinking Pro',
+			contextWindow: 128000,
+		},
+		{
+			id: 'doubao-seed-2.0-code',
+			name: 'Doubao Seed 2.0 Code',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-2.0-lite',
+			name: 'Doubao Seed 2.0 Lite',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-2.0-mini',
+			name: 'Doubao Seed 2.0 Mini',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-2.0-pro',
+			name: 'Doubao Seed 2.0 Pro',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-1.6',
+			name: 'Doubao-Seed 1.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-1.6-flash',
+			name: 'Doubao-Seed 1.6 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'doubao-seed-1.6-thinking',
+			name: 'Doubao-Seed 1.6 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'gemini-2.0-flash',
+			name: 'Gemini 2.0 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.0-flash-lite',
+			name: 'Gemini 2.0 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.0-flash-preview',
+			name: 'Gemini 3.0 Flash Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-3.0-pro-preview',
+			name: 'Gemini 3.0 Pro Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'glm-4.5',
+			name: 'GLM 4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 131000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-oss-20b',
+			name: 'gpt-oss-20b',
+			contextWindow: 128000,
+		},
+		{
+			id: 'kimi-k2',
+			name: 'Kimi K2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'meituan/longcat-flash-lite',
+			name: 'Meituan/Longcat-Flash-Lite',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mimo-v2-flash',
+			name: 'Mimo-V2-Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'MiniMax-M1',
+			name: 'MiniMax M1',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'Minimax/Minimax-M2',
+			contextWindow: 200000,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'Minimax/Minimax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'Minimax/Minimax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5-highspeed',
+			name: 'Minimax/Minimax-M2.5 Highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Moonshotai/Kimi-K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'OpenAI/GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'OpenAI/GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'qwen2.5-vl-72b-instruct',
+			name: 'Qwen 2.5 VL 72B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen2.5-vl-7b-instruct',
+			name: 'Qwen 2.5 VL 7B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b',
+			name: 'Qwen 3 235B A22B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen-vl-max-2025-01-25',
+			name: 'Qwen VL-MAX-2025-01-25',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen-turbo',
+			name: 'Qwen-Turbo',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-max-2025-01-25',
+			name: 'Qwen2.5-Max-2025-01-25',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen3 235b A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen3 235B A22B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-30b-a3b',
+			name: 'Qwen3 30B A3B',
+			contextWindow: 40000,
+		},
+		{
+			id: 'qwen3-30b-a3b-instruct-2507',
+			name: 'Qwen3 30b A3b Instruct 2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-30b-a3b-thinking-2507',
+			name: 'Qwen3 30b A3b Thinking 2507',
+			contextWindow: 126000,
+		},
+		{
+			id: 'qwen3-32b',
+			name: 'Qwen3 32B',
+			contextWindow: 40000,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3-max-preview',
+			name: 'Qwen3 Max Preview',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3 Next 80B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3 Next 80B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'qwen3-vl-30b-a3b-thinking',
+			name: 'Qwen3-Vl 30b A3b Thinking',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B A17B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'stepfun-ai/gelab-zero-4b-preview',
+			name: 'Stepfun-Ai/Gelab Zero 4b Preview',
+			contextWindow: 8192,
+		},
+		{
+			id: 'x-ai/grok-4.1-fast-non-reasoning',
+			name: 'X-Ai/Grok 4.1 Fast Non Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.1-fast-reasoning',
+			name: 'X-Ai/Grok 4.1 Fast Reasoning',
+			contextWindow: 20000000,
+		},
+		{
+			id: 'x-ai/grok-4-fast',
+			name: 'x-AI/Grok-4-Fast',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4-fast-non-reasoning',
+			name: 'X-Ai/Grok-4-Fast-Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4-fast-reasoning',
+			name: 'X-Ai/Grok-4-Fast-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.1-fast',
+			name: 'x-AI/Grok-4.1-Fast',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-code-fast-1',
+			name: 'x-AI/Grok-Code-Fast 1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-flash',
+			name: 'Xiaomi/Mimo-V2-Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'z-ai/autoglm-phone-9b',
+			name: 'Z-Ai/Autoglm Phone 9b',
+			contextWindow: 12800,
+		},
+		{
+			id: 'z-ai/glm-4.6',
+			name: 'Z-AI/GLM 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.7',
+			name: 'Z-Ai/GLM 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-5',
+			name: 'Z-Ai/GLM 5',
+			contextWindow: 200000,
+		},
+	],
+	'regolo-ai': [
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT-OSS-120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gpt-oss-20b',
+			name: 'GPT-OSS-20B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.1-8b-instruct',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 120000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama 3.3 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax 2.5',
+			contextWindow: 190000,
+		},
+		{
+			id: 'mistral-small3.2',
+			name: 'Mistral Small 3.2',
+			contextWindow: 120000,
+		},
+		{
+			id: 'mistral-small-4-119b',
+			name: 'Mistral Small 4 119B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-coder-next',
+			name: 'Qwen3-Coder-Next',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-122b',
+			name: 'Qwen3.5-122B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'qwen3.5-9b',
+			name: 'Qwen3.5-9B',
+			contextWindow: 262144,
+		},
+	],
+	requesty: [
+		{
+			id: 'anthropic/claude-haiku-4-5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-3-7-sonnet',
+			name: 'Claude Sonnet 3.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-pro-preview',
+			name: 'Gemini 3 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 Mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o Mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'GPT-5 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-image',
+			name: 'GPT-5 Image',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 16000,
+		},
+		{
+			id: 'openai/gpt-5-pro',
+			name: 'GPT-5 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-chat',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'GPT-5.1-Codex-Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'GPT-5.1-Codex-Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-chat',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT-5.2 Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT-5.3-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'xai/grok-4',
+			name: 'Grok 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'xai/grok-4-fast',
+			name: 'Grok 4 Fast',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4 Mini',
+			contextWindow: 200000,
+		},
+	],
+	'routing-run': [
+		{
+			id: 'route/deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 163840,
+		},
+		{
+			id: 'route/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/deepseek-v4-flash-6bit',
+			name: 'DeepSeek V4 Flash 6bit',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/deepseek-v4-pro-6bit',
+			name: 'DeepSeek V4 Pro 6bit',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 131072,
+		},
+		{
+			id: 'route/glm-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'route/glm-5.1-6bit',
+			name: 'GLM 5.1 6bit',
+			contextWindow: 202752,
+		},
+		{
+			id: 'route/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'route/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'route/kimi-k2.6-6bit',
+			name: 'Kimi K2.6 6bit',
+			contextWindow: 262144,
+		},
+		{
+			id: 'route/mimo-v2.5',
+			name: 'MiMo V2.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/mimo-v2.5-pro',
+			name: 'MiMo V2.5 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/mimo-v2.5-pro-6bit',
+			name: 'MiMo V2.5 Pro 6bit',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'route/minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 100000,
+		},
+		{
+			id: 'route/minimax-m2.5-highspeed',
+			name: 'MiniMax M2.5 Highspeed',
+			contextWindow: 100000,
+		},
+		{
+			id: 'route/minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 100000,
+		},
+		{
+			id: 'route/minimax-m2.7-highspeed',
+			name: 'MiniMax M2.7 Highspeed',
+			contextWindow: 100000,
+		},
+		{
+			id: 'route/mistral-large-3',
+			name: 'Mistral Large 3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'route/mistral-medium-2505',
+			name: 'Mistral Medium 2505',
+			contextWindow: 128000,
+		},
+		{
+			id: 'route/mistral-small-2503',
+			name: 'Mistral Small 2503',
+			contextWindow: 128000,
+		},
+		{
+			id: 'route/qwen3.6-27b',
+			name: 'Qwen3.6 27B',
+			contextWindow: 202000,
+		},
+		{
+			id: 'route/qwen3.6-27b-202k',
+			name: 'Qwen3.6 27B 202K',
+			contextWindow: 202000,
+		},
+		{
+			id: 'route/step-3.5-flash',
+			name: 'Step 3.5 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'route/step-3.5-flash-2603',
+			name: 'Step 3.5 Flash 2603',
+			contextWindow: 262144,
+		},
+		{
+			id: 'route/stepfun-3.5-flash',
+			name: 'StepFun 3.5 Flash',
+			contextWindow: 262144,
+		},
+	],
+	'sap-ai-core': [
+		{
+			id: 'anthropic--claude-3-haiku',
+			name: 'anthropic--claude-3-haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-3-opus',
+			name: 'anthropic--claude-3-opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-3-sonnet',
+			name: 'anthropic--claude-3-sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-3.5-sonnet',
+			name: 'anthropic--claude-3.5-sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-3.7-sonnet',
+			name: 'anthropic--claude-3.7-sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-4-opus',
+			name: 'anthropic--claude-4-opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-4-sonnet',
+			name: 'anthropic--claude-4-sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-4.5-haiku',
+			name: 'anthropic--claude-4.5-haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-4.5-opus',
+			name: 'anthropic--claude-4.5-opus',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-4.5-sonnet',
+			name: 'anthropic--claude-4.5-sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic--claude-4.6-opus',
+			name: 'anthropic--claude-4.6-opus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic--claude-4.6-sonnet',
+			name: 'anthropic--claude-4.6-sonnet',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic--claude-4.7-opus',
+			name: 'anthropic--claude-4.7-opus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-2.5-flash',
+			name: 'gemini-2.5-flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-flash-lite',
+			name: 'gemini-2.5-flash-lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-2.5-pro',
+			name: 'gemini-2.5-pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gpt-4.1',
+			name: 'gpt-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-4.1-mini',
+			name: 'gpt-4.1-mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'gpt-5',
+			name: 'gpt-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'gpt-5-mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5-nano',
+			name: 'gpt-5-nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'gpt-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'gpt-5.5',
+			contextWindow: 1050000,
+		},
+	],
+	sarvam: [
+		{
+			id: 'sarvam-105b',
+			name: 'Sarvam-105B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'sarvam-30b',
+			name: 'Sarvam-30B',
+			contextWindow: 65536,
+		},
+	],
+	scaleway: [
+		{
+			id: 'devstral-2-123b-instruct-2512',
+			name: 'Devstral 2 123B Instruct (2512)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 256000,
+		},
+		{
+			id: 'gemma-3-27b-it',
+			name: 'Gemma-3-27B-IT',
+			contextWindow: 40000,
+		},
+		{
+			id: 'gpt-oss-120b',
+			name: 'GPT-OSS 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b-instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 100000,
+		},
+		{
+			id: 'mistral-medium-3.5-128b',
+			name: 'Mistral Medium 3.5 128B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral-small-3.2-24b-instruct-2506',
+			name: 'Mistral Small 3.2 24B Instruct (2506)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'pixtral-12b-2409',
+			name: 'Pixtral 12B 2409',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 260000,
+		},
+		{
+			id: 'qwen3-coder-30b-a3b-instruct',
+			name: 'Qwen3-Coder 30B-A3B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3.5-397b-a17b',
+			name: 'Qwen3.5 397B A17B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3.6-35b-a3b',
+			name: 'Qwen3.6 35B A3B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'voxtral-small-24b-2507',
+			name: 'Voxtral Small 24B 2507',
+			contextWindow: 32000,
+		},
+	],
+	siliconflow: [
+		{
+			id: 'baidu/ERNIE-4.5-300B-A47B',
+			name: 'baidu/ERNIE-4.5-300B-A47B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'ByteDance-Seed/Seed-OSS-36B-Instruct',
+			name: 'ByteDance-Seed/Seed-OSS-36B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'deepseek-ai/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-ai/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1',
+			name: 'deepseek-ai/DeepSeek-R1',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-14B',
+			name: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-14B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
+			name: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3',
+			name: 'deepseek-ai/DeepSeek-V3',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1',
+			name: 'deepseek-ai/DeepSeek-V3.1',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1-Terminus',
+			name: 'deepseek-ai/DeepSeek-V3.1-Terminus',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'deepseek-ai/DeepSeek-V3.2',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2-Exp',
+			name: 'deepseek-ai/DeepSeek-V3.2-Exp',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/deepseek-vl2',
+			name: 'deepseek-ai/deepseek-vl2',
+			contextWindow: 4000,
+		},
+		{
+			id: 'inclusionAI/Ling-flash-2.0',
+			name: 'inclusionAI/Ling-flash-2.0',
+			contextWindow: 131000,
+		},
+		{
+			id: 'inclusionAI/Ling-mini-2.0',
+			name: 'inclusionAI/Ling-mini-2.0',
+			contextWindow: 131000,
+		},
+		{
+			id: 'inclusionAI/Ring-flash-2.0',
+			name: 'inclusionAI/Ring-flash-2.0',
+			contextWindow: 131000,
+		},
+		{
+			id: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+			name: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.1',
+			name: 'MiniMaxAI/MiniMax-M2.1',
+			contextWindow: 197000,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMaxAI/MiniMax-M2.5',
+			contextWindow: 197000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct',
+			name: 'moonshotai/Kimi-K2-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct-0905',
+			name: 'moonshotai/Kimi-K2-Instruct-0905',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Thinking',
+			name: 'moonshotai/Kimi-K2-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'moonshotai/Kimi-K2.5',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'moonshotai/Kimi-K2.6',
+			contextWindow: 262000,
+		},
+		{
+			id: 'nex-agi/DeepSeek-V3.1-Nex-N1',
+			name: 'nex-agi/DeepSeek-V3.1-Nex-N1',
+			contextWindow: 131000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'openai/gpt-oss-120b',
+			contextWindow: 131000,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'openai/gpt-oss-20b',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-14B-Instruct',
+			name: 'Qwen/Qwen2.5-14B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-32B-Instruct',
+			name: 'Qwen/Qwen2.5-32B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-72B-Instruct',
+			name: 'Qwen/Qwen2.5-72B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-72B-Instruct-128K',
+			name: 'Qwen/Qwen2.5-72B-Instruct-128K',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-7B-Instruct',
+			name: 'Qwen/Qwen2.5-7B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-Coder-32B-Instruct',
+			name: 'Qwen/Qwen2.5-Coder-32B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-32B-Instruct',
+			name: 'Qwen/Qwen2.5-VL-32B-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-72B-Instruct',
+			name: 'Qwen/Qwen2.5-VL-72B-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-7B-Instruct',
+			name: 'Qwen/Qwen2.5-VL-7B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen3-14B',
+			name: 'Qwen/Qwen3-14B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B',
+			name: 'Qwen/Qwen3-235B-A22B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Thinking-2507',
+			name: 'Qwen/Qwen3-30B-A3B-Thinking-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-32B',
+			name: 'Qwen/Qwen3-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-8B',
+			name: 'Qwen/Qwen3-8B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-30B-A3B-Instruct',
+			name: 'Qwen/Qwen3-Coder-30B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			name: 'Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			name: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Thinking',
+			name: 'Qwen/Qwen3-Next-80B-A3B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Omni-30B-A3B-Captioner',
+			name: 'Qwen/Qwen3-Omni-30B-A3B-Captioner',
+			contextWindow: 66000,
+		},
+		{
+			id: 'Qwen/Qwen3-Omni-30B-A3B-Instruct',
+			name: 'Qwen/Qwen3-Omni-30B-A3B-Instruct',
+			contextWindow: 66000,
+		},
+		{
+			id: 'Qwen/Qwen3-Omni-30B-A3B-Thinking',
+			name: 'Qwen/Qwen3-Omni-30B-A3B-Thinking',
+			contextWindow: 66000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-235B-A22B-Instruct',
+			name: 'Qwen/Qwen3-VL-235B-A22B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-235B-A22B-Thinking',
+			name: 'Qwen/Qwen3-VL-235B-A22B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+			name: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-30B-A3B-Thinking',
+			name: 'Qwen/Qwen3-VL-30B-A3B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-32B-Instruct',
+			name: 'Qwen/Qwen3-VL-32B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-32B-Thinking',
+			name: 'Qwen/Qwen3-VL-32B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-8B-Instruct',
+			name: 'Qwen/Qwen3-VL-8B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-8B-Thinking',
+			name: 'Qwen/Qwen3-VL-8B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/QwQ-32B',
+			name: 'Qwen/QwQ-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'stepfun-ai/Step-3.5-Flash',
+			name: 'stepfun-ai/Step-3.5-Flash',
+			contextWindow: 262000,
+		},
+		{
+			id: 'tencent/Hunyuan-A13B-Instruct',
+			name: 'tencent/Hunyuan-A13B-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'tencent/Hunyuan-MT-7B',
+			name: 'tencent/Hunyuan-MT-7B',
+			contextWindow: 33000,
+		},
+		{
+			id: 'THUDM/GLM-4-32B-0414',
+			name: 'THUDM/GLM-4-32B-0414',
+			contextWindow: 33000,
+		},
+		{
+			id: 'THUDM/GLM-4-9B-0414',
+			name: 'THUDM/GLM-4-9B-0414',
+			contextWindow: 33000,
+		},
+		{
+			id: 'THUDM/GLM-Z1-32B-0414',
+			name: 'THUDM/GLM-Z1-32B-0414',
+			contextWindow: 131000,
+		},
+		{
+			id: 'THUDM/GLM-Z1-9B-0414',
+			name: 'THUDM/GLM-Z1-9B-0414',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.5',
+			name: 'zai-org/GLM-4.5',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.5-Air',
+			name: 'zai-org/GLM-4.5-Air',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.5V',
+			name: 'zai-org/GLM-4.5V',
+			contextWindow: 66000,
+		},
+		{
+			id: 'zai-org/GLM-4.6',
+			name: 'zai-org/GLM-4.6',
+			contextWindow: 205000,
+		},
+		{
+			id: 'zai-org/GLM-4.6V',
+			name: 'zai-org/GLM-4.6V',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.7',
+			name: 'zai-org/GLM-4.7',
+			contextWindow: 205000,
+		},
+		{
+			id: 'zai-org/GLM-5',
+			name: 'zai-org/GLM-5',
+			contextWindow: 205000,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'zai-org/GLM-5.1',
+			contextWindow: 205000,
+		},
+		{
+			id: 'zai-org/GLM-5V-Turbo',
+			name: 'zai-org/GLM-5V-Turbo',
+			contextWindow: 200000,
+		},
+	],
+	'siliconflow-cn': [
+		{
+			id: 'baidu/ERNIE-4.5-300B-A47B',
+			name: 'baidu/ERNIE-4.5-300B-A47B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'ByteDance-Seed/Seed-OSS-36B-Instruct',
+			name: 'ByteDance-Seed/Seed-OSS-36B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1',
+			name: 'deepseek-ai/DeepSeek-R1',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-14B',
+			name: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-14B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
+			name: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3',
+			name: 'deepseek-ai/DeepSeek-V3',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1-Terminus',
+			name: 'deepseek-ai/DeepSeek-V3.1-Terminus',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.2',
+			name: 'deepseek-ai/DeepSeek-V3.2',
+			contextWindow: 164000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'deepseek-ai/DeepSeek-V4-Pro',
+			contextWindow: 1049000,
+		},
+		{
+			id: 'deepseek-ai/deepseek-vl2',
+			name: 'deepseek-ai/deepseek-vl2',
+			contextWindow: 4000,
+		},
+		{
+			id: 'inclusionAI/Ling-flash-2.0',
+			name: 'inclusionAI/Ling-flash-2.0',
+			contextWindow: 131000,
+		},
+		{
+			id: 'inclusionAI/Ling-mini-2.0',
+			name: 'inclusionAI/Ling-mini-2.0',
+			contextWindow: 131000,
+		},
+		{
+			id: 'inclusionAI/Ring-flash-2.0',
+			name: 'inclusionAI/Ring-flash-2.0',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Kwaipilot/KAT-Dev',
+			name: 'Kwaipilot/KAT-Dev',
+			contextWindow: 128000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Instruct-0905',
+			name: 'moonshotai/Kimi-K2-Instruct-0905',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2-Thinking',
+			name: 'moonshotai/Kimi-K2-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Pro/deepseek-ai/DeepSeek-R1',
+			name: 'Pro/deepseek-ai/DeepSeek-R1',
+			contextWindow: 164000,
+		},
+		{
+			id: 'Pro/deepseek-ai/DeepSeek-V3',
+			name: 'Pro/deepseek-ai/DeepSeek-V3',
+			contextWindow: 164000,
+		},
+		{
+			id: 'Pro/deepseek-ai/DeepSeek-V3.1-Terminus',
+			name: 'Pro/deepseek-ai/DeepSeek-V3.1-Terminus',
+			contextWindow: 164000,
+		},
+		{
+			id: 'Pro/deepseek-ai/DeepSeek-V3.2',
+			name: 'Pro/deepseek-ai/DeepSeek-V3.2',
+			contextWindow: 164000,
+		},
+		{
+			id: 'Pro/MiniMaxAI/MiniMax-M2.1',
+			name: 'Pro/MiniMaxAI/MiniMax-M2.1',
+			contextWindow: 197000,
+		},
+		{
+			id: 'Pro/MiniMaxAI/MiniMax-M2.5',
+			name: 'Pro/MiniMaxAI/MiniMax-M2.5',
+			contextWindow: 192000,
+		},
+		{
+			id: 'Pro/moonshotai/Kimi-K2-Instruct-0905',
+			name: 'Pro/moonshotai/Kimi-K2-Instruct-0905',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Pro/moonshotai/Kimi-K2-Thinking',
+			name: 'Pro/moonshotai/Kimi-K2-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Pro/moonshotai/Kimi-K2.5',
+			name: 'Pro/moonshotai/Kimi-K2.5',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Pro/moonshotai/Kimi-K2.6',
+			name: 'Pro/moonshotai/Kimi-K2.6',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Pro/zai-org/GLM-4.7',
+			name: 'Pro/zai-org/GLM-4.7',
+			contextWindow: 205000,
+		},
+		{
+			id: 'Pro/zai-org/GLM-5',
+			name: 'Pro/zai-org/GLM-5',
+			contextWindow: 205000,
+		},
+		{
+			id: 'Pro/zai-org/GLM-5.1',
+			name: 'Pro/zai-org/GLM-5.1',
+			contextWindow: 205000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-14B-Instruct',
+			name: 'Qwen/Qwen2.5-14B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-32B-Instruct',
+			name: 'Qwen/Qwen2.5-32B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-72B-Instruct',
+			name: 'Qwen/Qwen2.5-72B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-72B-Instruct-128K',
+			name: 'Qwen/Qwen2.5-72B-Instruct-128K',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-7B-Instruct',
+			name: 'Qwen/Qwen2.5-7B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-Coder-32B-Instruct',
+			name: 'Qwen/Qwen2.5-Coder-32B-Instruct',
+			contextWindow: 33000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-32B-Instruct',
+			name: 'Qwen/Qwen2.5-VL-32B-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen2.5-VL-72B-Instruct',
+			name: 'Qwen/Qwen2.5-VL-72B-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-14B',
+			name: 'Qwen/Qwen3-14B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Thinking-2507',
+			name: 'Qwen/Qwen3-30B-A3B-Thinking-2507',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-32B',
+			name: 'Qwen/Qwen3-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-8B',
+			name: 'Qwen/Qwen3-8B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-30B-A3B-Instruct',
+			name: 'Qwen/Qwen3-Coder-30B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			name: 'Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			name: 'Qwen/Qwen3-Next-80B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Next-80B-A3B-Thinking',
+			name: 'Qwen/Qwen3-Next-80B-A3B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-Omni-30B-A3B-Captioner',
+			name: 'Qwen/Qwen3-Omni-30B-A3B-Captioner',
+			contextWindow: 66000,
+		},
+		{
+			id: 'Qwen/Qwen3-Omni-30B-A3B-Instruct',
+			name: 'Qwen/Qwen3-Omni-30B-A3B-Instruct',
+			contextWindow: 66000,
+		},
+		{
+			id: 'Qwen/Qwen3-Omni-30B-A3B-Thinking',
+			name: 'Qwen/Qwen3-Omni-30B-A3B-Thinking',
+			contextWindow: 66000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-235B-A22B-Instruct',
+			name: 'Qwen/Qwen3-VL-235B-A22B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-235B-A22B-Thinking',
+			name: 'Qwen/Qwen3-VL-235B-A22B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+			name: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-30B-A3B-Thinking',
+			name: 'Qwen/Qwen3-VL-30B-A3B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-32B-Instruct',
+			name: 'Qwen/Qwen3-VL-32B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-32B-Thinking',
+			name: 'Qwen/Qwen3-VL-32B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-8B-Instruct',
+			name: 'Qwen/Qwen3-VL-8B-Instruct',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-8B-Thinking',
+			name: 'Qwen/Qwen3-VL-8B-Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'Qwen/Qwen3.5-122B-A10B',
+			name: 'Qwen/Qwen3.5-122B-A10B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-27B',
+			name: 'Qwen/Qwen3.5-27B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-35B-A3B',
+			name: 'Qwen/Qwen3.5-35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B',
+			name: 'Qwen/Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-4B',
+			name: 'Qwen/Qwen3.5-4B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-9B',
+			name: 'Qwen/Qwen3.5-9B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.6-35B-A3B',
+			name: 'Qwen/Qwen3.6-35B-A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/QwQ-32B',
+			name: 'Qwen/QwQ-32B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'stepfun-ai/Step-3.5-Flash',
+			name: 'stepfun-ai/Step-3.5-Flash',
+			contextWindow: 262000,
+		},
+		{
+			id: 'tencent/Hunyuan-A13B-Instruct',
+			name: 'tencent/Hunyuan-A13B-Instruct',
+			contextWindow: 131000,
+		},
+		{
+			id: 'tencent/Hunyuan-MT-7B',
+			name: 'tencent/Hunyuan-MT-7B',
+			contextWindow: 33000,
+		},
+		{
+			id: 'THUDM/GLM-4-32B-0414',
+			name: 'THUDM/GLM-4-32B-0414',
+			contextWindow: 33000,
+		},
+		{
+			id: 'THUDM/GLM-4-9B-0414',
+			name: 'THUDM/GLM-4-9B-0414',
+			contextWindow: 33000,
+		},
+		{
+			id: 'THUDM/GLM-Z1-32B-0414',
+			name: 'THUDM/GLM-Z1-32B-0414',
+			contextWindow: 131000,
+		},
+		{
+			id: 'THUDM/GLM-Z1-9B-0414',
+			name: 'THUDM/GLM-Z1-9B-0414',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.5-Air',
+			name: 'zai-org/GLM-4.5-Air',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai-org/GLM-4.5V',
+			name: 'zai-org/GLM-4.5V',
+			contextWindow: 66000,
+		},
+		{
+			id: 'zai-org/GLM-4.6',
+			name: 'zai-org/GLM-4.6',
+			contextWindow: 205000,
+		},
+		{
+			id: 'zai-org/GLM-4.6V',
+			name: 'zai-org/GLM-4.6V',
+			contextWindow: 131000,
+		},
+	],
+	'snowflake-cortex': [
+		{
+			id: 'claude-haiku-4-5',
+			name: 'Claude Haiku 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5 (latest)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai-gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai-gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 272000,
+		},
+		{
+			id: 'openai-gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+	],
+	stackit: [
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT-OSS 120B',
+			contextWindow: 131000,
+		},
+		{
+			id: 'neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8',
+			name: 'Llama 3.1 8B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'cortecs/Llama-3.3-70B-Instruct-FP8-Dynamic',
+			name: 'Llama 3.3 70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'neuralmagic/Mistral-Nemo-Instruct-2407-FP8',
+			name: 'Mistral Nemo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-VL-235B-A22B-Instruct-FP8',
+			name: 'Qwen3-VL 235B',
+			contextWindow: 218000,
+		},
+	],
+	stepfun: [
+		{
+			id: 'step-1-32k',
+			name: 'Step 1 (32K)',
+			contextWindow: 32768,
+		},
+		{
+			id: 'step-2-16k',
+			name: 'Step 2 (16K)',
+			contextWindow: 16384,
+		},
+		{
+			id: 'step-3.5-flash',
+			name: 'Step 3.5 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'step-3.5-flash-2603',
+			name: 'Step 3.5 Flash 2603',
+			contextWindow: 256000,
+		},
+	],
+	'stepfun-ai': [
+		{
+			id: 'step-3.5-flash',
+			name: 'Step 3.5 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'step-3.5-flash-2603',
+			name: 'Step 3.5 Flash 2603',
+			contextWindow: 256000,
+		},
+	],
+	submodel: [
+		{
+			id: 'deepseek-ai/DeepSeek-R1-0528',
+			name: 'DeepSeek R1 0528',
+			contextWindow: 75000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3-0324',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 75000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 75000,
+		},
+		{
+			id: 'zai-org/GLM-4.5-Air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/GLM-4.5-FP8',
+			name: 'GLM 4.5 FP8',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen3 235B A22B Thinking 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+	],
+	synthetic: [
+		{
+			id: 'hf:deepseek-ai/DeepSeek-R1',
+			name: 'DeepSeek R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:deepseek-ai/DeepSeek-R1-0528',
+			name: 'DeepSeek R1 (0528)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:deepseek-ai/DeepSeek-V3',
+			name: 'DeepSeek V3',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:deepseek-ai/DeepSeek-V3-0324',
+			name: 'DeepSeek V3 (0324)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:deepseek-ai/DeepSeek-V3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:deepseek-ai/DeepSeek-V3.1-Terminus',
+			name: 'DeepSeek V3.1 Terminus',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:deepseek-ai/DeepSeek-V3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 162816,
+		},
+		{
+			id: 'hf:zai-org/GLM-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'hf:zai-org/GLM-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'hf:zai-org/GLM-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 196608,
+		},
+		{
+			id: 'hf:zai-org/GLM-4.7-Flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 196608,
+		},
+		{
+			id: 'hf:zai-org/GLM-5',
+			name: 'GLM-5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'hf:openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:moonshotai/Kimi-K2-Instruct-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 262144,
+		},
+		{
+			id: 'hf:moonshotai/Kimi-K2-Thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262144,
+		},
+		{
+			id: 'hf:moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'hf:nvidia/Kimi-K2.5-NVFP4',
+			name: 'Kimi K2.5 (NVFP4)',
+			contextWindow: 262144,
+		},
+		{
+			id: 'hf:moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'hf:meta-llama/Llama-3.1-405B-Instruct',
+			name: 'Llama-3.1-405B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:meta-llama/Llama-3.1-70B-Instruct',
+			name: 'Llama-3.1-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:meta-llama/Llama-3.1-8B-Instruct',
+			name: 'Llama-3.1-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
+			name: 'Llama-4-Maverick-17B-128E-Instruct-FP8',
+			contextWindow: 524000,
+		},
+		{
+			id: 'hf:meta-llama/Llama-4-Scout-17B-16E-Instruct',
+			name: 'Llama-4-Scout-17B-16E-Instruct',
+			contextWindow: 328000,
+		},
+		{
+			id: 'hf:MiniMaxAI/MiniMax-M2',
+			name: 'MiniMax-M2',
+			contextWindow: 196608,
+		},
+		{
+			id: 'hf:MiniMaxAI/MiniMax-M2.1',
+			name: 'MiniMax-M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'hf:MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 191488,
+		},
+		{
+			id: 'hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4',
+			name: 'Nemotron 3 Super 120B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'hf:Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen 3 235B Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'hf:Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			name: 'Qwen 3 Coder 480B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'hf:Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen3 235B A22B Thinking 2507',
+			contextWindow: 256000,
+		},
+		{
+			id: 'hf:Qwen/Qwen3.5-397B-A17B',
+			name: 'Qwen3.5-97B-A17B',
+			contextWindow: 262144,
+		},
+	],
+	'tencent-coding-plan': [
+		{
+			id: 'tc-code-latest',
+			name: 'Auto',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 202752,
+		},
+		{
+			id: 'hunyuan-t1',
+			name: 'Hunyuan-T1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'hunyuan-turbos',
+			name: 'Hunyuan-TurboS',
+			contextWindow: 131072,
+		},
+		{
+			id: 'kimi-k2.5',
+			name: 'Kimi-K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'minimax-m2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'hunyuan-2.0-instruct',
+			name: 'Tencent HY 2.0 Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'hunyuan-2.0-thinking',
+			name: 'Tencent HY 2.0 Think',
+			contextWindow: 131072,
+		},
+	],
+	'tencent-tokenhub': [
+		{
+			id: 'hy3-preview',
+			name: 'Hy3 preview',
+			contextWindow: 256000,
+		},
+	],
+	'the-grid-ai': [
+		{
+			id: 'agent-max',
+			name: 'Agent Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'agent-prime',
+			name: 'Agent Prime',
+			contextWindow: 128000,
+		},
+		{
+			id: 'agent-standard',
+			name: 'Agent Standard',
+			contextWindow: 128000,
+		},
+		{
+			id: 'code-max',
+			name: 'Code Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'code-prime',
+			name: 'Code Prime',
+			contextWindow: 128000,
+		},
+		{
+			id: 'code-standard',
+			name: 'Code Standard',
+			contextWindow: 128000,
+		},
+		{
+			id: 'text-max',
+			name: 'Text Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'text-prime',
+			name: 'Text Prime',
+			contextWindow: 128000,
+		},
+		{
+			id: 'text-standard',
+			name: 'Text Standard',
+			contextWindow: 128000,
+		},
+	],
+	togetherai: [
+		{
+			id: 'deepseek-ai/DeepSeek-V3-1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V4-Pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 512000,
+		},
+		{
+			id: 'deepseek-ai/DeepSeek-V3',
+			name: 'DeepSeek-V3',
+			contextWindow: 131072,
+		},
+		{
+			id: 'google/gemma-4-31B-it',
+			name: 'Gemma 4 31B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+			name: 'Llama 3.3 70B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax-M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 202752,
+		},
+		{
+			id: 'nvidia/nemotron-3-ultra-550b-a55b',
+			name: 'Nemotron 3 Ultra 550B A55B',
+			contextWindow: 512300,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507-tput',
+			name: 'Qwen3 235B A22B Instruct 2507 FP8',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-Next-FP8',
+			name: 'Qwen3 Coder Next FP8',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.5-397B-A17B',
+			name: 'Qwen3.5 397B A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3.6-Plus',
+			name: 'Qwen3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'Qwen/Qwen3.7-Max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'essentialai/Rnj-1-Instruct',
+			name: 'Rnj-1 Instruct',
+			contextWindow: 32768,
+		},
+	],
+	'umans-ai-coding-plan': [
+		{
+			id: 'umans-glm-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'umans-kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'umans-qwen3.6-35b-a3b',
+			name: 'Qwen3.6 35B A3B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'umans-coder',
+			name: 'Umans Coder',
+			contextWindow: 262144,
+		},
+		{
+			id: 'umans-flash',
+			name: 'Umans Flash',
+			contextWindow: 262144,
+		},
+	],
+	upstage: [
+		{
+			id: 'solar-mini',
+			name: 'solar-mini',
+			contextWindow: 32768,
+		},
+		{
+			id: 'solar-pro2',
+			name: 'solar-pro2',
+			contextWindow: 65536,
+		},
+		{
+			id: 'solar-pro3',
+			name: 'solar-pro3',
+			contextWindow: 131072,
+		},
+	],
+	v0: [
+		{
+			id: 'v0-1.0-md',
+			name: 'v0-1.0-md',
+			contextWindow: 128000,
+		},
+		{
+			id: 'v0-1.5-lg',
+			name: 'v0-1.5-lg',
+			contextWindow: 512000,
+		},
+		{
+			id: 'v0-1.5-md',
+			name: 'v0-1.5-md',
+			contextWindow: 128000,
+		},
+	],
+	venice: [
+		{
+			id: 'claude-opus-4-5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 198000,
+		},
+		{
+			id: 'claude-opus-4-6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-6-fast',
+			name: 'Claude Opus 4.6 Fast',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-7-fast',
+			name: 'Claude Opus 4.7 Fast',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-opus-4-8-fast',
+			name: 'Claude Opus 4.8 Fast',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'claude-sonnet-4-5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 198000,
+		},
+		{
+			id: 'claude-sonnet-4-6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 160000,
+		},
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 256000,
+		},
+		{
+			id: 'gemini-3-1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemini-3-5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'gemma-4-uncensored',
+			name: 'Gemma 4 Uncensored',
+			contextWindow: 256000,
+		},
+		{
+			id: 'zai-org-glm-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 198000,
+		},
+		{
+			id: 'zai-org-glm-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 198000,
+		},
+		{
+			id: 'zai-org-glm-4.7-flash',
+			name: 'GLM 4.7 Flash',
+			contextWindow: 128000,
+		},
+		{
+			id: 'olafangensan-glm-4.7-flash-heretic',
+			name: 'GLM 4.7 Flash Heretic',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org-glm-5',
+			name: 'GLM 5',
+			contextWindow: 198000,
+		},
+		{
+			id: 'z-ai-glm-5-turbo',
+			name: 'GLM 5 Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org-glm-5-1',
+			name: 'GLM 5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai-glm-5v-turbo',
+			name: 'GLM 5V Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'google-gemma-3-27b-it',
+			name: 'Google Gemma 3 27B Instruct',
+			contextWindow: 198000,
+		},
+		{
+			id: 'google-gemma-4-26b-a4b-it',
+			name: 'Google Gemma 4 26B A4B Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'google-gemma-4-31b-it',
+			name: 'Google Gemma 4 31B Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai-gpt-4o-2024-11-20',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai-gpt-4o-mini-2024-07-18',
+			name: 'GPT-4o Mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai-gpt-52',
+			name: 'GPT-5.2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai-gpt-52-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai-gpt-53-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-54',
+			name: 'GPT-5.4',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai-gpt-54-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai-gpt-54-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai-gpt-55',
+			name: 'GPT-5.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai-gpt-55-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4-20',
+			name: 'Grok 4.20',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'grok-4-3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-build-0-1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2-5',
+			name: 'Kimi K2.5',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kimi-k2-6',
+			name: 'Kimi K2.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'llama-3.2-3b',
+			name: 'Llama 3.2 3B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'llama-3.3-70b',
+			name: 'Llama 3.3 70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mercury-2',
+			name: 'Mercury 2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'minimax-m25',
+			name: 'MiniMax M2.5',
+			contextWindow: 198000,
+		},
+		{
+			id: 'minimax-m27',
+			name: 'MiniMax M2.7',
+			contextWindow: 198000,
+		},
+		{
+			id: 'minimax-m3',
+			name: 'MiniMax M3',
+			contextWindow: 500000,
+		},
+		{
+			id: 'mistral-small-3-2-24b-instruct',
+			name: 'Mistral Small 3.2 24B Instruct',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral-small-2603',
+			name: 'Mistral Small 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia-nemotron-cascade-2-30b-a3b',
+			name: 'Nemotron Cascade 2 30B A3B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia-nemotron-3-nano-30b-a3b',
+			name: 'NVIDIA Nemotron 3 Nano 30B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'nvidia-nemotron-3-ultra-550b-a55b',
+			name: 'NVIDIA Nemotron 3 Ultra',
+			contextWindow: 256000,
+		},
+		{
+			id: 'openai-gpt-oss-120b',
+			name: 'OpenAI GPT OSS 120B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b-instruct-2507',
+			name: 'Qwen 3 235B A22B Instruct 2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-235b-a22b-thinking-2507',
+			name: 'Qwen 3 235B A22B Thinking 2507',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-coder-480b-a35b-instruct-turbo',
+			name: 'Qwen 3 Coder 480B Turbo',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-next-80b',
+			name: 'Qwen 3 Next 80b',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-5-35b-a3b',
+			name: 'Qwen 3.5 35B A3B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-5-397b-a17b',
+			name: 'Qwen 3.5 397B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'qwen3-5-9b',
+			name: 'Qwen 3.5 9B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3-6-27b',
+			name: 'Qwen 3.6 27B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen-3-6-plus',
+			name: 'Qwen 3.6 Plus Uncensored',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-3-7-max',
+			name: 'Qwen 3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen-3-7-plus',
+			name: 'Qwen 3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen3-vl-235b-a22b',
+			name: 'Qwen3 VL 235B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'arcee-trinity-large-thinking',
+			name: 'Trinity Large Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'venice-uncensored-role-play',
+			name: 'Venice Role Play Uncensored',
+			contextWindow: 128000,
+		},
+		{
+			id: 'venice-uncensored-1-2',
+			name: 'Venice Uncensored 1.2',
+			contextWindow: 128000,
+		},
+	],
+	vercel: [
+		{
+			id: 'anthropic/claude-fable-5',
+			name: 'Claude Fable 5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-3-haiku',
+			name: 'Claude Haiku 3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3.5-haiku',
+			name: 'Claude Haiku 3.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-haiku-4.5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistral/codestral',
+			name: 'Codestral (latest)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'cohere/command-a',
+			name: 'Command A',
+			contextWindow: 256000,
+		},
+		{
+			id: 'deepseek/deepseek-v3',
+			name: 'DeepSeek V3 0324',
+			contextWindow: 163840,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1-terminus',
+			name: 'DeepSeek V3.1 Terminus',
+			contextWindow: 131072,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-thinking',
+			name: 'DeepSeek V3.2 Thinking',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-r1',
+			name: 'DeepSeek-R1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.1',
+			name: 'DeepSeek-V3.1',
+			contextWindow: 163840,
+		},
+		{
+			id: 'mistral/devstral-2',
+			name: 'Devstral 2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral/devstral-small',
+			name: 'Devstral Small 1.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/devstral-small-2',
+			name: 'Devstral Small 2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3-flash',
+			name: 'Gemini 3 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-3-pro-preview',
+			name: 'Gemini 3 Pro Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'google/gemma-4-26b-a4b-it',
+			name: 'Gemma 4 26B A4B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'google/gemma-4-31b-it',
+			name: 'Gemma 4 31B IT',
+			contextWindow: 262144,
+		},
+		{
+			id: 'zai/glm-4.5',
+			name: 'GLM 4.5',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai/glm-4.5-air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai/glm-4.5v',
+			name: 'GLM 4.5V',
+			contextWindow: 66000,
+		},
+		{
+			id: 'zai/glm-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai/glm-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 131000,
+		},
+		{
+			id: 'zai/glm-4.7-flash',
+			name: 'GLM 4.7 Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai/glm-4.7-flashx',
+			name: 'GLM 4.7 FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai/glm-5-turbo',
+			name: 'GLM 5 Turbo',
+			contextWindow: 202800,
+		},
+		{
+			id: 'zai/glm-5.1',
+			name: 'GLM 5.1',
+			contextWindow: 202800,
+		},
+		{
+			id: 'zai/glm-5v-turbo',
+			name: 'GLM 5V Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai/glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai/glm-4.6v-flash',
+			name: 'GLM-4.6V-Flash',
+			contextWindow: 128000,
+		},
+		{
+			id: 'zai/glm-5',
+			name: 'GLM-5',
+			contextWindow: 202800,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-max',
+			name: 'GPT 5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-thinking',
+			name: 'GPT 5.1 Thinking',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT 5.2 ',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT 5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT 5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT 5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT 5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT 5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT 5.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai/gpt-5.5-pro',
+			name: 'GPT 5.5 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'GPT OSS 120B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'GPT OSS 20B',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-4-turbo',
+			name: 'GPT-4 Turbo',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4.1',
+			name: 'GPT-4.1',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-mini',
+			name: 'GPT-4.1 mini',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4.1-nano',
+			name: 'GPT-4.1 nano',
+			contextWindow: 1047576,
+		},
+		{
+			id: 'openai/gpt-4o',
+			name: 'GPT-4o',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-4o-mini',
+			name: 'GPT-4o mini',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-chat',
+			name: 'GPT-5 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-nano',
+			name: 'GPT-5 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-pro',
+			name: 'GPT-5 pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'GPT-5-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'GPT-5.1 Codex mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-instant',
+			name: 'GPT-5.1 Instant',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-chat',
+			name: 'GPT-5.2 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-chat',
+			name: 'GPT-5.3 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-oss-safeguard-20b',
+			name: 'gpt-oss-safeguard-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'xai/grok-4.1-fast-non-reasoning',
+			name: 'Grok 4.1 Fast Non-Reasoning',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xai/grok-4.1-fast-reasoning',
+			name: 'Grok 4.1 Fast Reasoning',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xai/grok-4.20-non-reasoning-beta',
+			name: 'Grok 4.20 Beta Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.20-reasoning-beta',
+			name: 'Grok 4.20 Beta Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.20-multi-agent-beta',
+			name: 'Grok 4.20 Multi Agent Beta',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.20-multi-agent',
+			name: 'Grok 4.20 Multi-Agent',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.20-non-reasoning',
+			name: 'Grok 4.20 Non-Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.20-reasoning',
+			name: 'Grok 4.20 Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'xai/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xai/grok-build-0.1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'kwaipilot/kat-coder-pro-v2',
+			name: 'Kat Coder Pro V2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262114,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking-turbo',
+			name: 'Kimi K2 Thinking Turbo',
+			contextWindow: 262114,
+		},
+		{
+			id: 'moonshotai/kimi-k2-turbo',
+			name: 'Kimi K2 Turbo',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262114,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262000,
+		},
+		{
+			id: 'meta/llama-3.1-70b',
+			name: 'Llama 3.1 70B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.1-8b',
+			name: 'Llama 3.1 8B Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.2-11b',
+			name: 'Llama 3.2 11B Vision Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.2-90b',
+			name: 'Llama 3.2 90B Vision Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-3.3-70b',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-4-maverick',
+			name: 'Llama-4-Maverick-17B-128E-Instruct-FP8',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta/llama-4-scout',
+			name: 'Llama-4-Scout-17B-16E-Instruct-FP8',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meituan/longcat-flash-chat',
+			name: 'LongCat Flash Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/magistral-medium',
+			name: 'Magistral Medium (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/magistral-small',
+			name: 'Magistral Small',
+			contextWindow: 128000,
+		},
+		{
+			id: 'inception/mercury-2',
+			name: 'Mercury 2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'inception/mercury-coder-small',
+			name: 'Mercury Coder Small Beta',
+			contextWindow: 32000,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5',
+			name: 'MiMo M2.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-flash',
+			name: 'MiMo V2 Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomi/mimo-v2-pro',
+			name: 'MiMo V2 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5-pro',
+			name: 'MiMo V2.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'MiniMax M2',
+			contextWindow: 205000,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'MiniMax M2.1',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.1-lightning',
+			name: 'MiniMax M2.1 Lightning',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5-highspeed',
+			name: 'MiniMax M2.5 High Speed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'Minimax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7-highspeed',
+			name: 'MiniMax M2.7 High Speed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m3',
+			name: 'MiniMax M3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'mistral/ministral-3b',
+			name: 'Ministral 3B (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/ministral-8b',
+			name: 'Ministral 8B (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/mistral-medium',
+			name: 'Mistral Medium 3.1',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/mistral-medium-3.5',
+			name: 'Mistral Medium Latest',
+			contextWindow: 256000,
+		},
+		{
+			id: 'mistral/mistral-nemo',
+			name: 'Mistral Nemo',
+			contextWindow: 131072,
+		},
+		{
+			id: 'mistral/mistral-small',
+			name: 'Mistral Small (latest)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'nvidia/nemotron-3-ultra-550b-a55b',
+			name: 'Nemotron 3 Ultra',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'amazon/nova-lite',
+			name: 'Nova Lite',
+			contextWindow: 300000,
+		},
+		{
+			id: 'amazon/nova-micro',
+			name: 'Nova Micro',
+			contextWindow: 128000,
+		},
+		{
+			id: 'amazon/nova-pro',
+			name: 'Nova Pro',
+			contextWindow: 300000,
+		},
+		{
+			id: 'nvidia/nemotron-nano-12b-v2-vl',
+			name: 'Nvidia Nemotron Nano 12B V2 VL',
+			contextWindow: 131072,
+		},
+		{
+			id: 'nvidia/nemotron-nano-9b-v2',
+			name: 'Nvidia Nemotron Nano 9B V2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/o1',
+			name: 'o1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3',
+			name: 'o3',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-pro',
+			name: 'o3 Pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-deep-research',
+			name: 'o3-deep-research',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o3-mini',
+			name: 'o3-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/o4-mini',
+			name: 'o4-mini',
+			contextWindow: 200000,
+		},
+		{
+			id: 'mistral/pixtral-12b',
+			name: 'Pixtral 12B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'mistral/pixtral-large',
+			name: 'Pixtral Large (latest)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'alibaba/qwen3-coder-30b-a3b',
+			name: 'Qwen 3 Coder 30B A3B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'alibaba/qwen3-max-thinking',
+			name: 'Qwen 3 Max Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'alibaba/qwen-3-32b',
+			name: 'Qwen 3.32B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'alibaba/qwen3.5-flash',
+			name: 'Qwen 3.5 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'alibaba/qwen3.5-plus',
+			name: 'Qwen 3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'alibaba/qwen3.6-27b',
+			name: 'Qwen 3.6 27B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'alibaba/qwen-3.6-max-preview',
+			name: 'Qwen 3.6 Max Preview',
+			contextWindow: 240000,
+		},
+		{
+			id: 'alibaba/qwen3.6-plus',
+			name: 'Qwen 3.6 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'alibaba/qwen3.7-max',
+			name: 'Qwen 3.7 Max',
+			contextWindow: 991000,
+		},
+		{
+			id: 'alibaba/qwen3.7-plus',
+			name: 'Qwen 3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'alibaba/qwen-3-235b',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'alibaba/qwen3-235b-a22b-thinking',
+			name: 'Qwen3 235B A22B Thinking 2507',
+			contextWindow: 131072,
+		},
+		{
+			id: 'alibaba/qwen3-coder',
+			name: 'Qwen3 Coder 480B A35B Instruct',
+			contextWindow: 262144,
+		},
+		{
+			id: 'alibaba/qwen3-coder-next',
+			name: 'Qwen3 Coder Next',
+			contextWindow: 256000,
+		},
+		{
+			id: 'alibaba/qwen3-coder-plus',
+			name: 'Qwen3 Coder Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'alibaba/qwen3-max',
+			name: 'Qwen3 Max',
+			contextWindow: 262144,
+		},
+		{
+			id: 'alibaba/qwen3-max-preview',
+			name: 'Qwen3 Max Preview',
+			contextWindow: 262144,
+		},
+		{
+			id: 'alibaba/qwen3-next-80b-a3b-instruct',
+			name: 'Qwen3 Next 80B A3B Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'alibaba/qwen3-next-80b-a3b-thinking',
+			name: 'Qwen3 Next 80B A3B Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'alibaba/qwen3-vl-instruct',
+			name: 'Qwen3 VL Instruct',
+			contextWindow: 131072,
+		},
+		{
+			id: 'alibaba/qwen3-vl-thinking',
+			name: 'Qwen3 VL Thinking',
+			contextWindow: 131072,
+		},
+		{
+			id: 'alibaba/qwen-3-14b',
+			name: 'Qwen3-14B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'alibaba/qwen-3-30b',
+			name: 'Qwen3-30B-A3B',
+			contextWindow: 40960,
+		},
+		{
+			id: 'bytedance/seed-1.6',
+			name: 'Seed 1.6',
+			contextWindow: 256000,
+		},
+		{
+			id: 'bytedance/seed-1.8',
+			name: 'Seed 1.8',
+			contextWindow: 256000,
+		},
+		{
+			id: 'perplexity/sonar',
+			name: 'Sonar',
+			contextWindow: 127000,
+		},
+		{
+			id: 'perplexity/sonar-pro',
+			name: 'Sonar Pro',
+			contextWindow: 200000,
+		},
+		{
+			id: 'stepfun/step-3.7-flash',
+			name: 'Step 3.7 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'stepfun/step-3.5-flash',
+			name: 'StepFun 3.5 Flash',
+			contextWindow: 262114,
+		},
+		{
+			id: 'arcee-ai/trinity-large-preview',
+			name: 'Trinity Large Preview',
+			contextWindow: 131000,
+		},
+		{
+			id: 'arcee-ai/trinity-large-thinking',
+			name: 'Trinity Large Thinking',
+			contextWindow: 262100,
+		},
+	],
+	vivgrid: [
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v3.2',
+			name: 'DeepSeek-V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'gpt-5-mini',
+			name: 'GPT-5 Mini',
+			contextWindow: 272000,
+		},
+		{
+			id: 'gpt-5.1-codex',
+			name: 'GPT-5.1 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.1-codex-max',
+			name: 'GPT-5.1 Codex Max',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.2-codex',
+			name: 'GPT-5.2 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.4-nano',
+			name: 'GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+	],
+	vultr: [
+		{
+			id: 'nvidia/DeepSeek-V3.2-NVFP4',
+			name: 'DeepSeek V3.2',
+			contextWindow: 131072,
+		},
+		{
+			id: 'zai-org/GLM-5.1-FP8',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.7',
+			name: 'MiniMax-M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16',
+			name: 'NVIDIA Nemotron 3 Nano Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'nvidia/Nemotron-Cascade-2-30B-A3B',
+			name: 'NVIDIA Nemotron Cascade 2',
+			contextWindow: 262144,
+		},
+	],
+	'wafer.ai': [
+		{
+			id: 'deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'GLM-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 202752,
+		},
+		{
+			id: 'Kimi-K2.6',
+			name: 'Kimi-K2.6',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen3.5-397B-A17B',
+			name: 'Qwen3.5-397B-A17B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen3.6-35B-A3B',
+			name: 'Qwen3.6-35B-A3B',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen3.7-max',
+			name: 'Qwen3.7-Max',
+			contextWindow: 256000,
+		},
+	],
+	wandb: [
+		{
+			id: 'deepseek-ai/DeepSeek-V3.1',
+			name: 'DeepSeek V3.1',
+			contextWindow: 161000,
+		},
+		{
+			id: 'zai-org/GLM-5-FP8',
+			name: 'GLM 5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'zai-org/GLM-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/gpt-oss-120b',
+			name: 'gpt-oss-120b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'openai/gpt-oss-20b',
+			name: 'gpt-oss-20b',
+			contextWindow: 131072,
+		},
+		{
+			id: 'moonshotai/Kimi-K2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262144,
+		},
+		{
+			id: 'meta-llama/Llama-3.1-70B-Instruct',
+			name: 'Llama 3.1 70B',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Llama-4-Scout-17B-16E-Instruct',
+			name: 'Llama 4 Scout 17B 16E Instruct',
+			contextWindow: 64000,
+		},
+		{
+			id: 'meta-llama/Llama-3.3-70B-Instruct',
+			name: 'Llama-3.3-70B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'meta-llama/Llama-3.1-8B-Instruct',
+			name: 'Meta-Llama-3.1-8B-Instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'MiniMaxAI/MiniMax-M2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 196608,
+		},
+		{
+			id: 'nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8',
+			name: 'NVIDIA Nemotron 3 Super 120B',
+			contextWindow: 262144,
+		},
+		{
+			id: 'OpenPipe/Qwen3-14B-Instruct',
+			name: 'OpenPipe Qwen3 14B Instruct',
+			contextWindow: 32768,
+		},
+		{
+			id: 'microsoft/Phi-4-mini-instruct',
+			name: 'Phi-4-mini-instruct',
+			contextWindow: 128000,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Instruct-2507',
+			name: 'Qwen3 235B A22B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-30B-A3B-Instruct-2507',
+			name: 'Qwen3 30B A3B Instruct 2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
+			name: 'Qwen3-235B-A22B-Thinking-2507',
+			contextWindow: 262144,
+		},
+		{
+			id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct',
+			name: 'Qwen3-Coder-480B-A35B-Instruct',
+			contextWindow: 262144,
+		},
+	],
+	xai: [
+		{
+			id: 'grok-4.20-0309-non-reasoning',
+			name: 'Grok 4.20 (Non-Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4.20-0309-reasoning',
+			name: 'Grok 4.20 (Reasoning)',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'grok-build-0.1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+	],
+	xiaomi: [
+		{
+			id: 'mimo-v2-flash',
+			name: 'MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-omni',
+			name: 'MiMo-V2-Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro',
+			name: 'MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-pro-ultraspeed',
+			name: 'MiMo-V2.5-Pro-UltraSpeed',
+			contextWindow: 1048576,
+		},
+	],
+	'xiaomi-token-plan-ams': [
+		{
+			id: 'mimo-v2-omni',
+			name: 'MiMo-V2-Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro',
+			name: 'MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+	],
+	'xiaomi-token-plan-cn': [
+		{
+			id: 'mimo-v2-omni',
+			name: 'MiMo-V2-Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro',
+			name: 'MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+	],
+	'xiaomi-token-plan-sgp': [
+		{
+			id: 'mimo-v2-omni',
+			name: 'MiMo-V2-Omni',
+			contextWindow: 262144,
+		},
+		{
+			id: 'mimo-v2-pro',
+			name: 'MiMo-V2-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+	],
+	xpersona: [
+		{
+			id: 'xpersona-gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xpersona-frieren-coder',
+			name: 'Xpersona Frieren 1',
+			contextWindow: 1000000,
+		},
+	],
+	zai: [
+		{
+			id: 'glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-flash',
+			name: 'GLM-4.5-Flash',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5v',
+			name: 'GLM-4.5V',
+			contextWindow: 64000,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-4.7-flashx',
+			name: 'GLM-4.7-FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5-turbo',
+			name: 'GLM-5-Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5v-turbo',
+			name: 'GLM-5V-Turbo',
+			contextWindow: 200000,
+		},
+	],
+	'zai-coding-plan': [
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5-turbo',
+			name: 'GLM-5-Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5v-turbo',
+			name: 'GLM-5V-Turbo',
+			contextWindow: 200000,
+		},
+	],
+	zenmux: [
+		{
+			id: 'sapiens-ai/agnes-1.5-lite',
+			name: 'Agnes 1.5 Lite',
+			contextWindow: 256000,
+		},
+		{
+			id: 'sapiens-ai/agnes-1.5-pro',
+			name: 'Agnes 1.5 Pro',
+			contextWindow: 256000,
+		},
+		{
+			id: 'anthropic/claude-3.5-haiku',
+			name: 'Claude 3.5 Haiku',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-3.7-sonnet',
+			name: 'Claude 3.7 Sonnet',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-fable-5',
+			name: 'Claude Fable 5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-haiku-4.5',
+			name: 'Claude Haiku 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4',
+			name: 'Claude Opus 4',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.1',
+			name: 'Claude Opus 4.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.5',
+			name: 'Claude Opus 4.5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.6',
+			name: 'Claude Opus 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.7',
+			name: 'Claude Opus 4.7',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-opus-4.8',
+			name: 'Claude Opus 4.8',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4',
+			name: 'Claude Sonnet 4',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.5',
+			name: 'Claude Sonnet 4.5',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'anthropic/claude-sonnet-4.6',
+			name: 'Claude Sonnet 4.6',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2',
+			name: 'DeepSeek V3.2',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-flash',
+			name: 'DeepSeek V4 Flash',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-v4-pro',
+			name: 'DeepSeek V4 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'deepseek/deepseek-chat',
+			name: 'DeepSeek-V3.2 (Non-thinking Mode)',
+			contextWindow: 128000,
+		},
+		{
+			id: 'deepseek/deepseek-v3.2-exp',
+			name: 'DeepSeek-V3.2-Exp',
+			contextWindow: 163000,
+		},
+		{
+			id: 'volcengine/doubao-seed-2.0-code',
+			name: 'Doubao Seed 2.0 Code',
+			contextWindow: 256000,
+		},
+		{
+			id: 'volcengine/doubao-seed-1.8',
+			name: 'Doubao-Seed-1.8',
+			contextWindow: 256000,
+		},
+		{
+			id: 'volcengine/doubao-seed-2.0-lite',
+			name: 'Doubao-Seed-2.0-lite',
+			contextWindow: 256000,
+		},
+		{
+			id: 'volcengine/doubao-seed-2.0-mini',
+			name: 'Doubao-Seed-2.0-mini',
+			contextWindow: 256000,
+		},
+		{
+			id: 'volcengine/doubao-seed-2.0-pro',
+			name: 'Doubao-Seed-2.0-pro',
+			contextWindow: 256000,
+		},
+		{
+			id: 'volcengine/doubao-seed-code',
+			name: 'Doubao-Seed-Code',
+			contextWindow: 256000,
+		},
+		{
+			id: 'baidu/ernie-5.0-thinking-preview',
+			name: 'ERNIE 5.0',
+			contextWindow: 128000,
+		},
+		{
+			id: 'google/gemini-2.5-flash',
+			name: 'Gemini 2.5 Flash',
+			contextWindow: 1048000,
+		},
+		{
+			id: 'google/gemini-2.5-flash-lite',
+			name: 'Gemini 2.5 Flash Lite',
+			contextWindow: 1048000,
+		},
+		{
+			id: 'google/gemini-2.5-pro',
+			name: 'Gemini 2.5 Pro',
+			contextWindow: 1048000,
+		},
+		{
+			id: 'google/gemini-3-flash-preview',
+			name: 'Gemini 3 Flash Preview',
+			contextWindow: 1048000,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite',
+			name: 'Gemini 3.1 Flash Lite',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'google/gemini-3.1-flash-lite-preview',
+			name: 'Gemini 3.1 Flash Lite Preview',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'google/gemini-3.1-pro-preview',
+			name: 'Gemini 3.1 Pro Preview',
+			contextWindow: 1048000,
+		},
+		{
+			id: 'google/gemini-3.5-flash',
+			name: 'Gemini 3.5 Flash',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'z-ai/glm-4.5',
+			name: 'GLM 4.5',
+			contextWindow: 128000,
+		},
+		{
+			id: 'z-ai/glm-4.5-air',
+			name: 'GLM 4.5 Air',
+			contextWindow: 128000,
+		},
+		{
+			id: 'z-ai/glm-4.6',
+			name: 'GLM 4.6',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.6v',
+			name: 'GLM 4.6V',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.6v-flash-free',
+			name: 'GLM 4.6V Flash (Free)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.6v-flash',
+			name: 'GLM 4.6V FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.7',
+			name: 'GLM 4.7',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.7-flash-free',
+			name: 'GLM 4.7 Flash (Free)',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-4.7-flashx',
+			name: 'GLM 4.7 FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-5',
+			name: 'GLM 5',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-5-turbo',
+			name: 'GLM 5 Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-5v-turbo',
+			name: 'GLM 5V Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'z-ai/glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'openai/gpt-5',
+			name: 'GPT-5',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5-codex',
+			name: 'GPT-5 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1',
+			name: 'GPT-5.1',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-chat',
+			name: 'GPT-5.1 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex',
+			name: 'GPT-5.1-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.1-codex-mini',
+			name: 'GPT-5.1-Codex-Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2',
+			name: 'GPT-5.2',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-codex',
+			name: 'GPT-5.2-Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.2-pro',
+			name: 'GPT-5.2-Pro',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.3-chat',
+			name: 'GPT-5.3 Chat',
+			contextWindow: 128000,
+		},
+		{
+			id: 'openai/gpt-5.3-codex',
+			name: 'GPT-5.3 Codex',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4',
+			name: 'GPT-5.4',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.4-mini',
+			name: 'GPT-5.4 Mini',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-nano',
+			name: 'GPT-5.4 Nano',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.4-pro',
+			name: 'GPT-5.4 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5',
+			name: 'GPT-5.5',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'openai/gpt-5.5-instant',
+			name: 'GPT-5.5 Instant',
+			contextWindow: 400000,
+		},
+		{
+			id: 'openai/gpt-5.5-pro',
+			name: 'GPT-5.5 Pro',
+			contextWindow: 1050000,
+		},
+		{
+			id: 'x-ai/grok-4',
+			name: 'Grok 4',
+			contextWindow: 256000,
+		},
+		{
+			id: 'x-ai/grok-4-fast',
+			name: 'Grok 4 Fast',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.1-fast',
+			name: 'Grok 4.1 Fast',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.1-fast-non-reasoning',
+			name: 'Grok 4.1 Fast Non Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.2-fast',
+			name: 'Grok 4.2 Fast',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.2-fast-non-reasoning',
+			name: 'Grok 4.2 Fast Non Reasoning',
+			contextWindow: 2000000,
+		},
+		{
+			id: 'x-ai/grok-4.3',
+			name: 'Grok 4.3',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'x-ai/grok-build-0.1',
+			name: 'Grok Build 0.1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'x-ai/grok-code-fast-1',
+			name: 'Grok Code Fast 1',
+			contextWindow: 256000,
+		},
+		{
+			id: 'tencent/hy3-preview',
+			name: 'Hy3 preview',
+			contextWindow: 256000,
+		},
+		{
+			id: 'inclusionai/ring-2.6-1t',
+			name: 'inclusionAI: Ring-2.6-1T',
+			contextWindow: 262000,
+		},
+		{
+			id: 'kuaishou/kat-coder-pro-v2',
+			name: 'KAT-Coder-Pro-V2',
+			contextWindow: 256000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-0905',
+			name: 'Kimi K2 0905',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking',
+			name: 'Kimi K2 Thinking',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/kimi-k2-thinking-turbo',
+			name: 'Kimi K2 Thinking Turbo',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.5',
+			name: 'Kimi K2.5',
+			contextWindow: 262000,
+		},
+		{
+			id: 'moonshotai/kimi-k2.6',
+			name: 'Kimi K2.6',
+			contextWindow: 262140,
+		},
+		{
+			id: 'inclusionai/ling-1t',
+			name: 'Ling-1T',
+			contextWindow: 128000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-omni',
+			name: 'MiMo V2 Omni',
+			contextWindow: 265000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-pro',
+			name: 'MiMo V2 Pro',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'xiaomi/mimo-v2-flash',
+			name: 'MiMo-V2-Flash',
+			contextWindow: 262144,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5',
+			name: 'MiMo-V2.5',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'xiaomi/mimo-v2.5-pro',
+			name: 'MiMo-V2.5-Pro',
+			contextWindow: 1048576,
+		},
+		{
+			id: 'minimax/minimax-m2',
+			name: 'MiniMax M2',
+			contextWindow: 204000,
+		},
+		{
+			id: 'minimax/minimax-m2.1',
+			name: 'MiniMax M2.1',
+			contextWindow: 204000,
+		},
+		{
+			id: 'minimax/minimax-m2.5',
+			name: 'MiniMax M2.5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.5-lightning',
+			name: 'MiniMax M2.5 highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7',
+			name: 'MiniMax M2.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m2.7-highspeed',
+			name: 'MiniMax M2.7 highspeed',
+			contextWindow: 204800,
+		},
+		{
+			id: 'minimax/minimax-m3',
+			name: 'MiniMax-M3',
+			contextWindow: 512000,
+		},
+		{
+			id: 'qwen/qwen3-coder-plus',
+			name: 'Qwen3-Coder-Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3-max',
+			name: 'Qwen3-Max-Thinking',
+			contextWindow: 256000,
+		},
+		{
+			id: 'qwen/qwen3.5-flash',
+			name: 'Qwen3.5 Flash',
+			contextWindow: 1020000,
+		},
+		{
+			id: 'qwen/qwen3.5-plus',
+			name: 'Qwen3.5 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.6-plus',
+			name: 'Qwen3.6-Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.7-max',
+			name: 'Qwen3.7 Max',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'qwen/qwen3.7-plus',
+			name: 'Qwen3.7 Plus',
+			contextWindow: 1000000,
+		},
+		{
+			id: 'inclusionai/ring-1t',
+			name: 'Ring-1T',
+			contextWindow: 128000,
+		},
+		{
+			id: 'stepfun/step-3.5-flash',
+			name: 'Step 3.5 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'stepfun/step-3.5-flash-free',
+			name: 'Step 3.5 Flash (Free)',
+			contextWindow: 256000,
+		},
+		{
+			id: 'stepfun/step-3.7-flash',
+			name: 'Step 3.7 Flash',
+			contextWindow: 256000,
+		},
+		{
+			id: 'stepfun/step-3',
+			name: 'Step-3',
+			contextWindow: 65536,
+		},
+	],
+	zhipuai: [
+		{
+			id: 'glm-4.5',
+			name: 'GLM-4.5',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5-flash',
+			name: 'GLM-4.5-Flash',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.5v',
+			name: 'GLM-4.5V',
+			contextWindow: 64000,
+		},
+		{
+			id: 'glm-4.6',
+			name: 'GLM-4.6',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-4.7-flash',
+			name: 'GLM-4.7-Flash',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-4.7-flashx',
+			name: 'GLM-4.7-FlashX',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5',
+			name: 'GLM-5',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5v-turbo',
+			name: 'GLM-5V-Turbo',
+			contextWindow: 200000,
+		},
+	],
+	'zhipuai-coding-plan': [
+		{
+			id: 'glm-4.5-air',
+			name: 'GLM-4.5-Air',
+			contextWindow: 131072,
+		},
+		{
+			id: 'glm-4.6v',
+			name: 'GLM-4.6V',
+			contextWindow: 128000,
+		},
+		{
+			id: 'glm-4.7',
+			name: 'GLM-4.7',
+			contextWindow: 204800,
+		},
+		{
+			id: 'glm-5-turbo',
+			name: 'GLM-5-Turbo',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5.1',
+			name: 'GLM-5.1',
+			contextWindow: 200000,
+		},
+		{
+			id: 'glm-5v-turbo',
+			name: 'GLM-5V-Turbo',
+			contextWindow: 200000,
+		},
+	],
 };
 
 export function getProviderModels(providerId: string): ModelEntry[] {
-  return MODELS[providerId] || [];
+	return MODELS[providerId] || [];
 }

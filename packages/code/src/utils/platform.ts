@@ -1,39 +1,44 @@
-import { existsSync } from "fs"
+import { existsSync } from 'fs';
 
 function resolveShell(): string {
-  if (process.platform !== "win32") {
-    return process.env.SHELL || "/bin/bash"
-  }
+	if (process.platform !== 'win32') {
+		return process.env.SHELL || '/bin/bash';
+	}
 
-  const pathDirs = (process.env.PATH || "").split(";")
-  for (const dir of pathDirs) {
-    const pwshPath = dir ? `${dir}\pwsh.exe` : "pwsh.exe"
-    if (existsSync(pwshPath)) return "pwsh.exe"
-  }
-  for (const dir of pathDirs) {
-    const psPath = dir ? `${dir}\powershell.exe` : "powershell.exe"
-    if (existsSync(psPath)) return "powershell.exe"
-  }
-  return process.env.COMSPEC || "cmd.exe"
+	const pathDirs = (process.env.PATH || '').split(';');
+	for (const dir of pathDirs) {
+		const pwshPath = dir ? `${dir}\pwsh.exe` : 'pwsh.exe';
+		if (existsSync(pwshPath)) return 'pwsh.exe';
+	}
+	for (const dir of pathDirs) {
+		const psPath = dir ? `${dir}\powershell.exe` : 'powershell.exe';
+		if (existsSync(psPath)) return 'powershell.exe';
+	}
+	return process.env.COMSPEC || 'cmd.exe';
 }
 
-export function getPlatformInfo(): { os: string; arch: string; shell: string; homeDir: string; hostname: string; cwd: string } {
-  const os = process.platform === "win32" ? "windows"
-    : process.platform === "darwin" ? "macos"
-    : "linux";
-  const arch = process.arch;
-  const shell = resolveShell();
-  const homeDir = process.env.HOME || process.env.USERPROFILE || "/home";
-  const hostname = process.env.HOSTNAME || process.env.COMPUTERNAME || "localhost";
-  const cwd = process.cwd();
-  return { os, arch, shell, homeDir, hostname, cwd };
+export function getPlatformInfo(): {
+	os: string;
+	arch: string;
+	shell: string;
+	homeDir: string;
+	hostname: string;
+	cwd: string;
+} {
+	const os = process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'macos' : 'linux';
+	const arch = process.arch;
+	const shell = resolveShell();
+	const homeDir = process.env.HOME || process.env.USERPROFILE || '/home';
+	const hostname = process.env.HOSTNAME || process.env.COMPUTERNAME || 'localhost';
+	const cwd = process.cwd();
+	return { os, arch, shell, homeDir, hostname, cwd };
 }
 
 export function getSystemPrompt(): string {
-  const info = getPlatformInfo();
-  const isWin = info.os === "windows";
+	const info = getPlatformInfo();
+	const isWin = info.os === 'windows';
 
-  return `You are Spectra Code, a deeply pragmatic, effective software engineer operating as an AI coding agent in the user's terminal.
+	return `You are Spectra Code, a deeply pragmatic, effective software engineer operating as an AI coding agent in the user's terminal.
 
 You collaborate with the user in the same workspace, taking engineering quality seriously. You communicate directly and efficiently — keep the user informed about ongoing actions without unnecessary detail. Build context by examining the codebase first, never making assumptions or jumping to conclusions. Think through the nuances of the code you encounter.
 
@@ -50,8 +55,8 @@ All file operations default to the working directory. Use relative paths where p
 You have access to these tools to complete tasks:
 
 1. **bash** — Execute shell commands. Returns stdout, stderr, and exit code.
-   - ${isWin ? `Shell: ${info.shell}. Prefer PowerShell cmdlets for complex operations. Simple commands work with cmd.exe builtins (dir, echo, type). Never use '&&' — use '; if (\$?) { ... }' instead.` : "Standard bash shell. Use single quotes for literal strings."}
-   - ${isWin ? "Path handling: Use forward slashes or escaped backslashes. Bun and Node.js handle both." : "Standard POSIX paths."}
+   - ${isWin ? `Shell: ${info.shell}. Prefer PowerShell cmdlets for complex operations. Simple commands work with cmd.exe builtins (dir, echo, type). Never use '&&' — use '; if (\$?) { ... }' instead.` : 'Standard bash shell. Use single quotes for literal strings.'}
+   - ${isWin ? 'Path handling: Use forward slashes or escaped backslashes. Bun and Node.js handle both.' : 'Standard POSIX paths.'}
    - For commands that modify the file system, briefly explain what the command does and why.
    - Avoid interactive commands (e.g., git rebase -i). Use non-interactive alternatives.
    - Never run destructive commands (rm -rf, sudo, format, git reset --hard, git checkout --) without the user explicitly requesting them.

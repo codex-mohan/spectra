@@ -1,35 +1,40 @@
 {
-  "name": "spectra",
-  "version": "0.2.0",
-  "private": true,
-  "packageManager": "bun@1.3.11",
-  "workspaces": [
-    "packages/*",
-    "apps/*",
-    "docs"
-  ],
-  "scripts": {
-    "build": "turbo build",
-    "test": "turbo test",
-    "lint": "turbo lint",
-    "dev": "turbo dev",
-    "docs:build": "bun run --cwd docs docs:build",
-    "version": "changeset version && bun install",
-    "release": "bun run resolve-workspace-deps && changeset publish",
-    "resolve-workspace-deps": "node scripts/resolve-workspace-deps.mjs",
-    "test:import": "node scripts/test-import.mjs",
-    "changeset": "changeset"
-  },
-  "devDependencies": {
-    "@changesets/changelog-github": "^0.6.0",
-    "@changesets/cli": "^2.31.0",
-    "turbo": "^2.5.0",
-    "typedoc": "^0.28.19",
-    "vitepress": "^1.6.4"
-  },
-  "dependencies": {
-    "uuid": "^14.0.0",
-    "vite": "^8.0.10",
-    "vitest": "^4.1.5"
-  }
+	"name": "spectra",
+	"version": "0.2.0",
+	"private": true,
+	"packageManager": "bun@1.3.11",
+	"workspaces": [
+		"packages/*",
+		"apps/*",
+		"docs"
+	],
+	"scripts": {
+		"build": "turbo build",
+		"test": "turbo test",
+		"lint": "turbo lint",
+		"dev": "turbo dev",
+		"docs:build": "bun run --cwd docs docs:build",
+		"version": "changeset version && bun install",
+		"release": "bun run resolve-workspace-deps && changeset publish",
+		"resolve-workspace-deps": "node scripts/resolve-workspace-deps.mjs",
+		"test:import": "node scripts/test-import.mjs",
+		"changeset": "changeset",
+		"build:rust": "cargo build --release",
+		"test:rust": "cargo test --workspace",
+		"lint:rust": "cargo clippy --workspace -- -D warnings",
+		"check:rust": "cargo check --workspace"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.16",
+		"@changesets/changelog-github": "^0.6.0",
+		"@changesets/cli": "^2.31.0",
+		"turbo": "^2.5.0",
+		"typedoc": "^0.28.19",
+		"vitepress": "^1.6.4"
+	},
+	"dependencies": {
+		"uuid": "^14.0.0",
+		"vite": "^8.0.10",
+		"vitest": "^4.1.5"
+	}
 }

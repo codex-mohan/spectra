@@ -1,15 +1,15 @@
-import type { Component } from "../tui.js";
+import type { Component } from '../tui.js';
 
 export class Spacer implements Component {
-  private lines: number;
+	private lines: number;
 
-  constructor(lines: number = 1) {
-    this.lines = lines;
-  }
+	constructor(lines: number = 1) {
+		this.lines = lines;
+	}
 
-  invalidate(): void {}
+	invalidate(): void {}
 
-  render(width: number): string[] {
-    return Array(this.lines).fill(" ".repeat(width));
-  }
+	render(width: number): string[] {
+		return Array(this.lines).fill(' '.repeat(width));
+	}
 }

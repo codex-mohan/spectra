@@ -1,86 +1,89 @@
-import { writeFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { writeFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const packageRoot = join(__dirname, "..");
-const outputPath = join(packageRoot, "src", "models.ts");
+const packageRoot = join(__dirname, '..');
+const outputPath = join(packageRoot, 'src', 'models.ts');
 
 interface FetchModel {
-  id: string;
-  name: string;
-  contextWindow?: number;
+	id: string;
+	name: string;
+	contextWindow?: number;
 }
 
 async function fetchOpenRouterModels(): Promise<FetchModel[]> {
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/models", { signal: AbortSignal.timeout(10000) });
-    const data = await res.json();
-    const list = data.data || [];
-    return list
-      .filter((m: Record<string, unknown>) => (m.supported_parameters as string[])?.includes("tools"))
-      .map((m: Record<string, unknown>) => ({
-        id: m.id as string,
-        name: (m.name as string) || (m.id as string),
-        contextWindow: (m.context_length as number) || undefined,
-      }));
-  } catch (e) {
-    console.warn("Failed to fetch OpenRouter:", e);
-    return [];
-  }
+	try {
+		const res = await fetch('https://openrouter.ai/api/v1/models', { signal: AbortSignal.timeout(10000) });
+		const data = await res.json();
+		const list = data.data || [];
+		return list
+			.filter((m: Record<string, unknown>) => (m.supported_parameters as string[])?.includes('tools'))
+			.map((m: Record<string, unknown>) => ({
+				id: m.id as string,
+				name: (m.name as string) || (m.id as string),
+				contextWindow: (m.context_length as number) || undefined,
+			}));
+	} catch (e) {
+		console.warn('Failed to fetch OpenRouter:', e);
+		return [];
+	}
 }
 
 async function main() {
-  const orModels = await fetchOpenRouterModels();
-  console.log(`OpenRouter: ${orModels.length} models`);
+	const orModels = await fetchOpenRouterModels();
+	console.log(`OpenRouter: ${orModels.length} models`);
 
-  let devData: Record<string, { models: Record<string, { name?: string; tool_call?: boolean; limit?: { context?: number } }> }> = {};
-  try {
-    const res = await fetch("https://models.dev/api.json", { signal: AbortSignal.timeout(10000) });
-    devData = await res.json();
-    console.log(`models.dev: ${Object.keys(devData).length} providers`);
-  } catch (e) {
-    console.warn("Failed to fetch models.dev:", e);
-  }
+	let devData: Record<
+		string,
+		{ models: Record<string, { name?: string; tool_call?: boolean; limit?: { context?: number } }> }
+	> = {};
+	try {
+		const res = await fetch('https://models.dev/api.json', { signal: AbortSignal.timeout(10000) });
+		devData = await res.json();
+		console.log(`models.dev: ${Object.keys(devData).length} providers`);
+	} catch (e) {
+		console.warn('Failed to fetch models.dev:', e);
+	}
 
-  const byProvider: Record<string, Map<string, { name: string; contextWindow?: number }>> = {};
+	const byProvider: Record<string, Map<string, { name: string; contextWindow?: number }>> = {};
 
-  function addModel(provider: string, id: string, name: string, contextWindow?: number) {
-    if (!byProvider[provider]) byProvider[provider] = new Map();
-    if (!byProvider[provider].has(id)) {
-      byProvider[provider].set(id, { name, contextWindow });
-    }
-  }
+	function addModel(provider: string, id: string, name: string, contextWindow?: number) {
+		if (!byProvider[provider]) byProvider[provider] = new Map();
+		if (!byProvider[provider].has(id)) {
+			byProvider[provider].set(id, { name, contextWindow });
+		}
+	}
 
-  // Process models.dev
-  for (const [providerName, providerData] of Object.entries(devData)) {
-    if (!providerData.models) continue;
-    for (const [modelId, model] of Object.entries(providerData.models)) {
-      if (model.tool_call !== true) continue;
-      addModel(providerName, modelId, model.name || modelId, model.limit?.context);
-    }
-  }
+	// Process models.dev
+	for (const [providerName, providerData] of Object.entries(devData)) {
+		if (!providerData.models) continue;
+		for (const [modelId, model] of Object.entries(providerData.models)) {
+			if (model.tool_call !== true) continue;
+			addModel(providerName, modelId, model.name || modelId, model.limit?.context);
+		}
+	}
 
-  // Process OpenRouter models — all belong under "openrouter"
-  for (const m of orModels) {
-    addModel("openrouter", m.id, m.name);
-  }
+	// Process OpenRouter models — all belong under "openrouter"
+	for (const m of orModels) {
+		addModel('openrouter', m.id, m.name);
+	}
 
-  // Sort and convert to plain objects
-  const sorted: Record<string, { id: string; name: string; contextWindow?: number }[]> = {};
-  for (const provider of Object.keys(byProvider).sort()) {
-    const models = Array.from(byProvider[provider].entries())
-      .map(([id, entry]) => {
-        const obj: { id: string; name: string; contextWindow?: number } = { id, name: entry.name };
-        if (entry.contextWindow) obj.contextWindow = entry.contextWindow;
-        return obj;
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-    sorted[provider] = models;
-  }
+	// Sort and convert to plain objects
+	const sorted: Record<string, { id: string; name: string; contextWindow?: number }[]> = {};
+	for (const provider of Object.keys(byProvider).sort()) {
+		const models = Array.from(byProvider[provider].entries())
+			.map(([id, entry]) => {
+				const obj: { id: string; name: string; contextWindow?: number } = { id, name: entry.name };
+				if (entry.contextWindow) obj.contextWindow = entry.contextWindow;
+				return obj;
+			})
+			.sort((a, b) => a.name.localeCompare(b.name));
+		sorted[provider] = models;
+	}
 
-  const output = `// Auto-generated by scripts/generate-models.ts
+	const output = `// Auto-generated by scripts/generate-models.ts
 // Do not edit manually
 
 export interface ModelEntry {
@@ -96,11 +99,18 @@ export function getProviderModels(providerId: string): ModelEntry[] {
 }
 `;
 
-  writeFileSync(outputPath, output, "utf-8");
-  const totalModels = Object.values(sorted).reduce((sum, m) => sum + m.length, 0);
-  console.log(`Generated ${outputPath}`);
-  console.log(`${Object.keys(sorted).length} providers, ${totalModels} total models`);
-  console.log("Top providers:", Object.entries(sorted).sort((a, b) => b[1].length - a[1].length).slice(0, 10).map(([k, v]) => `${k}: ${v.length}`).join(", "));
+	writeFileSync(outputPath, output, 'utf-8');
+	const totalModels = Object.values(sorted).reduce((sum, m) => sum + m.length, 0);
+	console.log(`Generated ${outputPath}`);
+	console.log(`${Object.keys(sorted).length} providers, ${totalModels} total models`);
+	console.log(
+		'Top providers:',
+		Object.entries(sorted)
+			.sort((a, b) => b[1].length - a[1].length)
+			.slice(0, 10)
+			.map(([k, v]) => `${k}: ${v.length}`)
+			.join(', '),
+	);
 }
 
 main().catch(console.error);

@@ -1,24 +1,25 @@
-import type { AgentTool } from "@mohanscodex/spectra-agent"
+import type { AgentTool } from '@mohanscodex/spectra-agent';
 
 export interface AgentDefinition {
-  name: string
-  mode: "primary" | "subagent"
-  description: string
-  tools: string[]
-  maxTurns: number
-  temperature?: number
-  prompt: string
+	name: string;
+	mode: 'primary' | 'subagent';
+	description: string;
+	tools: string[];
+	maxTurns: number;
+	temperature?: number;
+	prompt: string;
 }
 
 export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
-  build: {
-    name: "build",
-    mode: "primary",
-    description: "Full development agent with all tools enabled. Use for implementation, editing, and running commands.",
-    tools: ["read", "write", "edit", "bash", "glob", "grep", "web_fetch", "task"],
-    maxTurns: 30,
-    temperature: 0,
-    prompt: `## Mode: Build
+	build: {
+		name: 'build',
+		mode: 'primary',
+		description:
+			'Full development agent with all tools enabled. Use for implementation, editing, and running commands.',
+		tools: ['read', 'write', 'edit', 'bash', 'glob', 'grep', 'web_fetch', 'task'],
+		maxTurns: 30,
+		temperature: 0,
+		prompt: `## Mode: Build
 
 You are in build mode — full development access. All tools are available.
 
@@ -45,16 +46,17 @@ You are in build mode — full development access. All tools are available.
 - After making changes, do not add explanations or summaries unless asked.
 - When referencing code, use the \`file_path:line_number\` format.
 - Be direct and concise — no conversational filler.`,
-  },
+	},
 
-  plan: {
-    name: "plan",
-    mode: "primary",
-    description: "Read-only planning and analysis. Cannot edit files or run commands. Use for designing approaches and understanding code.",
-    tools: ["read", "glob", "grep", "web_fetch", "task"],
-    maxTurns: 15,
-    temperature: 0,
-    prompt: `## Mode: Plan
+	plan: {
+		name: 'plan',
+		mode: 'primary',
+		description:
+			'Read-only planning and analysis. Cannot edit files or run commands. Use for designing approaches and understanding code.',
+		tools: ['read', 'glob', 'grep', 'web_fetch', 'task'],
+		maxTurns: 15,
+		temperature: 0,
+		prompt: `## Mode: Plan
 
 You are in plan mode — read-only analysis and design. You CANNOT edit files, write code, or run bash commands.
 
@@ -79,16 +81,17 @@ You are in plan mode — read-only analysis and design. You CANNOT edit files, w
 - Do NOT make any edits. Do NOT run bash commands. Do NOT create or modify files.
 - Do not add code comments or implementation details in your analysis — save those for the plan.
 - Be thorough but structured. Avoid tangential exploration.`,
-  },
+	},
 
-  debug: {
-    name: "debug",
-    mode: "primary",
-    description: "Investigation and debugging. Can read files and run safe commands but cannot edit. Use for diagnosing issues.",
-    tools: ["read", "bash", "grep", "glob"],
-    maxTurns: 20,
-    temperature: 0,
-    prompt: `## Mode: Debug
+	debug: {
+		name: 'debug',
+		mode: 'primary',
+		description:
+			'Investigation and debugging. Can read files and run safe commands but cannot edit. Use for diagnosing issues.',
+		tools: ['read', 'bash', 'grep', 'glob'],
+		maxTurns: 20,
+		temperature: 0,
+		prompt: `## Mode: Debug
 
 You are in debug mode — investigation and diagnosis. You can read files and run diagnostic commands, but CANNOT edit code.
 
@@ -114,16 +117,17 @@ You are in debug mode — investigation and diagnosis. You can read files and ru
 ### Constraints
 - Do NOT edit files. Do NOT make code changes.
 - Safe diagnostic commands are allowed (reading state, running tests). Destructive commands are not.`,
-  },
+	},
 
-  explore: {
-    name: "explore",
-    mode: "subagent",
-    description: "Fast, read-only codebase explorer. Use for file search, code navigation, and answering questions about the codebase.",
-    tools: ["read", "glob", "grep", "web_fetch"],
-    maxTurns: 5,
-    temperature: 0,
-    prompt: `## Mode: Explore
+	explore: {
+		name: 'explore',
+		mode: 'subagent',
+		description:
+			'Fast, read-only codebase explorer. Use for file search, code navigation, and answering questions about the codebase.',
+		tools: ['read', 'glob', 'grep', 'web_fetch'],
+		maxTurns: 5,
+		temperature: 0,
+		prompt: `## Mode: Explore
 
 You are a codebase exploration specialist — fast, thorough, read-only. Your job is to find, read, and report. No edits, no commands.
 
@@ -144,26 +148,23 @@ You are a codebase exploration specialist — fast, thorough, read-only. Your jo
 - Read-only. Do NOT edit, write, or run bash commands.
 - Be thorough but fast — complete your task within ${5} turns.
 - Do not explore tangentially unless instructed. Stay focused on the query.`,
-  },
-}
+	},
+};
 
 export const PRIMARY_AGENTS = Object.values(AGENT_DEFINITIONS)
-  .filter((d) => d.mode === "primary")
-  .map((d) => d.name)
+	.filter((d) => d.mode === 'primary')
+	.map((d) => d.name);
 
 export const SUBAGENTS = Object.values(AGENT_DEFINITIONS)
-  .filter((d) => d.mode === "subagent")
-  .map((d) => d.name)
+	.filter((d) => d.mode === 'subagent')
+	.map((d) => d.name);
 
 export function getToolNamesForAgent(agentName: string): string[] {
-  const def = AGENT_DEFINITIONS[agentName]
-  return def ? [...def.tools] : []
+	const def = AGENT_DEFINITIONS[agentName];
+	return def ? [...def.tools] : [];
 }
 
-export function filterToolsByAgent(
-  allTools: AgentTool[],
-  agentName: string,
-): AgentTool[] {
-  const allowed = getToolNamesForAgent(agentName)
-  return allTools.filter((t) => allowed.includes(t.name))
+export function filterToolsByAgent(allTools: AgentTool[], agentName: string): AgentTool[] {
+	const allowed = getToolNamesForAgent(agentName);
+	return allTools.filter((t) => allowed.includes(t.name));
 }
