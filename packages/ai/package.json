@@ -1,6 +1,6 @@
 {
 	"name": "@mohanscodex/spectra-ai",
-	"version": "0.4.6",
+	"version": "0.4.7",
 	"description": "Spectra AI — LLM provider layer with streaming",
 	"type": "module",
 	"main": "./dist/index.js",

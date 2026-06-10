@@ -1,5 +1,20 @@
 # @mohanscodex/spectra-ai
 
+## 0.4.7
+
+### Patch Changes
+
+- [`3665fe5`](https://github.com/codex-mohan/spectra/commit/3665fe5cb9940d5f852f6ee7c674947cf274548b) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Fix security and reliability issues in TypeScript SDK
+
+  - Implement `sanitizeSurrogates` to properly remove unpaired Unicode surrogates
+  - Fix retry logic: remove orphaned partial messages from history before retry
+  - Replace brittle string-based error detection with status code checks and regex
+  - Add abort-aware sleep with jitter for retry backoff
+  - Add `onRetry` hook for consumer visibility and control over retry decisions
+  - Remove redundant Groq provider (now uses OpenAI-compatible wrapper)
+  - Fix `EventStream.result()` hanging forever if stream ends without completion event
+  - Add `res.ok` check to OpenRouter `fetchLiveModels`
+
 ## 0.4.6
 
 ## 0.4.5
