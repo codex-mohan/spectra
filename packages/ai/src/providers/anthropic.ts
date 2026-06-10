@@ -19,6 +19,7 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
+import { sanitizeSurrogates } from './shared.js';
 
 type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam;
 type StreamBlock = (ThinkingContent | TextContent | ToolCall) & { index?: number; partialJson?: string };
@@ -35,10 +36,6 @@ function getEnvApiKey(provider: string): string | undefined {
 		anthropic: process.env.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_KEY,
 	};
 	return keys[provider];
-}
-
-function sanitizeSurrogates(text: string): string {
-	return text.replace(/[\u0080-\uFFFF]/g, (c) => `\\u${c.charCodeAt(0).toString(16)}`);
 }
 
 function toAnthropicMessage(message: Message): MessageParam {
