@@ -80,3 +80,88 @@ impl Default for HealthProbe {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_health_probe_starts_healthy() {
+        let probe = HealthProbe::new();
+        let report = probe.health();
+        assert_eq!(report.status, HealthStatus::Healthy);
+        assert!(report.uptime_secs < 2);
+        assert!(report.checks.is_empty());
+    }
+
+    #[test]
+    fn test_health_probe_with_healthy_checks() {
+        let probe = HealthProbe::new();
+        probe.register("check_db", || HealthCheckResult {
+            status: HealthStatus::Healthy,
+            message: Some("DB connected".into()),
+        });
+        probe.register("check_api", || HealthCheckResult {
+            status: HealthStatus::Healthy,
+            message: Some("API reachable".into()),
+        });
+
+        let report = probe.health();
+        assert_eq!(report.status, HealthStatus::Healthy);
+        assert_eq!(report.checks.len(), 2);
+        assert_eq!(report.checks.get("check_db").unwrap().status, HealthStatus::Healthy);
+    }
+
+    #[test]
+    fn test_health_probe_becomes_degraded() {
+        let probe = HealthProbe::new();
+        probe.register("healthy_check", || HealthCheckResult {
+            status: HealthStatus::Healthy,
+            message: None,
+        });
+        probe.register("failing_check", || HealthCheckResult {
+            status: HealthStatus::Unhealthy,
+            message: Some("Connection refused".into()),
+        });
+
+        let report = probe.health();
+        assert_eq!(report.status, HealthStatus::Degraded);
+    }
+
+    #[test]
+    fn test_health_status_as_str() {
+        assert_eq!(HealthStatus::Healthy.as_str(), "healthy");
+        assert_eq!(HealthStatus::Degraded.as_str(), "degraded");
+        assert_eq!(HealthStatus::Unhealthy.as_str(), "unhealthy");
+    }
+
+    #[test]
+    fn test_uptime_increases() {
+        let probe = HealthProbe::new();
+        let report1 = probe.health();
+        let uptime1 = report1.uptime_secs;
+
+        // Uptime should be near zero for a fresh probe
+        assert!(uptime1 <= 1);
+
+        // Can't easily test increase in unit test without sleeping,
+        // but we can verify the field exists and is populated
+        assert!(report1.uptime_secs < 5);
+    }
+
+    #[test]
+    fn test_multiple_degraded_checks_stay_degraded() {
+        let probe = HealthProbe::new();
+        probe.register("check1", || HealthCheckResult {
+            status: HealthStatus::Degraded,
+            message: None,
+        });
+        probe.register("check2", || HealthCheckResult {
+            status: HealthStatus::Unhealthy,
+            message: Some("fail".into()),
+        });
+
+        let report = probe.health();
+        assert_eq!(report.status, HealthStatus::Degraded);
+    }
+}

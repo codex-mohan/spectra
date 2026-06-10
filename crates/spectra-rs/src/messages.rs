@@ -243,3 +243,144 @@ impl ToolResultMessage {
         self
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_user_message_text() {
+        let msg = UserMessage::text("Hello, world!");
+        assert_eq!(msg.content.len(), 1);
+        match &msg.content[0] {
+            Content::Text { text } => assert_eq!(text, "Hello, world!"),
+            _ => panic!("Expected text content"),
+        }
+    }
+
+    #[test]
+    fn test_user_message_with_metadata() {
+        let mut meta = std::collections::HashMap::new();
+        meta.insert("source".to_string(), json!("test"));
+        let msg = UserMessage::text("hi").with_metadata(meta);
+        assert!(msg.metadata.is_some());
+        assert_eq!(msg.metadata.unwrap().get("source").unwrap(), "test");
+    }
+
+    #[test]
+    fn test_assistant_message_new() {
+        let msg = AssistantMessage::new(
+            vec![Content::Text {
+                text: "response".to_string(),
+            }],
+            vec![],
+            StopReason::EndOfTurn,
+        );
+        assert_eq!(msg.stop_reason, StopReason::EndOfTurn);
+        assert_eq!(msg.tool_calls.len(), 0);
+    }
+
+    #[test]
+    fn test_assistant_message_full_metadata() {
+        let usage = TokenUsage {
+            input_tokens: 10,
+            output_tokens: 5,
+            cache_read_tokens: 0,
+            cache_write_tokens: 0,
+            cost: None,
+        };
+        let msg = AssistantMessage::with_full_metadata(
+            vec![],
+            vec![],
+            StopReason::ToolCalls,
+            "anthropic",
+            "claude-sonnet",
+            Some("resp-123".to_string()),
+            usage,
+        );
+        assert_eq!(msg.provider, "anthropic");
+        assert_eq!(msg.model, "claude-sonnet");
+        assert_eq!(msg.response_id, Some("resp-123".to_string()));
+        assert_eq!(msg.usage.input_tokens, 10);
+    }
+
+    #[test]
+    fn test_assistant_message_with_error() {
+        let msg = AssistantMessage::new(vec![], vec![], StopReason::Error)
+            .with_error("Something went wrong");
+        assert_eq!(msg.error_message, Some("Something went wrong".to_string()));
+    }
+
+    #[test]
+    fn test_tool_result_success() {
+        let msg = ToolResultMessage::success("tc-1".to_string(), "get_weather".to_string(), json!({"temp": 72}));
+        assert_eq!(msg.tool_call_id, "tc-1");
+        assert_eq!(msg.tool_name, "get_weather");
+        assert!(!msg.is_error);
+        assert_eq!(msg.content, json!({"temp": 72}));
+    }
+
+    #[test]
+    fn test_tool_result_error() {
+        let msg = ToolResultMessage::error("tc-2".to_string(), "bad_tool".to_string(), "Permission denied".to_string());
+        assert_eq!(msg.tool_call_id, "tc-2");
+        assert!(msg.is_error);
+        assert_eq!(msg.content, json!({"error": "Permission denied"}));
+    }
+
+    #[test]
+    fn test_tool_result_with_provenance() {
+        let prov = Provenance {
+            blocked_by: Some("security_check".to_string()),
+            block_reason: Some("Blocked for safety".to_string()),
+            transformed_by: None,
+            retry_count: None,
+            hook_details: None,
+        };
+        let msg = ToolResultMessage::success("tc-3".to_string(), "tool".to_string(), json!({}))
+            .with_provenance(prov);
+        assert!(msg.provenance.is_some());
+        let p = msg.provenance.unwrap();
+        assert_eq!(p.blocked_by, Some("security_check".to_string()));
+        assert_eq!(p.block_reason, Some("Blocked for safety".to_string()));
+    }
+
+    #[test]
+    fn test_stop_reason_display() {
+        assert_eq!(StopReason::EndOfTurn.to_string(), "end_turn");
+        assert_eq!(StopReason::ToolCalls.to_string(), "tool_calls");
+        assert_eq!(StopReason::MaxTokens.to_string(), "max_tokens");
+        assert_eq!(StopReason::Error.to_string(), "error");
+        assert_eq!(StopReason::Aborted.to_string(), "aborted");
+    }
+
+    #[test]
+    fn test_tool_result_chaining() {
+        let msg = ToolResultMessage::success("tc".to_string(), "t".to_string(), json!({}))
+            .with_details(json!({"elapsed_ms": 42}))
+            .with_metadata(std::collections::HashMap::new());
+        assert_eq!(msg.details, Some(json!({"elapsed_ms": 42})));
+    }
+
+    #[test]
+    fn test_message_enum_serialization() {
+        let msg = Message::User(UserMessage::text("hello"));
+        let json_str = serde_json::to_string(&msg).unwrap();
+        assert!(json_str.contains("hello"));
+        assert!(json_str.contains("user"));
+    }
+
+    #[test]
+    fn test_tool_call_creation() {
+        let tc = ToolCall {
+            id: "tc-1".to_string(),
+            name: "search".to_string(),
+            arguments: json!({"query": "rust"}),
+            thinking_signature: None,
+        };
+        assert_eq!(tc.id, "tc-1");
+        assert_eq!(tc.name, "search");
+        assert_eq!(tc.arguments, json!({"query": "rust"}));
+    }
+}

@@ -105,3 +105,110 @@ impl Default for AgentRegistry {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::agent::AgentBuilder;
+    use crate::llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, Provider};
+    use crate::messages::{AssistantMessage, Content, StopReason};
+    use async_trait::async_trait;
+
+    struct MockLlmClient;
+
+    #[async_trait]
+    impl LlmClient for MockLlmClient {
+        fn provider(&self) -> Provider {
+            Provider::Custom
+        }
+
+        async fn complete(&self, _request: LlmRequest) -> crate::error::Result<LlmResponse> {
+            Ok(LlmResponse {
+                message: AssistantMessage::new(vec![], vec![], StopReason::EndOfTurn),
+                usage: Default::default(),
+                stop_reason: StopReason::EndOfTurn,
+            })
+        }
+
+        async fn stream(&self, _request: LlmRequest) -> crate::error::Result<LlmStream> {
+            let (tx, rx) = tokio::sync::mpsc::channel(1);
+            let _ = tx.send(Ok(LlmStreamEvent::Done {
+                message: AssistantMessage::new(
+                    vec![Content::Text { text: "mock".into() }],
+                    vec![],
+                    StopReason::EndOfTurn,
+                ),
+            })).await;
+            Ok(Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)))
+        }
+    }
+
+    #[test]
+    fn test_registry_starts_empty() {
+        let registry = AgentRegistry::new();
+        assert!(registry.is_empty());
+        assert_eq!(registry.len(), 0);
+    }
+
+    #[test]
+    fn test_register_and_contains() {
+        let mut registry = AgentRegistry::new();
+        let client = Arc::new(MockLlmClient);
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "test-model"));
+
+        registry.register("builder", client, builder);
+        assert!(registry.contains("builder"));
+        assert!(!registry.contains("unknown"));
+        assert_eq!(registry.len(), 1);
+        assert!(!registry.is_empty());
+    }
+
+    #[test]
+    fn test_register_multiple_agents() {
+        let mut registry = AgentRegistry::new();
+        let client = Arc::new(MockLlmClient);
+
+        registry.register("agent_a", client.clone(), AgentBuilder::new(Model::new(Provider::Custom, "a")));
+        registry.register("agent_b", client.clone(), AgentBuilder::new(Model::new(Provider::Custom, "b")));
+        registry.register("agent_c", client, AgentBuilder::new(Model::new(Provider::Custom, "c")));
+
+        assert_eq!(registry.len(), 3);
+        assert!(registry.contains("agent_a"));
+        assert!(registry.contains("agent_b"));
+        assert!(registry.contains("agent_c"));
+    }
+
+    #[tokio::test]
+    async fn test_delegate_to_unknown_agent() {
+        let registry = AgentRegistry::new();
+        let result = registry.delegate("nonexistent", "do something").await;
+        assert!(!result.success);
+        assert!(result.error.is_some());
+        assert!(result.error.unwrap().contains("Unknown agent type"));
+    }
+
+    #[tokio::test]
+    async fn test_execute_parallel_with_mixed_results() {
+        let mut registry = AgentRegistry::new();
+        let client = Arc::new(MockLlmClient);
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "ok-model"));
+        registry.register("ok_agent", client.clone(), builder);
+
+        let tasks = vec![
+            TaskConfig { agent_type: "ok_agent".into(), task: "do something".into() },
+            TaskConfig { agent_type: "bad_agent".into(), task: "fail".into() },
+        ];
+
+        let results = registry.execute_parallel(&tasks).await;
+        assert_eq!(results.len(), 2);
+        assert!(results[0].success);
+        assert!(!results[1].success);
+        assert!(results[1].error.as_ref().unwrap().contains("Unknown"));
+    }
+
+    #[test]
+    fn test_default_registry() {
+        let registry = AgentRegistry::default();
+        assert!(registry.is_empty());
+    }
+}

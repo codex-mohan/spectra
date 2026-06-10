@@ -57,3 +57,48 @@ impl RateLimiter for LocalRateLimiter {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rate_limit_allows_within_window() {
+        let rl = LocalRateLimiter::new(3, Duration::from_secs(60));
+        let r1 = rl.check_limit("user1");
+        assert!(r1.allowed);
+        assert_eq!(r1.remaining, 2);
+
+        let r2 = rl.check_limit("user1");
+        assert!(r2.allowed);
+        assert_eq!(r2.remaining, 1);
+
+        let r3 = rl.check_limit("user1");
+        assert!(r3.allowed);
+        assert_eq!(r3.remaining, 0);
+    }
+
+    #[test]
+    fn test_rate_limit_blocks_exceeded() {
+        let rl = LocalRateLimiter::new(1, Duration::from_secs(60));
+        assert!(rl.check_limit("user1").allowed);
+        assert!(!rl.check_limit("user1").allowed);
+        assert_eq!(rl.check_limit("user1").remaining, 0);
+    }
+
+    #[test]
+    fn test_rate_limit_per_key_isolation() {
+        let rl = LocalRateLimiter::new(1, Duration::from_secs(60));
+        assert!(rl.check_limit("user_a").allowed);
+        assert!(rl.check_limit("user_b").allowed);
+        assert!(!rl.check_limit("user_a").allowed);
+        assert!(!rl.check_limit("user_b").allowed);
+    }
+
+    #[test]
+    fn test_default_constructor() {
+        let rl = LocalRateLimiter::with_defaults();
+        let result = rl.check_limit("test");
+        assert!(result.allowed);
+    }
+}
