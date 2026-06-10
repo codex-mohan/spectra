@@ -13,5 +13,7 @@ export type {
 	AgentEventListener,
 	AgentState,
 	AgentConfig,
+	RetryContext,
+	RetryDecision,
 } from './types.js';
 export type { AssistantMessageEvent } from '@mohanscodex/spectra-ai';

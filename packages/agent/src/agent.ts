@@ -18,6 +18,8 @@ import type {
 	AgentEvent,
 	AgentEventListener,
 	AgentConfig,
+	RetryContext,
+	RetryDecision,
 } from './types.js';
 
 type EmitFn = (event: AgentEvent) => void | Promise<void>;
@@ -98,6 +100,7 @@ export class Agent {
 	private convertToLlmFn?: (messages: Message[]) => Message[] | Promise<Message[]>;
 	private maxRetryDelayMs: number;
 	private retryCount = 0;
+	private onRetryHook?: (context: RetryContext) => RetryDecision | void;
 
 	constructor(
 		config: AgentConfig & {
@@ -121,6 +124,7 @@ export class Agent {
 		this.followUpQueue = new PendingMessageQueue(config.followUpMode ?? 'one-at-a-time');
 		this.convertToLlmFn = config.convertToLlm;
 		this.maxRetryDelayMs = config.maxRetryDelayMs ?? 30000;
+		this.onRetryHook = config.onRetry;
 		for (const tool of config.tools ?? []) {
 			this.tools.set(tool.name, tool);
 		}
@@ -350,21 +354,23 @@ export class Agent {
 			} catch (err) {
 				lastError = err instanceof Error ? err : new Error(String(err));
 
-				// Don't retry if aborted
-				if (this.abortController?.signal.aborted) throw err;
-
-				// Don't retry on 4xx errors (client errors)
-				if (
-					lastError.message.includes('400') ||
-					lastError.message.includes('401') ||
-					lastError.message.includes('403') ||
-					lastError.message.includes('404')
-				) {
-					throw err;
+				if (this._streamingMessage && this._messages[this._messages.length - 1] === this._streamingMessage) {
+					this._messages.pop();
+					this._streamingMessage = undefined;
 				}
 
+				if (this.abortController?.signal.aborted) throw lastError;
+				if (!this.isRetryableError(err)) throw lastError;
+
 				if (attempt < maxRetries) {
-					const delay = Math.min(1000 * Math.pow(2, attempt), this.maxRetryDelayMs);
+					let delay = Math.min(1000 * Math.pow(2, attempt), this.maxRetryDelayMs) + Math.random() * 1000;
+
+					if (this.onRetryHook) {
+						const decision = this.onRetryHook({ error: lastError, attempt: attempt + 1, delay });
+						if (decision?.shouldRetry === false) throw lastError;
+						if (decision?.delay !== undefined) delay = decision.delay;
+					}
+
 					await this.sleep(delay);
 				}
 			}
@@ -373,8 +379,28 @@ export class Agent {
 		throw lastError;
 	}
 
+	private isRetryableError(err: unknown): boolean {
+		const status = (err as any)?.status ?? (err as any)?.statusCode;
+		if (status && status >= 400 && status < 500 && status !== 429) return false;
+		if (status && (status >= 500 || status === 429)) return true;
+		const msg = err instanceof Error ? err.message : String(err);
+		return /overloaded|rate.?limit|network.?error|connection.?(error|refused|reset)|socket hang up|fetch failed|timed? ?out|timeout|ECONNRESET|ENOTFOUND|EPIPE/i.test(msg);
+	}
+
 	private sleep(ms: number): Promise<void> {
-		return new Promise((resolve) => setTimeout(resolve, ms));
+		const signal = this.abortController?.signal;
+		if (signal?.aborted) return Promise.reject(new Error('Aborted'));
+		return new Promise((resolve, reject) => {
+			const onAbort = () => {
+				clearTimeout(timer);
+				reject(new Error('Aborted'));
+			};
+			const timer = setTimeout(() => {
+				signal?.removeEventListener('abort', onAbort);
+				resolve();
+			}, ms);
+			signal?.addEventListener('abort', onAbort, { once: true });
+		});
 	}
 
 	private async doStream(context: Context, opts: StreamOptions, emit: EmitFn): Promise<AssistantMessage> {

@@ -90,6 +90,17 @@ export interface AgentState {
 	errorMessage?: string;
 }
 
+export interface RetryContext {
+	error: Error;
+	attempt: number;
+	delay: number;
+}
+
+export interface RetryDecision {
+	shouldRetry?: boolean;
+	delay?: number;
+}
+
 export interface AgentConfig {
 	model: Model;
 	systemPrompt?: string;
@@ -100,4 +111,5 @@ export interface AgentConfig {
 	afterToolCall?: (context: AfterToolCallContext, signal?: AbortSignal) => Promise<AfterToolCallResult | undefined>;
 	transformContext?: (messages: Message[], signal?: AbortSignal) => Promise<Message[]>;
 	getApiKey?: (provider: string) => Promise<string | undefined> | string | undefined;
+	onRetry?: (context: RetryContext) => RetryDecision | void;
 }

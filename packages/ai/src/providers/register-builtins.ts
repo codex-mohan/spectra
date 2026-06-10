@@ -2,7 +2,6 @@ import { registerProvider } from '../registry.js';
 import { createAnthropicProvider } from './anthropic.js';
 import { createOpenAICompletionsProvider, type OpenAICompletionsOptions } from './openai-completions.js';
 import { createOpenAIResponsesProvider } from './openai-responses.js';
-import { createGroqProvider } from './groq.js';
 import { createOpenRouterProvider } from './openrouter.js';
 import type { Model, Context } from '../types.js';
 import type { Provider } from '../registry.js';
@@ -23,9 +22,9 @@ export function initProviders(): void {
 	registerProvider(createAnthropicProvider());
 	registerProvider(createOpenAICompletionsProvider());
 	registerProvider(createOpenAIResponsesProvider());
-	registerProvider(createGroqProvider());
 	registerProvider(createOpenRouterProvider());
 
+	registerProvider(wrapOpenAIProvider('groq', 'https://api.groq.com/openai/v1'));
 	registerProvider(wrapOpenAIProvider('xai', 'https://api.x.ai/v1'));
 	registerProvider(wrapOpenAIProvider('deepseek', 'https://api.deepseek.com/v1'));
 	registerProvider(wrapOpenAIProvider('mistral', 'https://api.mistral.ai/v1'));

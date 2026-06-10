@@ -9,6 +9,7 @@ async function fetchLiveModels(): Promise<{ id: string; name: string }[]> {
 		const res = await fetch(`${OPENROUTER_BASE_URL}/models`, {
 			signal: AbortSignal.timeout(5000),
 		});
+		if (!res.ok) return [];
 		const json = await res.json();
 		const list = json.data || [];
 		return list
