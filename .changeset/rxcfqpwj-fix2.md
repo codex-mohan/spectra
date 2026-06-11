@@ -1,7 +1,4 @@
 ---
-'@mohanscodex/spectra-ai': patch
-'@mohanscodex/spectra-agent': patch
-'@mohanscodex/spectra-app': patch
 '@mohanscodex/spectra-code': patch
 ---
 

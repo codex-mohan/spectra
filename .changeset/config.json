@@ -3,7 +3,7 @@
 	"changelog": ["@changesets/changelog-github", { "repo": "codex-mohan/spectra" }],
 	"commit": false,
 	"fixed": [
-		["@mohanscodex/spectra-ai", "@mohanscodex/spectra-agent", "@mohanscodex/spectra-code", "@mohanscodex/spectra-app"]
+		["@mohanscodex/spectra-ai", "@mohanscodex/spectra-agent", "@mohanscodex/spectra-app"]
 	],
 	"linked": [],
 	"access": "public",
