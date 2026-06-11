@@ -82,7 +82,7 @@ impl AnthropicClient {
             body.insert("temperature".into(), serde_json::json!(temp));
         }
 
-        let messages: Vec<serde_json::Value> = request.messages.iter().map(|msg| {
+        let mut messages: Vec<serde_json::Value> = request.messages.iter().map(|msg| {
             match msg {
                 Message::User(u) => serde_json::json!({
                     "role": "user",
@@ -102,10 +102,24 @@ impl AnthropicClient {
                 }),
             }
         }).collect();
+
+        // Add cache_control to the last content block of the last user message
+        if let Some(last_msg) = messages.last_mut() {
+            if last_msg.get("role").and_then(|r| r.as_str()) == Some("user") {
+                if let Some(content) = last_msg.get_mut("content") {
+                    add_cache_control_to_last_block(content);
+                }
+            }
+        }
+
         body.insert("messages".into(), serde_json::Value::Array(messages));
 
         if let Some(system) = &request.system_prompt {
-            body.insert("system".into(), serde_json::Value::String(system.clone()));
+            body.insert("system".into(), serde_json::json!([{
+                "type": "text",
+                "text": system,
+                "cache_control": { "type": "ephemeral" }
+            }]));
         }
 
         if !request.tools.is_empty() {
@@ -257,6 +271,30 @@ fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> se
     }
 
     if items.len() == 1 { items.into_iter().next().unwrap() } else { serde_json::json!(items) }
+}
+
+fn add_cache_control_to_last_block(content: &mut serde_json::Value) {
+    match content {
+        serde_json::Value::Array(blocks) => {
+            if let Some(last) = blocks.last_mut() {
+                if let Some(obj) = last.as_object_mut() {
+                    if obj.get("type").and_then(|t| t.as_str()) == Some("text")
+                        || obj.get("type").and_then(|t| t.as_str()) == Some("tool_result")
+                    {
+                        obj.insert("cache_control".into(), serde_json::json!({ "type": "ephemeral" }));
+                    }
+                }
+            }
+        }
+        serde_json::Value::String(text) => {
+            *content = serde_json::json!([{
+                "type": "text",
+                "text": text,
+                "cache_control": { "type": "ephemeral" }
+            }]);
+        }
+        _ => {}
+    }
 }
 
 fn parse_stop_reason(reason: &str) -> StopReason {
