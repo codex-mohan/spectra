@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { createTwoFilesPatch } from 'diff';
 import type { SpectraTool } from './types.js';
 import { errorResult, textResult } from './utils.js';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
-import { resolve, dirname, relative } from 'path';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { resolve, dirname, relative, basename } from 'path';
 
 export const writeTool: SpectraTool = {
 	name: 'write',
@@ -22,8 +23,20 @@ Creates parent directories automatically if they don't exist.`,
 		if (!existsSync(parentDir)) {
 			mkdirSync(parentDir, { recursive: true });
 		}
-		const existed = existsSync(resolved);
+		const oldContent = existsSync(resolved) ? readFileSync(resolved, 'utf-8') : '';
 		writeFileSync(resolved, content, 'utf-8');
-		return textResult(`${existed ? 'Updated' : 'Created'} ${relative(process.cwd(), resolved)}`);
+
+		const fileName = basename(resolved);
+		const patch = createTwoFilesPatch(
+			oldContent ? `a/${fileName}` : '/dev/null',
+			`b/${fileName}`,
+			oldContent,
+			content,
+			undefined,
+			undefined,
+			{ context: 3 }
+		);
+
+		return textResult(patch);
 	},
 };

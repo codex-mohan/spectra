@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { c, mdStyle } from '../theme.js';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import stripAnsi from 'strip-ansi';
+import { basename } from 'path';
+import { parsePatch } from 'diff';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -20,6 +22,99 @@ const SB = {
 
 const MAX_SHELL_LINES = 10;
 const MAX_GENERIC_LINES = 3;
+const MAX_DIFF_LINES = 6;
+
+function DiffContent(props: { text: string; maxLines: number }) {
+	const [expanded, setExpanded] = useState(false);
+	
+	// Parse the unified diff to get line numbers
+	const diffRows: { content: string; type: 'add' | 'remove' | 'context'; oldLine?: number; newLine?: number }[] = [];
+	let additions = 0;
+	let deletions = 0;
+	
+	try {
+		const patches = parsePatch(props.text);
+		for (const patch of patches) {
+			for (const hunk of patch.hunks) {
+				let oldLine = hunk.oldStart;
+				let newLine = hunk.newStart;
+				
+				for (const line of hunk.lines) {
+					const content = line.slice(1);
+					const prefix = line[0];
+					
+					if (prefix === ' ') {
+						diffRows.push({ content, type: 'context', oldLine, newLine });
+						oldLine++;
+						newLine++;
+					} else if (prefix === '-') {
+						deletions++;
+						diffRows.push({ content, type: 'remove', oldLine, newLine });
+						oldLine++;
+					} else if (prefix === '+') {
+						additions++;
+						diffRows.push({ content, type: 'add', oldLine, newLine });
+						newLine++;
+					}
+					// Skip '\\' (no newline marker) and '+++'/'---' headers
+				}
+			}
+		}
+	} catch {
+		// Fallback: just show raw lines
+		const lines = props.text.split('\n');
+		for (const line of lines) {
+			if (line.startsWith('+')) {
+				additions++;
+				diffRows.push({ content: line.slice(1), type: 'add' });
+			} else if (line.startsWith('-')) {
+				deletions++;
+				diffRows.push({ content: line.slice(1), type: 'remove' });
+			} else if (line && !line.startsWith('@@') && !line.startsWith('===') && !line.startsWith('---') && !line.startsWith('+++')) {
+				diffRows.push({ content: line.startsWith(' ') ? line.slice(1) : line, type: 'context' });
+			}
+		}
+	}
+
+	const overflow = diffRows.length > props.maxLines;
+	const display = expanded || !overflow ? diffRows : diffRows.slice(0, props.maxLines);
+
+	return (
+		<box flexDirection="column" gap={0}>
+			<box flexDirection="row" gap={1}>
+				{deletions > 0 && <text fg={c.error}>-{deletions}</text>}
+				{additions > 0 && <text fg={c.success}>+{additions}</text>}
+			</box>
+			<box flexDirection="column" gap={0} onMouseDown={overflow ? () => setExpanded(!expanded) : undefined}>
+				{display.map((row, i) => {
+					let fg = c.text;
+					let bg = undefined;
+					if (row.type === 'add') fg = c.success;
+					else if (row.type === 'remove') fg = c.error;
+					
+					return (
+						<box key={i} flexDirection="row" gap={1}
+							backgroundColor={row.type === 'remove' ? c.diffRemoveBg : row.type === 'add' ? c.diffAddBg : undefined}
+						>
+							<text fg={c.dim} width={5}>
+								{row.type === 'remove'
+									? (row.oldLine !== undefined ? String(row.oldLine).padStart(4, ' ') : '    ')
+									: (row.newLine !== undefined ? String(row.newLine).padStart(4, ' ') : '    ')
+								}
+							</text>
+							<text fg={fg} width={2}>
+								{row.type === 'remove' ? '-' : row.type === 'add' ? '+' : ' '}
+							</text>
+							<text fg={fg}>{row.content}</text>
+						</box>
+					);
+				})}
+				{overflow && !expanded && <text fg={c.dim}>click to expand</text>}
+				{overflow && expanded && <text fg={c.dim}>click to collapse</text>}
+			</box>
+		</box>
+	);
+}
 
 function InlineTool(props: { icon: string; title: string; meta?: string; color?: string; marginTop?: number }) {
 	return (
@@ -321,21 +416,65 @@ export function MessageView({
 		}
 
 		if (tName === 'write') {
-			const displayTitle = argsStr ? `Wrote ${argsStr}` : 'Wrote';
+			const path = (argsObj as any)?.path || argsStr;
+			const fileName = path ? basename(path) : '';
+			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
+			const displayTitle = fileName ? `Wrote ${fileName}` : 'Wrote';
 			return (
-				<BlockTool title={displayTitle} titleColor={c.success} marginTop={mt}>
-					<text fg={c.dim}>File written</text>
-				</BlockTool>
+				<box
+					flexDirection="column"
+					paddingTop={1}
+					paddingBottom={1}
+					paddingLeft={2}
+					marginTop={mt}
+					gap={0}
+					backgroundColor={c.bgTool}
+					border={['left']}
+					customBorderChars={SB}
+					borderColor={c.bg}
+				>
+					<text fg={c.success} paddingTop={1} paddingBottom={1}>
+						{displayTitle}
+					</text>
+					<box paddingLeft={2}>
+						{dirPath ? <text fg={c.dim}>{dirPath}</text> : null}
+						{output ? (
+							<DiffContent text={output} maxLines={MAX_DIFF_LINES} />
+						) : (
+							<text fg={c.dim}>File written</text>
+						)}
+					</box>
+				</box>
 			);
 		}
 
 		if (tName === 'edit') {
-			const displayTitle = argsStr ? `Edit ${argsStr}` : 'Edit';
+			const path = (argsObj as any)?.path || argsStr;
+			const fileName = path ? basename(path) : '';
+			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
+			const displayTitle = fileName ? `Edit ${fileName}` : 'Edit';
 			return (
-				<BlockTool title={displayTitle} titleColor={c.thinking} marginTop={mt}>
-					<text>{' '}</text>
-					<text fg={c.dim}>Edit applied</text>
-				</BlockTool>
+				<box
+					flexDirection="column"
+					paddingBottom={1}
+					paddingLeft={2}
+					marginTop={mt}
+					gap={0}
+					backgroundColor={c.bgTool}
+					border={['left']}
+					customBorderChars={SB}
+					borderColor={c.bg}
+				>
+					<box paddingTop={1} paddingBottom={1}>
+						<text fg={c.thinking}>{displayTitle}</text>
+						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
+					</box>
+					{output ? (
+						<DiffContent text={output} maxLines={MAX_DIFF_LINES} />
+					) : (
+						<text fg={c.dim} paddingLeft={1}>Edit applied</text>
+					)}
+				</box>
 			);
 		}
 

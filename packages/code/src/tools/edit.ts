@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { createTwoFilesPatch } from 'diff';
 import type { SpectraTool } from './types.js';
 import { errorResult, textResult } from './utils.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { resolve, relative } from 'path';
+import { resolve, relative, basename } from 'path';
 
 export const editTool: SpectraTool = {
 	name: 'edit',
@@ -38,26 +39,18 @@ The text may have different whitespace or formatting. Try reading the file first
 		}
 
 		writeFileSync(resolved, newContent, 'utf-8');
-		return textResult(`Applied edit to ${relative(process.cwd(), resolved)}
 
-Changes made (showing context):
-${showDiff(content, newString, oldString)}`);
+		const fileName = basename(resolved);
+		const patch = createTwoFilesPatch(
+			`a/${fileName}`,
+			`b/${fileName}`,
+			content,
+			newContent,
+			undefined,
+			undefined,
+			{ context: 3 }
+		);
+
+		return textResult(patch);
 	},
 };
-
-function showDiff(original: string, newStr: string, oldStr: string): string {
-	const idx = original.indexOf(oldStr);
-	if (idx < 0) return '';
-	const before = original.slice(Math.max(0, idx - 40), idx);
-	const after = original.slice(idx + oldStr.length, idx + oldStr.length + 40);
-	return [
-		'...',
-		before ? `${before}` : '',
-		`- ${oldStr.slice(0, 80)}`,
-		`+ ${newStr.slice(0, 80)}`,
-		after ? `${after}` : '',
-		'...',
-	]
-		.filter(Boolean)
-		.join('\n');
-}

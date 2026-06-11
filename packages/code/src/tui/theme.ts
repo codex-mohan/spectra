@@ -28,6 +28,9 @@ export const c = {
 	sbThumb: '#2A2A3A',
 	sbTrack: '#181822',
 	border: '#2A2A3A',
+
+	diffAddBg: '#1B2A1B',
+	diffRemoveBg: '#2A1B1B',
 };
 
 export const mdStyle = SyntaxStyle.fromStyles({
