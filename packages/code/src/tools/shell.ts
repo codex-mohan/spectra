@@ -114,8 +114,9 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 			const onUpdate = ctx.onUpdate;
 
 			let proc: ChildProcess;
-			if (isPwsh) {
-				proc = spawn(shell, ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], {
+			if (isWindows) {
+				const winShell = isPwsh ? shell : 'powershell.exe';
+				proc = spawn(winShell, ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], {
 					cwd: workdir || process.cwd(),
 					env: process.env as Record<string, string>,
 					stdio: ['ignore', 'pipe', 'pipe'],
@@ -127,9 +128,8 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 					cwd: workdir || process.cwd(),
 					env: process.env as Record<string, string>,
 					stdio: ['ignore', 'pipe', 'pipe'],
-					windowsHide: true,
-					shell: isWindows ? shell : true,
-					detached: !isWindows,
+					shell: true,
+					detached: true,
 				});
 			}
 

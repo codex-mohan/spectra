@@ -331,6 +331,7 @@ export function MessageView({
 			const displayTitle = argsStr ? `Edit ${argsStr}` : 'Edit';
 			return (
 				<BlockTool title={displayTitle} titleColor={c.thinking} marginTop={mt}>
+					<text>{' '}</text>
 					<text fg={c.dim}>Edit applied</text>
 				</BlockTool>
 			);

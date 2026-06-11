@@ -1,7 +1,7 @@
 import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTerminalDimensions } from '@opentui/react';
 import type { CliRenderer } from '@opentui/core';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { c, SPINNER } from './theme.js';
 import { ChatArea } from './components/chat-area.js';
 import { CommandPalette } from './components/command-palette.js';
@@ -22,12 +22,15 @@ import { AgentSwitcher } from './ui/agent-switcher.js';
 import { ThinkingEffortDialog } from './ui/thinking-effort-dialog.js';
 import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
+import { UpdateDialog } from './ui/update-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import clipboard from 'clipboardy';
 import { buildCmdItems, collectSlashNames } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
+import { checkForUpdate } from './utils/update-check.js';
+import { VERSION } from './utils/version.js';
 import { loadConfig, type CustomProviderConfig } from '../services/config.js';
 import { registerAllCustomProviders } from '../services/custom-providers.js';
 import { PermissionDialog } from './ui/permission-dialog.js';
@@ -74,6 +77,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [selectedAgent, setSelectedAgent] = useState('build');
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
+	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
 	const [placeholderIdx, setPlaceholderIdx] = useState(0);
 	const [promptHistory, setPromptHistory] = useState<string[]>([]);
 	const [historyIdx, setHistoryIdx] = useState(-1);
@@ -111,9 +115,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		const home = process.env.HOME || process.env.USERPROFILE || '';
 		const dir = process.cwd().replace(home, '~');
 		try {
-			const branch = execSync('git rev-parse --abbrev-ref HEAD 2>/dev/null', { encoding: 'utf-8', timeout: 2000 })
-				.toString()
-				.trim();
+		const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+				encoding: 'utf-8',
+				timeout: 2000,
+				stdio: ['pipe', 'pipe', 'ignore'],
+			}).trim();
 			if (branch) return `${dir}:${branch}`;
 		} catch {}
 		return dir;
@@ -123,6 +129,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	useEffect(() => {
 		const id = setInterval(() => setPlaceholderIdx((p) => (p + 1) % PLACEHOLDERS.length), 4000);
 		return () => clearInterval(id);
+	}, []);
+
+	useEffect(() => {
+		checkForUpdate().then((version) => {
+			if (version) setUpdateVersion(version);
+		});
 	}, []);
 
 	useEffect(() => {
@@ -712,6 +724,25 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}
+					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{updateVersion && (
+				<UpdateDialog
+					newVersion={updateVersion}
+					currentVersion={VERSION}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onClose={() => setUpdateVersion(null)}
+					onInstall={() => {
+						try {
+							clipboard.writeSync('bun update -g @mohanscodex/spectra-code');
+							showToast('Command copied to clipboard', 'success');
+						} catch {}
+						setUpdateVersion(null);
+					}}
 					registerHandler={(fn: any) => {
 						dialogKeyHandler.current = fn;
 					}}
