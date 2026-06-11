@@ -282,8 +282,6 @@ export function MessageView({
 		if (tName === 'bash' || tName === 'shell') {
 			const command = (argsObj as any)?.command || argsStr;
 			const description = (argsObj as any)?.description;
-			if (!output) return <InlineTool icon="$" title={command || 'shell'} color={c.tool} marginTop={mt} />;
-
 			const exitCode = msg.exitCode ?? null;
 			const exitColor = exitCode === 0 ? c.success : c.error;
 
@@ -312,7 +310,11 @@ export function MessageView({
 						{exitCode !== null && <text fg={exitColor}>Exit {exitCode}</text>}
 					</box>
 					<box paddingLeft={2}>
-						<TruncatedContent text={output} maxLines={MAX_SHELL_LINES} />
+						{output ? (
+							<TruncatedContent text={output} maxLines={MAX_SHELL_LINES} />
+						) : (
+							<text fg={c.dim}>No output</text>
+						)}
 					</box>
 				</box>
 			);
