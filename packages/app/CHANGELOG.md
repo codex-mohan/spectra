@@ -1,5 +1,26 @@
 # @mohanscodex/spectra-app
 
+## 0.4.9
+
+### Patch Changes
+
+- [`2e73e41`](https://github.com/codex-mohan/spectra/commit/2e73e41d4bebe734c387792d0225878bcbc54e9f) Thanks [@codex-mohan](https://github.com/codex-mohan)! - TUI improvements and bug fixes
+
+  - Fix git branch path flash on Windows — use execFileSync with stdio ignore instead of bash redirect
+  - Add update check dialog on startup — checks npm registry, 24h cache, shows version and install command
+  - Add prompt badge mode — pastes >500 chars collapse into compact badge, enter to send, esc to edit
+  - Fix shell tool console bleed on Windows — always route through PowerShell to avoid cmd.exe output leaks
+  - Fix shell tool display — always show block view with "No output" indicator when empty
+  - Fix edit tool block — add blank line after heading for visual separation
+  - Move toast notifications to top-right corner
+  - Update Rust feature matrix — Provenance feature added
+  - Clean release workflow — remove automated body generation, delete per-package tags
+  - Remove graphify extension
+
+- Updated dependencies [[`2e73e41`](https://github.com/codex-mohan/spectra/commit/2e73e41d4bebe734c387792d0225878bcbc54e9f)]:
+  - @mohanscodex/spectra-ai@0.4.9
+  - @mohanscodex/spectra-agent@0.4.9
+
 ## 0.4.7
 
 ### Patch Changes
