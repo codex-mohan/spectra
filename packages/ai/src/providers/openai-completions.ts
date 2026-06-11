@@ -70,6 +70,7 @@ export function createOpenAICompletionsProvider() {
 					});
 
 					const messages = convertMessages(model, context);
+					maybeAddOpenRouterAnthropicCacheControl(model, messages);
 
 					const params: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
 						model: model.id,
@@ -298,6 +299,36 @@ function finishCurrentBlock(
 			toolCall: block,
 			partial: output,
 		});
+	}
+}
+
+function maybeAddOpenRouterAnthropicCacheControl(
+	model: Model,
+	messages: ChatCompletionMessageParam[],
+): void {
+	if (model.provider !== 'openrouter' || !model.id.startsWith('anthropic/')) return;
+
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const msg = messages[i];
+		if (msg.role !== 'user' && msg.role !== 'assistant') continue;
+
+		const content = (msg as any).content;
+		if (typeof content === 'string') {
+			(msg as any).content = [
+				Object.assign({ type: 'text' as const, text: content }, { cache_control: { type: 'ephemeral' } }),
+			];
+			return;
+		}
+
+		if (!Array.isArray(content)) continue;
+
+		for (let j = content.length - 1; j >= 0; j--) {
+			const part = content[j];
+			if (part?.type === 'text') {
+				Object.assign(part, { cache_control: { type: 'ephemeral' } });
+				return;
+			}
+		}
 	}
 }
 

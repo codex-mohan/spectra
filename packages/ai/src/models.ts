@@ -1854,6 +1854,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen3.7-max",
       "name": "Qwen3.7 Max",
       "contextWindow": 1000000
+    },
+    {
+      "id": "qwen3.7-plus",
+      "name": "Qwen3.7 Plus",
+      "contextWindow": 1000000
     }
   ],
   "amazon-bedrock": [
@@ -2148,12 +2153,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 128000
     },
     {
-      "id": "openai.gpt-oss-20b-1:0",
+      "id": "openai.gpt-oss-20b",
       "name": "gpt-oss-20b",
       "contextWindow": 128000
     },
     {
-      "id": "openai.gpt-oss-20b",
+      "id": "openai.gpt-oss-20b-1:0",
       "name": "gpt-oss-20b",
       "contextWindow": 128000
     },
@@ -4701,12 +4706,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 200000
     },
     {
-      "id": "anthropic-claude-4.5-haiku",
+      "id": "anthropic-claude-haiku-4.5",
       "name": "Claude Haiku 4.5",
       "contextWindow": 200000
     },
     {
-      "id": "anthropic-claude-haiku-4.5",
+      "id": "anthropic-claude-4.5-haiku",
       "name": "Claude Haiku 4.5",
       "contextWindow": 200000
     },
@@ -5474,14 +5479,14 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 2000000
     },
     {
-      "id": "grok-4-1-fast-reasoning",
-      "name": "Grok 4.1 Fast (Reasoning)",
-      "contextWindow": 2000000
-    },
-    {
       "id": "grok-code-fast-1",
       "name": "Grok 4.1 Fast (Reasoning)",
       "contextWindow": 256000
+    },
+    {
+      "id": "grok-4-1-fast-reasoning",
+      "name": "Grok 4.1 Fast (Reasoning)",
+      "contextWindow": 2000000
     },
     {
       "id": "grok-4-3",
@@ -6537,12 +6542,12 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1047576
     },
     {
-      "id": "gpt-4.1-mini",
+      "id": "gpt-4.1-mini-2025-04-14",
       "name": "OpenAI GPT-4.1 Mini",
       "contextWindow": 1047576
     },
     {
-      "id": "gpt-4.1-mini-2025-04-14",
+      "id": "gpt-4.1-mini",
       "name": "OpenAI GPT-4.1 Mini",
       "contextWindow": 1047576
     },

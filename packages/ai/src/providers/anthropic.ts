@@ -146,6 +146,27 @@ function toAnthropicTool(tool: Tool): {
 	};
 }
 
+function applyCacheControl(messages: MessageParam[]): void {
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const msg = messages[i];
+		if (msg.role !== 'user') continue;
+
+		const content = msg.content;
+		if (typeof content === 'string') {
+			msg.content = [{ type: 'text' as const, text: content, cache_control: { type: 'ephemeral' as const } }] as any;
+			return;
+		}
+
+		if (Array.isArray(content) && content.length > 0) {
+			const last = content[content.length - 1] as any;
+			if (last && (last.type === 'text' || last.type === 'tool_result')) {
+				last.cache_control = { type: 'ephemeral' };
+			}
+			return;
+		}
+	}
+}
+
 function mapStopReason(reason: string): 'stop' | 'length' | 'toolUse' | 'error' | 'aborted' {
 	switch (reason) {
 		case 'end_turn':
@@ -211,16 +232,24 @@ export function createAnthropicProvider() {
 					const budget =
 						thinkingEffort && thinkingEffort !== 'none' ? THINKING_BUDGETS[thinkingEffort] : undefined;
 
-					const params: MessageCreateParamsStreaming = {
-						model: model.id,
-						max_tokens: budget ? (options?.maxTokens ?? 8192) : (options?.maxTokens ?? 4096),
-						messages,
-						tools: tools.length > 0 ? tools : undefined,
-						system: context.systemPrompt,
-						temperature: options?.temperature,
-						thinking: budget ? { type: 'enabled', budget_tokens: budget } : undefined,
-						stream: true,
-					} as MessageCreateParamsStreaming;
+				const cacheControl = { type: 'ephemeral' as const };
+
+				const systemBlocks = context.systemPrompt
+					? [{ type: 'text' as const, text: sanitizeSurrogates(context.systemPrompt), cache_control: cacheControl }]
+					: undefined;
+
+				applyCacheControl(messages);
+
+				const params = {
+					model: model.id,
+					max_tokens: budget ? (options?.maxTokens ?? 8192) : (options?.maxTokens ?? 4096),
+					messages,
+					tools: tools.length > 0 ? tools : undefined,
+					system: systemBlocks,
+					temperature: options?.temperature,
+					thinking: budget ? { type: 'enabled', budget_tokens: budget } : undefined,
+					stream: true,
+				} as MessageCreateParamsStreaming;
 
 					const anthropicStream = client.messages.stream(params, { signal: options?.signal });
 					stream.push({ type: 'start', partial: output });
