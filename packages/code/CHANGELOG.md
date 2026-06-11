@@ -1,5 +1,18 @@
 # @mohanscodex/spectra-code
 
+## 0.4.8
+
+### Patch Changes
+
+- [`107574b`](https://github.com/codex-mohan/spectra/commit/107574b9478d1c93a8fd4697d730f03551ce2c98) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Fix TUI bugs and improve experience
+
+  - Fix git branch path flash on Windows (use execFileSync with stdio ignore)
+  - Add update check dialog (npm registry, 24h cache, clipboard copy)
+  - Add prompt badge mode for large text pastes (>500 chars)
+  - Fix shell tool console bleed on Windows (always use PowerShell)
+  - Fix shell tool display — always show block with "No output" when empty
+  - Fix edit tool block spacing — add blank line after heading
+
 ## 0.4.7
 
 ### Patch Changes
