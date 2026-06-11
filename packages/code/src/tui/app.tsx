@@ -366,6 +366,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		runRedo,
 		runRollbackFiles,
 		dialogStep,
+		updateVersion,
 		msgControls,
 		permissionRequest,
 		dialogKeyHandler,

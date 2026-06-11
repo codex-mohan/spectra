@@ -17,6 +17,7 @@ interface UseAppKeyboardDeps {
 	runRollbackFiles: () => void;
 
 	dialogStep: any;
+	updateVersion: string | null;
 	msgControls: ChatMessage | null;
 	permissionRequest: any;
 	dialogKeyHandler: React.MutableRefObject<((key: any) => void) | null>;
@@ -72,6 +73,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		runRedo,
 		runRollbackFiles,
 		dialogStep,
+		updateVersion,
 		msgControls,
 		permissionRequest,
 		dialogKeyHandler,
@@ -111,7 +113,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 	} = deps;
 
 	useKeyboard((key) => {
-		if (dialogStep || msgControls || permissionRequest !== null) {
+		if (dialogStep || updateVersion || msgControls || permissionRequest !== null) {
 			dialogKeyHandler.current?.(key);
 			return;
 		}
