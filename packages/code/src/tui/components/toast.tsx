@@ -40,7 +40,7 @@ export function ToastContainer() {
 	};
 
 	return (
-		<box position="absolute" right={2} bottom={2} flexDirection="column" gap={1} zIndex={9999}>
+		<box position="absolute" right={2} top={2} flexDirection="column" gap={1} zIndex={9999}>
 			{toasts.map((t) => (
 				<box key={t.id} backgroundColor={c.bgBar} paddingX={2} paddingY={1}>
 					<text fg={colors[t.variant]}>{t.message}</text>

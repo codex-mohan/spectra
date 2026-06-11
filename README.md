@@ -84,7 +84,7 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 | Cost Tracking | ✅ | ✅ |
 | Tool Choice / Reasoning Effort | ✅ | ✅ |
 | Model Registry | ✅ | ✅ |
-| Audit Trail / Provenance | ✅ | — |
+| Audit Trail / Provenance | ✅ | ✅ |
 
 ## Quick Start
 
