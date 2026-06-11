@@ -45,70 +45,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Delete per-package tags from changesets
+      - name: Delete per-package tags
         run: |
           for TAG in $(git tag -l "@mohanscodex/spectra-*"); do
             git push origin ":refs/tags/$TAG" || true
           done
-
-      - name: Create GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION=$(npm view @mohanscodex/spectra-ai version 2>/dev/null || echo "0.0.0")
-          TAG="v${VERSION}"
-
-          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
-            echo "Release $TAG already exists — skipping"
-            exit 0
-          fi
-
-          AGGREGATE=""
-          for PKG in ai agent app code; do
-            FILE="packages/$PKG/CHANGELOG.md"
-            if [ -f "$FILE" ]; then
-              ENTRY=$(awk -v ver="$VERSION" '
-                index($0, "## " ver) == 1 { found=1; next }
-                found && /^## / { exit }
-                found { print }
-              ' "$FILE")
-              if [ -n "$(echo "$ENTRY" | tr -d '[:space:]')" ]; then
-                AGGREGATE="${AGGREGATE}### @mohanscodex/spectra-${PKG}\n\n${ENTRY}\n\n"
-              fi
-            fi
-          done
-
-          cat > /tmp/release-body.md <<- EOF
-          ## What's Changed
-
-          ${AGGREGATE:-No changes detected.}
-
-          ## Published Packages
-
-          | Package | Version |
-          |---------|---------|
-          | \`@mohanscodex/spectra-ai\` | [${VERSION}](https://www.npmjs.com/package/@mohanscodex/spectra-ai/v/${VERSION}) |
-          | \`@mohanscodex/spectra-agent\` | [${VERSION}](https://www.npmjs.com/package/@mohanscodex/spectra-agent/v/${VERSION}) |
-          | \`@mohanscodex/spectra-app\` | [${VERSION}](https://www.npmjs.com/package/@mohanscodex/spectra-app/v/${VERSION}) |
-          | \`@mohanscodex/spectra-code\` | [${VERSION}](https://www.npmjs.com/package/@mohanscodex/spectra-code/v/${VERSION}) |
-
-          ## Install
-
-          \`\`\`sh
-          # SDK packages
-          bun add @mohanscodex/spectra-ai@${VERSION}
-          bun add @mohanscodex/spectra-agent@${VERSION}
-          bun add @mohanscodex/spectra-app@${VERSION}
-
-          # CLI (global install)
-          bun add -g @mohanscodex/spectra-code@${VERSION}
-          \`\`\`
-          EOF
-
-          git tag "$TAG"
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$TAG"
-
-          gh release create "$TAG" \
-            --title "Spectra ${TAG}" \
-            --notes-file /tmp/release-body.md \
-            --latest
