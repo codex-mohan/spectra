@@ -45,16 +45,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Delete per-package tags from changesets
+        run: |
+          for TAG in $(git tag -l "@mohanscodex/spectra-*"); do
+            git push origin ":refs/tags/$TAG" || true
+          done
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(npm view @mohanscodex/spectra-ai version 2>/dev/null || echo "")
-          if [ -z "$VERSION" ]; then
-            echo "No version found on npm — nothing to release"
-            exit 0
-          fi
-
+          VERSION=$(npm view @mohanscodex/spectra-ai version 2>/dev/null || echo "0.0.0")
           TAG="v${VERSION}"
 
           if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
@@ -62,40 +63,25 @@ jobs:
             exit 0
           fi
 
-          # Aggregate changelog entries from ALL packages for this version
           AGGREGATE=""
           for PKG in ai agent app code; do
             FILE="packages/$PKG/CHANGELOG.md"
             if [ -f "$FILE" ]; then
               ENTRY=$(awk -v ver="$VERSION" '
                 index($0, "## " ver) == 1 { found=1; next }
-                found && /^## / && index($0, "## " ver) != 1 { exit }
+                found && /^## / { exit }
                 found { print }
-              ' "$FILE" | sed '/^$/N;/^\n$/d')
-              if [ -n "$ENTRY" ]; then
+              ' "$FILE")
+              if [ -n "$(echo "$ENTRY" | tr -d '[:space:]')" ]; then
                 AGGREGATE="${AGGREGATE}### @mohanscodex/spectra-${PKG}\n\n${ENTRY}\n\n"
               fi
             fi
           done
 
-          if [ -z "$AGGREGATE" ]; then
-            AGGREGATE="No changelog entries found for this version."
-          fi
-
-          # Get git commit log since last tag
-          PREV_TAG=$(git tag --sort=-v:refname | grep -v "$TAG" | head -1)
-          if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
-          else
-            COMMITS=$(git log --pretty=format:"- %s (%h)" -20 --no-merges)
-          fi
-
           cat > /tmp/release-body.md <<- EOF
           ## What's Changed
 
-          ${AGGREGATE}
-
-          ${COMMITS}
+          ${AGGREGATE:-No changes detected.}
 
           ## Published Packages
 
@@ -116,13 +102,6 @@ jobs:
 
           # CLI (global install)
           bun add -g @mohanscodex/spectra-code@${VERSION}
-
-          # Or via install script
-          # macOS / Linux
-          curl -fsSL https://raw.githubusercontent.com/codex-mohan/spectra/main/scripts/install.sh | bash
-
-          # Windows
-          iwr -useb https://raw.githubusercontent.com/codex-mohan/spectra/main/scripts/install.ps1 | iex
           \`\`\`
           EOF
 
