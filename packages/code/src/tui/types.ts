@@ -3,6 +3,12 @@ export type ContentBlock =
 	| { type: 'thinking'; content: string }
 	| { type: 'toolCall'; name: string; args: string };
 
+/** Patch: records which files changed during an agent turn and the pre-edit tree hash. */
+export interface Patch {
+	hash: string;
+	files: string[];
+}
+
 export interface ChatMessage {
 	id: string;
 	role: 'user' | 'assistant' | 'tool' | 'error';

@@ -228,7 +228,7 @@ export function createOpenAIResponsesProvider() {
 							if (response?.usage) {
 								const cachedTokens = response.usage.input_tokens_details?.cached_tokens || 0;
 								output.usage = {
-									input: (response.usage.input_tokens || 0) - cachedTokens,
+									input: response.usage.input_tokens || 0,
 									output: response.usage.output_tokens || 0,
 									cacheRead: cachedTokens,
 									cacheWrite: 0,

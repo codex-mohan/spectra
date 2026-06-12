@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { c } from './theme.js';
 import { titlecase } from './utils.js';
 
-const COMPACT_THRESHOLD = 500;
+const COMPACT_THRESHOLD = 250;
 
 export interface PromptBarProps {
 	isLoading: boolean;
@@ -59,6 +59,17 @@ export function PromptBar(props: PromptBarProps) {
 		setShowHint(len >= COMPACT_THRESHOLD);
 		onTextChange?.(text);
 	}, [onTextChange]);
+
+	// Sync initialValue to the textarea after remount (key change).
+	// OpenTUI's initialValue only applies on first mount, not remounts.
+	useEffect(() => {
+		if (textareaRef.current && initialValue !== undefined && initialValue !== null) {
+			const current = textareaRef.current.plainText ?? '';
+			if (current !== initialValue) {
+				textareaRef.current.setText(initialValue);
+			}
+		}
+	}, [inputKey]);
 
 	useEffect(() => {
 		if (onPositionChange && boxRef.current) {

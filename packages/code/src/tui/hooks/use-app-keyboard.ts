@@ -3,6 +3,7 @@ import { useKeyboard } from '@opentui/react';
 import type { CliRenderer } from '@opentui/core';
 import type { CmdItem } from '../components/command-palette.js';
 import type { ChatMessage } from '../types.js';
+import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { cycleEffort } from '../variant-cycle.js';
 import { AGENTS } from '../app-constants.js';
 
@@ -14,7 +15,8 @@ interface UseAppKeyboardDeps {
 	revertPoint: string | null;
 	revertedMessagesRef: React.MutableRefObject<ChatMessage[]>;
 	runRedo: () => void;
-	runRollbackFiles: () => void;
+	promptHistoryService: React.MutableRefObject<PromptHistoryService>;
+	promptTextareaRef: React.MutableRefObject<any>;
 
 	dialogStep: any;
 	updateVersion: string | null;
@@ -32,8 +34,6 @@ interface UseAppKeyboardDeps {
 	slashFiltered: CmdItem[];
 	slashSelected: number;
 
-	promptHistory: string[];
-	historyIdx: number;
 	interruptKey: number;
 	selectedAgent: string;
 	thinkingEffort: string | undefined;
@@ -41,14 +41,12 @@ interface UseAppKeyboardDeps {
 
 	agentRef: React.MutableRefObject<any>;
 	securityRef: React.MutableRefObject<any>;
-	promptTextareaRef: React.RefObject<any>;
 
 	setShowCmd: (v: boolean) => void;
 	setCmdFilter: React.Dispatch<React.SetStateAction<string>>;
 	setCmdSelected: React.Dispatch<React.SetStateAction<number>>;
 	setDraftText: React.Dispatch<React.SetStateAction<string>>;
 	setSlashSelected: React.Dispatch<React.SetStateAction<number>>;
-	setHistoryIdx: React.Dispatch<React.SetStateAction<number>>;
 	setNavKey: React.Dispatch<React.SetStateAction<number>>;
 	setInterruptKey: React.Dispatch<React.SetStateAction<number>>;
 	setSelectedAgent: React.Dispatch<React.SetStateAction<string>>;
@@ -71,7 +69,8 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		revertPoint,
 		revertedMessagesRef,
 		runRedo,
-		runRollbackFiles,
+		promptHistoryService,
+		promptTextareaRef,
 		dialogStep,
 		updateVersion,
 		msgControls,
@@ -85,21 +84,17 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		slashActive,
 		slashFiltered,
 		slashSelected,
-		promptHistory,
-		historyIdx,
 		interruptKey,
 		selectedAgent,
 		thinkingEffort,
 		provider,
 		agentRef,
 		securityRef,
-		promptTextareaRef,
 		setShowCmd,
 		setCmdFilter,
 		setCmdSelected,
 		setDraftText,
 		setSlashSelected,
-		setHistoryIdx,
 		setNavKey,
 		setInterruptKey,
 		setSelectedAgent,
@@ -187,12 +182,6 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			}
 			return;
 		}
-		if (key.ctrl && key.shift && key.name === 'y') {
-			if (revertPoint !== null) {
-				runRollbackFiles();
-			}
-			return;
-		}
 		if (key.name === 'escape') {
 			if (isStreamingRef.current) {
 				if (interruptKey === 1) {
@@ -217,17 +206,28 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		}
 		if (key.name === 'up') {
 			if (slashActive) return;
-			if (promptHistory.length === 0) return;
-			if (historyIdx === -1) return;
-			setHistoryIdx(Math.min(historyIdx + 1, promptHistory.length - 1));
-			setNavKey((k) => k + 1);
+			const textarea = promptTextareaRef.current;
+			if (!textarea) return;
+			const text: string = textarea.plainText ?? '';
+			const cursor: number = textarea.cursorOffset ?? text.length;
+			const result = promptHistoryService.current.move(-1, text, cursor);
+			if (result !== undefined) {
+				textarea.setText(result);
+				textarea.cursorOffset = 0;
+			}
 			return;
 		}
 		if (key.name === 'down') {
 			if (slashActive) return;
-			if (historyIdx === -1) return;
-			setHistoryIdx(historyIdx - 1);
-			setNavKey((k) => k + 1);
+			const textarea = promptTextareaRef.current;
+			if (!textarea) return;
+			const text: string = textarea.plainText ?? '';
+			const cursor: number = textarea.cursorOffset ?? text.length;
+			const result = promptHistoryService.current.move(1, text, cursor);
+			if (result !== undefined) {
+				textarea.setText(result);
+				textarea.cursorOffset = result.length;
+			}
 			return;
 		}
 		if (key.name === 'tab') {

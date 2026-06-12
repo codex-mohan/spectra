@@ -146,21 +146,31 @@ function toAnthropicTool(tool: Tool): {
 	};
 }
 
-function applyCacheControl(messages: MessageParam[]): void {
+type CacheRetention = 'short' | 'long' | 'none';
+
+function getCacheControl(baseUrl?: string): { type: 'ephemeral'; ttl?: '1h' } | undefined {
+	const retention = (process.env.SPECTRA_CACHE_RETENTION as CacheRetention) || 'short';
+	if (retention === 'none') return undefined;
+	const ttl = retention === 'long' && (!baseUrl || baseUrl.includes('api.anthropic.com')) ? '1h' : undefined;
+	return { type: 'ephemeral', ...(ttl && { ttl }) };
+}
+
+function applyCacheControl(messages: MessageParam[], cacheControl?: { type: 'ephemeral'; ttl?: '1h' }): void {
+	if (!cacheControl) return;
 	for (let i = messages.length - 1; i >= 0; i--) {
 		const msg = messages[i];
 		if (msg.role !== 'user') continue;
 
 		const content = msg.content;
 		if (typeof content === 'string') {
-			msg.content = [{ type: 'text' as const, text: content, cache_control: { type: 'ephemeral' as const } }] as any;
+			msg.content = [{ type: 'text' as const, text: content, cache_control: cacheControl }] as any;
 			return;
 		}
 
 		if (Array.isArray(content) && content.length > 0) {
 			const last = content[content.length - 1] as any;
 			if (last && (last.type === 'text' || last.type === 'tool_result')) {
-				last.cache_control = { type: 'ephemeral' };
+				last.cache_control = cacheControl;
 			}
 			return;
 		}
@@ -232,13 +242,13 @@ export function createAnthropicProvider() {
 					const budget =
 						thinkingEffort && thinkingEffort !== 'none' ? THINKING_BUDGETS[thinkingEffort] : undefined;
 
-				const cacheControl = { type: 'ephemeral' as const };
+				const cacheControl = getCacheControl(model.baseUrl);
 
 				const systemBlocks = context.systemPrompt
-					? [{ type: 'text' as const, text: sanitizeSurrogates(context.systemPrompt), cache_control: cacheControl }]
+					? [{ type: 'text' as const, text: sanitizeSurrogates(context.systemPrompt), ...(cacheControl && { cache_control: cacheControl }) }]
 					: undefined;
 
-				applyCacheControl(messages);
+				applyCacheControl(messages, cacheControl);
 
 				const params = {
 					model: model.id,
@@ -267,7 +277,7 @@ export function createAnthropicProvider() {
 								(event.message.usage as { cache_creation_input_tokens?: number }).cache_creation_input_tokens ||
 								0;
 							output.usage.totalTokens =
-								output.usage.input + output.usage.output + output.usage.cacheRead + output.usage.cacheWrite;
+								output.usage.input + output.usage.output;
 						} else if (event.type === 'content_block_start') {
 							if (event.content_block.type === 'text') {
 								const block: StreamBlock = { type: 'text', text: '', index: event.index };

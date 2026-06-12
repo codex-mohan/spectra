@@ -38,6 +38,18 @@ export function getGlobalCacheDir(): string {
 	return join(home, '.cache', 'spectra');
 }
 
+export function getGlobalStateDir(): string {
+	const xdg = process.env.XDG_STATE_HOME;
+	if (xdg) return join(xdg, 'spectra');
+	const home = homedir();
+	if (process.platform === 'win32') {
+		const localAppData = process.env.LOCALAPPDATA;
+		if (localAppData) return join(localAppData, 'spectra', 'state');
+		return join(home, 'AppData', 'Local', 'spectra', 'state');
+	}
+	return join(home, '.local', 'state', 'spectra');
+}
+
 export interface DiscoveredDir {
 	path: string;
 	base: string;

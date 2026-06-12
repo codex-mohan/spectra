@@ -3,6 +3,8 @@ import type { ChatMessage, ContentBlock } from '../types.js';
 import type { Message, AssistantMessage } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
 import type { SnapshotManager } from '../../services/snapshot-manager.js';
+import type { Patch } from '../types.js';
+import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { genId, getMessageBlocks } from '../utils.js';
 import { AGENT_DEFINITIONS } from '../../agents/definitions.js';
 import { parseSlashCommand } from '../slash-commands.js';
@@ -47,11 +49,10 @@ interface UseChatSubmitDeps {
 	setDraftText: (t: string) => void;
 	setSlashSelected: (i: number) => void;
 	setSubmitKey: (fn: (k: number) => number) => void;
-	setPromptHistory: (fn: (prev: string[]) => string[]) => void;
-	setHistoryIdx: (i: number) => void;
 	setInterruptKey: (k: number) => void;
 	setRevertPoint: (id: string | null) => void;
 	discardRevert: () => void;
+	promptHistoryService: React.MutableRefObject<PromptHistoryService>;
 }
 
 export function useChatSubmit(deps: UseChatSubmitDeps) {
@@ -87,11 +88,10 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		setDraftText,
 		setSlashSelected,
 		setSubmitKey,
-		setPromptHistory,
-		setHistoryIdx,
 		setInterruptKey,
 		setRevertPoint,
 		discardRevert,
+		promptHistoryService,
 	} = deps;
 
 	const shownToolCalls = useRef(new Set<string>());
@@ -99,6 +99,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const toolArgsMap = useRef(new Map<string, unknown>());
 	const streamingIdRef = useRef<string | null>(null);
 	const queuedMessageRef = useRef<string | null>(null);
+	const preEditSnapshotRef = useRef<string | undefined>(undefined);
 
 	function persistMessage(sdkMsg: Message) {
 		if (!sessionId.current) return;
@@ -160,11 +161,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 			shownToolCalls.current.clear();
 			toolMsgMap.current.clear();
 			toolArgsMap.current.clear();
-			setPromptHistory((prev) => {
-				if (prev[0] === trimmed) return prev;
-				return [trimmed, ...prev].slice(0, 50);
-			});
-			setHistoryIdx(-1);
+			promptHistoryService.current.append(trimmed);
 
 			const uid = genId();
 			const userMsg: Message = { role: 'user', content: trimmed, timestamp: Date.now() };
@@ -224,6 +221,14 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 							promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode (was ${prevAgent}). Your available tools and behavior have changed to match this mode.\n</system-reminder>\n\n${trimmed}`;
 						}
 					}
+				}
+
+				// Capture pre-edit file state before any tools run
+				try {
+					preEditSnapshotRef.current = await snapshotManager.current.track();
+				} catch (err) {
+					preEditSnapshotRef.current = undefined;
+					console.error('Snapshot track failed:', err);
 				}
 
 				for await (const ev of agent.run(promptInput)) {
@@ -286,14 +291,30 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 							turnTokens: { input: m.usage.input, output: m.usage.output },
 							turnDurationMs: Math.round(duration),
 						});
+
+						// Compute patch: which files changed during this turn
+						let patch: Patch | undefined;
+						if (preEditSnapshotRef.current) {
+							try {
+								const patchResult = await snapshotManager.current.patch(preEditSnapshotRef.current);
+								if (patchResult.files.length > 0) {
+									patch = { hash: preEditSnapshotRef.current, files: patchResult.files };
+								}
+							} catch (err) {
+								console.error('Snapshot patch failed:', err);
+							}
+						}
+
 						persistMessage({
 							...m,
 							metadata: {
 								...m.metadata,
 								turnDurationMs: Math.round(duration),
 								turnTokens: { input: m.usage.input, output: m.usage.output },
+								patch,
 							},
 						});
+						preEditSnapshotRef.current = undefined;
 						const e = performance.now() - start;
 						setElapsedMs(e);
 						const ot = m.usage.output;
@@ -303,13 +324,6 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 						streamingIdRef.current = null;
 					}
 					if (ev.type === 'tool_execution_start') {
-						if (ev.args && typeof ev.args === 'object') {
-							const args = ev.args as Record<string, unknown>;
-							const filePath = (args.path || args.file_path || args.filePath) as string | undefined;
-							if (filePath && typeof filePath === 'string') {
-								snapshotManager.current.note(filePath);
-							}
-						}
 						if (!shownToolCalls.current.has(ev.toolCallId)) {
 							shownToolCalls.current.add(ev.toolCallId);
 							toolArgsMap.current.set(ev.toolCallId, ev.args);
@@ -365,9 +379,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 				updateLastAssistantMeta({ turnStatus: 'error' });
 				setStatus('Error');
 			} finally {
-				if (snapshotManager.current.isActive()) {
-					snapshotManager.current.commit();
-				}
+				preEditSnapshotRef.current = undefined;
 				setIsLoading(false);
 				setSubmitKey((k) => k + 1);
 				setInterruptKey(0);
@@ -413,11 +425,10 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 			setDraftText,
 			setSlashSelected,
 			setSubmitKey,
-			setPromptHistory,
-			setHistoryIdx,
 			setInterruptKey,
 			setRevertPoint,
 			discardRevert,
+			promptHistoryService,
 			securityRef,
 		],
 	);

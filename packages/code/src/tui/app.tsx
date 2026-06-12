@@ -11,6 +11,7 @@ import { titlecase } from './utils.js';
 import type { ChatMessage } from './types.js';
 import { SessionStore } from '../services/session-store.js';
 import { SnapshotManager } from '../services/snapshot-manager.js';
+import { PromptHistoryService } from '../services/prompt-history.js';
 import type { Message } from '@mohanscodex/spectra-ai';
 import { ProviderDialog } from './ui/provider-dialog.js';
 import { SessionList } from './ui/session-list.js';
@@ -79,8 +80,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [dialogStep, setDialogStep] = useState<any>(null);
 	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
 	const [placeholderIdx, setPlaceholderIdx] = useState(0);
-	const [promptHistory, setPromptHistory] = useState<string[]>([]);
-	const [historyIdx, setHistoryIdx] = useState(-1);
 	const [navKey, setNavKey] = useState(0);
 	const [homeKey, setHomeKey] = useState(0);
 	const [interruptKey, setInterruptKey] = useState(0);
@@ -99,6 +98,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const currentTurnStartRef = useRef<number | null>(null);
 	const currentTurnMsgIdRef = useRef<string | null>(null);
 	const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }));
+	const promptHistoryService = useRef(new PromptHistoryService());
 
 	const [securityConfig] = useState(() => {
 		const cfg = loadConfig();
@@ -183,16 +183,15 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		enqueuePermission,
 	});
 
-	const { revertedMessagesRef, revertDraftRef, runRevert, runRedo, runRollbackFiles, discardRevert } = useRevert({
+	const { revertedMessagesRef, revertDraftRef, runRevert, runRedo, discardRevert } = useRevert({
 		sessionStore,
 		sessionId,
 		agentRef,
 		loadedSessionMessages,
 		setMessages,
 		setRevertPoint,
-		setHistoryIdx,
-		setNavKey,
 		snapshotManager,
+		promptTextareaRef,
 	});
 
 	const handleCycleVariant = useCallback(() => {
@@ -307,11 +306,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setDraftText,
 		setSlashSelected,
 		setSubmitKey,
-		setPromptHistory,
-		setHistoryIdx,
 		setInterruptKey,
 		setRevertPoint,
 		discardRevert,
+		promptHistoryService,
 	});
 
 	// --- cmdFiltered + slash ---
@@ -364,7 +362,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		revertPoint,
 		revertedMessagesRef,
 		runRedo,
-		runRollbackFiles,
 		dialogStep,
 		updateVersion,
 		msgControls,
@@ -378,8 +375,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		slashActive,
 		slashFiltered,
 		slashSelected,
-		promptHistory,
-		historyIdx,
+		promptHistoryService,
 		interruptKey,
 		selectedAgent,
 		thinkingEffort,
@@ -392,7 +388,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setCmdSelected,
 		setDraftText,
 		setSlashSelected,
-		setHistoryIdx,
 		setNavKey,
 		setInterruptKey,
 		setSelectedAgent,
@@ -426,7 +421,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							model={selectedModel || ''}
 							provider={provider || ''}
 							thinkingEffort={thinkingEffort}
-							initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : '')}
+							initialValue={revertDraftRef.current || ''}
 							width={Math.min(68, termWidth - 8)}
 							focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
 							onTextChange={(t) => setDraftText(t)}
@@ -494,12 +489,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							<box flexDirection="row">
 								<text fg={c.warn}>Messages reverted. </text>
 								<text fg={c.accent}>Ctrl+Y</text>
-								<text fg={c.dim}> to restore</text>
-							</box>
-							<box flexDirection="row">
-								<text fg={c.dim}>Files unchanged. </text>
-								<text fg={c.accent}>Ctrl+Shift+Y</text>
-								<text fg={c.dim}> to rollback files</text>
+								<text fg={c.dim}> to redo (messages + files)</text>
 							</box>
 						</box>
 					)}
@@ -524,7 +514,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							model={selectedModel || ''}
 							provider={provider || ''}
 							thinkingEffort={thinkingEffort}
-							initialValue={revertDraftRef.current || (historyIdx >= 0 ? promptHistory[historyIdx] : '')}
+							initialValue={revertDraftRef.current || ''}
 							elapsedMs={elapsedMs}
 							tokenUsage={tokenUsage}
 							width={termWidth - 4}

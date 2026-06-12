@@ -307,6 +307,7 @@ function maybeAddOpenRouterAnthropicCacheControl(
 	messages: ChatCompletionMessageParam[],
 ): void {
 	if (model.provider !== 'openrouter' || !model.id.startsWith('anthropic/')) return;
+	if (process.env.SPECTRA_CACHE_RETENTION === 'none') return;
 
 	for (let i = messages.length - 1; i >= 0; i--) {
 		const msg = messages[i];
@@ -433,14 +434,13 @@ function parseChunkUsage(rawUsage: {
 	const promptTokens = rawUsage.prompt_tokens || 0;
 	const cachedTokens = rawUsage.prompt_tokens_details?.cached_tokens || 0;
 	const cacheWriteTokens = rawUsage.prompt_tokens_details?.cache_write_tokens || 0;
-	const input = Math.max(0, promptTokens - cachedTokens - cacheWriteTokens);
 
 	return {
-		input,
+		input: promptTokens,
 		output: rawUsage.completion_tokens || 0,
 		cacheRead: cachedTokens,
 		cacheWrite: cacheWriteTokens,
-		totalTokens: input + (rawUsage.completion_tokens || 0) + cachedTokens + cacheWriteTokens,
+		totalTokens: promptTokens + (rawUsage.completion_tokens || 0),
 	};
 }
 
