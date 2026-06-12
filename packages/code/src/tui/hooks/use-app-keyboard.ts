@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type RefObject } from 'react';
+import { useCallback, useMemo, useRef, useEffect, type RefObject } from 'react';
 import { useKeyboard } from '@opentui/react';
 import type { CliRenderer } from '@opentui/core';
 import type { CmdItem } from '../components/command-palette.js';
@@ -107,6 +107,8 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		handleCycleVariant,
 	} = deps;
 
+	const lastCursorRef = useRef<number>(-1);
+
 	useKeyboard((key) => {
 		if (dialogStep || updateVersion || msgControls || permissionRequest !== null) {
 			dialogKeyHandler.current?.(key);
@@ -204,29 +206,26 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			}
 			return;
 		}
-		if (key.name === 'up') {
+		if (key.name === 'up' || key.name === 'down') {
 			if (slashActive) return;
 			const textarea = promptTextareaRef.current;
 			if (!textarea) return;
 			const text: string = textarea.plainText ?? '';
 			const cursor: number = textarea.cursorOffset ?? text.length;
-			const result = promptHistoryService.current.move(-1, text, cursor);
-			if (result !== undefined) {
-				textarea.setText(result);
-				textarea.cursorOffset = 0;
-			}
-			return;
-		}
-		if (key.name === 'down') {
-			if (slashActive) return;
-			const textarea = promptTextareaRef.current;
-			if (!textarea) return;
-			const text: string = textarea.plainText ?? '';
-			const cursor: number = textarea.cursorOffset ?? text.length;
-			const result = promptHistoryService.current.move(1, text, cursor);
-			if (result !== undefined) {
-				textarea.setText(result);
-				textarea.cursorOffset = result.length;
+			const prevCursor = lastCursorRef.current;
+			lastCursorRef.current = cursor;
+
+			const isUp = key.name === 'up';
+			const boundary = isUp ? 0 : text.length;
+			const dir = isUp ? -1 : 1;
+
+			if (cursor === boundary && prevCursor === boundary) {
+				const result = promptHistoryService.current.move(dir, text, cursor);
+				if (result !== undefined) {
+					textarea.setText(result);
+					textarea.cursorOffset = isUp ? 0 : result.length;
+					lastCursorRef.current = isUp ? 0 : result.length;
+				}
 			}
 			return;
 		}
