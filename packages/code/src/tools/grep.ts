@@ -25,7 +25,7 @@ Results are truncated to prevent large outputs.`,
 		try {
 			let cmd: string;
 			const useRipgrep =
-				execSync('which rg 2>/dev/null || where rg 2>nul', { encoding: 'utf-8', timeout: 1000 }).trim().length > 0;
+				execSync('which rg 2>/dev/null || where rg 2>nul', { encoding: 'utf-8', timeout: 1000, stdio: 'pipe' }).trim().length > 0;
 			if (useRipgrep) {
 				const includeFlag = include ? `-g "${include}"` : '';
 				cmd = `rg -n --no-heading "${pattern}" "${searchDir}" ${includeFlag} | head -${limit}`;
@@ -34,7 +34,7 @@ Results are truncated to prevent large outputs.`,
 				cmd = `grep -rn "${pattern}" "${searchDir}" ${includeFlag} 2>/dev/null | head -${limit}`;
 			}
 
-			const stdout = execSync(cmd, { encoding: 'utf-8', timeout: 15000, maxBuffer: 1024 * 1024 });
+			const stdout = execSync(cmd, { encoding: 'utf-8', timeout: 15000, maxBuffer: 1024 * 1024, stdio: 'pipe' });
 			const results = stdout.trim();
 			if (!results) return textResult('No matches found.');
 

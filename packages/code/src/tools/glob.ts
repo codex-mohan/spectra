@@ -26,6 +26,7 @@ Results are limited to prevent overwhelming output.`,
 				execSync('which fdfind 2>/dev/null || which fd 2>/dev/null || where fd 2>nul', {
 					encoding: 'utf-8',
 					timeout: 1000,
+					stdio: 'pipe',
 				}).trim().length > 0;
 
 			let cmd: string;
@@ -38,7 +39,7 @@ Results are limited to prevent overwhelming output.`,
 						: `find "${searchDir}" -name "${pattern}" 2>/dev/null | head -${limit}`;
 			}
 
-			const stdout = execSync(cmd, { encoding: 'utf-8', timeout: 15000, maxBuffer: 1024 * 1024 });
+			const stdout = execSync(cmd, { encoding: 'utf-8', timeout: 15000, maxBuffer: 1024 * 1024, stdio: 'pipe' });
 			const results = stdout.trim();
 			if (!results) return textResult('No files matched the pattern.');
 
