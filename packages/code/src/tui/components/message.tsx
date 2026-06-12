@@ -433,7 +433,7 @@ export function MessageView({
 					customBorderChars={SB}
 					borderColor={c.bg}
 				>
-					<text fg={c.success} paddingTop={1} paddingBottom={1}>
+					<text fg={c.success}>
 						{displayTitle}
 					</text>
 					<box paddingLeft={2}>
