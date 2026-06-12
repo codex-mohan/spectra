@@ -103,11 +103,15 @@ impl AnthropicClient {
             }
         }).collect();
 
+        let cache_control = build_cache_control(&self.base_url);
+
         // Add cache_control to the last content block of the last user message
-        if let Some(last_msg) = messages.last_mut() {
-            if last_msg.get("role").and_then(|r| r.as_str()) == Some("user") {
-                if let Some(content) = last_msg.get_mut("content") {
-                    add_cache_control_to_last_block(content);
+        if let Some(ref cc) = cache_control {
+            if let Some(last_msg) = messages.last_mut() {
+                if last_msg.get("role").and_then(|r| r.as_str()) == Some("user") {
+                    if let Some(content) = last_msg.get_mut("content") {
+                        add_cache_control_to_last_block(content, cc);
+                    }
                 }
             }
         }
@@ -115,11 +119,15 @@ impl AnthropicClient {
         body.insert("messages".into(), serde_json::Value::Array(messages));
 
         if let Some(system) = &request.system_prompt {
-            body.insert("system".into(), serde_json::json!([{
-                "type": "text",
-                "text": system,
-                "cache_control": { "type": "ephemeral" }
-            }]));
+            if let Some(ref cc) = cache_control {
+                body.insert("system".into(), serde_json::json!([{
+                    "type": "text",
+                    "text": system,
+                    "cache_control": cc
+                }]));
+            } else {
+                body.insert("system".into(), serde_json::Value::String(system.clone()));
+            }
         }
 
         if !request.tools.is_empty() {
@@ -273,7 +281,20 @@ fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> se
     if items.len() == 1 { items.into_iter().next().unwrap() } else { serde_json::json!(items) }
 }
 
-fn add_cache_control_to_last_block(content: &mut serde_json::Value) {
+fn build_cache_control(base_url: &Option<String>) -> Option<serde_json::Value> {
+    let retention = std::env::var("SPECTRA_CACHE_RETENTION").unwrap_or_else(|_| "short".into());
+    if retention == "none" {
+        return None;
+    }
+    let is_direct = base_url.as_ref().map_or(true, |u| u.contains("api.anthropic.com"));
+    if retention == "long" && is_direct {
+        Some(serde_json::json!({ "type": "ephemeral", "ttl": "1h" }))
+    } else {
+        Some(serde_json::json!({ "type": "ephemeral" }))
+    }
+}
+
+fn add_cache_control_to_last_block(content: &mut serde_json::Value, cache_control: &serde_json::Value) {
     match content {
         serde_json::Value::Array(blocks) => {
             if let Some(last) = blocks.last_mut() {
@@ -281,7 +302,7 @@ fn add_cache_control_to_last_block(content: &mut serde_json::Value) {
                     if obj.get("type").and_then(|t| t.as_str()) == Some("text")
                         || obj.get("type").and_then(|t| t.as_str()) == Some("tool_result")
                     {
-                        obj.insert("cache_control".into(), serde_json::json!({ "type": "ephemeral" }));
+                        obj.insert("cache_control".into(), cache_control.clone());
                     }
                 }
             }
@@ -290,7 +311,7 @@ fn add_cache_control_to_last_block(content: &mut serde_json::Value) {
             *content = serde_json::json!([{
                 "type": "text",
                 "text": text,
-                "cache_control": { "type": "ephemeral" }
+                "cache_control": cache_control
             }]);
         }
         _ => {}
