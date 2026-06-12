@@ -13482,7 +13482,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "minimax-m3",
-      "name": "MiniMax M3",
+      "name": "MiniMax M3 (3x usage)",
       "contextWindow": 512000
     },
     {
@@ -14301,6 +14301,10 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "~moonshotai/kimi-latest",
       "name": "MoonshotAI Kimi Latest",
       "contextWindow": 262144
+    },
+    {
+      "id": "moonshotai/kimi-k2.7-code",
+      "name": "MoonshotAI: Kimi K2.7 Code"
     },
     {
       "id": "nvidia/nemotron-3-nano-30b-a3b",
