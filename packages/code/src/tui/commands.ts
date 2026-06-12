@@ -4,6 +4,7 @@ import { getEffortLabel } from './variant-cycle.js';
 import { titlecase } from './utils.js';
 import { calculateCost, formatCost, formatTokens, isFreeModel } from '@mohanscodex/spectra-ai';
 import { lookupContextWindow } from './utils/model-config.js';
+import { showToast } from './components/toast.js';
 
 export function buildCmdItems(opts: {
 	renderer: { destroy: () => void };
@@ -489,11 +490,10 @@ export function buildCmdItems(opts: {
 			action: () => {
 				const sid = sessionIdRef.current;
 				if (!sid) {
-					setStatus('No active session to save');
+					showToast('No active session to save', 'warn');
 					return;
 				}
-				setStatus('Session saved');
-				setTimeout(() => setStatus('Ready'), 2000);
+				showToast('Session saved', 'success');
 			},
 		},
 		{
@@ -515,11 +515,10 @@ export function buildCmdItems(opts: {
 			action: () => {
 				const sid = sessionIdRef.current;
 				if (!sid) {
-					setStatus('No active session to export');
+					showToast('No active session to export', 'warn');
 					return;
 				}
-				setStatus('Export feature coming soon');
-				setTimeout(() => setStatus('Ready'), 3000);
+				showToast('Export feature coming soon', 'info');
 			},
 		},
 		{
@@ -530,11 +529,10 @@ export function buildCmdItems(opts: {
 			slashName: 'history',
 			action: () => {
 				if (messagesLength === 0) {
-					setStatus('No conversation history');
+					showToast('No conversation history', 'warn');
 					return;
 				}
-				setStatus(`${messagesLength} messages in conversation`);
-				setTimeout(() => setStatus('Ready'), 3000);
+				showToast(`${messagesLength} messages in conversation`, 'info');
 			},
 		},
 		{
@@ -544,8 +542,7 @@ export function buildCmdItems(opts: {
 			cat: 'Session',
 			slashName: 'compress',
 			action: () => {
-				setStatus('Context compaction coming soon');
-				setTimeout(() => setStatus('Ready'), 3000);
+				showToast('Context compaction coming soon', 'info');
 			},
 		},
 		// Git
@@ -556,8 +553,7 @@ export function buildCmdItems(opts: {
 			cat: 'Git',
 			slashName: 'commit',
 			action: () => {
-				setStatus('AI commit feature coming soon');
-				setTimeout(() => setStatus('Ready'), 3000);
+				showToast('AI commit feature coming soon', 'info');
 			},
 		},
 		{
@@ -567,8 +563,7 @@ export function buildCmdItems(opts: {
 			cat: 'Git',
 			slashName: 'review',
 			action: () => {
-				setStatus('Review feature coming soon');
-				setTimeout(() => setStatus('Ready'), 3000);
+				showToast('Review feature coming soon', 'info');
 			},
 		},
 		// Config
