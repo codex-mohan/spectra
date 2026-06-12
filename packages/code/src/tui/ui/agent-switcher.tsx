@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { c } from '../theme.js';
-import { AGENT_DEFINITIONS, PRIMARY_AGENTS } from '../../agents/definitions.js';
+import { AGENT_DEFINITIONS, PRIMARY_AGENTS } from '../../agents/index.js';
 import { titlecase } from '../utils.js';
 
 export interface AgentSwitcherProps {

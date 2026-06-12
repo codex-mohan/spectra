@@ -1,4 +1,4 @@
-import { PRIMARY_AGENTS } from '../agents/definitions.js';
+import { PRIMARY_AGENTS } from '../agents/index.js';
 
 export const AGENTS = PRIMARY_AGENTS;
 export const PLACEHOLDERS = [

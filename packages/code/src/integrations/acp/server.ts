@@ -5,7 +5,7 @@ import type { Message, AssistantMessage, AssistantMessageEvent } from '@mohansco
 import { loadContext } from '../../services/context.js';
 import { loadConfig } from '../../services/config.js';
 import { AgentRegistry } from '../../agents/registry.js';
-import { AGENT_DEFINITIONS, filterToolsByAgent } from '../../agents/definitions.js';
+import { AGENT_DEFINITIONS, filterToolsByAgent } from '../../agents/index.js';
 import { createAllToolsWithExtensions } from '../../tools/index.js';
 import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';

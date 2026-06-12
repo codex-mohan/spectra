@@ -6,7 +6,7 @@ import type { SnapshotManager } from '../../services/snapshot-manager.js';
 import type { Patch } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { genId, getMessageBlocks } from '../utils.js';
-import { AGENT_DEFINITIONS } from '../../agents/definitions.js';
+import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import { parseSlashCommand } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
 import type { CmdItem } from '../components/command-palette.js';

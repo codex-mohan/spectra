@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { SpectraTool } from './types.js';
 import { textResult, errorResult } from './utils.js';
-import { AGENT_DEFINITIONS, SUBAGENTS, filterToolsByAgent } from '../agents/definitions.js';
+import { AGENT_DEFINITIONS, SUBAGENTS, filterToolsByAgent } from '../agents/index.js';
 import { AgentRegistry } from '../agents/registry.js';
 import type { AgentTool } from '@mohanscodex/spectra-agent';
 import { getSystemPrompt } from '../utils/platform.js';

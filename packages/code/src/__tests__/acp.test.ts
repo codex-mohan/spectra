@@ -107,9 +107,9 @@ describe('ACP Protocol', () => {
 		});
 
 		it('shares the same agent definitions', async () => {
-			const { AGENT_DEFINITIONS: tuiDefs } = await import('../agents/definitions.js');
-			const { AGENT_DEFINITIONS: acpDefs } = await import('../agents/definitions.js');
+			const { AGENT_DEFINITIONS: tuiDefs } = await import('../agents/index.js');
 
+			const { AGENT_DEFINITIONS: acpDefs } = await import('../agents/index.js');
 			expect(acpDefs).toBe(tuiDefs);
 			expect(Object.keys(acpDefs)).toEqual(['build', 'plan', 'debug', 'explore']);
 		});
