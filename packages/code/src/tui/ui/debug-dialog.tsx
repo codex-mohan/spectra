@@ -48,7 +48,7 @@ export function DebugDialog(props: DebugDialogProps) {
 		const connected = listConnectedServers();
 		const authStore = readAll();
 		const platform = getPlatformInfo();
-		const sessions = sessionStore.list();
+		const sessions = sessionStore.list(process.cwd());
 
 		const configDir = getGlobalConfigDir();
 		const dataDir = getGlobalDataDir();

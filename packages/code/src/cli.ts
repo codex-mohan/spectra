@@ -52,7 +52,7 @@ async function main() {
 			const action = argv.action as string;
 
 			if (action === 'list') {
-				const sessions = store.list();
+				const sessions = store.list(process.cwd());
 				if (!sessions.length) {
 					outro(chalk.yellow('No sessions found.'));
 					return;
@@ -74,7 +74,7 @@ async function main() {
 				if (!id) {
 					const selected = await select({
 						message: 'Select session to delete',
-						options: store.list().map((s) => ({
+						options: store.list(process.cwd()).map((s) => ({
 							value: s.id,
 							label: `${s.id.slice(0, 12)}  ${s.title.slice(0, 50)}`,
 						})),

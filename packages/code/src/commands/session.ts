@@ -11,7 +11,7 @@ export const sessionCommand: CommandModule = {
 				describe: 'List all sessions',
 				handler: () => {
 					const store = new SessionStore();
-					const sessions = store.list();
+					const sessions = store.list(process.cwd());
 					if (sessions.length === 0) {
 						console.log('No sessions found.');
 						return;

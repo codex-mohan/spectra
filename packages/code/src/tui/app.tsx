@@ -450,7 +450,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						<box height={1} />
 						<box flexDirection="row" gap={4} alignItems="center">
 							{[
-								{ icon: '◈', label: `${sessionStore.current.list().length} sessions` },
+								{ icon: '◈', label: `${sessionStore.current.list(process.cwd()).length} sessions` },
 								{ icon: '◉', label: '3 agents' },
 								{ icon: '◆', label: '7 tools' },
 								{ icon: '⬢', label: `${mcpCount} MCP` },

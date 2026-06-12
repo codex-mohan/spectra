@@ -39,7 +39,7 @@ export function SessionList(props: SessionListProps) {
 	const scrollRef = useRef<any>(null);
 
 	const sessions = useMemo(() => {
-		const list = store.list();
+		const list = store.list(process.cwd());
 		const q = filter.toLowerCase();
 		if (!q) return list;
 		return list.filter(
