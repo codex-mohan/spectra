@@ -10,8 +10,8 @@
 		"chat:tui:ink": "bun run src/chat-tui.tsx"
 	},
 	"dependencies": {
-		"@opentui/core": "^0.1.103",
-		"@opentui/react": "^0.1.103",
+		"@opentui/core": "^0.3.3",
+		"@opentui/react": "^0.3.3",
 		"@mohanscodex/spectra-agent": "workspace:*",
 		"@mohanscodex/spectra-ai": "workspace:*",
 		"clipboardy": "^5.3.1",

@@ -156,6 +156,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 
 			setDraftText('');
 			setSlashSelected(0);
+			setSubmitKey((k) => k + 1);
 			setTokPerSec(null);
 			setElapsedMs(null);
 			shownToolCalls.current.clear();
