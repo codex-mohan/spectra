@@ -8,12 +8,14 @@ Spectra Code is a terminal-native AI coding agent with a full-screen TUI, CLI co
 
 - **TUI** — Full-screen terminal UI with session management, model switching, and real-time streaming
 - **CLI** — Command-line interface for scripting and automation
+- **Skills** — 65+ bundled skills (debugging, deployment, testing, collaboration) with TF-IDF search. User-defined skills override bundled defaults
 - **Custom Tools** — Define your own tools as `.ts` files in `.spectra/tools/`; loaded automatically alongside built-in tools
 - **MCP + ACP** — MCP client (stdio + HTTP) for external tool servers; ACP server (JSON-RPC 2.0) for editor integration with Zed, Neovim, JetBrains
 - **Multiple agents** — Build, Plan, Debug, and Explore modes with tailored tool sets
 - **Sessions** — Persistent session storage with fork, archive, revert, and checkpointing
 - **Custom providers** — Register any LLM provider via the TUI or config
 - **Auth store** — Secure API key management with file permissions
+- **Cost tracking** — Real-time cost display in prompt bar, per-model pricing via models.dev, detailed cost dialog
 
 ## Install
 
@@ -145,6 +147,39 @@ export const multiply = {
 
 This creates two tools: `math_add` and `math_multiply`. Tools are loaded automatically by the ACP server and merged into the agent's toolset alongside built-in and MCP tools.
 
+## Skills
+
+Specialized workflows the agent can discover and use. Ships with 65+ bundled skills covering debugging, deployment, testing, collaboration, security, and more.
+
+Skills are discovered via the `find_skills` tool (TF-IDF search) and loaded on demand via the `skill` tool. The agent automatically searches for relevant skills when a task matches a known workflow.
+
+**Three layers (user-defined wins on collision):**
+
+| Layer | Location | Editable |
+|-------|----------|----------|
+| Project | `.claude/skills/`, `.agents/skills/` | Yes |
+| User | `~/.claude/skills/`, `~/.agents/skills/` | Yes |
+| Bundled | Inside the npm package | No |
+
+Create your own skill by adding a `SKILL.md` with YAML frontmatter:
+
+```markdown
+---
+name: my-deploy
+description: Deploy to my custom platform
+when_to_use: when the user asks to deploy to our platform
+---
+
+# My Deploy
+
+## Steps
+1. Run tests
+2. Build
+3. Deploy via custom CLI
+```
+
+Skills override bundled defaults when placed in project or user directories.
+
 ## Configuration
 
 Spectra Code reads config from `spectra.json`, `opencode.json`, or `config.json` in the project or global config directory (`~/.config/spectra/` on Linux, `%LOCALAPPDATA%/spectra/Config/` on Windows).
@@ -254,6 +289,7 @@ cli.ts              CLI entry point (yargs)
 ├── tools/          Built-in agent tools (read, write, edit, shell, grep, glob, web_fetch, task)
 ├── agents/         Agent definitions (build, plan, debug, explore)
 ├── security/       Permission engine, path safety, read tracker, doom loop, SSRF guard
+├── skills/         Bundled skills (65+ workflows, TF-IDF indexed)
 └── integrations/
     ├── mcp/           MCP client (stdio + HTTP)
     ├── acp/           ACP server (JSON-RPC 2.0)
