@@ -30,6 +30,7 @@ export function ChatArea({
 				backgroundColor={c.bg}
 				viewportCulling={false}
 				focusable={false}
+				paddingRight={2}
 				verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.sbTrack, foregroundColor: c.sbThumb } }}
 			>
 				<box height={1} />
