@@ -3,7 +3,7 @@ import type { SecurityManager } from '../../security/index.js';
 import type { CustomProviderConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
 import { getAuthKey } from '../utils/model-config.js';
-import { AGENT_DEFINITIONS } from '../../agents/definitions.js';
+import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import { AgentRegistry } from '../../agents/registry.js';
 import { createSecurityManager } from '../../security/index.js';
 import type { PermissionRequest } from '../../security/types.js';
@@ -85,8 +85,19 @@ export function useAgent(deps: UseAgentDeps) {
 			const manager = initSecurityManager(process.cwd());
 
 			const allTools = createAllToolsWithSecurity(manager);
-			const { filterToolsByAgent } = await import('../../agents/definitions.js');
-			const agentTools = def ? filterToolsByAgent(allTools, selectedAgent) : allTools;
+			const { filterToolsByAgent } = await import('../../agents/index.js');
+
+			// Discover skills and create skill tools
+			let skillTools: import('@mohanscodex/spectra-agent').AgentTool[] = [];
+			let skillCount = 0;
+			try {
+				const { discoverAndCreateSkillTools } = await import('../../tools/index.js');
+				const { skills, tools } = await discoverAndCreateSkillTools();
+				skillTools = tools;
+				skillCount = skills.size;
+			} catch {}
+
+			const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], selectedAgent) : [...allTools, ...skillTools];
 
 			let agentsMd = '';
 			try {
@@ -99,7 +110,10 @@ export function useAgent(deps: UseAgentDeps) {
 
 			const { getSystemPrompt } = await import('../../utils/platform.js');
 
-			const systemPrompt = [getSystemPrompt(), agentsMd, def?.prompt].filter(Boolean).join('\n\n');
+			const skillsHint = skillCount > 0
+				? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
+				: '';
+			const systemPrompt = [getSystemPrompt() + skillsHint, agentsMd, def?.prompt].filter(Boolean).join('\n\n');
 
 			agentRef.current = new Agent({
 				model: {

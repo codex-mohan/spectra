@@ -8,13 +8,16 @@ import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
 import { taskTool } from './task.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
-import { defineTool } from '@mohanscodex/spectra-agent';
+import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
+import type { Skill } from '@mohanscodex/spectra-agent';
 import { textResult } from './utils.js';
 import { listConnectedServers } from '../integrations/mcp/index.js';
 import { createMcpAgentTools } from './mcp-tool.js';
 import { loadCustomTools } from '../integrations/custom-tools/index.js';
 import type { SecurityManager } from '../security/index.js';
 import { PermissionDeniedError } from '../security/index.js';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 
 export { type SpectraTool } from './types.js';
 
@@ -235,6 +238,32 @@ export async function createAllToolsWithExtensions(): Promise<{
 
 export function createAllToolsWithSecurity(security: SecurityManager): AgentTool[] {
 	return builtinTools.map((t) => spectraToolToAgentTool(t, security));
+}
+
+export async function discoverAndCreateSkillTools(): Promise<{
+	skills: Map<string, Skill>;
+	tools: AgentTool[];
+}> {
+	// Resolve bundled skills directory relative to this package
+	const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+	const bundledSkillsDir = resolve(packageRoot, 'skills');
+
+	// 1. Load bundled skills (lowest precedence)
+	const bundled = await discoverSkills({ customPaths: [bundledSkillsDir] });
+
+	// 2. Load user/project skills (highest precedence — overwrites bundled on collision)
+	const user = await discoverSkills();
+
+	// 3. Merge: bundled first, then user overwrites
+	const skills = new Map<string, Skill>();
+	for (const [name, skill] of bundled) skills.set(name, skill);
+	for (const [name, skill] of user) skills.set(name, skill);
+
+	const tools: AgentTool[] = [];
+	if (skills.size > 0) {
+		tools.push(createFindSkillsTool(skills), createSkillTool(skills));
+	}
+	return { skills, tools };
 }
 
 export function getToolDisplayName(tool: SpectraTool, args: unknown, result?: ToolResult): string {
