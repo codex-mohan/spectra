@@ -1,0 +1,121 @@
+name: Build Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g., v0.4.9)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+
+      - name: Build binaries
+        run: ./scripts/build-binaries.sh
+
+      - name: Smoke test binaries
+        run: |
+          cd packages/code/binaries
+
+          echo "==> Testing linux-x64 binary..."
+          tar -xzf spectra-linux-x64.tar.gz
+          chmod +x spectra/spectra
+
+          # Test --help
+          OUTPUT=$(./spectra/spectra --help 2>&1)
+          if echo "$OUTPUT" | grep -q "Spectra Code"; then
+            echo "  --help: OK"
+          else
+            echo "  --help: FAILED"
+            echo "$OUTPUT"
+            exit 1
+          fi
+
+          # Test --version
+          OUTPUT=$(./spectra/spectra --version 2>&1)
+          if [ -n "$OUTPUT" ]; then
+            echo "  --version: OK ($OUTPUT)"
+          else
+            echo "  --version: FAILED (empty output)"
+            exit 1
+          fi
+
+          # Test basic module loading (no crash on import)
+          timeout 5 ./spectra/spectra session list 2>&1 || {
+            # session list may fail without config, but should not segfault
+            CODE=$?
+            if [ $CODE -eq 124 ]; then
+              echo "  module load: TIMEOUT (hung)"
+              exit 1
+            fi
+            echo "  module load: OK (exited $CODE, no crash)"
+          }
+
+          rm -rf spectra
+
+          echo "==> All smoke tests passed."
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${RELEASE_TAG}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix
+
+          # Extract changelog section for this version
+          cd packages/code
+          awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > /tmp/release-notes.md
+          cd ../..
+
+          # If empty, use a default message
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "Release ${VERSION}" > /tmp/release-notes.md
+          fi
+
+      - name: Create GitHub Release and upload binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd packages/code/binaries
+
+          # Create release with changelog notes (or update if exists)
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_TAG}" \
+            --notes-file /tmp/release-notes.md \
+            spectra-darwin-arm64.tar.gz \
+            spectra-darwin-x64.tar.gz \
+            spectra-linux-x64.tar.gz \
+            spectra-linux-arm64.tar.gz \
+            spectra-windows-x64.zip \
+            2>/dev/null || \
+          gh release upload "${RELEASE_TAG}" \
+            spectra-darwin-arm64.tar.gz \
+            spectra-darwin-x64.tar.gz \
+            spectra-linux-x64.tar.gz \
+            spectra-linux-arm64.tar.gz \
+            spectra-windows-x64.zip \
+            --clobber

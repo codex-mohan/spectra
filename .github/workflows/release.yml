@@ -50,3 +50,57 @@ jobs:
           for TAG in $(git tag -l "@mohanscodex/spectra-*"); do
             git push origin ":refs/tags/$TAG" || true
           done
+
+      - name: Smoke test published packages
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          echo "==> Waiting for npm registry propagation..."
+          sleep 30
+
+          # Get the published version from changesets output
+          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[0].version')
+          echo "Published version: $VERSION"
+
+          # Create isolated test directory
+          WORKDIR=$(mktemp -d)
+          cd "$WORKDIR"
+
+          cat > package.json << 'EOF'
+          {
+            "name": "release-smoke-test",
+            "private": true,
+            "type": "module"
+          }
+          EOF
+
+          echo "==> Installing published packages..."
+          npm install \
+            @mohanscodex/spectra-ai@$VERSION \
+            @mohanscodex/spectra-agent@$VERSION \
+            @mohanscodex/spectra-app@$VERSION
+
+          echo "==> Verifying imports..."
+          node --input-type=module -e "
+            import { EventStream, stream } from '@mohanscodex/spectra-ai';
+            import { Agent, defineTool } from '@mohanscodex/spectra-agent';
+            import { SessionManager } from '@mohanscodex/spectra-app';
+            import { z } from 'zod';
+
+            // Verify each package loads
+            new EventStream();
+            console.log('  @mohanscodex/spectra-ai: OK');
+
+            const tool = defineTool({
+              name: 'test', description: 'test',
+              parameters: z.object({ x: z.string() }),
+              execute: async ({ x }) => ({ content: [{ type: 'text', text: x }] }),
+            });
+            console.log('  @mohanscodex/spectra-agent: OK');
+
+            new SessionManager({ model: 'anthropic/claude-3-haiku-20240307' });
+            console.log('  @mohanscodex/spectra-app: OK');
+
+            console.log('==> All smoke tests passed.');
+          "
+
+          rm -rf "$WORKDIR"

@@ -5,6 +5,8 @@
     "": {
       "name": "spectra",
       "dependencies": {
+        "@opentui/core-linux-x64": "0.3.4",
+        "@opentui/core-linux-x64-musl": "0.3.4",
         "uuid": "^14.0.0",
         "vite": "^8.0.16",
         "vitest": "^4.1.8",
