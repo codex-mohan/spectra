@@ -57,27 +57,27 @@ Defensive mechanisms in the agent loop to prevent common failure modes. Based on
 Broaden the slash command surface to cover observability, session management, git workflows, and configuration — matching capabilities found in OwlCoda (70+ commands).
 
 **Observability:**
-- [ ] `/cost` — show estimated cost for current session (token counts × model pricing)
-- [ ] `/tokens` — show token usage breakdown (input, output, cache read/write)
-- [ ] `/stats` — session statistics (turns, tool calls, duration, tokens)
-- [ ] `/context` — show context window usage and remaining capacity
-- [ ] `/status` — system status (connected provider, model, MCP servers, circuit breaker state)
+- [x] `/cost` — show estimated cost for current session (opens cost dialog with detailed breakdown)
+- [x] `/tokens` — show token usage breakdown (input, output, context window %)
+- [x] `/stats` — session statistics (model, provider, turns, duration, tok/s, cost)
+- [x] `/context` — show context window usage and remaining capacity
+- [x] `/status` — system status (model, provider, MCPs, agent, tokens, cost)
 
 **Session:**
 - [ ] `/save` — explicitly save current session
-- [ ] `/search` — search sessions by query text
+- [x] `/search` — search sessions (opens session list dialog)
 - [ ] `/export` — export session to JSON/Markdown
 - [ ] `/history` — show conversation turn history
 - [ ] `/compress` — manually trigger context compaction
 
 **Git:**
-- [ ] `/commit` — stage and commit changes with AI-generated message
-- [ ] `/review` — review uncommitted changes or current branch
+- [ ] `/commit` — stage and commit changes with AI-generated message (requires template prompt system)
+- [ ] `/review` — review uncommitted changes or current branch (requires template prompt + subagent spawning)
 
 **Config:**
-- [ ] `/theme` — switch color theme
-- [ ] `/permissions` — view/edit tool permission settings
-- [ ] `/settings` — open settings panel
+- [x] `/theme` — switch color theme
+- [x] `/permissions` — view/edit tool permission settings
+- [x] `/settings` — open settings panel
 
 ## 7. Plugin system
 
@@ -193,14 +193,17 @@ skill-name/
 3. Config-defined: custom paths + URLs in config file
 
 **Implementation:**
-- [ ] Skill loader: scan directories, parse YAML frontmatter, validate `name` field
-- [ ] Skill discovery: integrate `find-skills` npm package for pattern-based search
-- [ ] Three-level progressive disclosure: metadata (~100 tokens) → SKILL.md body (<5k words) → bundled resources on demand
-- [ ] `skill` tool: register in tool registry so agent can load skills by name
-- [ ] String substitutions: `$ARGUMENTS`, `$N`, `${SPECTRA_SKILL_DIR}`
+- [x] Skill loader: scan directories, parse YAML frontmatter, validate `name` field
+- [x] Auto-tag extraction from directory category, name segments, section headers, description keywords
+- [x] TF-IDF index with cosine similarity matching (zero-dependency, cached 60s TTL)
+- [x] `find_skills` tool: query mode (scored results) + `all: true` fallback (full catalog)
+- [x] `skill` tool: load full SKILL.md by name with `$ARGUMENTS` substitution
+- [x] String substitutions: `$ARGUMENTS`, `$0`, `${SPECTRA_SKILL_DIR}`
+- [x] Bundled skills: ship 65 skills with Spectra Code, resolved via `import.meta.url`
+- [x] Three-layer precedence: user-defined (`~/.claude/skills/`) > project (`.claude/skills/`) > bundled
+- [x] Skills hint in system prompt: "Use find_skills to discover skills"
 - [ ] Dynamic context injection: `` !`command` `` syntax to run shell commands before injection
 - [ ] Permission system: per-skill allow/deny/ask via config
-- [ ] Default skills bundle: ship all 66 OwlCoda skills with Spectra Code:
 
 **Default skills (66 total):**
 
@@ -289,9 +292,8 @@ skill-name/
 - `chatgpt-apps` — build/scaffold ChatGPT Apps SDK applications with MCP server + widget UI
 - `develop-web-game` — build HTML/JS web games with Playwright-based test loop
 
-*Documentation / Knowledge (2):*
+*Documentation / Knowledge (1):*
 - `openai-docs` — look up OpenAI developer docs via MCP, model selection, GPT-5.4 upgrade guidance
-- `viral-tech-writing` — write viral Chinese tech articles with high open rates (public account style)
 
 *Project Management (1):*
 - `linear` — manage Linear issues, projects, and team workflows via Linear MCP
@@ -312,6 +314,46 @@ skill-name/
 
 *Meta / Using Skills (1):*
 - `using-skills` — mandatory workflows for how to find, read, and use skills
+
+## 11. Template prompt system
+
+Commands like `/commit` and `/review` need structured prompts that are loaded from files, not hardcoded in JS. This enables maintainable, user-overridable command behavior.
+
+**Design:**
+- [ ] Template store: load `.txt` or `.md` files from `packages/code/src/commands/templates/` (bundled) + `.spectra/commands/` (user override)
+- [ ] Variable substitution: `${path}` (worktree), `${ARGUMENTS}` (user input), `${diff}` (git diff), etc.
+- [ ] Register templates with commands: `commands.ts` loads template text, passes as `template` property
+- [ ] User override: if `.spectra/commands/review.txt` exists, use it instead of bundled version
+
+**Templates to create:**
+- [ ] `commit.txt` — git commit protocol (run git status/diff/log, analyze staged changes, draft message, commit)
+- [ ] `review.txt` — code review template (determine review type, gather context, check bugs/structure/performance)
+
+## 12. Subagent spawning from commands
+
+Commands like `/review` need to spawn a child agent session with restricted tools (read-only for review, full access for commit).
+
+**Design:**
+- [ ] `subtask: true` flag on command definition — spawns a child session
+- [ ] Child session inherits permission rules from parent (external_directory, deny rules)
+- [ ] Tool restrictions: `/review` gets read-only tools (read, glob, grep, bash for git), no write/edit
+- [ ] After subtask completes, inject result into parent session as context
+- [ ] Child session title: `"${description} (@${agent} subagent)"`
+
+**Commands that need this:**
+- [ ] `/review` — spawns read-only subagent with review template
+- [ ] `/commit` — can run inline (main agent) or spawn subagent with commit template
+
+## 13. Commit protocol in bash tool
+
+Embed git commit instructions directly in the bash tool's system prompt, so the agent knows the correct commit workflow without needing a dedicated command.
+
+**Design (based on OpenCode's shell.txt):**
+- [ ] Embed commit protocol in bash tool description or system prompt
+- [ ] Steps: run `git status` + `git diff` + `git log` → analyze staged changes → draft message → `git add` + `git commit`
+- [ ] Safety rules: never amend unless HEAD is our commit + not pushed, never force push to main, never skip hooks
+- [ ] Secret detection: refuse to commit files likely containing secrets (.env, credentials.json)
+- [ ] Style matching: read recent commit messages to match tone/format
 
 ### Future (deferred)
 
