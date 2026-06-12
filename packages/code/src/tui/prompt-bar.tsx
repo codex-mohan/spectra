@@ -175,9 +175,8 @@ export function PromptBar(props: PromptBarProps) {
 									{elapsedMs !== null && elapsedMs !== undefined && (
 										<text fg={c.dim}>{(elapsedMs / 1000).toFixed(1)}s</text>
 									)}
-									<text fg={c.dim}>
-										↑{tokenUsage.input} ↓{tokenUsage.output}
-									</text>
+									<text fg="#6ABFA0">↑{tokenUsage.input}</text>
+									<text fg="#D0A880">↓{tokenUsage.output}</text>
 								</box>
 							)}
 						</box>
