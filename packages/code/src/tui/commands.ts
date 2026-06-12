@@ -2,6 +2,8 @@ import type { CmdItem } from './components/command-palette.js';
 import type { SessionStore } from '../services/session-store.js';
 import { getEffortLabel } from './variant-cycle.js';
 import { titlecase } from './utils.js';
+import { calculateCost, formatCost, formatTokens, isFreeModel } from '@mohanscodex/spectra-ai';
+import { lookupContextWindow } from './utils/model-config.js';
 
 export function buildCmdItems(opts: {
 	renderer: { destroy: () => void };
@@ -36,6 +38,10 @@ export function buildCmdItems(opts: {
 			| { type: 'thinking-effort' }
 			| { type: 'toggle-mcp' }
 			| { type: 'debug' }
+			| { type: 'cost' }
+			| { type: 'theme' }
+			| { type: 'permissions' }
+			| { type: 'settings' }
 			| null,
 	) => void;
 	sessionIdRef: { current: string | null };
@@ -43,6 +49,10 @@ export function buildCmdItems(opts: {
 	currentEffort?: string;
 	selectedAgent: string;
 	onSecurityReset?: () => void;
+	tokenUsage?: { input: number; output: number };
+	elapsedMs?: number | null;
+	tokPerSec?: number | null;
+	turnCount?: number;
 }): CmdItem[] {
 	const {
 		renderer,
@@ -70,6 +80,10 @@ export function buildCmdItems(opts: {
 		currentEffort,
 		selectedAgent,
 		onSecurityReset,
+		tokenUsage,
+		elapsedMs,
+		tokPerSec,
+		turnCount,
 	} = opts;
 	return [
 		// Session
@@ -341,6 +355,252 @@ export function buildCmdItems(opts: {
 			slashName: 'exit',
 			slashAliases: ['quit', 'q'],
 			action: () => renderer.destroy(),
+		},
+		// Observability
+		{
+			id: 'cost',
+			label: 'Show Cost',
+			desc: 'Estimated session cost',
+			cat: 'Observability',
+			slashName: 'cost',
+			action: () => {
+				setDialogStep({ type: 'cost' });
+			},
+		},
+		{
+			id: 'tokens',
+			label: 'Show Tokens',
+			desc: 'Token usage breakdown',
+			cat: 'Observability',
+			slashName: 'tokens',
+			action: () => {
+				const input = tokenUsage?.input ?? 0;
+				const output = tokenUsage?.output ?? 0;
+				const total = input + output;
+				if (total === 0) {
+					setStatus('No token usage yet');
+					setTimeout(() => setStatus('Ready'), 3000);
+					return;
+				}
+				const ctxMax = selectedModel ? lookupContextWindow(selectedModel, provider) : null;
+				const pct = ctxMax ? Math.round((total / ctxMax) * 100) : null;
+				const ctxStr = pct != null ? ` · ${pct}% of ${formatTokens(ctxMax!)} ctx` : '';
+				setStatus(`↑${formatTokens(input)} input · ↓${formatTokens(output)} output${ctxStr}`);
+				setTimeout(() => setStatus('Ready'), 5000);
+			},
+		},
+		{
+			id: 'stats',
+			label: 'Show Stats',
+			desc: 'Session statistics',
+			cat: 'Observability',
+			slashName: 'stats',
+			action: () => {
+				const parts: string[] = [];
+				if (selectedModel) parts.push(`Model: ${selectedModel}`);
+				if (provider) parts.push(`Provider: ${provider}`);
+				if (turnCount != null) parts.push(`Turns: ${turnCount}`);
+				if (messagesLength > 0) parts.push(`Messages: ${messagesLength}`);
+				if (elapsedMs != null) {
+					const sec = (elapsedMs / 1000).toFixed(1);
+					parts.push(`Duration: ${sec}s`);
+				}
+				if (tokPerSec != null && tokPerSec > 0) {
+					parts.push(`${tokPerSec.toFixed(1)} tok/s`);
+				}
+				const input = tokenUsage?.input ?? 0;
+				const output = tokenUsage?.output ?? 0;
+				if (input + output > 0) {
+					if (selectedModel && !isFreeModel(selectedModel)) {
+						const cost = calculateCost(selectedModel, { input, output });
+						parts.push(`Cost: ${formatCost(cost.total)}`);
+					}
+					parts.push(`Tokens: ↑${formatTokens(input)} ↓${formatTokens(output)}`);
+				}
+				setStatus(parts.join(' · ') || 'No stats available');
+				setTimeout(() => setStatus('Ready'), 5000);
+			},
+		},
+		{
+			id: 'context',
+			label: 'Show Context',
+			desc: 'Context window usage',
+			cat: 'Observability',
+			slashName: 'context',
+			action: () => {
+				const input = tokenUsage?.input ?? 0;
+				const output = tokenUsage?.output ?? 0;
+				const total = input + output;
+				if (total === 0) {
+					setStatus('No token usage yet');
+					setTimeout(() => setStatus('Ready'), 3000);
+					return;
+				}
+				if (!selectedModel) {
+					setStatus(`Tokens used: ${formatTokens(total)}`);
+					setTimeout(() => setStatus('Ready'), 3000);
+					return;
+				}
+				const ctxMax = lookupContextWindow(selectedModel, provider);
+				if (!ctxMax) {
+					setStatus(`Tokens used: ${formatTokens(total)} (context window unknown for ${selectedModel})`);
+					setTimeout(() => setStatus('Ready'), 3000);
+					return;
+				}
+				const remaining = Math.max(0, ctxMax - total);
+				const pct = Math.round((total / ctxMax) * 100);
+				const bar = pct > 90 ? '█'.repeat(Math.round(pct / 10)) + '░'.repeat(10 - Math.round(pct / 10)) : '';
+				setStatus(`${formatTokens(total)} / ${formatTokens(ctxMax)} (${pct}%) · ${formatTokens(remaining)} remaining${bar ? ' ' + bar : ''}`);
+				setTimeout(() => setStatus('Ready'), 5000);
+			},
+		},
+		{
+			id: 'status',
+			label: 'Status',
+			desc: 'System status',
+			cat: 'Observability',
+			slashName: 'status',
+			action: () => {
+				const parts: string[] = [];
+				if (selectedModel) parts.push(`Model: ${selectedModel}`);
+				if (provider) parts.push(`Provider: ${provider}`);
+				if (mcpCount > 0) parts.push(`MCPs: ${mcpCount}`);
+				if (selectedAgent) parts.push(`Agent: ${selectedAgent}`);
+				const input = tokenUsage?.input ?? 0;
+				const output = tokenUsage?.output ?? 0;
+				if (input + output > 0) {
+					parts.push(`Tokens: ↑${formatTokens(input)} ↓${formatTokens(output)}`);
+					if (selectedModel && !isFreeModel(selectedModel)) {
+						const cost = calculateCost(selectedModel, { input, output });
+						parts.push(`Cost: ${formatCost(cost.total)}`);
+					}
+				}
+				setStatus(parts.join(' · ') || 'No model selected');
+				setTimeout(() => setStatus('Ready'), 5000);
+			},
+		},
+		// Session
+		{
+			id: 'save',
+			label: 'Save Session',
+			desc: 'Explicitly save current session',
+			cat: 'Session',
+			slashName: 'save',
+			action: () => {
+				const sid = sessionIdRef.current;
+				if (!sid) {
+					setStatus('No active session to save');
+					return;
+				}
+				setStatus('Session saved');
+				setTimeout(() => setStatus('Ready'), 2000);
+			},
+		},
+		{
+			id: 'search',
+			label: 'Search Sessions',
+			desc: 'Search sessions by query',
+			cat: 'Session',
+			slashName: 'search',
+			action: () => {
+				setDialogStep({ type: 'session-list' });
+			},
+		},
+		{
+			id: 'export',
+			label: 'Export Session',
+			desc: 'Export session to JSON/Markdown',
+			cat: 'Session',
+			slashName: 'export',
+			action: () => {
+				const sid = sessionIdRef.current;
+				if (!sid) {
+					setStatus('No active session to export');
+					return;
+				}
+				setStatus('Export feature coming soon');
+				setTimeout(() => setStatus('Ready'), 3000);
+			},
+		},
+		{
+			id: 'history',
+			label: 'Show History',
+			desc: 'Conversation turn history',
+			cat: 'Session',
+			slashName: 'history',
+			action: () => {
+				if (messagesLength === 0) {
+					setStatus('No conversation history');
+					return;
+				}
+				setStatus(`${messagesLength} messages in conversation`);
+				setTimeout(() => setStatus('Ready'), 3000);
+			},
+		},
+		{
+			id: 'compress',
+			label: 'Compress Context',
+			desc: 'Manually trigger context compaction',
+			cat: 'Session',
+			slashName: 'compress',
+			action: () => {
+				setStatus('Context compaction coming soon');
+				setTimeout(() => setStatus('Ready'), 3000);
+			},
+		},
+		// Git
+		{
+			id: 'commit',
+			label: 'Commit Changes',
+			desc: 'Stage and commit with AI message',
+			cat: 'Git',
+			slashName: 'commit',
+			action: () => {
+				setStatus('AI commit feature coming soon');
+				setTimeout(() => setStatus('Ready'), 3000);
+			},
+		},
+		{
+			id: 'review',
+			label: 'Review Changes',
+			desc: 'Review uncommitted changes',
+			cat: 'Git',
+			slashName: 'review',
+			action: () => {
+				setStatus('Review feature coming soon');
+				setTimeout(() => setStatus('Ready'), 3000);
+			},
+		},
+		// Config
+		{
+			id: 'theme',
+			label: 'Switch Theme',
+			desc: 'Change color theme',
+			cat: 'Config',
+			slashName: 'theme',
+			action: () => {
+				setDialogStep({ type: 'theme' });
+			},
+		},
+		{
+			id: 'permissions',
+			label: 'Permissions',
+			desc: 'View/edit tool permissions',
+			cat: 'Config',
+			slashName: 'permissions',
+			action: () => {
+				setDialogStep({ type: 'permissions' });
+			},
+		},
+		{
+			id: 'settings',
+			label: 'Settings',
+			desc: 'Open settings panel',
+			cat: 'Config',
+			slashName: 'settings',
+			action: () => {
+				setDialogStep({ type: 'settings' });
+			},
 		},
 	];
 }

@@ -24,9 +24,11 @@ import { ThinkingEffortDialog } from './ui/thinking-effort-dialog.js';
 import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
 import { UpdateDialog } from './ui/update-dialog.js';
+import { CostDialog } from './ui/cost-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import clipboard from 'clipboardy';
+import { loadPricingFromModelsDev, calculateCost, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
 import { buildCmdItems, collectSlashNames } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
@@ -89,6 +91,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [slashSelected, setSlashSelected] = useState(0);
 	const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 });
 
+	const costDisplay = useMemo(() => {
+		const total = tokenUsage.input + tokenUsage.output;
+		if (total === 0 || !selectedModel) return null;
+		if (isFreeModel(selectedModel)) return 'Free';
+		const cost = calculateCost(selectedModel, tokenUsage);
+		return cost.total > 0 ? formatCost(cost.total) : null;
+	}, [tokenUsage, selectedModel]);
+
 	// --- Refs ---
 	const promptTextareaRef = useRef<any>(null);
 	const sessionStore = useRef(new SessionStore());
@@ -132,6 +142,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	}, []);
 
 	useEffect(() => {
+		loadPricingFromModelsDev().catch(() => {});
 		checkForUpdate().then((version) => {
 			if (version) setUpdateVersion(version);
 		});
@@ -241,6 +252,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					securityRef.current?.getReadTracker().reset();
 					securityRef.current?.getDoomLoop().reset();
 				},
+				tokenUsage,
+				elapsedMs,
+				tokPerSec,
 			}),
 		[
 			renderer,
@@ -269,6 +283,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			setNavKey,
 			setDialogStep,
 			securityRef,
+			tokenUsage,
+			elapsedMs,
+			tokPerSec,
 		],
 	);
 
@@ -558,6 +575,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 											<box flexDirection="row" gap={1}>
 												<text fg={c.subtext}>{fmtCtx(used)}</text>
 												{pct !== null && <text fg={pct > 80 ? c.warn : c.dim}>({pct}%)</text>}
+												{costDisplay && <text fg={c.warn}>{costDisplay}</text>}
 											</box>
 										);
 									})()}
@@ -794,6 +812,19 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					thinkingEffort={thinkingEffort}
 					sessionStore={sessionStore.current}
 					mcpCount={mcpCount}
+					onClose={() => setDialogStep(null)}
+					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'cost' && (
+				<CostDialog
+					termWidth={termWidth}
+					termHeight={termHeight}
+					selectedModel={selectedModel || ''}
+					provider={provider || ''}
+					tokenUsage={tokenUsage}
 					onClose={() => setDialogStep(null)}
 					registerHandler={(fn: any) => {
 						dialogKeyHandler.current = fn;
