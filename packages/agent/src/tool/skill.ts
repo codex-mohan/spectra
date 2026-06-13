@@ -1,6 +1,7 @@
 import type { AgentTool, ToolResult } from '../types.js';
 import type { Skill, SkillIndex } from '../skill.js';
 import { loadSkillContent, getSkillDescription, formatSkillCatalogEntry, buildIndex, matchSkills } from '../skill.js';
+import { incrementUseCount } from '../skill-store.js';
 
 export function createSkillTool(skills: Map<string, Skill>): AgentTool {
 	return {
@@ -34,6 +35,9 @@ export function createSkillTool(skills: Map<string, Skill>): AgentTool {
 			}
 
 			const content = await loadSkillContent(skill, skillArgs);
+
+			// Track usage for evolving skills (fire and forget)
+			incrementUseCount(skill.name).catch(() => {});
 
 			const fileList = skill.files.length > 0
 				? `\n\n<skill_files>\n${skill.files.map((f) => `<file>${f}</file>`).join('\n')}\n</skill_files>`

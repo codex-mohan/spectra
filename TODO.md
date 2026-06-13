@@ -355,6 +355,46 @@ Embed git commit instructions directly in the bash tool's system prompt, so the 
 - [ ] Secret detection: refuse to commit files likely containing secrets (.env, credentials.json)
 - [ ] Style matching: read recent commit messages to match tone/format
 
+## 14. Evolving skills (self-learning system)
+
+Skills that are automatically synthesized from past sessions, creating a self-improving agent that learns from successful interactions.
+
+**Three-tier skill system (highest precedence wins):**
+1. Bundled — read-only defaults from the package (lowest)
+2. Evolving — auto-synthesized from sessions, stored in `~/.spectra/skills/` (middle)
+3. User-defined — manually created in project/user dirs (highest)
+
+**Storage:**
+- `~/.spectra/skills/<id>/metadata.json` — full skill document with useCount, version, parentId
+- `~/.spectra/skills/<id>/SKILL.md` — rendered markdown (upstream-compatible)
+
+**Synthesis flow:**
+- After session ends, analyze trace: tools called, success/failure, complexity score
+- If complexity >= threshold (min 3 tool calls, min 6 messages), trigger synthesis
+- LLM generates SKILL.md from session trace (name, description, when_to_use, procedure, pitfalls)
+- Before saving, check for duplicates via TF-IDF similarity (threshold 0.7)
+- If similar skill exists: evolve (version bump) or fork (new ID with parentId linkage)
+- If no duplicate: save as new skill
+
+**Evolution:**
+- Version bump: update existing skill in-place (increment version)
+- Fork: create new skill with different ID, link via parentId
+- `getSkillLineage()`: walk parentId chain for version history
+
+**useCount tracking:**
+- Increment useCount when skill is loaded via `skill` tool
+- Update updatedAt timestamp
+- Boost score in TF-IDF matching: `score * (1 + min(0.1 * log(1 + useCount), 0.5))`
+
+**Implementation:**
+- [ ] Skill storage: save/load evolving skills from `~/.spectra/skills/`
+- [ ] Session trace extraction: summarize tools called, outcomes, patterns
+- [ ] Skill synthesis prompt: generate SKILL.md from trace
+- [ ] Duplicate detection: TF-IDF similarity check before saving
+- [ ] Evolution/forking: version bump or parentId-linked fork
+- [ ] useCount tracking: increment on load, boost in matching
+- [ ] Three-tier merge: bundled → evolving → user in `discoverAndCreateSkillTools()`
+
 ### Future (deferred)
 
 The following are deferred until the core system is stable and functional:

@@ -20,6 +20,18 @@ export {
 	invalidateSkillIndex,
 } from './skill.js';
 export { createSkillTool, createFindSkillsTool } from './tool/skill.js';
+export {
+	loadEvolvingSkill,
+	loadAllEvolvingSkills,
+	saveEvolvingSkill,
+	incrementUseCount,
+	findSimilarSkill,
+	evolveSkill,
+	forkSkill,
+} from './skill-store.js';
+export type { EvolvingSkillMeta } from './skill-store.js';
+export { synthesizeSkill, isSessionEligibleForSynthesis } from './skill-synth.js';
+export type { SessionTrace } from './skill-synth.js';
 export type {
 	AgentTool,
 	ToolResult,

@@ -8,7 +8,7 @@ import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
 import { taskTool } from './task.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
-import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
+import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool, loadAllEvolvingSkills, incrementUseCount } from '@mohanscodex/spectra-agent';
 import type { Skill } from '@mohanscodex/spectra-agent';
 import { textResult } from './utils.js';
 import { listConnectedServers } from '../integrations/mcp/index.js';
@@ -251,12 +251,18 @@ export async function discoverAndCreateSkillTools(): Promise<{
 	// 1. Load bundled skills (lowest precedence)
 	const bundled = await discoverSkills({ customPaths: [bundledSkillsDir] });
 
-	// 2. Load user/project skills (highest precedence — overwrites bundled on collision)
+	// 2. Load evolving/learned skills (middle precedence)
+	const evolving = await loadAllEvolvingSkills();
+	const evolvingMap = new Map<string, Skill>();
+	for (const skill of evolving) evolvingMap.set(skill.name, skill);
+
+	// 3. Load user/project skills (highest precedence)
 	const user = await discoverSkills();
 
-	// 3. Merge: bundled first, then user overwrites
+	// 4. Merge: bundled → evolving → user (user wins on collision)
 	const skills = new Map<string, Skill>();
 	for (const [name, skill] of bundled) skills.set(name, skill);
+	for (const [name, skill] of evolvingMap) skills.set(name, skill);
 	for (const [name, skill] of user) skills.set(name, skill);
 
 	const tools: AgentTool[] = [];
