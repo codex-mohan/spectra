@@ -74,8 +74,8 @@ else
     echo "==> Skipping cross-platform native bindings (--skip-deps)"
 fi
 
-echo "==> Building all packages..."
-bun run build
+echo "==> Building all packages (no cache)..."
+npx turbo run build --force
 
 echo "==> Building binaries..."
 cd packages/code
