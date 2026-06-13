@@ -36,7 +36,7 @@ jobs:
           node-version: '22'
 
       - name: Build binaries
-        run: ./scripts/build-binaries.sh
+        run: bash ./scripts/build-binaries.sh
 
       - name: Smoke test binaries
         run: |
