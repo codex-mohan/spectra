@@ -1,65 +1,65 @@
 {
-	"name": "@mohanscodex/spectra-code",
-	"version": "0.4.9",
-	"type": "module",
-	"description": "Spectra Code — TUI coding agent with CLI commands, tools, and LLM integration",
-	"bin": {
-		"spectra": "dist/src/cli.js"
-	},
-	"main": "./dist/src/index.js",
-	"types": "./dist/src/index.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/src/index.d.ts",
-			"import": "./dist/src/index.js"
-		},
-		"./cli": {
-			"types": "./dist/src/cli.d.ts",
-			"import": "./dist/src/cli.js"
-		}
-	},
-	"files": [
-		"dist",
-		"skills"
-	],
-	"scripts": {
-		"build": "tsc",
-		"dev": "bun src/cli.ts",
-		"start": "bun src/cli.ts",
-		"spectra:help": "tsx src/cli.ts --help",
-		"test": "vitest --run",
-		"lint": "tsc --noEmit"
-	},
-	"dependencies": {
-		"@clack/prompts": "^1.4.0",
-		"@modelcontextprotocol/sdk": "^1.29.0",
-		"@mohanscodex/spectra-agent": "workspace:*",
-		"@mohanscodex/spectra-ai": "workspace:*",
-		"@opentui/core": "^0.3.3",
-		"@opentui/react": "^0.3.3",
-		"chalk": "^5.6.2",
-		"clipboardy": "^5.3.1",
-		"diff": "^9.0.0",
-		"openai": "^5.3.0",
-		"react": "^19.2.6",
-		"strip-ansi": "^7.2.0",
-		"yargs": "^18.0.0",
-		"zod": "^3.25.0"
-	},
-	"devDependencies": {
-		"@types/diff": "^8.0.0",
-		"@types/node": "^22.0.0",
-		"@types/react": "^19.2.14",
-		"@types/react-dom": "^19.2.3",
-		"@types/strip-ansi": "^5.2.1",
-		"@types/yargs": "^17.0.0",
-		"tsx": "^4.19.0",
-		"typescript": "^5.7.0",
-		"vitest": "^3.2.0"
-	},
-	"license": "MIT",
-	"engines": {
-		"bun": ">=1.0.0"
-	},
-	"preferGlobal": true
+    "name":  "@mohanscodex/spectra-code",
+    "version":  "0.5.0",
+    "type":  "module",
+    "description":  "Spectra Code — TUI coding agent with CLI commands, tools, and LLM integration",
+    "bin":  {
+                "spectra":  "dist/src/cli.js"
+            },
+    "main":  "./dist/src/index.js",
+    "types":  "./dist/src/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/src/index.d.ts",
+                              "import":  "./dist/src/index.js"
+                          },
+                    "./cli":  {
+                                  "types":  "./dist/src/cli.d.ts",
+                                  "import":  "./dist/src/cli.js"
+                              }
+                },
+    "files":  [
+                  "dist",
+                  "skills"
+              ],
+    "scripts":  {
+                    "build":  "tsc",
+                    "dev":  "bun src/cli.ts",
+                    "start":  "bun src/cli.ts",
+                    "spectra:help":  "tsx src/cli.ts --help",
+                    "test":  "vitest --run",
+                    "lint":  "tsc --noEmit"
+                },
+    "dependencies":  {
+                         "@clack/prompts":  "^1.4.0",
+                         "@modelcontextprotocol/sdk":  "^1.29.0",
+                         "@mohanscodex/spectra-agent":  "^0.4.9",
+                         "@mohanscodex/spectra-ai":  "^0.4.9",
+                         "@opentui/core":  "^0.3.3",
+                         "@opentui/react":  "^0.3.3",
+                         "chalk":  "^5.6.2",
+                         "clipboardy":  "^5.3.1",
+                         "diff":  "^9.0.0",
+                         "openai":  "^5.3.0",
+                         "react":  "^19.2.6",
+                         "strip-ansi":  "^7.2.0",
+                         "yargs":  "^18.0.0",
+                         "zod":  "^3.25.0"
+                     },
+    "devDependencies":  {
+                            "@types/diff":  "^8.0.0",
+                            "@types/node":  "^22.0.0",
+                            "@types/react":  "^19.2.14",
+                            "@types/react-dom":  "^19.2.3",
+                            "@types/strip-ansi":  "^5.2.1",
+                            "@types/yargs":  "^17.0.0",
+                            "tsx":  "^4.19.0",
+                            "typescript":  "^5.7.0",
+                            "vitest":  "^3.2.0"
+                        },
+    "license":  "MIT",
+    "engines":  {
+                    "bun":  "\u003e=1.0.0"
+                },
+    "preferGlobal":  true
 }
