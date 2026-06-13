@@ -163,6 +163,8 @@ The agent uses `find_skills` to search for relevant skills and `skill` to load t
 | Evolving | `~/.spectra/skills/` (auto-generated from sessions) | Auto |
 | Bundled | Inside the npm package | No |
 
+**Evolving skills:** The agent learns from your sessions. After complex interactions, it automatically creates new skills from what worked and saves them to `~/.spectra/skills/`. These skills are available in all future sessions and get refined over time — if a similar skill already exists, it gets updated instead of duplicated.
+
 Create your own skill by adding a `SKILL.md` with YAML frontmatter:
 
 ```markdown
