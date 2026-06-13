@@ -62,14 +62,13 @@ if [[ "$SKIP_DEPS" == "false" ]]; then
     echo "==> Installing cross-platform native bindings..."
     # bun install only installs optional deps for the current platform
     # We need all platform bindings for bun cross-compilation
-    # Use --force to bypass platform checks (os/cpu restrictions in package.json)
-    # Install all in one command to avoid removing packages from previous installs
-    bun install --force \
+    bun add --optional \
         @opentui/core-darwin-arm64@0.3.4 \
         @opentui/core-darwin-x64@0.3.4 \
         @opentui/core-linux-x64@0.3.4 \
         @opentui/core-linux-arm64@0.3.4 \
         @opentui/core-win32-x64@0.3.4
+    bun install
 else
     echo "==> Skipping cross-platform native bindings (--skip-deps)"
 fi

@@ -16,9 +16,29 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin-arm64
+            ext: ''
+          - os: macos-13
+            platform: darwin-x64
+            ext: ''
+          - os: ubuntu-latest
+            platform: linux-x64
+            ext: ''
+          - os: ubuntu-latest
+            platform: linux-arm64
+            ext: ''
+          - os: windows-latest
+            platform: windows-x64
+            ext: '.exe'
+    runs-on: ${{ matrix.os }}
     env:
       RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      PLATFORM: ${{ matrix.platform }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -35,87 +55,77 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build binaries
-        run: bash ./scripts/build-binaries.sh
+      - name: Install dependencies
+        run: bun install
 
-      - name: Smoke test binaries
+      - name: Build packages
+        run: npx turbo run build --force
+
+      - name: Build binary
+        run: |
+          cd packages/code
+          mkdir -p binaries/${{ matrix.platform }}
+          ENTRY="dist/src/cli.js"
+          if [[ "${{ matrix.platform }}" == "windows-x64" ]]; then
+            bun build --compile --target=bun-${{ matrix.platform }} "$ENTRY" --outfile binaries/${{ matrix.platform }}/spectra.exe
+          else
+            bun build --compile --target=bun-${{ matrix.platform }} "$ENTRY" --outfile binaries/${{ matrix.platform }}/spectra
+          fi
+        shell: bash
+
+      - name: Copy native libraries
+        run: |
+          cd packages/code
+          bash ../../scripts/copy-native-libs.sh ${{ matrix.platform }}
+        shell: bash
+
+      - name: Create archive
         run: |
           cd packages/code/binaries
-
-          echo "==> Testing linux-x64 binary..."
-          tar -xzf spectra-linux-x64.tar.gz
-          chmod +x spectra/spectra
-
-          # Test --help
-          OUTPUT=$(./spectra/spectra --help 2>&1)
-          if echo "$OUTPUT" | grep -q "Spectra Code"; then
-            echo "  --help: OK"
+          if [[ "${{ matrix.platform }}" == "windows-x64" ]]; then
+            cd ${{ matrix.platform }} && zip -r ../spectra-${{ matrix.platform }}.zip . && cd ..
           else
-            echo "  --help: FAILED"
-            echo "$OUTPUT"
-            exit 1
+            mv ${{ matrix.platform }} spectra && tar -czf spectra-${{ matrix.platform }}.tar.gz spectra && mv spectra ${{ matrix.platform }}
           fi
+        shell: bash
 
-          # Test --version
-          OUTPUT=$(./spectra/spectra --version 2>&1)
-          if [ -n "$OUTPUT" ]; then
-            echo "  --version: OK ($OUTPUT)"
-          else
-            echo "  --version: FAILED (empty output)"
-            exit 1
-          fi
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectra-${{ matrix.platform }}
+          path: |
+            packages/code/binaries/spectra-${{ matrix.platform }}.tar.gz
+            packages/code/binaries/spectra-${{ matrix.platform }}.zip
 
-          # Test basic module loading (no crash on import)
-          timeout 5 ./spectra/spectra session list 2>&1 || {
-            # session list may fail without config, but should not segfault
-            CODE=$?
-            if [ $CODE -eq 124 ]; then
-              echo "  module load: TIMEOUT (hung)"
-              exit 1
-            fi
-            echo "  module load: OK (exited $CODE, no crash)"
-          }
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
-          rm -rf spectra
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-          echo "==> All smoke tests passed."
-
-      - name: Extract changelog for this version
-        id: changelog
-        run: |
-          VERSION="${RELEASE_TAG}"
-          VERSION="${VERSION#v}"  # Remove 'v' prefix
-
-          # Extract changelog section for this version
-          cd packages/code
-          awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > /tmp/release-notes.md
-          cd ../..
-
-          # If empty, use a default message
-          if [ ! -s /tmp/release-notes.md ]; then
-            echo "Release ${VERSION}" > /tmp/release-notes.md
-          fi
-
-      - name: Create GitHub Release and upload binaries
+      - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd packages/code/binaries
+          cd artifacts
+          # Collect all archives
+          FILES=""
+          for dir in spectra-*/; do
+            for f in "$dir"*.{tar.gz,zip}; do
+              [ -f "$f" ] && FILES="$FILES $f"
+            done
+          done
 
-          # Create release with changelog notes (or update if exists)
-          gh release create "${RELEASE_TAG}" \
-            --title "${RELEASE_TAG}" \
-            --notes-file /tmp/release-notes.md \
-            spectra-darwin-arm64.tar.gz \
-            spectra-darwin-x64.tar.gz \
-            spectra-linux-x64.tar.gz \
-            spectra-linux-arm64.tar.gz \
-            spectra-windows-x64.zip \
-            2>/dev/null || \
-          gh release upload "${RELEASE_TAG}" \
-            spectra-darwin-arm64.tar.gz \
-            spectra-darwin-x64.tar.gz \
-            spectra-linux-x64.tar.gz \
-            spectra-linux-arm64.tar.gz \
-            spectra-windows-x64.zip \
-            --clobber
+          # Upload to existing release or create new one
+          gh release upload "$RELEASE_TAG" $FILES --clobber 2>/dev/null || \
+          gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" $FILES
