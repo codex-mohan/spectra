@@ -56,7 +56,8 @@ if [[ -n "$PLATFORM" ]]; then
 fi
 
 echo "==> Installing dependencies..."
-bun install
+rm -rf node_modules
+bun install --force
 
 if [[ "$SKIP_DEPS" == "false" ]]; then
     echo "==> Installing cross-platform native bindings..."
