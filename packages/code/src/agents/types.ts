@@ -6,4 +6,6 @@ export interface AgentDefinition {
 	maxTurns: number;
 	temperature?: number;
 	prompt: string;
+	hidden?: boolean;
+	model?: { id: string; provider: string };
 }

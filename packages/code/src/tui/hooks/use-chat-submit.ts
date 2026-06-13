@@ -10,6 +10,7 @@ import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import { parseSlashCommand } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
 import type { CmdItem } from '../components/command-palette.js';
+import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
 
 interface UseChatSubmitDeps {
 	sessionStore: React.MutableRefObject<SessionStore>;
@@ -100,6 +101,8 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const streamingIdRef = useRef<string | null>(null);
 	const queuedMessageRef = useRef<string | null>(null);
 	const preEditSnapshotRef = useRef<string | undefined>(undefined);
+	const titleGeneratedRef = useRef(false);
+	const firstUserMessageRef = useRef<string | null>(null);
 
 	function persistMessage(sdkMsg: Message) {
 		if (!sessionId.current) return;
@@ -117,6 +120,69 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 				sessionStore.current.save(sess);
 				return;
 			}
+		}
+	}
+
+	async function fireTitleAgent(userText: string, assistantText: string) {
+		if (titleGeneratedRef.current) return;
+		titleGeneratedRef.current = true;
+
+		try {
+			const { stream } = await import('@mohanscodex/spectra-ai');
+			const titleDef = AGENT_DEFINITIONS['title'];
+			let modelId = titleDef?.model?.id ?? deps.selectedModel;
+			let prov = titleDef?.model?.provider ?? deps.provider;
+			if (!modelId || !prov) return;
+
+			const { getAuthKey } = await import('../utils/model-config.js');
+			let apiKey = getAuthKey(prov);
+
+			// Fallback to user's model if cheap model provider isn't configured
+			if (!apiKey && titleDef?.model?.provider) {
+				modelId = deps.selectedModel!;
+				prov = deps.provider!;
+				apiKey = getAuthKey(prov);
+			}
+			if (!apiKey) return;
+
+			const prompt = `Generate a concise session title (3-6 words) for this conversation.
+
+User: ${userText.slice(0, 500)}
+Assistant: ${assistantText.slice(0, 500)}
+
+Rules:
+- 3-6 words maximum
+- Summarize the topic or task
+- No quotes, no punctuation at the end
+- Title case
+- Be specific, not generic
+
+Return ONLY the title text, nothing else.`;
+
+			let title = '';
+			const modelObj = { id: modelId, name: modelId, provider: prov, api: prov };
+			const ctx = { messages: [{ role: 'user' as const, content: prompt, timestamp: Date.now() }] };
+			const events = stream(modelObj as any, ctx, { apiKey });
+
+			for await (const event of events) {
+				if (event.type === 'text_delta' && event.delta) {
+					title += event.delta;
+				}
+			}
+
+			title = title.trim().replace(/^["']|["']$/g, '').replace(/\.$/, '').split('\n')[0].trim();
+			if (title.length > 50) title = title.slice(0, 50).trim();
+			if (title.length === 0) return;
+
+			if (!sessionId.current) return;
+			const sess = sessionStore.current.get(sessionId.current);
+			if (!sess) return;
+			sess.title = title;
+			sessionStore.current.save(sess);
+
+			setTerminalTitle(formatSessionTitle(title));
+		} catch {
+			// Title generation failed silently
 		}
 	}
 
@@ -193,6 +259,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 			if (sess && sess.messages.length === 1) {
 				sess.title = trimmed.length > 60 ? trimmed.slice(0, 57) + '...' : trimmed;
 				sessionStore.current.save(sess);
+				firstUserMessageRef.current = trimmed;
 			}
 
 			const start = performance.now();
@@ -323,6 +390,59 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 						setTokenUsage((p) => ({ input: m.usage.input, output: p.output + ot }));
 						currentAssistantId = null;
 						streamingIdRef.current = null;
+
+						// Fire title agent after first assistant response
+						if (firstUserMessageRef.current) {
+							const userText = firstUserMessageRef.current;
+							firstUserMessageRef.current = null;
+							const assistantText = typeof m.content === 'string' ? m.content : '';
+							fireTitleAgent(userText, assistantText).catch(() => {});
+						}
+
+						// Fire skill synthesis in background (non-blocking)
+						if (sessionId.current) {
+							const sid = sessionId.current;
+							(async () => {
+								try {
+									const { synthesizeSkill, isSessionEligibleForSynthesis, loadAllEvolvingSkills } = await import('@mohanscodex/spectra-agent');
+									const sess = sessionStore.current.get(sid);
+									if (!sess) return;
+
+									const toolCalls: { name: string; args: unknown; success: boolean }[] = [];
+									for (const msg of sess.messages) {
+										if (msg.role === 'assistant') {
+											const content = Array.isArray(msg.content) ? msg.content : [];
+											for (const block of content) {
+												if (block.type === 'toolCall') {
+													const tc = block as { type: 'toolCall'; id: string; name: string; arguments: Record<string, unknown> };
+													const resultMsg = sess.messages.find(
+														(r) => r.role === 'toolResult' && (r as any).toolCallId === tc.id,
+													);
+													toolCalls.push({
+														name: tc.name,
+														args: tc.arguments,
+														success: !resultMsg || !(resultMsg as any).isError,
+													});
+												}
+											}
+										}
+									}
+
+									const trace = {
+										messages: sess.messages,
+										toolCalls,
+										duration: e,
+									};
+
+									if (!isSessionEligibleForSynthesis(trace)) return;
+
+									const existing = await loadAllEvolvingSkills();
+									await synthesizeSkill(trace, existing);
+								} catch {
+									// Synthesis failed silently
+								}
+							})();
+						}
 					}
 					if (ev.type === 'tool_execution_start') {
 						if (!shownToolCalls.current.has(ev.toolCallId)) {

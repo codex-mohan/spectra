@@ -34,6 +34,7 @@ import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
 import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
+import { setTerminalTitle, formatSessionTitle } from './utils/terminal-title.js';
 import { loadConfig, type CustomProviderConfig } from '../services/config.js';
 import { registerAllCustomProviders } from '../services/custom-providers.js';
 import { PermissionDialog } from './ui/permission-dialog.js';
@@ -137,6 +138,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	// --- Effects ---
 	useEffect(() => {
+		setTerminalTitle('Spectra');
 		const id = setInterval(() => setPlaceholderIdx((p) => (p + 1) % PLACEHOLDERS.length), 4000);
 		return () => clearInterval(id);
 	}, []);
@@ -661,6 +663,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						securityRef.current?.getReadTracker().reset();
 						securityRef.current?.getDoomLoop().reset();
 						showToast(`Loaded: ${data.title.slice(0, 40)}`, 'info');
+						setTerminalTitle(formatSessionTitle(data.title));
 					}}
 					onDelete={(id) => {
 						sessionStore.current.delete(id);
@@ -669,6 +672,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							setMessages([]);
 							setRoute('home');
 							setHomeKey((k) => k + 1);
+							setTerminalTitle('Spectra');
 						}
 						showToast('Session deleted', 'success');
 					}}
