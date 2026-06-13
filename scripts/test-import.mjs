@@ -72,7 +72,7 @@ try {
 } finally {
 	console.log('\n=== 7. Clean up ===');
 	try {
-		execSync('git checkout packages/agent/package.json packages/app/package.json', { cwd: root, stdio: 'pipe' });
+		execSync('git checkout packages/agent/package.json packages/app/package.json packages/code/package.json', { cwd: root, stdio: 'pipe' });
 	} catch {
 		/* ok */
 	}
