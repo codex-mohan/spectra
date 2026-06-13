@@ -88,13 +88,13 @@ async function readDirRecursive(dir: string): Promise<string[]> {
 }
 
 function parseSkillFrontmatter(content: string): SkillMetadata {
-	const match = content.match(/^---\n([\s\S]*?)\n---/);
+	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 	if (!match) return { name: '' };
 
 	const yaml = match[1];
 	const meta: SkillMetadata = { name: '' };
 
-	for (const line of yaml.split('\n')) {
+	for (const line of yaml.split(/\r?\n/)) {
 		const colonIdx = line.indexOf(':');
 		if (colonIdx === -1) continue;
 
@@ -385,6 +385,21 @@ export async function discoverSkills(options: SkillDiscoveryOptions = {}): Promi
 				const skill = await readSkillFile(skillDir);
 				if (skill && skill.name) {
 					skills.set(skill.name, skill);
+				} else {
+					// Category directory — scan subdirectories for SKILL.md
+					try {
+						const subEntries = await fs.readdir(skillDir, { withFileTypes: true });
+						for (const sub of subEntries) {
+							if (!sub.isDirectory()) continue;
+							const subSkillDir = path.join(skillDir, sub.name);
+							const subSkill = await readSkillFile(subSkillDir);
+							if (subSkill && subSkill.name) {
+								skills.set(subSkill.name, subSkill);
+							}
+						}
+					} catch {
+						// Skip unreadable subdirectories
+					}
 				}
 			}
 		} catch {
