@@ -9,13 +9,15 @@ Spectra Code is a terminal-native AI coding agent with a full-screen TUI, CLI co
 - **TUI** — Full-screen terminal UI with session management, model switching, and real-time streaming
 - **CLI** — Command-line interface for scripting and automation
 - **Skills** — 65+ bundled skills (debugging, deployment, testing, collaboration) with TF-IDF search. User-defined skills override bundled defaults
+- **Evolving skills** — Skills auto-synthesized from session traces, stored in `~/.spectra/skills/`, merged with bundled + user-defined (3-tier precedence)
 - **Custom Tools** — Define your own tools as `.ts` files in `.spectra/tools/`; loaded automatically alongside built-in tools
 - **MCP + ACP** — MCP client (stdio + HTTP) for external tool servers; ACP server (JSON-RPC 2.0) for editor integration with Zed, Neovim, JetBrains
-- **Multiple agents** — Build, Plan, Debug, and Explore modes with tailored tool sets
-- **Sessions** — Persistent session storage with fork, archive, revert, and checkpointing
+- **Multiple agents** — Build, Plan, Debug, and Explore modes with tailored tool sets (blacklist-based tool gating)
+- **Sessions** — Persistent session storage with fork, archive, revert, and checkpointing. LLM-powered session naming via hidden title agent
 - **Custom providers** — Register any LLM provider via the TUI or config
 - **Auth store** — Secure API key management with file permissions
 - **Cost tracking** — Real-time cost display in prompt bar, per-model pricing via models.dev, detailed cost dialog
+- **Slash commands** — `/cost`, `/tokens`, `/stats`, `/context`, `/status`, `/save`, `/search`, `/theme`, `/permissions`, and more
 
 ## Install
 
@@ -151,14 +153,14 @@ This creates two tools: `math_add` and `math_multiply`. Tools are loaded automat
 
 Specialized workflows the agent can discover and use. Ships with 65+ bundled skills covering debugging, deployment, testing, collaboration, security, and more.
 
-Skills are discovered via the `find_skills` tool (TF-IDF search) and loaded on demand via the `skill` tool. The agent automatically searches for relevant skills when a task matches a known workflow.
+The agent uses `find_skills` to search for relevant skills and `skill` to load them on demand.
 
-**Three layers (user-defined wins on collision):**
+**Three-tier precedence (highest wins):**
 
 | Layer | Location | Editable |
 |-------|----------|----------|
-| Project | `.claude/skills/`, `.agents/skills/` | Yes |
-| User | `~/.claude/skills/`, `~/.agents/skills/` | Yes |
+| User-defined | `.claude/skills/`, `.agents/skills/` (project), `~/.claude/skills/` (global) | Yes |
+| Evolving | `~/.spectra/skills/` (auto-generated from sessions) | Auto |
 | Bundled | Inside the npm package | No |
 
 Create your own skill by adding a `SKILL.md` with YAML frontmatter:
@@ -178,7 +180,7 @@ when_to_use: when the user asks to deploy to our platform
 3. Deploy via custom CLI
 ```
 
-Skills override bundled defaults when placed in project or user directories.
+Skills in project or user directories override bundled defaults.
 
 ## Configuration
 
