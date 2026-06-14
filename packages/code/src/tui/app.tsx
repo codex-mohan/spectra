@@ -320,6 +320,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const { handleSubmit, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
 		sessionManager,
+		switchSession: sessionState.switchSession,
 		sessionId,
 		agentRef,
 		securityRef,

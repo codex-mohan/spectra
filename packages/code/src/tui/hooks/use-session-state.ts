@@ -27,25 +27,9 @@ const DEFAULT_STATE: SessionViewState = {
 	thinkingEffort: undefined,
 };
 
-type Setter<T> = (value: T | ((prev: T) => T)) => void;
-
-function makeSetter<T>(
-	getSessionId: () => string | null,
-	getState: (id: string) => SessionViewState,
-	updateState: (id: string, patch: Partial<SessionViewState>) => void,
-	key: keyof SessionViewState,
-): Setter<T> {
-	return ((value: T | ((prev: T) => T)) => {
-		const id = getSessionId();
-		if (!id) return;
-		const current = getState(id);
-		const resolved = typeof value === 'function' ? (value as (prev: T) => T)(current[key] as T) : value;
-		updateState(id, { [key]: resolved } as Partial<SessionViewState>);
-	}) as Setter<T>;
-}
-
 export function useSessionState() {
-	const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+	const activeIdRef = useRef<string | null>(null);
+	const [, forceRender] = useState(0);
 	const sessionsRef = useRef(new Map<string, SessionViewState>());
 
 	function getState(sessionId: string | null): SessionViewState {
@@ -59,27 +43,109 @@ export function useSessionState() {
 		sessionsRef.current.set(sessionId, { ...current, ...patch });
 	}
 
-	const getActiveId = () => activeSessionId;
+	function getActiveId(): string | null {
+		return activeIdRef.current;
+	}
 
 	const switchSession = useCallback((newSessionId: string | null) => {
-		setActiveSessionId(newSessionId);
+		activeIdRef.current = newSessionId;
+		forceRender((n) => n + 1);
 	}, []);
 
-	const activeState = getState(activeSessionId);
+	const activeState = getState(activeIdRef.current);
 
-	const setMessages = makeSetter<ChatMessage[]>(getActiveId, getState, updateState, 'messages');
-	const setIsLoading = makeSetter<boolean>(getActiveId, getState, updateState, 'isLoading');
-	const setStatus = makeSetter<string>(getActiveId, getState, updateState, 'status');
-	const setTokenUsage = makeSetter<{ input: number; output: number }>(getActiveId, getState, updateState, 'tokenUsage');
-	const setElapsedMs = makeSetter<number | null>(getActiveId, getState, updateState, 'elapsedMs');
-	const setTokPerSec = makeSetter<number | null>(getActiveId, getState, updateState, 'tokPerSec');
-	const setSelectedAgent = makeSetter<string>(getActiveId, getState, updateState, 'selectedAgent');
-	const setSelectedModel = makeSetter<string | null>(getActiveId, getState, updateState, 'selectedModel');
-	const setSelectedProvider = makeSetter<string | null>(getActiveId, getState, updateState, 'selectedProvider');
-	const setThinkingEffort = makeSetter<string | undefined>(getActiveId, getState, updateState, 'thinkingEffort');
+	function setMessages(value: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: ChatMessage[]) => ChatMessage[])(current.messages) : value;
+		updateState(id, { messages: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setIsLoading(value: boolean | ((prev: boolean) => boolean)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: boolean) => boolean)(current.isLoading) : value;
+		updateState(id, { isLoading: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setStatus(value: string | ((prev: string) => string)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: string) => string)(current.status) : value;
+		updateState(id, { status: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setTokenUsage(value: { input: number; output: number } | ((prev: { input: number; output: number }) => { input: number; output: number })) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: { input: number; output: number }) => { input: number; output: number })(current.tokenUsage) : value;
+		updateState(id, { tokenUsage: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setElapsedMs(value: number | null | ((prev: number | null) => number | null)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: number | null) => number | null)(current.elapsedMs) : value;
+		updateState(id, { elapsedMs: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setTokPerSec(value: number | null | ((prev: number | null) => number | null)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: number | null) => number | null)(current.tokPerSec) : value;
+		updateState(id, { tokPerSec: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setSelectedAgent(value: string | ((prev: string) => string)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: string) => string)(current.selectedAgent) : value;
+		updateState(id, { selectedAgent: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setSelectedModel(value: string | null | ((prev: string | null) => string | null)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: string | null) => string | null)(current.selectedModel) : value;
+		updateState(id, { selectedModel: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setSelectedProvider(value: string | null | ((prev: string | null) => string | null)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: string | null) => string | null)(current.selectedProvider) : value;
+		updateState(id, { selectedProvider: resolved });
+		forceRender((n) => n + 1);
+	}
+
+	function setThinkingEffort(value: string | undefined | ((prev: string | undefined) => string | undefined)) {
+		const id = activeIdRef.current;
+		if (!id) return;
+		const current = getState(id);
+		const resolved = typeof value === 'function' ? (value as (prev: string | undefined) => string | undefined)(current.thinkingEffort) : value;
+		updateState(id, { thinkingEffort: resolved });
+		forceRender((n) => n + 1);
+	}
 
 	return {
-		activeSessionId,
+		activeSessionId: activeIdRef.current,
 		switchSession,
 		activeState,
 		getState,

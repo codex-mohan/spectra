@@ -16,6 +16,7 @@ import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js
 interface UseChatSubmitDeps {
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionManager: React.MutableRefObject<SessionManager>;
+	switchSession: (id: string | null) => void;
 	sessionId: React.MutableRefObject<string | null>;
 	agentRef: React.MutableRefObject<any>;
 	securityRef: React.MutableRefObject<any>;
@@ -62,6 +63,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const {
 		sessionStore,
 		sessionManager,
+		switchSession,
 		sessionId,
 		agentRef,
 		securityRef,
@@ -254,6 +256,7 @@ Return ONLY the title text, nothing else.`;
 				sess.title = `Session ${new Date().toISOString()}`;
 				sessionStore.current.save(sess);
 				sessionId.current = sess.id;
+				switchSession(sess.id);
 				sessionManager.current.createSession(sess.id);
 				sessionManager.current.setActiveSession(sess.id);
 				setTokenUsage(() => ({ input: 0, output: 0 }));
@@ -533,6 +536,7 @@ Return ONLY the title text, nothing else.`;
 			revertPoint,
 			addMessage,
 			updateMessage,
+			switchSession,
 			sessionStore,
 			sessionId,
 			agentRef,
