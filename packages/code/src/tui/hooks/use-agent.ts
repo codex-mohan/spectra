@@ -4,9 +4,10 @@ import type { CustomProviderConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
 import { getAuthKey } from '../utils/model-config.js';
 import { AGENT_DEFINITIONS } from '../../agents/index.js';
-import { AgentRegistry } from '../../agents/registry.js';
+import type { AgentRegistryConfig } from '../../agents/registry.js';
 import { createSecurityManager } from '../../security/index.js';
 import type { PermissionRequest } from '../../security/types.js';
+import type { SessionManager } from '../../services/session-manager.js';
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
@@ -84,7 +85,19 @@ export function useAgent(deps: UseAgentDeps) {
 
 			const manager = initSecurityManager(process.cwd());
 
-			const allTools = createAllToolsWithSecurity(manager);
+			const agentConfig: AgentRegistryConfig = {
+				model: {
+					id: selectedModel,
+					name: selectedModel,
+					provider,
+					api: provider,
+					baseUrl: customCfg?.baseUrl,
+					headers: customCfg?.headers,
+				},
+				getApiKey: (p: string) => getAuthKey(p),
+			};
+
+			const allTools = createAllToolsWithSecurity(manager, agentConfig);
 			const { filterToolsByAgent } = await import('../../agents/index.js');
 
 			// Discover skills and create skill tools
@@ -131,18 +144,6 @@ export function useAgent(deps: UseAgentDeps) {
 				streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 			});
 
-			AgentRegistry.setConfig({
-				model: {
-					id: selectedModel,
-					name: selectedModel,
-					provider,
-					api: provider,
-					baseUrl: customCfg?.baseUrl,
-					headers: customCfg?.headers,
-				},
-				getApiKey: (p: string) => getAuthKey(p),
-			});
-
 			if (existingMessages.length > 0) {
 				agentRef.current.restoreHistory(existingMessages);
 			}
@@ -165,5 +166,118 @@ export function useAgent(deps: UseAgentDeps) {
 		loadedSessionMessages,
 		getOrCreateAgent,
 		resetAgentForModelSwitch,
+	};
+}
+
+export function createSessionSecurityManager(
+	securityConfig: { permission: any; security: any },
+	enqueuePermission: (req: PermissionRequest) => void,
+): SecurityManager {
+	const manager = createSecurityManager({
+		config: securityConfig.permission,
+		security: securityConfig.security,
+		cwd: process.cwd(),
+		onPersist: (rules) => {
+			try {
+				const existing = loadConfig();
+				const permission: Record<string, unknown> = {
+					...(existing.permission ?? {}),
+				};
+				for (const rule of rules) {
+					if (rule.action !== 'allow') continue;
+					let entry = permission[rule.permission];
+					if (!entry || typeof entry === 'string') {
+						permission[rule.permission] = { [rule.pattern]: 'allow' };
+					} else if (typeof entry === 'object') {
+						(entry as Record<string, string>)[rule.pattern] = 'allow';
+					}
+				}
+				existing.permission = permission as typeof existing.permission;
+				saveConfig(existing);
+			} catch {}
+		},
+	});
+	manager.setListener((req) => {
+		enqueuePermission(req);
+	});
+	return manager;
+}
+
+export function createSessionFactory(securityConfig: { permission: any; security: any }, enqueuePermission: (req: PermissionRequest) => void) {
+	return async (
+		model: string,
+		provider: string,
+		agentName: string,
+		customProviders: Record<string, CustomProviderConfig>,
+		thinkingEffort: string | undefined,
+		securityManager: SecurityManager,
+	) => {
+		const { Agent } = await import('@mohanscodex/spectra-agent');
+		const { initProviders } = await import('@mohanscodex/spectra-ai');
+		initProviders();
+		const { createAllToolsWithSecurity } = await import('../../tools/index.js');
+		const customCfg = customProviders[provider];
+
+		const def = AGENT_DEFINITIONS[agentName];
+
+		const agentConfig: AgentRegistryConfig = {
+			model: {
+				id: model,
+				name: model,
+				provider,
+				api: provider,
+				baseUrl: customCfg?.baseUrl,
+				headers: customCfg?.headers,
+			},
+			getApiKey: (p: string) => getAuthKey(p),
+		};
+
+		const allTools = createAllToolsWithSecurity(securityManager, agentConfig);
+		const { filterToolsByAgent } = await import('../../agents/index.js');
+
+		let skillTools: import('@mohanscodex/spectra-agent').AgentTool[] = [];
+		let skillCount = 0;
+		try {
+			const { discoverAndCreateSkillTools } = await import('../../tools/index.js');
+			const { skills, tools } = await discoverAndCreateSkillTools();
+			skillTools = tools;
+			skillCount = skills.size;
+		} catch {}
+
+		const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], agentName) : [...allTools, ...skillTools];
+
+		let agentsMd = '';
+		try {
+			const agentsPath = `${process.cwd()}/AGENTS.md`;
+			const { readFileSync, existsSync } = await import('fs');
+			if (existsSync(agentsPath)) {
+				agentsMd = readFileSync(agentsPath, 'utf-8');
+			}
+		} catch {}
+
+		const { getSystemPrompt } = await import('../../utils/platform.js');
+
+		const skillsHint = skillCount > 0
+			? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
+			: '';
+		const systemPrompt = [getSystemPrompt() + skillsHint, agentsMd, def?.prompt].filter(Boolean).join('\n\n');
+
+		const agent = new Agent({
+			model: {
+				id: model,
+				name: model,
+				provider,
+				api: provider,
+				baseUrl: customCfg?.baseUrl,
+				headers: customCfg?.headers,
+			},
+			systemPrompt,
+			getApiKey: (p: string) => getAuthKey(p),
+			tools: agentTools,
+			maxTurns: def?.maxTurns ?? 10,
+			streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
+		});
+
+		return { agent, config: agentConfig, securityManager };
 	};
 }

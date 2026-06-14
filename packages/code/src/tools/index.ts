@@ -6,7 +6,7 @@ import { editTool } from './edit.js';
 import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
-import { taskTool } from './task.js';
+import { createTaskTool } from './task.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
 import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool, loadAllEvolvingSkills, incrementUseCount } from '@mohanscodex/spectra-agent';
 import type { Skill } from '@mohanscodex/spectra-agent';
@@ -16,6 +16,7 @@ import { createMcpAgentTools } from './mcp-tool.js';
 import { loadCustomTools } from '../integrations/custom-tools/index.js';
 import type { SecurityManager } from '../security/index.js';
 import { PermissionDeniedError } from '../security/index.js';
+import type { AgentRegistryConfig } from '../agents/registry.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -29,7 +30,6 @@ export const builtinTools: SpectraTool[] = [
 	grepTool,
 	globTool,
 	webFetchTool,
-	taskTool,
 ];
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
@@ -236,8 +236,12 @@ export async function createAllToolsWithExtensions(): Promise<{
 	};
 }
 
-export function createAllToolsWithSecurity(security: SecurityManager): AgentTool[] {
-	return builtinTools.map((t) => spectraToolToAgentTool(t, security));
+export function createAllToolsWithSecurity(security: SecurityManager, config?: AgentRegistryConfig): AgentTool[] {
+	const tools = builtinTools.map((t) => spectraToolToAgentTool(t, security));
+	if (config) {
+		tools.push(spectraToolToAgentTool(createTaskTool(config, security), security));
+	}
+	return tools;
 }
 
 export async function discoverAndCreateSkillTools(): Promise<{

@@ -21,6 +21,7 @@ export interface ConnectedServer {
 	transport: StdioClientTransport | StreamableHTTPClientTransport;
 	tools: McpToolDefinition[];
 	config: McpServerConfig;
+	refCount: number;
 }
 
 const DEFAULT_TIMEOUT = 30000;
@@ -71,6 +72,7 @@ export async function connectServer(config: McpServerConfig): Promise<ConnectedS
 		transport,
 		tools,
 		config,
+		refCount: 0,
 	};
 
 	connectedServers.set(config.name, connected);
@@ -90,10 +92,14 @@ export async function connectServer(config: McpServerConfig): Promise<ConnectedS
 	return connected;
 }
 
-export async function disconnectServer(name: string): Promise<void> {
+export async function disconnectServer(name: string, force = false): Promise<void> {
 	const server = connectedServers.get(name);
 	if (!server) {
 		throw new Error(`Server "${name}" is not connected`);
+	}
+
+	if (server.refCount > 0 && !force) {
+		return;
 	}
 
 	try {
@@ -103,6 +109,24 @@ export async function disconnectServer(name: string): Promise<void> {
 	}
 
 	connectedServers.delete(name);
+}
+
+export function acquireServer(name: string): void {
+	const server = connectedServers.get(name);
+	if (server) {
+		server.refCount++;
+	}
+}
+
+export function releaseServer(name: string): void {
+	const server = connectedServers.get(name);
+	if (server && server.refCount > 0) {
+		server.refCount--;
+	}
+}
+
+export function getServerRefCount(name: string): number {
+	return connectedServers.get(name)?.refCount ?? 0;
 }
 
 export function getConnectedServer(name: string): ConnectedServer | undefined {
@@ -152,7 +176,7 @@ export async function connectAllServers(configs: McpConfig[]): Promise<void> {
 
 export async function shutdownAllServers(): Promise<void> {
 	const names = Array.from(connectedServers.keys());
-	await Promise.all(names.map((name) => disconnectServer(name).catch(() => {})));
+	await Promise.all(names.map((name) => disconnectServer(name, true).catch(() => {})));
 }
 
 export function sanitizeToolName(name: string): string {

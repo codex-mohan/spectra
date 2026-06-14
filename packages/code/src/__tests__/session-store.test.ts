@@ -1,117 +1,134 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, existsSync, readFileSync, writeFileSync, rmSync, mkdirSync } from 'fs';
+import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { SessionStore } from '../services/session-store.js';
 
-// We test SessionStore by constructing it with a custom data directory
-// Since the class reads from getGlobalDataDir(), we test the core logic
-// of session file management by testing the file operations directly.
-//
-// Full integration tests would require mocking getGlobalDataDir — instead,
-// we test the session data model and file patterns.
-
-describe('Session Store', () => {
+describe('Session Store (SQLite)', () => {
 	let tmpDir: string;
+	let store: SessionStore;
 
 	beforeEach(() => {
 		tmpDir = mkdtempSync(join(tmpdir(), 'spectra-test-'));
+		store = new SessionStore(tmpDir);
 	});
 
 	afterEach(() => {
+		store.close();
 		rmSync(tmpDir, { recursive: true, force: true });
 	});
 
-	it('writes and reads session files', () => {
-		const sessionsDir = join(tmpDir, 'sessions');
-		mkdirSync(sessionsDir, { recursive: true });
+	it('creates and retrieves a session', () => {
+		const session = store.create({ title: 'Test Session', model: 'claude-sonnet-4-20250514', provider: 'anthropic' });
+		expect(session.id).toBeDefined();
+		expect(session.title).toBe('Test Session');
 
-		const session = {
-			id: 'test-1',
-			title: 'Test Session',
-			agent: 'build',
-			model: 'claude-sonnet-4-20250514',
-			provider: 'anthropic',
-			created: Date.now(),
-			updated: Date.now(),
-			messages: [
-				{ role: 'user', content: 'Hello', timestamp: Date.now() },
-				{ role: 'assistant', content: [{ type: 'text', text: 'Hi!' }], timestamp: Date.now() },
-			],
-		};
+		const loaded = store.get(session.id);
+		expect(loaded).not.toBeNull();
+		expect(loaded!.title).toBe('Test Session');
+		expect(loaded!.messages).toHaveLength(0);
+	});
 
-		const filePath = join(sessionsDir, 'test-1.json');
-		writeFileSync(filePath, JSON.stringify(session));
+	it('adds messages to a session', () => {
+		const session = store.create({ title: 'Msg Test' });
+		store.addMessage(session.id, { role: 'user', content: 'Hello', timestamp: Date.now() } as any);
+		store.addMessage(session.id, { role: 'assistant', content: [{ type: 'text', text: 'Hi!' }], timestamp: Date.now() } as any);
 
-		expect(existsSync(filePath)).toBe(true);
-		const loaded = JSON.parse(readFileSync(filePath, 'utf-8'));
-		expect(loaded.id).toBe('test-1');
-		expect(loaded.title).toBe('Test Session');
-		expect(loaded.messages).toHaveLength(2);
-		expect(loaded.messages[0].role).toBe('user');
+		const loaded = store.get(session.id);
+		expect(loaded!.messages).toHaveLength(2);
+		expect(loaded!.messages[0].role).toBe('user');
+		expect(loaded!.messages[1].role).toBe('assistant');
 	});
 
 	it('lists sessions sorted by updated time', () => {
-		const sessionsDir = join(tmpDir, 'sessions');
-		mkdirSync(sessionsDir, { recursive: true });
+		const s1 = store.create({ title: 'First' });
+		// Force different timestamps by updating
+		const s2 = store.create({ title: 'Second' });
+		store.save({ ...s2, updated: Date.now() + 1000, messages: [] });
 
-		const older = {
-			id: 'old',
-			title: 'Older',
-			messages: [],
-			created: 1000,
-			updated: 1000,
-		};
-		const newer = {
-			id: 'new',
-			title: 'Newer',
-			messages: [],
-			created: 2000,
-			updated: 2000,
-		};
-
-		writeFileSync(join(sessionsDir, 'old.json'), JSON.stringify(older));
-		writeFileSync(join(sessionsDir, 'new.json'), JSON.stringify(newer));
-
-		const files = [
-			readFileSync(join(sessionsDir, 'old.json'), 'utf-8'),
-			readFileSync(join(sessionsDir, 'new.json'), 'utf-8'),
-		];
-		const sessions = files.map((f) => JSON.parse(f)).sort((a, b) => b.updated - a.updated);
-
-		expect(sessions[0].id).toBe('new');
-		expect(sessions[1].id).toBe('old');
+		const list = store.list();
+		expect(list.length).toBeGreaterThanOrEqual(2);
+		// Most recently updated should be first
+		const idx2 = list.findIndex((s) => s.id === s2.id);
+		const idx1 = list.findIndex((s) => s.id === s1.id);
+		expect(idx2).toBeLessThan(idx1);
 	});
 
-	it('deletes session files', () => {
-		const sessionsDir = join(tmpDir, 'sessions');
-		mkdirSync(sessionsDir, { recursive: true });
+	it('deletes a session', () => {
+		const session = store.create({ title: 'To Delete' });
+		expect(store.get(session.id)).not.toBeNull();
 
-		const session = { id: 'del-test', title: 'To Delete', messages: [], created: 0, updated: 0 };
-		const filePath = join(sessionsDir, 'del-test.json');
-		writeFileSync(filePath, JSON.stringify(session));
-		expect(existsSync(filePath)).toBe(true);
-
-		rmSync(filePath);
-		expect(existsSync(filePath)).toBe(false);
+		store.delete(session.id);
+		expect(store.get(session.id)).toBeNull();
 	});
 
-	it('handles archival by moving to archived directory', () => {
-		const sessionsDir = join(tmpDir, 'sessions');
-		const archiveDir = join(sessionsDir, 'archived');
-		mkdirSync(archiveDir, { recursive: true });
+	it('renames a session', () => {
+		const session = store.create({ title: 'Old Name' });
+		store.rename(session.id, 'New Name');
+		expect(store.get(session.id)!.title).toBe('New Name');
+	});
 
-		const session = { id: 'arch-test', title: 'To Archive', messages: [], created: 0, updated: 0 };
-		const sourcePath = join(sessionsDir, 'arch-test.json');
-		const archivePath = join(archiveDir, 'arch-test.json');
-		writeFileSync(sourcePath, JSON.stringify(session));
+	it('forks a session with messages', () => {
+		const session = store.create({ title: 'Original' });
+		store.addMessage(session.id, { role: 'user', content: 'Hello', timestamp: Date.now() } as any);
 
-		// Move to archive
-		writeFileSync(archivePath, readFileSync(sourcePath));
-		rmSync(sourcePath);
+		const forked = store.fork(session.id);
+		expect(forked).not.toBeNull();
+		expect(forked!.id).not.toBe(session.id);
+		expect(forked!.title).toContain('fork');
+		expect(forked!.messages).toHaveLength(1);
+	});
 
-		expect(existsSync(sourcePath)).toBe(false);
-		expect(existsSync(archivePath)).toBe(true);
-		const archived = JSON.parse(readFileSync(archivePath, 'utf-8'));
-		expect(archived.id).toBe('arch-test');
+	it('creates child sessions', () => {
+		const parent = store.create({ title: 'Parent' });
+		const child = store.createChild(parent.id, { title: 'Child' });
+
+		expect(child.parentId).toBe(parent.id);
+
+		const children = store.getChildren(parent.id);
+		expect(children).toHaveLength(1);
+		expect(children[0].id).toBe(child.id);
+	});
+
+	it('sets and clears revert state', () => {
+		const session = store.create({ title: 'Revert Test' });
+		store.addMessage(session.id, { role: 'user', content: 'msg1', timestamp: Date.now() } as any);
+
+		store.setRevert(session.id, 0);
+		expect(store.get(session.id)!.revert!.messageIndex).toBe(0);
+
+		store.clearRevert(session.id);
+		expect(store.get(session.id)!.revert).toBeUndefined();
+	});
+
+	it('adds and retrieves checkpoints', () => {
+		const session = store.create({ title: 'Checkpoint Test' });
+		store.addCheckpoint(session.id, 0, 'Before edit', 'cp-1');
+
+		const cp = store.getCheckpoint(session.id, 'cp-1');
+		expect(cp).toBeDefined();
+		expect(cp!.label).toBe('Before edit');
+		expect(cp!.turnIndex).toBe(0);
+
+		const all = store.getCheckpoints(session.id);
+		expect(all).toHaveLength(1);
+	});
+
+	it('auto-titles from first user message', () => {
+		const session = store.create({});
+		expect(session.title).toBe('New Session');
+
+		store.addMessage(session.id, { role: 'user', content: 'What is the meaning of life?', timestamp: Date.now() } as any);
+		const loaded = store.get(session.id);
+		expect(loaded!.title).toBe('What is the meaning of life?');
+	});
+
+	it('filters sessions by directory', () => {
+		store.create({ title: 'Dir A', directory: '/a' });
+		store.create({ title: 'Dir B', directory: '/b' });
+
+		const dirA = store.list('/a');
+		expect(dirA).toHaveLength(1);
+		expect(dirA[0].directory).toBe('/a');
 	});
 });
