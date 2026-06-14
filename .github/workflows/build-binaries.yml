@@ -36,6 +36,7 @@ jobs:
             platform: windows-x64
             ext: '.exe'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     env:
       RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
       PLATFORM: ${{ matrix.platform }}
@@ -100,6 +101,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
