@@ -85,7 +85,6 @@ describe('ACP Protocol', () => {
 				'glob',
 				'grep',
 				'read',
-				'task',
 				'web_fetch',
 				'write',
 			]);

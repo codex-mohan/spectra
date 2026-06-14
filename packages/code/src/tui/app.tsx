@@ -10,6 +10,7 @@ import { Tips } from './tips.js';
 import { titlecase } from './utils.js';
 import type { ChatMessage } from './types.js';
 import { SessionStore } from '../services/session-store.js';
+import { SessionManager } from '../services/session-manager.js';
 import { SnapshotManager } from '../services/snapshot-manager.js';
 import { PromptHistoryService } from '../services/prompt-history.js';
 import type { Message } from '@mohanscodex/spectra-ai';
@@ -44,7 +45,7 @@ import { loadSavedConfig, saveModelConfig, fmtCtx, lookupContextWindow } from '.
 import { sdkMessagesToChatMessages } from './utils/session-messages.js';
 import { usePermissionQueue } from './hooks/use-permission-queue.js';
 import { useRevert } from './hooks/use-revert.js';
-import { useAgent } from './hooks/use-agent.js';
+import { useAgent, createSessionFactory, createSessionSecurityManager } from './hooks/use-agent.js';
 import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
 import { cycleEffort } from './variant-cycle.js';
@@ -115,6 +116,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		const cfg = loadConfig();
 		return { permission: cfg.permission, security: cfg.security };
 	});
+
+	const sessionManager = useRef<SessionManager>(
+		new SessionManager(
+			sessionStore.current,
+			createSessionFactory(securityConfig, () => {}),
+			() => createSessionSecurityManager(securityConfig, () => {}),
+		),
+	);
 
 	// --- Derived ---
 	const provider = selectedProvider;
@@ -295,6 +304,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const { handleSubmit, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
+		sessionManager,
 		sessionId,
 		agentRef,
 		securityRef,

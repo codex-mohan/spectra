@@ -2,6 +2,7 @@ import { useRef, useCallback } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import type { Message, AssistantMessage } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
+import type { SessionManager } from '../../services/session-manager.js';
 import type { SnapshotManager } from '../../services/snapshot-manager.js';
 import type { Patch } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
@@ -14,6 +15,7 @@ import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js
 
 interface UseChatSubmitDeps {
 	sessionStore: React.MutableRefObject<SessionStore>;
+	sessionManager: React.MutableRefObject<SessionManager>;
 	sessionId: React.MutableRefObject<string | null>;
 	agentRef: React.MutableRefObject<any>;
 	securityRef: React.MutableRefObject<any>;
@@ -59,6 +61,7 @@ interface UseChatSubmitDeps {
 export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const {
 		sessionStore,
+		sessionManager,
 		sessionId,
 		agentRef,
 		securityRef,
@@ -251,6 +254,8 @@ Return ONLY the title text, nothing else.`;
 				sess.title = `Session ${new Date().toISOString()}`;
 				sessionStore.current.save(sess);
 				sessionId.current = sess.id;
+				sessionManager.current.createSession(sess.id);
+				sessionManager.current.setActiveSession(sess.id);
 				setTokenUsage(() => ({ input: 0, output: 0 }));
 			}
 			persistMessage(userMsg);
