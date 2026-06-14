@@ -39,6 +39,7 @@ import { setTerminalTitle, formatSessionTitle } from './utils/terminal-title.js'
 import { loadConfig, type CustomProviderConfig } from '../services/config.js';
 import { registerAllCustomProviders } from '../services/custom-providers.js';
 import { PermissionDialog } from './ui/permission-dialog.js';
+import { SessionStatusBar } from './ui/session-status-bar.js';
 import { AGENTS, PLACEHOLDERS } from './app-constants.js';
 
 import { loadSavedConfig, saveModelConfig, fmtCtx, lookupContextWindow } from './utils/model-config.js';
@@ -607,6 +608,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								</box>
 							</box>
 						</box>
+						<SessionStatusBar
+							sessionManager={sessionManager.current}
+							activeSessionId={sessionId.current}
+							spinnerFrame={spinnerFrame}
+						/>
 					</box>
 				</box>
 			)}

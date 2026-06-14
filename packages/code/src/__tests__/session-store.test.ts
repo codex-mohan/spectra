@@ -42,16 +42,15 @@ describe('Session Store (SQLite)', () => {
 
 	it('lists sessions sorted by updated time', () => {
 		const s1 = store.create({ title: 'First' });
-		// Force different timestamps by updating
 		const s2 = store.create({ title: 'Second' });
-		store.save({ ...s2, updated: Date.now() + 1000, messages: [] });
+		// Force s2 to have a later timestamp
+		const loaded = store.get(s2.id)!;
+		loaded.updated = Date.now() + 1000;
+		store.save(loaded);
 
 		const list = store.list();
 		expect(list.length).toBeGreaterThanOrEqual(2);
-		// Most recently updated should be first
-		const idx2 = list.findIndex((s) => s.id === s2.id);
-		const idx1 = list.findIndex((s) => s.id === s1.id);
-		expect(idx2).toBeLessThan(idx1);
+		expect(list[0].id).toBe(s2.id);
 	});
 
 	it('deletes a session', () => {
