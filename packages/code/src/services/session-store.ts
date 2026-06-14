@@ -1,8 +1,30 @@
-import Database from 'better-sqlite3';
 import { existsSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { getGlobalDataDir } from '../utils/paths.js';
 import type { Message } from '@mohanscodex/spectra-ai';
+
+type SqliteDatabase = {
+	exec(sql: string): void;
+	prepare(sql: string): {
+		all(...params: unknown[]): unknown[];
+		get(...params: unknown[]): unknown;
+		run(...params: unknown[]): { changes: number };
+	};
+	transaction<T extends (...args: any[]) => any>(fn: T): T;
+	close(): void;
+};
+
+function openDatabase(path: string): SqliteDatabase {
+	try {
+		// bun runtime
+		const { Database } = require('bun:sqlite') as { Database: new (path: string) => SqliteDatabase };
+		return new Database(path);
+	} catch {
+		// node runtime (vitest)
+		const Database = require('better-sqlite3') as { new (path: string): SqliteDatabase };
+		return new Database(path);
+	}
+}
 
 export interface SessionInfo {
 	id: string;
@@ -47,7 +69,7 @@ export interface SessionData {
 }
 
 export class SessionStore {
-	private db: Database.Database;
+	private db: SqliteDatabase;
 
 	constructor(dataDir?: string) {
 		const dir = dataDir || join(getGlobalDataDir(), 'sessions');
@@ -55,9 +77,9 @@ export class SessionStore {
 			mkdirSync(dir, { recursive: true });
 		}
 		const dbPath = join(dir, 'sessions.db');
-		this.db = new Database(dbPath);
-		this.db.pragma('journal_mode = WAL');
-		this.db.pragma('foreign_keys = ON');
+		this.db = openDatabase(dbPath);
+		this.db.exec('PRAGMA journal_mode = WAL');
+		this.db.exec('PRAGMA foreign_keys = ON');
 		this.migrate();
 	}
 

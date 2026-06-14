@@ -23,8 +23,14 @@ export const dbCommand: CommandModule = {
 					if (argv.query) {
 						console.log(`Running SQL query: ${argv.query}`);
 						try {
-							const Database = require('better-sqlite3');
-							const db = new Database(dbPath);
+							let db: any;
+							try {
+								const { Database } = require('bun:sqlite');
+								db = new Database(dbPath);
+							} catch {
+								const Database = require('better-sqlite3');
+								db = new Database(dbPath);
+							}
 							const rows = db.prepare(String(argv.query)).all();
 							console.log(JSON.stringify(rows, null, 2));
 							db.close();
