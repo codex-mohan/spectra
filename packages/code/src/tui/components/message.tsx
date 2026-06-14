@@ -315,9 +315,25 @@ export function MessageView({
 
 		// Reading tools: only show inline indicator, never show output
 		if (isReadingTool) {
-			const displayTitle = argsStr
-				? `${tName === 'read' ? 'Read' : tName === 'glob' ? 'Glob' : 'Grep'} ${argsStr}`
-				: tName;
+			const displayTitle = (() => {
+				if (tName === 'read') {
+					const filePath = argsObj.path || argsObj.file_path || argsStr.split(' ')[0] || '';
+					const limit = argsObj.limit as number | undefined;
+					const suffix = limit ? ` (${limit} lines)` : '';
+					return `Read ${filePath}${suffix}`;
+				}
+				if (tName === 'glob') {
+					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
+					const dir = argsObj.path || argsObj.dir || '';
+					return `Glob ${pattern}${dir ? ` in ${dir}` : ''}`;
+				}
+				if (tName === 'grep') {
+					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
+					const dir = argsObj.path || argsObj.dir || '';
+					return `Grep ${pattern}${dir ? ` in ${dir}` : ''}`;
+				}
+				return argsStr ? `${tName} ${argsStr}` : tName;
+			})();
 			return (
 				<InlineTool
 					icon={tName === 'read' ? '→' : ''}
