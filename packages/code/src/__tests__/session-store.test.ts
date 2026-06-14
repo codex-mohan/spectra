@@ -40,13 +40,11 @@ describe('Session Store (SQLite)', () => {
 		expect(loaded!.messages[1].role).toBe('assistant');
 	});
 
-	it('lists sessions sorted by updated time', () => {
+	it('lists sessions sorted by updated time', async () => {
 		const s1 = store.create({ title: 'First' });
+		// Small delay so s2 gets a later timestamp
+		await new Promise((r) => setTimeout(r, 10));
 		const s2 = store.create({ title: 'Second' });
-		// Force s2 to have a later timestamp
-		const loaded = store.get(s2.id)!;
-		loaded.updated = Date.now() + 1000;
-		store.save(loaded);
 
 		const list = store.list();
 		expect(list.length).toBeGreaterThanOrEqual(2);
