@@ -49,6 +49,7 @@ import { useRevert } from './hooks/use-revert.js';
 import { useAgent, createSessionFactory, createSessionSecurityManager } from './hooks/use-agent.js';
 import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
+import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 
@@ -63,24 +64,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		registerAllCustomProviders(cp);
 		return cp;
 	});
-	const [selectedModel, setSelectedModel] = useState<string | null>(savedConfig.model);
-	const [selectedProvider, setSelectedProvider] = useState<string | null>(savedConfig.provider);
-	const [thinkingEffort, setThinkingEffort] = useState<string | undefined>(undefined);
 	const [route, setRoute] = useState<'home' | 'chat'>('home');
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
-	const [status, setStatus] = useState('Ready');
 	const [spinnerFrame, setSpinnerFrame] = useState(0);
 	const [showCmd, setShowCmd] = useState(false);
 	const [cmdFilter, setCmdFilter] = useState('');
 	const [cmdSelected, setCmdSelected] = useState(0);
-	const [elapsedMs, setElapsedMs] = useState<number | null>(null);
-	const [tokPerSec, setTokPerSec] = useState<number | null>(null);
-	const [tokenUsage, setTokenUsage] = useState({ input: 0, output: 0 });
 	const [showThinking, setShowThinking] = useState(true);
 	const [showToolCalls, setShowToolCalls] = useState(true);
 	const [copiedMsg, setCopiedMsg] = useState(false);
-	const [selectedAgent, setSelectedAgent] = useState('build');
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
 	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
@@ -93,6 +84,29 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [draftText, setDraftText] = useState('');
 	const [slashSelected, setSlashSelected] = useState(0);
 	const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 });
+
+	// Per-session state
+	const sessionState = useSessionState();
+	const messages = sessionState.activeState.messages;
+	const isLoading = sessionState.activeState.isLoading;
+	const status = sessionState.activeState.status;
+	const tokenUsage = sessionState.activeState.tokenUsage;
+	const elapsedMs = sessionState.activeState.elapsedMs;
+	const tokPerSec = sessionState.activeState.tokPerSec;
+	const selectedAgent = sessionState.activeState.selectedAgent;
+	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
+	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
+	const thinkingEffort = sessionState.activeState.thinkingEffort;
+	const setMessages = sessionState.setMessages;
+	const setIsLoading = sessionState.setIsLoading;
+	const setStatus = sessionState.setStatus;
+	const setTokenUsage = sessionState.setTokenUsage;
+	const setElapsedMs = sessionState.setElapsedMs;
+	const setTokPerSec = sessionState.setTokPerSec;
+	const setSelectedAgent = sessionState.setSelectedAgent;
+	const setSelectedModel = sessionState.setSelectedModel;
+	const setSelectedProvider = sessionState.setSelectedProvider;
+	const setThinkingEffort = sessionState.setThinkingEffort;
 
 	const costDisplay = useMemo(() => {
 		const total = tokenUsage.input + tokenUsage.output;
@@ -662,13 +676,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					mode={dialogStep.mode || 'load'}
 					onLoad={(data) => {
 						const { messages: loadedMsgs, tokenUsage: tu } = sdkMessagesToChatMessages(data);
-						setTokenUsage(tu);
-						setMessages(() => loadedMsgs);
+						// Switch to the session's per-session state
+						sessionState.switchSession(data.id);
+						sessionState.updateState(data.id, {
+							messages: loadedMsgs,
+							tokenUsage: tu,
+							selectedModel: data.model,
+							selectedProvider: data.provider || data.model.split('/')[0],
+							selectedAgent: data.agent || 'build',
+							thinkingEffort: data.thinkingEffort || undefined,
+						});
 						sessionId.current = data.id;
-						setSelectedModel(data.model);
-						setSelectedProvider(data.provider || data.model.split('/')[0]);
-						setSelectedAgent(data.agent);
-						setThinkingEffort(data.thinkingEffort || undefined);
 						setRoute('chat');
 						setDialogStep(null);
 						loadedSessionMessages.current = data.messages as unknown as Message[];
@@ -685,7 +703,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						sessionStore.current.delete(id);
 						if (sessionId.current === id) {
 							sessionId.current = null;
-							setMessages([]);
+							setMessages(() => []);
 							setRoute('home');
 							setHomeKey((k) => k + 1);
 							setTerminalTitle('Spectra');
@@ -879,7 +897,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							const data = sessionStore.current.get(forked.id);
 							if (data) {
 								const { messages: loadedMsgs } = sdkMessagesToChatMessages(data);
-								setMessages(loadedMsgs);
+								setMessages(() => loadedMsgs);
 								sessionId.current = forked.id;
 								loadedSessionMessages.current = data.messages as unknown as Message[];
 								showToast('Session forked', 'success');
