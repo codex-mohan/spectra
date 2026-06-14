@@ -104,6 +104,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const toolMsgMap = useRef(new Map<string, string>());
 	const toolArgsMap = useRef(new Map<string, unknown>());
 	const streamingIdRef = useRef<string | null>(null);
+	const streamingSessionsRef = useRef(new Set<string>());
 	const queuedMessageRef = useRef<string | null>(null);
 	const preEditSnapshotRef = useRef<string | undefined>(undefined);
 	const titleGeneratedRef = useRef(false);
@@ -142,7 +143,6 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 			const { getAuthKey } = await import('../utils/model-config.js');
 			let apiKey = getAuthKey(prov);
 
-			// Fallback to user's model if cheap model provider isn't configured
 			if (!apiKey && titleDef?.model?.provider) {
 				modelId = deps.selectedModel!;
 				prov = deps.provider!;
@@ -195,7 +195,9 @@ Return ONLY the title text, nothing else.`;
 		async (text: string) => {
 			const trimmed = text.trim();
 			if (!trimmed) return;
-			if (isStreamingRef.current) {
+
+			// Only block if THIS session is streaming, not any session
+			if (streamingSessionsRef.current.has(sessionId.current || '')) {
 				queuedMessageRef.current = trimmed;
 				return;
 			}
@@ -235,15 +237,7 @@ Return ONLY the title text, nothing else.`;
 			toolArgsMap.current.clear();
 			promptHistoryService.current.append(trimmed);
 
-			const uid = genId();
-			const userMsg: Message = { role: 'user', content: trimmed, timestamp: Date.now() };
-			addMessage({ id: uid, role: 'user', content: trimmed, model: selectedModel });
-			setIsLoading(true);
-			setStatus('Streaming...');
-			setRoute('chat');
-			isStreamingRef.current = true;
-			streamingIdRef.current = 'pending';
-
+			// Create session FIRST so switchSession sets activeIdRef before addMessage
 			if (!sessionId.current) {
 				agentRef.current = null;
 				loadedSessionMessages.current = [];
@@ -261,6 +255,17 @@ Return ONLY the title text, nothing else.`;
 				sessionManager.current.setActiveSession(sess.id);
 				setTokenUsage(() => ({ input: 0, output: 0 }));
 			}
+
+			const uid = genId();
+			const userMsg: Message = { role: 'user', content: trimmed, timestamp: Date.now() };
+			addMessage({ id: uid, role: 'user', content: trimmed, model: selectedModel });
+			setIsLoading(true);
+			setStatus('Streaming...');
+			setRoute('chat');
+			isStreamingRef.current = true;
+			streamingSessionsRef.current.add(sessionId.current || '');
+			streamingIdRef.current = 'pending';
+
 			persistMessage(userMsg);
 
 			const sess = sessionStore.current.get(sessionId.current);
@@ -299,7 +304,6 @@ Return ONLY the title text, nothing else.`;
 					}
 				}
 
-				// Capture pre-edit file state before any tools run
 				try {
 					preEditSnapshotRef.current = await snapshotManager.current.track();
 				} catch (err) {
@@ -368,7 +372,6 @@ Return ONLY the title text, nothing else.`;
 							turnDurationMs: Math.round(duration),
 						});
 
-						// Compute patch: which files changed during this turn
 						let patch: Patch | undefined;
 						if (preEditSnapshotRef.current) {
 							try {
@@ -399,7 +402,6 @@ Return ONLY the title text, nothing else.`;
 						currentAssistantId = null;
 						streamingIdRef.current = null;
 
-						// Fire title agent after first assistant response
 						if (firstUserMessageRef.current) {
 							const userText = firstUserMessageRef.current;
 							firstUserMessageRef.current = null;
@@ -407,7 +409,6 @@ Return ONLY the title text, nothing else.`;
 							fireTitleAgent(userText, assistantText).catch(() => {});
 						}
 
-						// Fire skill synthesis in background (non-blocking)
 						if (sessionId.current) {
 							const sid = sessionId.current;
 							(async () => {
@@ -512,7 +513,8 @@ Return ONLY the title text, nothing else.`;
 				setIsLoading(false);
 				setSubmitKey((k) => k + 1);
 				setInterruptKey(0);
-				isStreamingRef.current = false;
+				streamingSessionsRef.current.delete(sessionId.current || '');
+				isStreamingRef.current = streamingSessionsRef.current.size > 0;
 				streamingIdRef.current = null;
 				currentTurnStartRef.current = null;
 				currentTurnMsgIdRef.current = null;

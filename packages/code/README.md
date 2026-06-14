@@ -2,80 +2,142 @@
 
 > AI coding agent in your terminal. Built on the Spectra agent framework.
 
-Spectra Code is a terminal-native AI coding agent with a full-screen TUI, CLI commands, MCP integration, and ACP support for editor integration. It runs locally, respects your config, and keeps your API keys in a secure auth store.
+Spectra Code is a terminal-native coding agent with a full-screen TUI, CLI utilities, MCP tool-server support, ACP editor integration, custom tools, evolving skills, and configurable safety controls. It runs locally, keeps API keys in the system auth store, and adapts to your project through config files, `AGENTS.md`, skills, and custom tools.
 
 ## Features
 
-- **TUI** — Full-screen terminal UI with session management, model switching, and real-time streaming
-- **CLI** — Command-line interface for scripting and automation
-- **Skills** — 65+ bundled skills (debugging, deployment, testing, collaboration) with TF-IDF search. User-defined skills override bundled defaults
-- **Evolving skills** — Skills auto-synthesized from session traces, stored in `~/.spectra/skills/`, merged with bundled + user-defined (3-tier precedence)
-- **Custom Tools** — Define your own tools as `.ts` files in `.spectra/tools/`; loaded automatically alongside built-in tools
-- **MCP + ACP** — MCP client (stdio + HTTP) for external tool servers; ACP server (JSON-RPC 2.0) for editor integration with Zed, Neovim, JetBrains
-- **Multiple agents** — Build, Plan, Debug, and Explore modes with tailored tool sets (blacklist-based tool gating)
-- **Sessions** — Persistent session storage with fork, archive, revert, and checkpointing. LLM-powered session naming via hidden title agent
-- **Custom providers** — Register any LLM provider via the TUI or config
-- **Auth store** — Secure API key management with file permissions
-- **Cost tracking** — Real-time cost display in prompt bar, per-model pricing via models.dev, detailed cost dialog
-- **Slash commands** — `/cost`, `/tokens`, `/stats`, `/context`, `/status`, `/save`, `/search`, `/theme`, `/permissions`, and more
+- **Full-screen TUI** — Chat with agents, switch models/providers, manage sessions, view costs, and control permissions.
+- **Agent modes** — `build`, `plan`, and `debug` modes with tailored tool access; `explore` is available as a fast read-only sub-agent.
+- **Bundled and evolving skills** — 185+ bundled skills plus skills learned from sessions and custom user/project skills.
+- **Custom tools** — Add `.ts` or `.js` tools in `.spectra/tools/`, `.opencode/tools/`, `.claude/tools/`, `.agents/tools/`, or the global Spectra config directory.
+- **MCP integration** — Connect stdio and HTTP MCP servers and expose their tools to the agent.
+- **ACP support** — Run as an Agent Client Protocol server for editors such as Zed, Neovim, JetBrains, and other ACP-compatible clients.
+- **Persistent sessions** — Save, resume, fork, archive, and checkpoint conversations.
+- **Configurable providers** — Use built-in providers or register custom OpenAI-compatible providers.
+- **Security controls** — Permission rules, path safety, read-before-write guards, SSRF protection, and doom-loop detection.
+- **Cost and token visibility** — Real-time cost display, token counts, and model pricing support.
 
 ## Install
 
+Install the CLI globally:
+
 ```bash
-bun add @mohanscodex/spectra-code
+bun add -g @mohanscodex/spectra-code
 ```
 
-Or run directly:
+Or run once without installing:
 
 ```bash
 npx @mohanscodex/spectra-code
+# or
+bunx @mohanscodex/spectra-code
 ```
 
-## Usage
+Set an API key before running Spectra Code:
 
-### TUI (default)
+```bash
+export ANTHROPIC_API_KEY="..."
+# or
+export SPECTRA_API_KEY="..."
+```
+
+Supported key sources include `SPECTRA_API_KEY`, `ANTHROPIC_API_KEY`, and `OPENAI_API_KEY`.
+
+## Quick start
 
 ```bash
 spectra
 ```
 
-Launches the full-screen terminal UI. Navigate with keyboard shortcuts, switch models, browse sessions, and chat with agents.
+This launches the TUI in the current directory.
 
-### CLI Commands
-
-```bash
-spectra session list           # List all sessions
-spectra session delete --id <id>  # Delete a session
-spectra agent list             # List available agent modes
-spectra doctor                 # Run system health check
-spectra db path                # Show data directory path
-```
-
-#### MCP Server Management
+Useful first commands:
 
 ```bash
-spectra mcp list                          # List configured MCP servers
-spectra mcp add my-server --command "npx ..."  # Add a local MCP server
-spectra mcp add my-api --url "https://..."     # Add a remote MCP server
-spectra mcp connect my-server             # Connect to a server
-spectra mcp disconnect my-server          # Disconnect
-spectra mcp tools --server my-server      # List available tools
-spectra mcp remove my-server              # Remove from config
+spectra doctor          # Check config, API key, shell, git, ripgrep, fd, and provider setup
+spectra session list    # List saved sessions for the current project
+spectra agent list      # List available agent modes
+spectra mcp list        # List configured MCP servers
+spectra acp             # Start the ACP server on stdio
 ```
+
+## Usage
+
+### TUI
+
+Run the default command:
+
+```bash
+spectra
+```
+
+The TUI lets you:
+
+- Chat with the selected agent.
+- Switch between `build`, `plan`, and `debug` modes.
+- Switch models and providers.
+- Browse, resume, fork, archive, rename, and delete sessions.
+- Manage permissions and security settings.
+- View token usage, cost, tool calls, and model thinking output.
+- Use slash commands such as `/sessions`, `/agent`, `/thinking`, `/tools`, `/permissions`, `/theme`, `/cost`, and `/doctor`.
+
+### CLI
+
+```bash
+spectra session list
+spectra session delete --id <id>
+spectra agent list
+spectra doctor
+spectra db path
+```
+
+`session delete` can also be run without `--id` to select a session interactively.
+
+### MCP
+
+List configured servers:
+
+```bash
+spectra mcp list
+```
+
+Add a local stdio MCP server:
+
+```bash
+spectra mcp add filesystem --command "npx -y @modelcontextprotocol/server-filesystem ."
+spectra mcp connect filesystem
+spectra mcp tools --server filesystem
+spectra mcp disconnect filesystem
+```
+
+Add a remote HTTP MCP server:
+
+```bash
+spectra mcp add my-api --url "https://example.com/mcp" --header "Authorization=Bearer ..."
+spectra mcp connect my-api
+```
+
+Remove a server:
+
+```bash
+spectra mcp remove filesystem
+```
+
+MCP servers are stored in the Spectra config file as `mcp` entries.
 
 ### ACP
 
-Use Spectra Code as the AI agent inside your editor:
+Run Spectra Code as an ACP-compatible agent:
 
 ```bash
 spectra acp
 ```
 
-Compatible with [any editor that supports ACP](https://agentclientprotocol.com) — Zed, Neovim (avante.nvim, CodeCompanion), JetBrains, and more.
+Compatible with any editor that supports the [Agent Client Protocol](https://agentclientprotocol.com).
 
-#### Zed Configuration
+#### Zed
 
-Add to `~/.config/zed/settings.json`:
+Add this to `~/.config/zed/settings.json`:
 
 ```json
 {
@@ -101,9 +163,81 @@ Add to `~/.config/zed/settings.json`:
 }
 ```
 
-## Custom Tools
+## Configuration
 
-Define your own tools the agent can call. Place `.ts` files in `.spectra/tools/` (project) or `~/.config/spectra/tools/` (global). Each file becomes a tool named after the filename.
+Spectra Code reads configuration from environment variables and JSON files.
+
+Configuration files are discovered in this order, with closer project-level config taking precedence:
+
+1. `SPECTRA_CONFIG` environment variable, parsed as JSON.
+2. `spectra.json`, `spectra.jsonc`, `config.json`, `opencode.json`, or `opencode.jsonc` in discovered config directories.
+3. Global config directory:
+   - Linux/macOS: `~/.config/spectra/`
+   - Windows: `%APPDATA%\spectra\`
+
+Discovered project/user directories include `.spectra`, `.opencode`, `.claude`, and `.agents` found while walking from the current directory up to your home directory, plus `~/.spectra`.
+
+Example `spectra.json`:
+
+```json
+{
+  "model": "anthropic/claude-sonnet-4-20250514",
+  "provider": "anthropic",
+  "smallModel": "anthropic/claude-3-5-haiku-20241022",
+  "agent": "build",
+  "theme": "dark",
+  "mcp": [
+    {
+      "name": "filesystem",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "enabled": true
+    }
+  ],
+  "providers": {
+    "local-llm": {
+      "name": "Local LLM",
+      "baseUrl": "http://localhost:11434/v1",
+      "models": {
+        "local-model": {
+          "name": "local-model",
+          "contextWindow": 128000,
+          "maxOutput": 32000
+        }
+      }
+    }
+  },
+  "permission": {
+    "read": { "*": "ask" },
+    "write": { "*.env": "deny" },
+    "bash": { "git *": "allow", "rm *": "deny", "*": "ask" },
+    "external_directory": { "*": "ask", "~/Downloads/*": "allow" }
+  },
+  "security": {
+    "writeGuard": "soft",
+    "blockedPaths": ["**/.ssh/**", "**/.aws/credentials"],
+    "allowedPaths": [".env.example"],
+    "ssrf": {
+      "blockPrivate": true,
+      "allowedHosts": ["api.internal.corp"]
+    }
+  }
+}
+```
+
+Useful environment variables:
+
+- `SPECTRA_CONFIG` — JSON config object.
+- `SPECTRA_MODEL` — default model.
+- `SPECTRA_PROVIDER` — default provider.
+- `SPECTRA_API_KEY` — API key override.
+- `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` — provider-specific keys.
+
+## Custom tools
+
+Create a `tools` directory in any discovered config directory, such as `.spectra/tools/`, then add `.ts` or `.js` files.
+
+Each default export becomes a tool named after the file. Named exports become `<file>_<export>` tools.
 
 ```typescript
 // .spectra/tools/weather.ts
@@ -124,7 +258,7 @@ export default {
 };
 ```
 
-Multiple tools per file using named exports:
+Multiple tools per file:
 
 ```typescript
 // .spectra/tools/math.ts
@@ -147,25 +281,29 @@ export const multiply = {
 };
 ```
 
-This creates two tools: `math_add` and `math_multiply`. Tools are loaded automatically by the ACP server and merged into the agent's toolset alongside built-in and MCP tools.
+This creates `math_add` and `math_multiply`.
+
+Custom tools can return a string or an MCP-style result:
+
+```typescript
+return {
+  content: [{ type: "text", text: "Done" }],
+};
+```
 
 ## Skills
 
-Specialized workflows the agent can discover and use. Ships with 65+ bundled skills covering debugging, deployment, testing, collaboration, security, and more.
+Skills are reusable workflows that Spectra Code can discover and load during a session.
 
-The agent uses `find_skills` to search for relevant skills and `skill` to load them on demand.
+Skill layers, from lowest to highest precedence:
 
-**Three-tier precedence (highest wins):**
+| Layer | Location | Notes |
+| --- | --- | --- |
+| Bundled | Included in the npm package | Shipped with 185+ workflows |
+| Evolving | `~/.spectra/skills/` | Generated from previous sessions |
+| User/project | `.claude/skills/`, `.agents/skills/`, `~/.claude/skills/`, and other discovered skill directories | Override bundled and evolving skills |
 
-| Layer | Location | Editable |
-|-------|----------|----------|
-| User-defined | `.claude/skills/`, `.agents/skills/` (project), `~/.claude/skills/` (global) | Yes |
-| Evolving | `~/.spectra/skills/` (auto-generated from sessions) | Auto |
-| Bundled | Inside the npm package | No |
-
-**Evolving skills:** The agent learns from your sessions. After complex interactions, it automatically creates new skills from what worked and saves them to `~/.spectra/skills/`. These skills are available in all future sessions and get refined over time — if a similar skill already exists, it gets updated instead of duplicated.
-
-Create your own skill by adding a `SKILL.md` with YAML frontmatter:
+Create a custom skill with a `SKILL.md` file:
 
 ```markdown
 ---
@@ -177,138 +315,217 @@ when_to_use: when the user asks to deploy to our platform
 # My Deploy
 
 ## Steps
-1. Run tests
-2. Build
-3. Deploy via custom CLI
+1. Run tests.
+2. Build the project.
+3. Deploy with the custom platform CLI.
 ```
 
-Skills in project or user directories override bundled defaults.
-
-## Configuration
-
-Spectra Code reads config from `spectra.json`, `opencode.json`, or `config.json` in the project or global config directory (`~/.config/spectra/` on Linux, `%LOCALAPPDATA%/spectra/Config/` on Windows).
-
-```json
-{
-  "model": "anthropic/claude-sonnet-4-20250514",
-  "agent": "build",
-  "theme": "dark",
-  "mcp": [
-    {
-      "name": "filesystem",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-      "enabled": true
-    }
-  ]
-}
-```
-
-Environment variables: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `SPECTRA_MODEL`, `SPECTRA_PROVIDER`.
+During a session, the agent can use `find_skills` to discover relevant skills and `skill` to load instructions.
 
 ## Security
 
-Spectra Code runs with layered, configurable security — everything has sensible defaults but nothing is locked down.
+Spectra Code uses layered safety controls that are configurable but not hardcoded.
 
-### Permission System
+### Permissions
 
-Three-action model per tool and pattern: `allow`, `ask`, or `deny`. Everything defaults to `ask` unless configured.
+Permission rules use `allow`, `ask`, or `deny`.
 
 ```json
 {
   "permission": {
-    "*": "allow",
-    "external_directory": { "*": "ask", "~/Downloads/*": "allow" },
+    "*": "ask",
+    "read": { "*": "ask" },
+    "write": { "*.env": "deny" },
     "bash": { "git *": "allow", "rm *": "deny", "*": "ask" },
-    "write": { "*.env": "deny" }
+    "external_directory": { "*": "ask", "~/Downloads/*": "allow" }
   }
 }
 ```
 
-**Permission keys:** `read`, `write` (covers edit/write/apply_patch), `bash`, `grep`, `glob`, `web_fetch`, `task`, `external_directory`
+Supported permission keys include:
 
-### Tool Capabilities
+- `read`
+- `write`
+- `bash`
+- `grep`
+- `glob`
+- `web_fetch`
+- `task`
+- `external_directory`
 
-Every tool declares its intent — `reads` (returns file content to the model) and/or `writes` (modifies files). Custom tools declare their own and automatically get guards and permission grouping.
+### Read-before-write guard
 
-| Tool | reads | writes |
-|---|---|---|
-| read, glob, grep | ✓ | |
-| edit, write, apply_patch | | ✓ |
-| bash | ✓ | ✓ |
-| web_fetch, task | | |
-
-### Read-Before-Write Guard
-
-Applies to all write-capable tools. Files must be read before they can be overwritten. Modes:
-
-- **soft** (default): first untracked write to existing file refused, second attempt allowed
-- **strict**: permanent block until the file is read
-- **off**: disabled entirely
-
-### Path Safety
-
-Sensitive paths blocked by default: `.ssh/`, `.aws/credentials`, `.gnupg/`, `/etc/shadow`, `.docker/config.json`, `.kube/config`, and more. Override via `allowedPaths`.
+Write-capable tools can require files to be read before they are overwritten.
 
 ```json
 {
   "security": {
-    "blockedPaths": ["**/.ssh/**"],
-    "allowedPaths": [".env.example"],
     "writeGuard": "soft",
     "writeGuardExclude": ["apply_patch"]
   }
 }
 ```
 
-### SSRF Guard
+Modes:
 
-Blocks loopback and RFC1918 addresses for `web_fetch`. Configurable allowlist.
+| Mode | Behavior |
+| --- | --- |
+| `soft` | First untracked write to an unread file is refused; a second attempt is allowed. |
+| `strict` | Writes are blocked until the file has been read. |
+| `off` | Disabled. |
+
+### Path safety
+
+Block sensitive paths by default and allow specific exceptions:
 
 ```json
 {
   "security": {
-    "ssrf": { "blockPrivate": true, "allowedHosts": ["api.internal.corp"] }
+    "blockedPaths": ["**/.ssh/**", "**/.aws/credentials", "**/.gnupg/**"],
+    "allowedPaths": [".env.example"]
   }
 }
 ```
 
-### Doom Loop Detection
+### SSRF guard
 
-- Identical tool calls 3+ times → blocks the loop
-- 8+ consecutive reads without writes → injects warning
-- 4+ patch failures on same file → suggests rewrite
+`web_fetch` can block loopback and private-network addresses:
 
-### File Checkpointing
+```json
+{
+  "security": {
+    "ssrf": {
+      "blockPrivate": true,
+      "blockLoopback": true,
+      "allowedHosts": ["api.internal.corp"],
+      "followRedirects": false
+    }
+  }
+}
+```
 
-Files are snapshotted before each turn. Ctrl+Shift+Y rolls back file changes. Everything is overridable — no hardcoded restrictions.
+### Doom-loop detection
+
+Spectra Code detects repeated or unproductive tool loops and can warn or stop the agent when it sees patterns such as repeated identical calls, long read-only loops, or repeated patch failures.
+
+## Sessions and checkpoints
+
+Sessions are stored in the global data directory:
+
+- Linux: `~/.local/share/spectra/sessions/sessions.db`
+- macOS: `~/Library/Application Support/spectra/sessions/sessions.db`
+- Windows: `%LOCALAPPDATA%\spectra\sessions\sessions.db`
+
+File snapshots are stored separately under the global data directory and are used for checkpoints and rollback.
 
 ## Architecture
 
-```
-cli.ts              CLI entry point (yargs)
-├── tui/            Full-screen terminal UI (React + @opentui)
-├── commands/       CLI command handlers
-├── services/       Config, session store, auth, snapshots
-├── tools/          Built-in agent tools (read, write, edit, shell, grep, glob, web_fetch, task)
-├── agents/         Agent definitions (build, plan, debug, explore)
-├── security/       Permission engine, path safety, read tracker, doom loop, SSRF guard
-├── skills/         Bundled skills (65+ workflows, TF-IDF indexed)
-└── integrations/
-    ├── mcp/           MCP client (stdio + HTTP)
-    ├── acp/           ACP server (JSON-RPC 2.0)
-    └── custom-tools/  Custom tool loader
+```text
+src/cli.ts                         CLI entry point
+src/tui/                           Full-screen TUI with React and @opentui
+src/agents/                        Agent definitions and tool filtering
+src/commands/                      CLI command implementations
+src/integrations/                  MCP client, ACP server, custom tool loader
+src/services/                      Config, sessions, auth store, context, snapshots
+src/tools/                         Built-in tools and tool composition
+src/security/                      Permissions, path safety, read tracking, SSRF, doom-loop detection
+src/utils/                         Platform and filesystem helpers
+skills/                            Bundled skill library
 ```
 
 ## API
 
-```typescript
-import { launchTui, loadConfig, SessionStore } from "@mohanscodex/spectra-code";
-import { shellTool, readTool, writeTool } from "@mohanscodex/spectra-code";
+Use the package programmatically:
 
+```typescript
+import {
+  launchTui,
+  loadConfig,
+  loadContext,
+  SessionStore,
+  builtinTools,
+  shellTool,
+  readTool,
+  writeTool,
+  getGlobalDataDir,
+} from "@mohanscodex/spectra-code";
+
+const config = loadConfig();
 const store = new SessionStore();
-const sessions = store.list();
+const sessions = store.list(process.cwd());
 ```
+
+Exported helpers include:
+
+- `launchTui`
+- `loadConfig`
+- `loadContext`
+- `SessionStore`
+- MCP helpers such as `connectServer`, `disconnectServer`, `listConnectedServers`, and `listServerTools`
+- Tool helpers such as `builtinTools`, `createAllTools`, `createAllToolsWithMcp`, and `createAllToolsWithExtensions`
+- Built-in tools such as `shellTool`, `readTool`, `writeTool`, `editTool`, `grepTool`, `globTool`, and `webFetchTool`
+- Platform helpers such as `getPlatformInfo`, `getSystemPrompt`, `getGlobalConfigDir`, `getGlobalDataDir`, and `getGlobalCacheDir`
+
+## Development
+
+```bash
+bun install
+bun run build
+bun run dev
+bun run lint
+bun test
+```
+
+Package scripts:
+
+| Script | Command |
+| --- | --- |
+| `build` | `tsc` |
+| `dev` | `bun src/cli.ts` |
+| `start` | `bun src/cli.ts` |
+| `spectra:help` | `tsx src/cli.ts --help` |
+| `test` | `vitest --run` |
+| `lint` | `tsc --noEmit` |
+
+## Troubleshooting
+
+### No API key found
+
+Run `spectra doctor` and set one of:
+
+```bash
+export SPECTRA_API_KEY="..."
+export ANTHROPIC_API_KEY="..."
+export OPENAI_API_KEY="..."
+```
+
+### MCP server fails to connect
+
+Check the command or URL in `spectra mcp list`, then try:
+
+```bash
+spectra mcp connect <server-name>
+spectra mcp tools --server <server-name>
+```
+
+Make sure the MCP server command is available on `PATH`.
+
+### Slow file search
+
+Install `ripgrep` and `fd` for faster `grep` and `glob` fallbacks:
+
+```bash
+# macOS
+brew install ripgrep fd
+
+# Windows
+winget install BurntSushi.ripgrep.MSVC
+winget install sharkdp.fd
+```
+
+### Custom tool does not load
+
+Place the file in a discovered `tools` directory, for example `.spectra/tools/`, and export either a default tool or named tools. Load errors are printed to the console.
 
 ## License
 
