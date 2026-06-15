@@ -56,7 +56,7 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 | `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic Messages + OpenAI Chat Completions with SSE streaming. Any OpenAI-compatible endpoint works via baseUrl. Core types (Message, Model, ToolCall, StopReason). |
 | `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
 | `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine`, `SessionManager`, `SessionStore`, `Rate Limiting`, `CircuitBreaker`, `SseBridge`, `HealthProbe`. |
-| `@mohanscodex/spectra-code` | **TUI App** | Terminal-based AI coding agent built on the Spectra SDK. |
+| `@mohanscodex/spectra-code` | **TUI App** | Terminal-native AI coding agent — full-screen TUI, agent modes, MCP/ACP, 185+ skills, custom tools, security controls. [Docs →](packages/code/README.md) |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic Messages + OpenAI Chat Completions. OpenRouter-compatible. |
 
@@ -123,6 +123,38 @@ for await (const event of agent.run("What is Rust?")) {
   }
 }
 ```
+
+## Spectra Code
+
+<p align="center">
+  <img src=".github/assets/spectra-code-home.png" alt="Spectra Code" width="100%" />
+</p>
+
+> Terminal-native AI coding agent built on the Spectra SDK.
+
+Spectra Code is a full-screen TUI for coding with AI — chat with agents, run tools, manage sessions, and connect to MCP servers, all from your terminal.
+
+<p align="center">
+  <img src=".github/assets/spectra-code-action.png" alt="Spectra Code in action" width="100%" />
+</p>
+
+- **Agent modes** — `build`, `plan`, `debug`, and read-only `explore`
+- **185+ bundled skills** — plus skills learned from sessions and custom user skills
+- **MCP integration** — connect stdio and HTTP tool servers
+- **ACP support** — run as an agent server for Zed, Neovim, JetBrains
+- **Custom tools** — drop `.ts`/`.js` files in `.spectra/tools/`
+- **Security controls** — permissions, path safety, SSRF protection, doom-loop detection
+
+<p align="center">
+  <img src=".github/assets/spectra-code-commands.png" alt="Spectra Code commands" width="100%" />
+</p>
+
+```bash
+bun add -g @mohanscodex/spectra-code
+spectra
+```
+
+→ [Full documentation](packages/code/README.md)
 
 ## Deployment
 
