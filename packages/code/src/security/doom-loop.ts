@@ -15,6 +15,7 @@ interface DoomLoopConfig {
 
 export class DoomLoopDetector {
 	private callHistory: DoomLoopCall[] = [];
+	private lastCallKey: string | null = null;
 	private consecutiveReads = 0;
 	private patchFailures = new Map<string, number>();
 	private writeThreshold: number;
@@ -22,17 +23,25 @@ export class DoomLoopDetector {
 	private patchThreshold: number;
 
 	constructor(config?: DoomLoopConfig) {
-		this.writeThreshold = config?.writeRepeatThreshold ?? 3;
+		this.writeThreshold = config?.writeRepeatThreshold ?? 5;
 		this.readOnlyThreshold = config?.readOnlyRepeatThreshold ?? 8;
 		this.patchThreshold = config?.patchSpiralThreshold ?? 4;
 	}
 
 	recordToolCall(tool: string, args: Record<string, unknown>): DoomLoopResult {
 		const argsKey = JSON.stringify(args);
+		const callKey = `${tool}:${argsKey}`;
 		const now = Date.now();
 
 		const recent = this.callHistory.filter((c) => now - c.firstTime < 60000);
 		this.callHistory = recent;
+
+		if (this.lastCallKey !== callKey) {
+			for (const entry of this.callHistory) {
+				entry.count = 1;
+			}
+			this.lastCallKey = callKey;
+		}
 
 		const existing = this.callHistory.find((c) => c.tool === tool && c.args === argsKey);
 
@@ -93,6 +102,7 @@ export class DoomLoopDetector {
 
 	reset(): void {
 		this.callHistory = [];
+		this.lastCallKey = null;
 		this.consecutiveReads = 0;
 		this.patchFailures.clear();
 	}
