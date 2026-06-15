@@ -16,6 +16,12 @@ export const c = {
 	thinking: '#90C0D8',
 	info: '#7EC8D0',
 
+	// Tool-specific colors
+	readTool: '#7EC8D0',    // teal — passive read
+	execTool: '#E0A860',    // orange — command execution
+	writeTool: '#A3D9A0',   // green — file creation
+	editTool: '#E0C8A0',    // amber — file modification
+
 	bg: '#0C0C12',
 	bgBar: '#141420',
 	bgCard: '#141420',

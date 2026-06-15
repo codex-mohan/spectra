@@ -1,15 +1,14 @@
 import { z } from 'zod';
 import type { SpectraTool } from './types.js';
-import { errorResult, textResult } from './utils.js';
-import { execSync } from 'child_process';
+import { errorResult, spawnRg, textResult } from './utils.js';
 import { resolve } from 'path';
 
 export const globTool: SpectraTool = {
 	name: 'glob',
 	capabilities: { reads: true, writes: false },
 	description: `Find files matching a glob pattern.
+Uses ripgrep (rg) for fast file listing.
 Supports common glob patterns like **/*.ts, src/**/*.css, etc.
-Searches from the specified directory or current working directory.
 Results are limited to prevent overwhelming output.`,
 	displayName: (args: { pattern: string }) => args.pattern,
 	parameters: z.object({
@@ -22,34 +21,33 @@ Results are limited to prevent overwhelming output.`,
 		const limit = maxResults || 100;
 
 		try {
-			const hasFd =
-				execSync('which fdfind 2>/dev/null || which fd 2>/dev/null || where fd 2>nul', {
-					encoding: 'utf-8',
-					timeout: 1000,
-					stdio: 'pipe',
-				}).trim().length > 0;
+			const args = [
+				'--no-config',
+				'--files',
+				'--hidden',
+				'--glob=!.git/*',
+				`--glob=${pattern}`,
+				searchDir,
+			];
 
-			let cmd: string;
-			if (hasFd) {
-				cmd = `fd "${pattern}" "${searchDir}" --no-ignore -H 2>/dev/null | head -${limit}`;
-			} else {
-				cmd =
-					process.platform === 'win32'
-						? `powershell -Command "Get-ChildItem -Path '${searchDir}' -Recurse -Filter '${pattern}' -ErrorAction SilentlyContinue | Select-Object -First ${limit} | %% { $_.FullName }"`
-						: `find "${searchDir}" -name "${pattern}" 2>/dev/null | head -${limit}`;
+			const result = await spawnRg(args);
+
+			if (result.code > 1) {
+				return errorResult(`ripgrep error: ${result.stderr || 'unknown error'}`);
 			}
 
-			const stdout = execSync(cmd, { encoding: 'utf-8', timeout: 15000, maxBuffer: 1024 * 1024, stdio: 'pipe' });
-			const results = stdout.trim();
-			if (!results) return textResult('No files matched the pattern.');
+			if (!result.stdout) return textResult('No files matched the pattern.');
 
-			const lines = results.split('\n');
-			const truncated = lines.length >= limit;
+			const lines = result.stdout.split('\n');
+			const truncated = lines.length > limit;
 			return textResult(
-				lines.join('\n') + (truncated ? `\n... (${lines.length} results, truncated at ${limit})` : ''),
+				lines.slice(0, limit).join('\n') + (truncated ? `\n... (${lines.length} results, truncated at ${limit})` : ''),
 			);
 		} catch (err: unknown) {
 			const error = err as { message?: string };
+			if (error.message === 'RIPGREP_NOT_FOUND') {
+				return errorResult('ripgrep (rg) not found. Install it: https://github.com/BurntSushi/ripgrep#installation');
+			}
 			return errorResult(`Glob search failed: ${error.message || 'unknown error'}`);
 		}
 	},

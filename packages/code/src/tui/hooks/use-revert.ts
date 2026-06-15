@@ -8,8 +8,7 @@ import { showToast } from '../components/toast.js';
 interface RevertDeps {
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionId: React.MutableRefObject<string | null>;
-	agentRef: React.MutableRefObject<any>;
-	loadedSessionMessages: React.MutableRefObject<Message[]>;
+	agentsMapRef: React.MutableRefObject<Map<string, any>>;
 	setMessages: (fn: (prev: ChatMessage[]) => ChatMessage[]) => void;
 	setRevertPoint: (id: string | null) => void;
 	snapshotManager: React.MutableRefObject<SnapshotManager>;
@@ -20,8 +19,7 @@ export function useRevert(deps: RevertDeps) {
 	const {
 		sessionStore,
 		sessionId,
-		agentRef,
-		loadedSessionMessages,
+		agentsMapRef,
 		setMessages,
 		setRevertPoint,
 		snapshotManager,
@@ -32,6 +30,19 @@ export function useRevert(deps: RevertDeps) {
 	const revertedSdkMessagesRef = useRef<Message[]>([]);
 	const revertDraftRef = useRef('');
 	const revertedPreRevertSnapshotRef = useRef<string | undefined>(undefined);
+
+	// Remove all agents for a session from the map (forces recreation on next send)
+	const removeSessionAgents = useCallback(
+		(sid: string) => {
+			for (const [key, agent] of agentsMapRef.current.entries()) {
+				if (key.startsWith(`${sid}:`)) {
+					agent.reset();
+					agentsMapRef.current.delete(key);
+				}
+			}
+		},
+		[agentsMapRef],
+	);
 
 	const runRevert = useCallback(
 		async (messages: ChatMessage[], msgId: string) => {
@@ -92,15 +103,11 @@ export function useRevert(deps: RevertDeps) {
 			if (sess) {
 				sess.messages = sess.messages.slice(0, targetIdx);
 				sessionStore.current.save(sess);
-				loadedSessionMessages.current = sess.messages;
 			}
 
-			// 6. Reset agent
-			if (agentRef.current) {
-				agentRef.current.reset();
-				if (loadedSessionMessages.current.length > 0) {
-					agentRef.current.restoreHistory(loadedSessionMessages.current);
-				}
+			// 6. Remove session agents from map — forces recreation with correct history on next send
+			if (sessionId.current) {
+				removeSessionAgents(sessionId.current);
 			}
 
 			// 7. Toast
@@ -114,7 +121,7 @@ export function useRevert(deps: RevertDeps) {
 				showToast('Reverted — Ctrl+Y to redo', 'success');
 			}
 		},
-		[sessionStore, sessionId, agentRef, loadedSessionMessages, setMessages, setRevertPoint, snapshotManager, promptTextareaRef],
+		[sessionStore, sessionId, agentsMapRef, removeSessionAgents, setMessages, setRevertPoint, snapshotManager, promptTextareaRef],
 	);
 
 	const runRedo = useCallback(async () => {
@@ -137,15 +144,11 @@ export function useRevert(deps: RevertDeps) {
 		if (sess) {
 			sess.messages = [...sess.messages, ...revertedSdkMessagesRef.current];
 			sessionStore.current.save(sess);
-			loadedSessionMessages.current = sess.messages;
 		}
 
-		// 3. Reset agent
-		if (agentRef.current) {
-			agentRef.current.reset();
-			if (loadedSessionMessages.current.length > 0) {
-				agentRef.current.restoreHistory(loadedSessionMessages.current);
-			}
+		// 3. Remove session agents — forces recreation with correct history on next send
+		if (sessionId.current) {
+			removeSessionAgents(sessionId.current);
 		}
 
 		// 4. Clear revert state
@@ -165,7 +168,7 @@ export function useRevert(deps: RevertDeps) {
 		} else {
 			showToast('Messages restored', 'success');
 		}
-	}, [sessionStore, sessionId, agentRef, loadedSessionMessages, setMessages, setRevertPoint, snapshotManager, promptTextareaRef]);
+	}, [sessionStore, sessionId, agentsMapRef, removeSessionAgents, setMessages, setRevertPoint, snapshotManager, promptTextareaRef]);
 
 	const discardRevert = useCallback(() => {
 		revertedMessagesRef.current = [];

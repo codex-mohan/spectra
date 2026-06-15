@@ -1,14 +1,13 @@
 import { z } from 'zod';
 import type { SpectraTool } from './types.js';
-import { errorResult, textResult } from './utils.js';
-import { execSync } from 'child_process';
+import { errorResult, spawnRg, textResult } from './utils.js';
 import { resolve } from 'path';
 
 export const grepTool: SpectraTool = {
 	name: 'grep',
 	capabilities: { reads: true, writes: false },
 	description: `Search file contents using regular expressions.
-Uses ripgrep (rg) if available, otherwise falls back to grep.
+Uses ripgrep (rg) for fast searching.
 Returns matching file paths, line numbers, and the matched lines.
 Results are truncated to prevent large outputs.`,
 	displayName: (args: { pattern: string }) => `"${args.pattern}"`,
@@ -23,28 +22,38 @@ Results are truncated to prevent large outputs.`,
 		const limit = maxResults || 50;
 
 		try {
-			let cmd: string;
-			const useRipgrep =
-				execSync('which rg 2>/dev/null || where rg 2>nul', { encoding: 'utf-8', timeout: 1000, stdio: 'pipe' }).trim().length > 0;
-			if (useRipgrep) {
-				const includeFlag = include ? `-g "${include}"` : '';
-				cmd = `rg -n --no-heading "${pattern}" "${searchDir}" ${includeFlag} | head -${limit}`;
-			} else {
-				const includeFlag = include ? `--include="${include}"` : '';
-				cmd = `grep -rn "${pattern}" "${searchDir}" ${includeFlag} 2>/dev/null | head -${limit}`;
+			const args = [
+				'-n',
+				'--no-heading',
+				'--hidden',
+				'--no-config',
+				'--glob=!.git/*',
+				`--max-count=${limit}`,
+			];
+
+			if (include) {
+				args.push(`--glob=${include}`);
 			}
 
-			const stdout = execSync(cmd, { encoding: 'utf-8', timeout: 15000, maxBuffer: 1024 * 1024, stdio: 'pipe' });
-			const results = stdout.trim();
-			if (!results) return textResult('No matches found.');
+			args.push('--', pattern, searchDir);
 
-			const lineCount = results.split('\n').length;
-			const truncated = lineCount >= limit;
-			return textResult(results + (truncated ? `\n... (truncated at ${limit} results)` : ''));
+			const result = await spawnRg(args);
+
+			if (result.code > 1) {
+				return errorResult(`ripgrep error: ${result.stderr || 'unknown error'}`);
+			}
+
+			if (!result.stdout) return textResult('No matches found.');
+
+			const lines = result.stdout.split('\n');
+			const truncated = lines.length >= limit;
+			return textResult(
+				lines.join('\n') + (truncated ? `\n... (truncated at ${limit} results)` : ''),
+			);
 		} catch (err: unknown) {
-			const error = err as { message?: string; stderr?: string };
-			if (error.message?.includes('command failed') || error.stderr) {
-				return errorResult('No ripgrep or grep found on system, or search failed. Try using glob instead.');
+			const error = err as { message?: string };
+			if (error.message === 'RIPGREP_NOT_FOUND') {
+				return errorResult('ripgrep (rg) not found. Install it: https://github.com/BurntSushi/ripgrep#installation');
 			}
 			return errorResult(`Search failed: ${error.message || 'unknown error'}`);
 		}

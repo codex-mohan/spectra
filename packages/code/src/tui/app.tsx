@@ -10,6 +10,7 @@ import { Tips } from './tips.js';
 import { titlecase } from './utils.js';
 import type { ChatMessage } from './types.js';
 import { SessionStore } from '../services/session-store.js';
+import { SessionManager } from '../services/session-manager.js';
 import { SnapshotManager } from '../services/snapshot-manager.js';
 import { PromptHistoryService } from '../services/prompt-history.js';
 import type { Message } from '@mohanscodex/spectra-ai';
@@ -44,9 +45,10 @@ import { loadSavedConfig, saveModelConfig, fmtCtx, lookupContextWindow } from '.
 import { sdkMessagesToChatMessages } from './utils/session-messages.js';
 import { usePermissionQueue } from './hooks/use-permission-queue.js';
 import { useRevert } from './hooks/use-revert.js';
-import { useAgent } from './hooks/use-agent.js';
+import { useAgent, createSessionFactory, createSessionSecurityManager } from './hooks/use-agent.js';
 import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
+import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 
@@ -61,24 +63,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		registerAllCustomProviders(cp);
 		return cp;
 	});
-	const [selectedModel, setSelectedModel] = useState<string | null>(savedConfig.model);
-	const [selectedProvider, setSelectedProvider] = useState<string | null>(savedConfig.provider);
-	const [thinkingEffort, setThinkingEffort] = useState<string | undefined>(undefined);
 	const [route, setRoute] = useState<'home' | 'chat'>('home');
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
-	const [status, setStatus] = useState('Ready');
 	const [spinnerFrame, setSpinnerFrame] = useState(0);
 	const [showCmd, setShowCmd] = useState(false);
 	const [cmdFilter, setCmdFilter] = useState('');
 	const [cmdSelected, setCmdSelected] = useState(0);
-	const [elapsedMs, setElapsedMs] = useState<number | null>(null);
-	const [tokPerSec, setTokPerSec] = useState<number | null>(null);
-	const [tokenUsage, setTokenUsage] = useState({ input: 0, output: 0 });
 	const [showThinking, setShowThinking] = useState(true);
 	const [showToolCalls, setShowToolCalls] = useState(true);
 	const [copiedMsg, setCopiedMsg] = useState(false);
-	const [selectedAgent, setSelectedAgent] = useState('build');
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
 	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
@@ -91,6 +83,78 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [draftText, setDraftText] = useState('');
 	const [slashSelected, setSlashSelected] = useState(0);
 	const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 });
+
+	// Per-session state
+	const sessionState = useSessionState();
+	const messages = sessionState.activeState.messages;
+	const isLoading = sessionState.activeState.isLoading;
+	const status = sessionState.activeState.status;
+	const tokenUsage = sessionState.activeState.tokenUsage;
+	const elapsedMs = sessionState.activeState.elapsedMs;
+	const tokPerSec = sessionState.activeState.tokPerSec;
+	const selectedAgent = sessionState.activeState.selectedAgent;
+	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
+	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
+	const thinkingEffort = sessionState.activeState.thinkingEffort;
+
+	// Setters for active session (UI-driven changes)
+	const setMessages = (fn: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+		const id = sessionState.activeSessionId || '';
+		if (typeof fn === 'function') sessionState.setMessagesIn(id, fn);
+		else sessionState.set(id, { messages: fn });
+	};
+	const updateMessage = (msgId: string, patch: Partial<ChatMessage>) => {
+		sessionState.updateMessageIn(sessionState.activeSessionId || '', msgId, patch);
+	};
+	const setIsLoading = (v: boolean | ((prev: boolean) => boolean)) => {
+		const id = sessionState.activeSessionId || '';
+		const current = sessionState.getState(id);
+		const resolved = typeof v === 'function' ? v(current.isLoading) : v;
+		sessionState.setLoadingIn(id, resolved);
+	};
+	const setStatus = (s: string | ((prev: string) => string)) => {
+		const id = sessionState.activeSessionId || '';
+		const current = sessionState.getState(id);
+		const resolved = typeof s === 'function' ? s(current.status) : s;
+		sessionState.setStatusIn(id, resolved);
+	};
+	const setTokenUsage = (fn: { input: number; output: number } | ((prev: { input: number; output: number }) => { input: number; output: number })) => {
+		const id = sessionState.activeSessionId || '';
+		if (typeof fn === 'function') sessionState.setTokenUsageIn(id, fn);
+		else sessionState.set(id, { tokenUsage: fn });
+	};
+	const setElapsedMs = (v: number | null | ((prev: number | null) => number | null)) => {
+		const id = sessionState.activeSessionId || '';
+		const current = sessionState.getState(id);
+		const resolved = typeof v === 'function' ? v(current.elapsedMs) : v;
+		sessionState.setElapsedMsIn(id, resolved);
+	};
+	const setTokPerSec = (v: number | null | ((prev: number | null) => number | null)) => {
+		const id = sessionState.activeSessionId || '';
+		const current = sessionState.getState(id);
+		const resolved = typeof v === 'function' ? v(current.tokPerSec) : v;
+		sessionState.setTokPerSecIn(id, resolved);
+	};
+	const setSelectedAgent = (v: string | ((prev: string) => string)) => {
+		const current = sessionState.getState(sessionState.activeSessionId);
+		const resolved = typeof v === 'function' ? v(current.selectedAgent) : v;
+		sessionState.setActive({ selectedAgent: resolved });
+	};
+	const setSelectedModel = (v: string | null | ((prev: string | null) => string | null)) => {
+		const current = sessionState.getState(sessionState.activeSessionId);
+		const resolved = typeof v === 'function' ? v(current.selectedModel) : v;
+		sessionState.setActive({ selectedModel: resolved });
+	};
+	const setSelectedProvider = (v: string | null | ((prev: string | null) => string | null)) => {
+		const current = sessionState.getState(sessionState.activeSessionId);
+		const resolved = typeof v === 'function' ? v(current.selectedProvider) : v;
+		sessionState.setActive({ selectedProvider: resolved });
+	};
+	const setThinkingEffort = (v: string | undefined | ((prev: string | undefined) => string | undefined)) => {
+		const current = sessionState.getState(sessionState.activeSessionId);
+		const resolved = typeof v === 'function' ? v(current.thinkingEffort) : v;
+		sessionState.setActive({ thinkingEffort: resolved });
+	};
 
 	const costDisplay = useMemo(() => {
 		const total = tokenUsage.input + tokenUsage.output;
@@ -115,6 +179,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		const cfg = loadConfig();
 		return { permission: cfg.permission, security: cfg.security };
 	});
+
+	const sessionManager = useRef<SessionManager>(
+		new SessionManager(
+			sessionStore.current,
+			createSessionFactory(securityConfig, () => {}),
+			() => createSessionSecurityManager(securityConfig, () => {}),
+		),
+	);
 
 	// --- Derived ---
 	const provider = selectedProvider;
@@ -178,29 +250,23 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		};
 	}, [renderer]);
 
-	// --- Stable callbacks ---
-	const addMessage = useCallback((msg: ChatMessage) => setMessages((p) => [...p, msg]), []);
-	const updateMessage = useCallback(
-		(id: string, u: Partial<ChatMessage>) => setMessages((p) => p.map((m) => (m.id === id ? { ...m, ...u } : m))),
-		[],
-	);
-
 	// --- Hooks (order matters for ref lifecycle) ---
 	const securityRef = useRef<SecurityManager | null>(null);
 
 	const { permissionRequest, enqueuePermission, resolvePermission } = usePermissionQueue(securityRef);
 
-	const { agentRef, loadedSessionMessages, getOrCreateAgent, resetAgentForModelSwitch } = useAgent({
+	const { agentsMapRef, lastAgentRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent, resetAgentForModelSwitch } = useAgent({
 		securityRef,
 		securityConfig,
 		enqueuePermission,
+		sessionStore,
+		sessionId,
 	});
 
 	const { revertedMessagesRef, revertDraftRef, runRevert, runRedo, discardRevert } = useRevert({
 		sessionStore,
 		sessionId,
-		agentRef,
-		loadedSessionMessages,
+		agentsMapRef,
 		setMessages,
 		setRevertPoint,
 		snapshotManager,
@@ -218,9 +284,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			return;
 		}
 		setThinkingEffort(nextEffort);
-		agentRef.current = null;
+		resetAgentForModelSwitch();
 		showToast(nextEffort === 'none' ? 'Thinking: off' : `Thinking: ${nextEffort}`, 'info');
-	}, [provider, thinkingEffort, agentRef]);
+	}, [provider, thinkingEffort, resetAgentForModelSwitch]);
 
 	const cmdItems = useMemo(
 		() =>
@@ -295,12 +361,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const { handleSubmit, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
+		sessionManager,
+		sessionState,
+		switchSession: sessionState.switchSession,
 		sessionId,
-		agentRef,
 		securityRef,
-		loadedSessionMessages,
 		snapshotManager,
-		lastAgentRef: useRef(null),
+		lastAgentRef,
 		isStreamingRef,
 		currentTurnStartRef,
 		currentTurnMsgIdRef,
@@ -313,8 +380,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		thinkingEffort,
 		cmdItems,
 		slashNames,
-		addMessage,
-		updateMessage,
 		setMessages,
 		setIsLoading,
 		setStatus,
@@ -399,8 +464,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		selectedAgent,
 		thinkingEffort,
 		provider,
-		agentRef,
 		securityRef,
+		sessionId,
+		abortSession,
 		promptTextareaRef,
 		setShowCmd,
 		setCmdFilter,
@@ -646,20 +712,29 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					mode={dialogStep.mode || 'load'}
 					onLoad={(data) => {
 						const { messages: loadedMsgs, tokenUsage: tu } = sdkMessagesToChatMessages(data);
-						setTokenUsage(tu);
-						setMessages(() => loadedMsgs);
+						// Switch to the session's per-session state
+						sessionState.switchSession(data.id);
+						sessionState.set(data.id, {
+							messages: loadedMsgs,
+							tokenUsage: tu,
+							selectedModel: data.model,
+							selectedProvider: data.provider || data.model.split('/')[0],
+							selectedAgent: data.agent || 'build',
+							thinkingEffort: data.thinkingEffort || undefined,
+						});
 						sessionId.current = data.id;
-						setSelectedModel(data.model);
-						setSelectedProvider(data.provider || data.model.split('/')[0]);
-						setSelectedAgent(data.agent);
-						setThinkingEffort(data.thinkingEffort || undefined);
 						setRoute('chat');
 						setDialogStep(null);
-						loadedSessionMessages.current = data.messages as unknown as Message[];
-						if (agentRef.current) {
-							agentRef.current.reset();
-							agentRef.current.restoreHistory(data.messages as unknown as Message[]);
-						}
+						// Restore this session's agent history (per-session Map — doesn't affect other sessions)
+						restoreSessionHistory(
+							data.id,
+							data.model,
+							data.provider || data.model.split('/')[0],
+							data.agent || 'build',
+							customProviders,
+							data.thinkingEffort || undefined,
+							data.messages as unknown as Message[],
+						).catch(() => {});
 						securityRef.current?.getReadTracker().reset();
 						securityRef.current?.getDoomLoop().reset();
 						showToast(`Loaded: ${data.title.slice(0, 40)}`, 'info');
@@ -667,9 +742,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					}}
 					onDelete={(id) => {
 						sessionStore.current.delete(id);
+						removeSessionAgent(id);
 						if (sessionId.current === id) {
 							sessionId.current = null;
-							setMessages([]);
+							sessionState.switchSession(null);
 							setRoute('home');
 							setHomeKey((k) => k + 1);
 							setTerminalTitle('Spectra');
@@ -863,9 +939,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							const data = sessionStore.current.get(forked.id);
 							if (data) {
 								const { messages: loadedMsgs } = sdkMessagesToChatMessages(data);
-								setMessages(loadedMsgs);
+								sessionState.switchSession(data.id);
+								sessionState.set(data.id, { messages: loadedMsgs });
 								sessionId.current = forked.id;
-								loadedSessionMessages.current = data.messages as unknown as Message[];
 								showToast('Session forked', 'success');
 							}
 						}

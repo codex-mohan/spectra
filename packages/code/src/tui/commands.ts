@@ -541,8 +541,61 @@ export function buildCmdItems(opts: {
 			desc: 'Manually trigger context compaction',
 			cat: 'Session',
 			slashName: 'compress',
-			action: () => {
-				showToast('Context compaction coming soon', 'info');
+			action: async () => {
+				if (!opts.sessionIdRef.current) {
+					showToast('No active session', 'warn');
+					return;
+				}
+				const sess = opts.sessionStore.get(opts.sessionIdRef.current);
+				if (!sess) {
+					showToast('Session not found', 'warn');
+					return;
+				}
+				if (sess.messages.length < 4) {
+					showToast('Not enough messages to compact', 'info');
+					return;
+				}
+				showToast('Compacting context...', 'info');
+				try {
+					const { needsCompaction, buildCompactionPrompt, compactMessages } = await import('../services/compaction.js');
+					const { stream, initProviders } = await import('@mohanscodex/spectra-ai');
+					const { getAuthKey } = await import('./utils/model-config.js');
+					initProviders();
+
+					if (!opts.selectedModel || !opts.provider) {
+						showToast('No model configured', 'warn');
+						return;
+					}
+					const apiKey = getAuthKey(opts.provider);
+					if (!apiKey) {
+						showToast('No API key for provider', 'warn');
+						return;
+					}
+
+					const prompt = buildCompactionPrompt(sess.messages);
+					const modelObj = { id: opts.selectedModel, name: opts.selectedModel, provider: opts.provider, api: opts.provider };
+					const ctx = { messages: [{ role: 'user' as const, content: prompt, timestamp: Date.now() }] };
+					const events = stream(modelObj as any, ctx, { apiKey });
+
+					let summary = '';
+					for await (const event of events) {
+						if (event.type === 'text_delta' && event.delta) {
+							summary += event.delta;
+						}
+					}
+					summary = summary.trim();
+					if (!summary || summary.length < 50) {
+						showToast('Compaction produced no useful summary', 'warn');
+						return;
+					}
+
+					const compacted = compactMessages(sess.messages, summary);
+					sess.messages = compacted;
+					opts.sessionStore.save(sess);
+					showToast(`Context compacted (${sess.messages.length} messages)`, 'success');
+				} catch (err) {
+					showToast(`Compaction failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
+				}
 			},
 		},
 		// Git

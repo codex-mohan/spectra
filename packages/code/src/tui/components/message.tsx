@@ -126,7 +126,7 @@ function InlineTool(props: { icon: string; title: string; meta?: string; color?:
 	);
 }
 
-function BlockTool(props: { title: string; titleColor?: string; children: any; marginTop?: number }) {
+function BlockTool(props: { title: string; titleColor?: string; borderColor?: string; children: any; marginTop?: number }) {
 	return (
 		<box
 			flexDirection="column"
@@ -138,7 +138,7 @@ function BlockTool(props: { title: string; titleColor?: string; children: any; m
 			backgroundColor={c.bgTool}
 			border={['left']}
 			customBorderChars={SB}
-			borderColor={c.bg}
+			borderColor={props.borderColor || c.tool}
 		>
 			<text fg={props.titleColor || c.tool} paddingLeft={1}>
 				{props.title}
@@ -315,14 +315,31 @@ export function MessageView({
 
 		// Reading tools: only show inline indicator, never show output
 		if (isReadingTool) {
-			const displayTitle = argsStr
-				? `${tName === 'read' ? 'Read' : tName === 'glob' ? 'Glob' : 'Grep'} ${argsStr}`
-				: tName;
+			const displayTitle = (() => {
+				if (tName === 'read') {
+					const filePath = argsObj.path || argsObj.file_path || argsStr.split(' ')[0] || '';
+					const limit = argsObj.limit as number | undefined;
+					const suffix = limit ? ` (${limit} lines)` : '';
+					return `Read ${filePath}${suffix}`;
+				}
+				if (tName === 'glob') {
+					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
+					const dir = argsObj.path || argsObj.dir || '';
+					return `Glob ${pattern}${dir ? ` in ${dir}` : ''}`;
+				}
+				if (tName === 'grep') {
+					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
+					const dir = argsObj.path || argsObj.dir || '';
+					return `Grep ${pattern}${dir ? ` in ${dir}` : ''}`;
+				}
+				return argsStr ? `${tName} ${argsStr}` : tName;
+			})();
+			const icon = tName === 'read' ? '→' : tName === 'glob' ? '◎' : '⊕';
 			return (
 				<InlineTool
-					icon={tName === 'read' ? '→' : ''}
+					icon={icon}
 					title={displayTitle}
-					color={tName === 'read' ? c.info : c.tool}
+					color={c.readTool}
 					marginTop={mt}
 				/>
 			);
@@ -391,18 +408,18 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.bg}
+					borderColor={c.execTool}
 				>
 					<box flexDirection="row" justifyContent="space-between" alignItems="flex-start" paddingLeft={1}>
 						<box flexDirection="column" gap={1}>
 							{description ? (
-								<text fg={c.info} attributes={1}>
+								<text fg={c.dim} attributes={2}>
 									{description}
 								</text>
 							) : null}
-							<text fg={c.tool}>$ {command}</text>
+							<text fg={c.execTool}>$ {command}</text>
 						</box>
-						{exitCode !== null && <text fg={exitColor}>Exit {exitCode}</text>}
+						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 ? '✓' : '✗'} Exit {exitCode}</text>}
 					</box>
 					<box paddingLeft={2}>
 						{output ? (
@@ -431,9 +448,9 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.bg}
+					borderColor={c.writeTool}
 				>
-					<text fg={c.success}>
+					<text fg={c.writeTool}>
 						{displayTitle}
 					</text>
 					<box paddingLeft={2}>
@@ -463,10 +480,10 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.bg}
+					borderColor={c.editTool}
 				>
 					<box paddingTop={1} paddingBottom={1}>
-						<text fg={c.thinking}>{displayTitle}</text>
+						<text fg={c.editTool}>{displayTitle}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
 					</box>
 					{output ? (
@@ -479,16 +496,17 @@ export function MessageView({
 		}
 
 		if (tName === 'web_fetch') {
-			const displayTitle = argsStr ? `Fetch ${argsStr}` : 'Fetch';
+			const url = argsObj.url || argsStr;
+			const displayTitle = url ? `Fetch ${url}` : 'Fetch';
 			if (!output) return <InlineTool icon="↗" title={displayTitle} color={c.info} marginTop={mt} />;
 			return (
-				<BlockTool title={displayTitle} titleColor={c.info} marginTop={mt}>
+				<BlockTool title={displayTitle} titleColor={c.info} borderColor={c.info} marginTop={mt}>
 					<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} />
 				</BlockTool>
 			);
 		}
 
-		if (!output) return <InlineTool icon="⚙" title={raw} color={c.tool} marginTop={mt} />;
+		if (!output) return <InlineTool icon="⚙" title={raw} color={c.dim} marginTop={mt} />;
 		const displayTitle = argsStr ? `${tName} ${argsStr}` : tName;
 		return (
 			<BlockTool title={displayTitle} titleColor={c.tool} marginTop={mt}>
