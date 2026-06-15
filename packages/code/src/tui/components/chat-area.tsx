@@ -20,6 +20,17 @@ export function ChatArea({
 		return true;
 	});
 
+	// Find the last assistant message's turn status for the interrupted/error indicator
+	let lastTurnStatus: ChatMessage['turnStatus'] = undefined;
+	for (let i = visible.length - 1; i >= 0; i--) {
+		if (visible[i].role === 'assistant') {
+			lastTurnStatus = visible[i].turnStatus;
+			break;
+		}
+	}
+	const showInterrupted = lastTurnStatus === 'interrupted';
+	const showError = lastTurnStatus === 'error';
+
 	return (
 		<box flexDirection="column">
 			<scrollbox
@@ -50,6 +61,13 @@ export function ChatArea({
 							onClick={msg.role === 'user' ? () => onMessageClick?.(msg) : undefined}
 						/>
 					))
+				)}
+				{(showInterrupted || showError) && (
+					<box height={1} flexDirection="row" justifyContent="center" marginTop={1} paddingLeft={3}>
+						<text fg={showInterrupted ? c.warn : c.error}>
+							{'─'.repeat(16)} {showInterrupted ? '⊘ interrupted' : '✖ error'} {'─'.repeat(16)}
+						</text>
+					</box>
 				)}
 			</scrollbox>
 		</box>

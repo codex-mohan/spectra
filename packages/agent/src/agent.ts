@@ -188,7 +188,10 @@ export class Agent {
 		this._errorMessage = undefined;
 	}
 
-	async *run(input: string | Message | Message[]): AsyncGenerator<AgentEvent> {
+	async *run(
+		input: string | Message | Message[],
+		options?: { signal?: AbortSignal },
+	): AsyncGenerator<AgentEvent> {
 		const agentStream = new AgentEventStream();
 		const emit: EmitFn = async (event) => {
 			agentStream.push(event);
@@ -208,6 +211,15 @@ export class Agent {
 		if (this._isStreaming) throw new Error('Agent is already processing a prompt');
 
 		this.abortController = new AbortController();
+
+		// Link external signal — aborting it aborts this agent
+		if (options?.signal) {
+			if (options.signal.aborted) {
+				this.abortController.abort();
+			} else {
+				options.signal.addEventListener('abort', () => this.abortController?.abort(), { once: true });
+			}
+		}
 		this._isStreaming = true;
 		this._errorMessage = undefined;
 

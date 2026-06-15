@@ -273,28 +273,20 @@ export function MessageView({
 						{msg.content}
 					</text>
 				)}
-				{showFooter && (
-					<box flexDirection="column" paddingLeft={3} marginTop={1}>
-						{/* Separator line for interrupted/error turns */}
-						{(isInterrupted || isError) && (
-							<box height={1} flexDirection="row" justifyContent="center" marginBottom={1}>
-								<text fg={isInterrupted ? c.warn : c.error}>
-									{'─'.repeat(16)} {isInterrupted ? '⊘ interrupted' : '✖ error'} {'─'.repeat(16)}
-								</text>
-							</box>
+			{showFooter && (
+				<box flexDirection="column" paddingLeft={3} marginTop={1}>
+					<box flexDirection="row" gap={1}>
+						<text fg={c.accent}>▣</text>
+						<text fg={c.text}>{agentName}</text>
+						{msg.model && <text fg={c.dim}>· {msg.model}</text>}
+						{durationStr && <text fg={c.dim}>· {durationStr}</text>}
+						{tokensStr && <text fg={c.dim}>· {tokensStr}</text>}
+						{!isInterrupted && !isError && msg.turnStatus === 'completed' && (
+							<text fg={c.success}>· done</text>
 						)}
-						<box flexDirection="row" gap={1}>
-							<text fg={c.accent}>▣</text>
-							<text fg={c.text}>{agentName}</text>
-							{msg.model && <text fg={c.dim}>· {msg.model}</text>}
-							{durationStr && <text fg={c.dim}>· {durationStr}</text>}
-							{tokensStr && <text fg={c.dim}>· {tokensStr}</text>}
-							{!isInterrupted && !isError && msg.turnStatus === 'completed' && (
-								<text fg={c.success}>· done</text>
-							)}
-						</box>
 					</box>
-				)}
+				</box>
+			)}
 			</box>
 		);
 	}

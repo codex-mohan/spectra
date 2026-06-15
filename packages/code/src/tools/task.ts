@@ -65,7 +65,7 @@ export function createTaskTool(config: AgentRegistryConfig, security: SecurityMa
 				});
 
 				let finalText = '';
-				for await (const ev of subagent.run(prompt)) {
+				for await (const ev of subagent.run(prompt, { signal: ctx.signal })) {
 					if (ev.type === 'message_update' && ev.message.role === 'assistant') {
 						const textBlocks = ev.message.content.filter(
 							(c): c is { type: 'text'; text: string } => c.type === 'text',
@@ -80,6 +80,9 @@ export function createTaskTool(config: AgentRegistryConfig, security: SecurityMa
 				}
 				return textResult(resultText);
 			} catch (err) {
+				if (ctx.signal?.aborted) {
+					return textResult(`Subagent @${subagent_type} was interrupted.`);
+				}
 				return errorResult(`Subagent @${subagent_type} failed: ${err instanceof Error ? err.message : String(err)}`);
 			}
 		},
