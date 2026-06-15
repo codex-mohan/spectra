@@ -8,20 +8,23 @@ import type { AgentRegistryConfig } from '../../agents/registry.js';
 import { createSecurityManager } from '../../security/index.js';
 import type { PermissionRequest } from '../../security/types.js';
 import type { SessionManager } from '../../services/session-manager.js';
+import type { SessionStore } from '../../services/session-store.js';
+import type { Message } from '@mohanscodex/spectra-ai';
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
 	securityConfig: { permission: any; security: any };
 	enqueuePermission: (req: PermissionRequest) => void;
+	sessionStore: React.MutableRefObject<SessionStore>;
+	sessionId: React.MutableRefObject<string | null>;
 }
 
 export function useAgent(deps: UseAgentDeps) {
-	const { securityRef, securityConfig, enqueuePermission } = deps;
+	const { securityRef, securityConfig, enqueuePermission, sessionStore, sessionId } = deps;
 
-	const agentRef = useRef<any>(null);
+	// Per-session agent Map — like opencode's Map<SessionID, Runner>
+	const agentsMapRef = useRef(new Map<string, any>());
 	const lastAgentRef = useRef<string | null>(null);
-	const lastModelRef = useRef<string | null>(null);
-	const loadedSessionMessages = useRef<import('@mohanscodex/spectra-ai').Message[]>([]);
 
 	const initSecurityManager = useCallback(
 		(cwd: string) => {
@@ -60,8 +63,10 @@ export function useAgent(deps: UseAgentDeps) {
 		[securityRef, securityConfig, enqueuePermission],
 	);
 
+	// Like opencode's runner(sessionID, onInterrupt) — get or create a per-session agent
 	const getOrCreateAgent = useCallback(
 		async (
+			sessionId: string,
 			selectedModel: string | null,
 			provider: string | null,
 			selectedAgent: string,
@@ -71,14 +76,24 @@ export function useAgent(deps: UseAgentDeps) {
 			if (!selectedModel || !provider) return null;
 
 			const agentKey = `${selectedAgent}:${selectedModel}:${provider}:${thinkingEffort || ''}`;
-			if (agentRef.current && lastModelRef.current === agentKey) return agentRef.current;
+			const sessionKey = `${sessionId}:${agentKey}`;
 
-			const existingMessages = agentRef.current ? [...agentRef.current.messages] : loadedSessionMessages.current;
+			// Return existing agent for this session+config combination
+			const existing = agentsMapRef.current.get(sessionKey);
+			if (existing) return existing;
+
+			// Clean up any old agent for this session (different config)
+			for (const [key, agent] of agentsMapRef.current.entries()) {
+				if (key.startsWith(`${sessionId}:`) && key !== sessionKey) {
+					agent.reset();
+					agentsMapRef.current.delete(key);
+				}
+			}
 
 			const { Agent } = await import('@mohanscodex/spectra-agent');
 			const { initProviders } = await import('@mohanscodex/spectra-ai');
 			initProviders();
-			const { createAllTools, createAllToolsWithSecurity } = await import('../../tools/index.js');
+			const { createAllToolsWithSecurity } = await import('../../tools/index.js');
 			const customCfg = customProviders[provider];
 
 			const def = AGENT_DEFINITIONS[selectedAgent];
@@ -128,7 +143,13 @@ export function useAgent(deps: UseAgentDeps) {
 				: '';
 			const systemPrompt = [getSystemPrompt() + skillsHint, agentsMd, def?.prompt].filter(Boolean).join('\n\n');
 
-			agentRef.current = new Agent({
+			const { createTransformContextFn } = await import('../../services/compaction.js');
+			const transformContext = createTransformContextFn(
+				() => ({ model: selectedModel, provider }),
+				(p: string) => getAuthKey(p),
+			);
+
+			const agent = new Agent({
 				model: {
 					id: selectedModel,
 					name: selectedModel,
@@ -142,29 +163,84 @@ export function useAgent(deps: UseAgentDeps) {
 				tools: agentTools,
 				maxTurns: def?.maxTurns ?? 10,
 				streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
+				transformContext,
 			});
 
-			if (existingMessages.length > 0) {
-				agentRef.current.restoreHistory(existingMessages);
+			agentsMapRef.current.set(sessionKey, agent);
+			lastAgentRef.current = selectedAgent;
+
+			// Restore conversation history from persistent storage
+			if (sessionId) {
+				const sessionData = sessionStore.current.get(sessionId);
+				if (sessionData && sessionData.messages.length > 0) {
+					agent.restoreHistory(sessionData.messages);
+				}
 			}
 
-			lastModelRef.current = agentKey;
-			lastAgentRef.current = selectedAgent;
-			return agentRef.current;
+			return agent;
 		},
-		[initSecurityManager],
+		[initSecurityManager, sessionStore, sessionId],
 	);
 
+	// Restore a session's message history into its agent (called when loading a session)
+	const restoreSessionHistory = useCallback(
+		async (
+			sessionId: string,
+			selectedModel: string | null,
+			provider: string | null,
+			selectedAgent: string,
+			customProviders: Record<string, CustomProviderConfig>,
+			thinkingEffort: string | undefined,
+			messages: Message[],
+		) => {
+			const agent = await getOrCreateAgent(sessionId, selectedModel, provider, selectedAgent, customProviders, thinkingEffort);
+			if (agent && messages.length > 0) {
+				agent.restoreHistory(messages);
+			}
+			return agent;
+		},
+		[getOrCreateAgent],
+	);
+
+	// Abort a specific session's agent — like opencode's cancel(sessionID)
+	const abortSession = useCallback((sessionId: string) => {
+		for (const [key, agent] of agentsMapRef.current.entries()) {
+			if (key.startsWith(`${sessionId}:`)) {
+				agent.abort();
+				return;
+			}
+		}
+	}, []);
+
+	// Reset agents for the current session (used when switching models/agents/thinking effort)
 	const resetAgentForModelSwitch = useCallback(() => {
-		agentRef.current = null;
-		lastModelRef.current = null;
+		const currentSessionId = sessionId.current;
+		if (!currentSessionId) return;
+		for (const [key, agent] of agentsMapRef.current.entries()) {
+			if (key.startsWith(`${currentSessionId}:`)) {
+				agent.reset();
+				agentsMapRef.current.delete(key);
+			}
+		}
+	}, [sessionId]);
+
+	// Remove a specific session's agents (used when deleting a session)
+	const removeSessionAgent = useCallback((sessionId: string) => {
+		for (const [key, agent] of agentsMapRef.current.entries()) {
+			if (key.startsWith(`${sessionId}:`)) {
+				agent.reset();
+				agentsMapRef.current.delete(key);
+			}
+		}
 	}, []);
 
 	return {
-		agentRef,
+		agentsMapRef,
 		lastAgentRef,
-		loadedSessionMessages,
 		getOrCreateAgent,
+		restoreSessionHistory,
+		abortSession,
+		removeSessionAgent,
 		resetAgentForModelSwitch,
 	};
 }

@@ -218,51 +218,47 @@ export class SessionStore {
 		const now = Date.now();
 		session.updated = now;
 
-		const existing = this.db.prepare('SELECT id FROM sessions WHERE id = ?').get(session.id);
-		if (existing) {
-			this.db.prepare(
-				`UPDATE sessions SET title = ?, agent = ?, model = ?, provider = ?, thinking_effort = ?, updated = ?, directory = ?, parent_id = ?,
-				 revert_message_index = ?, revert_checkpoint_id = ? WHERE id = ?`
-			).run(
-				session.title, session.agent, session.model, session.provider, session.thinkingEffort ?? null,
-				session.updated, session.directory, session.parentId ?? null,
-				session.revert?.messageIndex ?? null, session.revert?.checkpointId ?? null,
-				session.id
-			);
-
-			// Replace all messages
-			this.db.prepare('DELETE FROM messages WHERE session_id = ?').run(session.id);
-		} else {
-			this.db.prepare(
-				`INSERT INTO sessions (id, title, agent, model, provider, thinking_effort, created, updated, directory, parent_id,
-				 revert_message_index, revert_checkpoint_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-			).run(
-				session.id, session.title, session.agent, session.model, session.provider, session.thinkingEffort ?? null,
-				session.created, session.updated, session.directory, session.parentId ?? null,
-				session.revert?.messageIndex ?? null, session.revert?.checkpointId ?? null
-			);
-		}
-
-		// Insert messages
-		const insertMsg = this.db.prepare('INSERT INTO messages (session_id, position, data) VALUES (?, ?, ?)');
-		const insertMany = this.db.transaction((msgs: Message[]) => {
-			for (let i = 0; i < msgs.length; i++) {
-				insertMsg.run(session.id, i, JSON.stringify(msgs[i]));
+		const saveAll = this.db.transaction(() => {
+			const existing = this.db.prepare('SELECT id FROM sessions WHERE id = ?').get(session.id);
+			if (existing) {
+				this.db.prepare(
+					`UPDATE sessions SET title = ?, agent = ?, model = ?, provider = ?, thinking_effort = ?, updated = ?, directory = ?, parent_id = ?,
+					 revert_message_index = ?, revert_checkpoint_id = ? WHERE id = ?`
+				).run(
+					session.title, session.agent, session.model, session.provider, session.thinkingEffort ?? null,
+					session.updated, session.directory, session.parentId ?? null,
+					session.revert?.messageIndex ?? null, session.revert?.checkpointId ?? null,
+					session.id
+				);
+			} else {
+				this.db.prepare(
+					`INSERT INTO sessions (id, title, agent, model, provider, thinking_effort, created, updated, directory, parent_id,
+					 revert_message_index, revert_checkpoint_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+				).run(
+					session.id, session.title, session.agent, session.model, session.provider, session.thinkingEffort ?? null,
+					session.created, session.updated, session.directory, session.parentId ?? null,
+					session.revert?.messageIndex ?? null, session.revert?.checkpointId ?? null
+				);
 			}
-		});
-		insertMany(session.messages);
 
-		// Replace checkpoints
-		this.db.prepare('DELETE FROM checkpoints WHERE session_id = ?').run(session.id);
-		if (session.checkpoints?.length) {
-			const insertCp = this.db.prepare('INSERT INTO checkpoints (id, session_id, turn_index, timestamp, label) VALUES (?, ?, ?, ?, ?)');
-			const insertManyCps = this.db.transaction((cps: SessionCheckpoint[]) => {
-				for (const cp of cps) {
+			// Replace all messages atomically with session row
+			this.db.prepare('DELETE FROM messages WHERE session_id = ?').run(session.id);
+			const insertMsg = this.db.prepare('INSERT INTO messages (session_id, position, data) VALUES (?, ?, ?)');
+			for (let i = 0; i < session.messages.length; i++) {
+				insertMsg.run(session.id, i, JSON.stringify(session.messages[i]));
+			}
+
+			// Replace checkpoints atomically
+			this.db.prepare('DELETE FROM checkpoints WHERE session_id = ?').run(session.id);
+			if (session.checkpoints?.length) {
+				const insertCp = this.db.prepare('INSERT INTO checkpoints (id, session_id, turn_index, timestamp, label) VALUES (?, ?, ?, ?, ?)');
+				for (const cp of session.checkpoints) {
 					insertCp.run(cp.id, session.id, cp.turnIndex, cp.timestamp, cp.label);
 				}
-			});
-			insertManyCps(session.checkpoints);
-		}
+			}
+		});
+
+		saveAll();
 	}
 
 	delete(id: string): boolean {
@@ -299,20 +295,27 @@ export class SessionStore {
 	}
 
 	addMessage(sessionId: string, message: Message): SessionData | null {
-		const session = this.get(sessionId);
-		if (!session) return null;
-		session.messages.push(message);
-		session.updated = Date.now();
-		if (session.messages.length === 1) {
-			session.title =
-				message.role === 'user'
-					? typeof message.content === 'string'
-						? message.content.slice(0, 60)
-						: 'User message'
-					: session.title;
+		const row = this.db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId) as any;
+		if (!row) return null;
+
+		const countResult = this.db.prepare('SELECT COUNT(*) as cnt FROM messages WHERE session_id = ?').get(sessionId) as { cnt: number };
+		const position = countResult.cnt;
+
+		const now = Date.now();
+		const updateTitle = position === 0 && message.role === 'user';
+		const newTitle = updateTitle
+			? (typeof message.content === 'string' ? message.content.slice(0, 60) : 'User message')
+			: row.title;
+
+		this.db.prepare('INSERT INTO messages (session_id, position, data) VALUES (?, ?, ?)').run(sessionId, position, JSON.stringify(message));
+
+		if (updateTitle) {
+			this.db.prepare('UPDATE sessions SET title = ?, updated = ? WHERE id = ?').run(newTitle, now, sessionId);
+		} else {
+			this.db.prepare('UPDATE sessions SET updated = ? WHERE id = ?').run(now, sessionId);
 		}
-		this.save(session);
-		return session;
+
+		return this.get(sessionId);
 	}
 
 	// ─── Revert State ──────────────────────────────────────────────────────
