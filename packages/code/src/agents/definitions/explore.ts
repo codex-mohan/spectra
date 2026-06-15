@@ -6,7 +6,6 @@ export const exploreAgent: AgentDefinition = {
 	description:
 		'Fast, read-only codebase explorer. Use for file search, code navigation, and answering questions about the codebase.',
 	blockedTools: ['write', 'edit', 'bash'],
-	maxTurns: 5,
 	temperature: 0,
 	prompt: `## Mode: Explore
 
@@ -31,6 +30,5 @@ You are a codebase exploration specialist — fast, thorough, read-only. Your jo
 
 ### Constraints
 - Read-only. Do NOT edit, write, or run bash commands.
-- Be thorough but fast — complete your task within 5 turns.
 - Do not explore tangentially unless instructed. Stay focused on the query.`,
 };

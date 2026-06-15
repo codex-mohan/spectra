@@ -3,7 +3,7 @@ export interface AgentDefinition {
 	mode: 'primary' | 'subagent';
 	description: string;
 	blockedTools: string[];
-	maxTurns: number;
+	maxTurns?: number;
 	temperature?: number;
 	prompt: string;
 	hidden?: boolean;

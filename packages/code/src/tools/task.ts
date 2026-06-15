@@ -60,7 +60,7 @@ export function createTaskTool(config: AgentRegistryConfig, security: SecurityMa
 					model: config.model,
 					systemPrompt: [getSystemPrompt(), def.prompt].filter(Boolean).join('\n\n'),
 					tools,
-					maxTurns: def.maxTurns,
+					...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
 					getApiKey: config.getApiKey,
 				});
 

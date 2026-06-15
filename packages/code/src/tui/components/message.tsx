@@ -109,8 +109,12 @@ function DiffContent(props: { text: string; maxLines: number }) {
 						</box>
 					);
 				})}
-				{overflow && !expanded && <text fg={c.dim}>click to expand</text>}
-				{overflow && expanded && <text fg={c.dim}>click to collapse</text>}
+				{overflow && !expanded && <text fg={c.dim} height={1} marginTop={1}>
+					click to expand
+				</text>}
+				{overflow && expanded && <text fg={c.dim} height={1} marginTop={1}>
+					click to collapse
+				</text>}
 			</box>
 		</box>
 	);
@@ -189,14 +193,20 @@ export function MessageView({
 				paddingRight={1}
 				onMouseUp={onClick}
 			>
-				<text fg={c.user} attributes={1}>
+				<text fg={c.user} attributes={1} height={1}>
 					You
 				</text>
-				<text fg={c.text}>{msg.content}</text>
+				<text fg={c.text} attributes={1} maxHeight={10}>
+					{msg.content}
+				</text>
 				{isRevertPoint && (
 					<box flexDirection="row" marginTop={1} gap={1}>
-						<text fg={c.warn}>⎌</text>
-						<text fg={c.dim}>Messages after this point were reverted</text>
+						<text fg={c.warn} height={1}>
+							⎌
+						</text>
+						<text fg={c.dim} height={1}>
+							Messages after this point were reverted
+						</text>
 					</box>
 				)}
 			</box>
@@ -413,7 +423,7 @@ export function MessageView({
 					<box flexDirection="row" justifyContent="space-between" alignItems="flex-start" paddingLeft={1}>
 						<box flexDirection="column" gap={1}>
 							{description ? (
-								<text fg={c.dim} attributes={2}>
+								<text fg={c.subtext} attributes={2}>
 									{description}
 								</text>
 							) : null}
@@ -444,7 +454,7 @@ export function MessageView({
 					paddingBottom={1}
 					paddingLeft={2}
 					marginTop={mt}
-					gap={0}
+					gap={1}
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
@@ -473,17 +483,16 @@ export function MessageView({
 			return (
 				<box
 					flexDirection="column"
-					paddingBottom={1}
 					paddingLeft={2}
 					marginTop={mt}
-					gap={0}
+					gap={1}
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
 					borderColor={c.editTool}
 				>
-					<box paddingTop={1} paddingBottom={1}>
-						<text fg={c.editTool}>{displayTitle}</text>
+					<box paddingTop={1} flexDirection="row" gap={1}>
+						<text height={1} fg={c.editTool}>{displayTitle}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
 					</box>
 					{output ? (

@@ -6,7 +6,6 @@ export const planAgent: AgentDefinition = {
 	description:
 		'Read-only planning and analysis. Cannot edit files or run commands. Use for designing approaches and understanding code.',
 	blockedTools: ['write', 'edit', 'bash'],
-	maxTurns: 15,
 	temperature: 0,
 	prompt: `## Mode: Plan
 
