@@ -39,8 +39,9 @@ interface UseAppKeyboardDeps {
 	thinkingEffort: string | undefined;
 	provider: string | null;
 
-	agentRef: React.MutableRefObject<any>;
 	securityRef: React.MutableRefObject<any>;
+	sessionId: React.MutableRefObject<string | null>;
+	abortSession: (sessionId: string) => void;
 
 	setShowCmd: (v: boolean) => void;
 	setCmdFilter: React.Dispatch<React.SetStateAction<string>>;
@@ -54,7 +55,7 @@ interface UseAppKeyboardDeps {
 	setStatus: React.Dispatch<React.SetStateAction<string>>;
 	setThinkingEffort: React.Dispatch<React.SetStateAction<string | undefined>>;
 	updateMessage: (id: string, u: Partial<ChatMessage>) => void;
-	updateLastAssistantMeta: (meta: Record<string, unknown>) => void;
+	updateLastAssistantMeta: (sessionId: string, meta: Record<string, unknown>) => void;
 
 	execCmd: (item: any) => void;
 	handleCycleVariant: () => void;
@@ -88,8 +89,9 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		selectedAgent,
 		thinkingEffort,
 		provider,
-		agentRef,
 		securityRef,
+		sessionId,
+		abortSession,
 		setShowCmd,
 		setCmdFilter,
 		setCmdSelected,
@@ -186,17 +188,21 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		}
 		if (key.name === 'escape') {
 			if (isStreamingRef.current) {
-				if (interruptKey === 1) {
-					agentRef.current?.abort();
-					const duration = Math.round(performance.now() - (currentTurnStartRef.current ?? 0));
-					if (currentTurnMsgIdRef.current) {
-						updateMessage(currentTurnMsgIdRef.current, {
-							turnStatus: 'interrupted',
-							streaming: false,
-							turnDurationMs: duration,
-						});
-					}
-					updateLastAssistantMeta({ turnStatus: 'interrupted', turnDurationMs: duration });
+			if (interruptKey === 1) {
+				if (sessionId.current) {
+					abortSession(sessionId.current);
+				}
+				const duration = Math.round(performance.now() - (currentTurnStartRef.current ?? 0));
+				if (currentTurnMsgIdRef.current) {
+					updateMessage(currentTurnMsgIdRef.current, {
+						turnStatus: 'interrupted',
+						streaming: false,
+						turnDurationMs: duration,
+					});
+				}
+				if (sessionId.current) {
+					updateLastAssistantMeta(sessionId.current, { turnStatus: 'interrupted', turnDurationMs: duration });
+				}
 					setInterruptKey(0);
 					return;
 				}

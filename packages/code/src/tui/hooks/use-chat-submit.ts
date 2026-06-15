@@ -12,15 +12,17 @@ import { parseSlashCommand } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
 import type { CmdItem } from '../components/command-palette.js';
 import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
+import type { useSessionState } from './use-session-state.js';
+
+type SessionState = ReturnType<typeof useSessionState>;
 
 interface UseChatSubmitDeps {
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionManager: React.MutableRefObject<SessionManager>;
+	sessionState: SessionState;
 	switchSession: (id: string | null) => void;
 	sessionId: React.MutableRefObject<string | null>;
-	agentRef: React.MutableRefObject<any>;
 	securityRef: React.MutableRefObject<any>;
-	loadedSessionMessages: React.MutableRefObject<Message[]>;
 	snapshotManager: React.MutableRefObject<SnapshotManager>;
 	lastAgentRef: React.MutableRefObject<string | null>;
 	isStreamingRef: React.MutableRefObject<boolean>;
@@ -28,6 +30,7 @@ interface UseChatSubmitDeps {
 	currentTurnMsgIdRef: React.MutableRefObject<string | null>;
 	revertPoint: string | null;
 	getOrCreateAgent: (
+		sessionId: string,
 		model: string | null,
 		provider: string | null,
 		agent: string,
@@ -41,8 +44,6 @@ interface UseChatSubmitDeps {
 	thinkingEffort: string | undefined;
 	cmdItems: CmdItem[];
 	slashNames: Set<string>;
-	addMessage: (msg: ChatMessage) => void;
-	updateMessage: (id: string, u: Partial<ChatMessage>) => void;
 	setMessages: (fn: (prev: ChatMessage[]) => ChatMessage[]) => void;
 	setIsLoading: (v: boolean) => void;
 	setStatus: (s: string) => void;
@@ -63,11 +64,10 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const {
 		sessionStore,
 		sessionManager,
+		sessionState,
 		switchSession,
 		sessionId,
-		agentRef,
 		securityRef,
-		loadedSessionMessages,
 		snapshotManager,
 		lastAgentRef,
 		isStreamingRef,
@@ -82,8 +82,6 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		thinkingEffort,
 		cmdItems,
 		slashNames,
-		addMessage,
-		updateMessage,
 		setMessages,
 		setIsLoading,
 		setStatus,
@@ -110,14 +108,14 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const titleGeneratedRef = useRef(false);
 	const firstUserMessageRef = useRef<string | null>(null);
 
-	function persistMessage(sdkMsg: Message) {
-		if (!sessionId.current) return;
-		sessionStore.current.addMessage(sessionId.current, sdkMsg);
+	function persistMessage(targetSessionId: string, sdkMsg: Message) {
+		if (!targetSessionId) return;
+		sessionStore.current.addMessage(targetSessionId, sdkMsg);
 	}
 
-	function updateLastAssistantMeta(meta: Record<string, unknown>) {
-		if (!sessionId.current) return;
-		const sess = sessionStore.current.get(sessionId.current);
+	function updateLastAssistantMeta(targetSessionId: string, meta: Record<string, unknown>) {
+		if (!targetSessionId) return;
+		const sess = sessionStore.current.get(targetSessionId);
 		if (!sess) return;
 		for (let i = sess.messages.length - 1; i >= 0; i--) {
 			const msg = sess.messages[i];
@@ -196,8 +194,9 @@ Return ONLY the title text, nothing else.`;
 			const trimmed = text.trim();
 			if (!trimmed) return;
 
-			// Only block if THIS session is streaming, not any session
-			if (streamingSessionsRef.current.has(sessionId.current || '')) {
+			// Only block if THIS session is streaming
+			const currentSessionId = sessionId.current || '';
+			if (streamingSessionsRef.current.has(currentSessionId)) {
 				queuedMessageRef.current = trimmed;
 				return;
 			}
@@ -237,10 +236,8 @@ Return ONLY the title text, nothing else.`;
 			toolArgsMap.current.clear();
 			promptHistoryService.current.append(trimmed);
 
-			// Create session FIRST so switchSession sets activeIdRef before addMessage
+			// Create session FIRST so switchSession sets activeIdRef before any messages
 			if (!sessionId.current) {
-				agentRef.current = null;
-				loadedSessionMessages.current = [];
 				const sess = sessionStore.current.create({
 					agent: selectedAgent,
 					model: selectedModel,
@@ -256,19 +253,22 @@ Return ONLY the title text, nothing else.`;
 				setTokenUsage(() => ({ input: 0, output: 0 }));
 			}
 
+			// Capture the session ID for this run — all events target THIS session
+			const runSessionId = sessionId.current!;
+
 			const uid = genId();
 			const userMsg: Message = { role: 'user', content: trimmed, timestamp: Date.now() };
-			addMessage({ id: uid, role: 'user', content: trimmed, model: selectedModel });
-			setIsLoading(true);
-			setStatus('Streaming...');
+			sessionState.addMessageTo(runSessionId, { id: uid, role: 'user', content: trimmed, model: selectedModel });
+			sessionState.setLoadingIn(runSessionId, true);
+			sessionState.setStatusIn(runSessionId, 'Streaming...');
 			setRoute('chat');
+			streamingSessionsRef.current.add(runSessionId);
 			isStreamingRef.current = true;
-			streamingSessionsRef.current.add(sessionId.current || '');
 			streamingIdRef.current = 'pending';
 
-			persistMessage(userMsg);
+			persistMessage(runSessionId, userMsg);
 
-			const sess = sessionStore.current.get(sessionId.current);
+			const sess = sessionStore.current.get(runSessionId);
 			if (sess && sess.messages.length === 1) {
 				sess.title = trimmed.length > 60 ? trimmed.slice(0, 57) + '...' : trimmed;
 				sessionStore.current.save(sess);
@@ -281,6 +281,7 @@ Return ONLY the title text, nothing else.`;
 
 			try {
 				const agent = await getOrCreateAgent(
+					runSessionId,
 					selectedModel,
 					provider,
 					selectedAgent,
@@ -317,7 +318,7 @@ Return ONLY the title text, nothing else.`;
 						currentAssistantId = newId;
 						currentTurnMsgIdRef.current = newId;
 						streamingIdRef.current = newId;
-						addMessage({
+						sessionState.addMessageTo(runSessionId, {
 							id: newId,
 							role: 'assistant',
 							content: '',
@@ -334,7 +335,7 @@ Return ONLY the title text, nothing else.`;
 							.filter((b): b is ContentBlock & { type: 'text' } => b.type === 'text')
 							.map((b) => b.content)
 							.join('\n');
-						updateMessage(currentAssistantId, { content: textContent, blocks });
+						sessionState.updateMessageIn(runSessionId, currentAssistantId, { content: textContent, blocks });
 						if (ev.assistantMessageEvent.type === 'toolcall_end') {
 							const tc = (ev.assistantMessageEvent as any).toolCall as {
 								id: string;
@@ -346,7 +347,7 @@ Return ONLY the title text, nothing else.`;
 								toolArgsMap.current.set(tc.id, tc.arguments);
 								const tuiId = genId();
 								toolMsgMap.current.set(tc.id, tuiId);
-								addMessage({
+								sessionState.addMessageTo(runSessionId, {
 									id: tuiId,
 									role: 'tool',
 									content: '',
@@ -364,7 +365,7 @@ Return ONLY the title text, nothing else.`;
 							.map((b) => b.content)
 							.join('\n');
 						const duration = performance.now() - (currentTurnStartRef.current ?? start);
-						updateMessage(currentAssistantId, {
+						sessionState.updateMessageIn(runSessionId, currentAssistantId, {
 							content: textContent,
 							blocks,
 							streaming: false,
@@ -384,21 +385,21 @@ Return ONLY the title text, nothing else.`;
 							}
 						}
 
-						persistMessage({
-							...m,
-							metadata: {
-								...m.metadata,
-								turnDurationMs: Math.round(duration),
-								turnTokens: { input: m.usage.input, output: m.usage.output },
-								patch,
-							},
-						});
+					persistMessage(runSessionId, {
+						...m,
+						metadata: {
+							...m.metadata,
+							turnDurationMs: Math.round(duration),
+							turnTokens: { input: m.usage.input, output: m.usage.output },
+							patch,
+						},
+					});
 						preEditSnapshotRef.current = undefined;
 						const e = performance.now() - start;
-						setElapsedMs(e);
+						sessionState.setElapsedMsIn(runSessionId, e);
 						const ot = m.usage.output;
-						if (ot > 0 && e > 0) setTokPerSec(ot / (e / 1000));
-						setTokenUsage((p) => ({ input: m.usage.input, output: p.output + ot }));
+						if (ot > 0 && e > 0) sessionState.setTokPerSecIn(runSessionId, ot / (e / 1000));
+						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: m.usage.input, output: p.output + ot }));
 						currentAssistantId = null;
 						streamingIdRef.current = null;
 
@@ -409,8 +410,8 @@ Return ONLY the title text, nothing else.`;
 							fireTitleAgent(userText, assistantText).catch(() => {});
 						}
 
-						if (sessionId.current) {
-							const sid = sessionId.current;
+						if (runSessionId) {
+							const sid = runSessionId;
 							(async () => {
 								try {
 									const { synthesizeSkill, isSessionEligibleForSynthesis, loadAllEvolvingSkills } = await import('@mohanscodex/spectra-agent');
@@ -459,7 +460,7 @@ Return ONLY the title text, nothing else.`;
 							toolArgsMap.current.set(ev.toolCallId, ev.args);
 							const tuiId = genId();
 							toolMsgMap.current.set(ev.toolCallId, tuiId);
-							addMessage({
+							sessionState.addMessageTo(runSessionId, {
 								id: tuiId,
 								role: 'tool',
 								content: '',
@@ -480,40 +481,40 @@ Return ONLY the title text, nothing else.`;
 							isError: ev.isError || false,
 							timestamp: Date.now(),
 						};
-						persistMessage(toolMsg);
+						persistMessage(runSessionId, toolMsg);
 						const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						if (tuiId) {
 							const toolOutput = ev.result?.content?.[0]?.text || '';
 							const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
-							updateMessage(tuiId, { content: toolOutput, exitCode });
+							sessionState.updateMessageIn(runSessionId, tuiId, { content: toolOutput, exitCode });
 						}
 					}
 					if (ev.type === 'agent_end') {
-						setStatus('Ready');
+						sessionState.setStatusIn(runSessionId, 'Ready');
 						if (currentTurnMsgIdRef.current) {
-							updateMessage(currentTurnMsgIdRef.current, { turnStatus: 'completed' });
+							sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'completed' });
 						}
-						updateLastAssistantMeta({ turnStatus: 'completed' });
+						updateLastAssistantMeta(runSessionId, { turnStatus: 'completed' });
 					}
 				}
 			} catch (err) {
 				const errId = currentAssistantId || genId();
-				updateMessage(errId, {
+				sessionState.updateMessageIn(runSessionId, errId, {
 					content: `Error: ${err instanceof Error ? err.message : String(err)}`,
 					streaming: false,
 					role: 'error',
 				});
 				if (currentTurnMsgIdRef.current) {
-					updateMessage(currentTurnMsgIdRef.current, { turnStatus: 'error', streaming: false });
+					sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error', streaming: false });
 				}
-				updateLastAssistantMeta({ turnStatus: 'error' });
-				setStatus('Error');
+				updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
+				sessionState.setStatusIn(runSessionId, 'Error');
 			} finally {
 				preEditSnapshotRef.current = undefined;
-				setIsLoading(false);
+				sessionState.setLoadingIn(runSessionId, false);
 				setSubmitKey((k) => k + 1);
 				setInterruptKey(0);
-				streamingSessionsRef.current.delete(sessionId.current || '');
+				streamingSessionsRef.current.delete(runSessionId);
 				isStreamingRef.current = streamingSessionsRef.current.size > 0;
 				streamingIdRef.current = null;
 				currentTurnStartRef.current = null;
@@ -536,32 +537,22 @@ Return ONLY the title text, nothing else.`;
 			slashNames,
 			getOrCreateAgent,
 			revertPoint,
-			addMessage,
-			updateMessage,
+			sessionState,
 			switchSession,
 			sessionStore,
 			sessionId,
-			agentRef,
-			loadedSessionMessages,
+			securityRef,
 			snapshotManager,
 			lastAgentRef,
 			isStreamingRef,
 			currentTurnStartRef,
 			currentTurnMsgIdRef,
-			setIsLoading,
-			setStatus,
 			setRoute,
-			setElapsedMs,
-			setTokPerSec,
-			setTokenUsage,
-			setDraftText,
-			setSlashSelected,
 			setSubmitKey,
 			setInterruptKey,
 			setRevertPoint,
 			discardRevert,
 			promptHistoryService,
-			securityRef,
 		],
 	);
 
