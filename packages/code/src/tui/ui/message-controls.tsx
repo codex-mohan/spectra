@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { c } from '../theme.js';
 import type { ChatMessage } from '../types.js';
 import clipboard from 'clipboardy';
+import { showToast } from '../components/toast.js';
 
 export interface MessageControlsProps {
 	message: ChatMessage;
@@ -88,8 +89,9 @@ export function MessageControls(props: MessageControlsProps) {
 						onRevert(message.id);
 					} else if (action.id === 'fork' && sessionId) {
 						onFork(sessionId);
-					} else if (action.id === 'copy') {
-						clipboard.write(msgText).catch(() => {});
+				} else if (action.id === 'copy') {
+					clipboard.write(msgText).catch(() => {});
+					showToast('Copied to clipboard', 'success');
 					} else if (action.id === 'redo') {
 						onRedo();
 					}
@@ -105,9 +107,10 @@ export function MessageControls(props: MessageControlsProps) {
 					onClose();
 					return;
 				}
-				if (action.id === 'copy') {
-					clipboard.write(msgText).catch(() => {});
-					onClose();
+			if (action.id === 'copy') {
+				clipboard.write(msgText).catch(() => {});
+				showToast('Copied to clipboard', 'success');
+				onClose();
 				}
 				return;
 			}

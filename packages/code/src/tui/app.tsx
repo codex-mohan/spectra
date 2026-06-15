@@ -56,7 +56,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const { width: termWidth, height: termHeight } = useTerminalDimensions();
 
 	// --- State ---
-	const [savedConfig] = useState(loadSavedConfig);
+	const [savedConfig, setSavedConfig] = useState(loadSavedConfig);
 	const [customProviders, setCustomProviders] = useState<Record<string, CustomProviderConfig>>(() => {
 		const cfg = loadConfig();
 		const cp = cfg.providers || {};
@@ -70,7 +70,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [cmdSelected, setCmdSelected] = useState(0);
 	const [showThinking, setShowThinking] = useState(true);
 	const [showToolCalls, setShowToolCalls] = useState(true);
-	const [copiedMsg, setCopiedMsg] = useState(false);
+
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
 	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
@@ -239,8 +239,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			setTimeout(() => {
 				try {
 					clipboard.writeSync(text);
-					setCopiedMsg(true);
-					setTimeout(() => setCopiedMsg(false), 2500);
+					showToast('Copied to clipboard', 'success');
 				} catch {}
 			}, 2000);
 		};
@@ -697,6 +696,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						resetAgentForModelSwitch();
 						setSelectedModel(modelId);
 						setSelectedProvider(providerId);
+						setSavedConfig({ model: modelId, provider: providerId });
 						setDialogStep(null);
 						saveModelConfig(modelId, providerId);
 						showToast(`Model set`, 'success');
@@ -743,13 +743,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					onDelete={(id) => {
 						sessionStore.current.delete(id);
 						removeSessionAgent(id);
-						if (sessionId.current === id) {
-							sessionId.current = null;
-							sessionState.switchSession(null);
-							setRoute('home');
-							setHomeKey((k) => k + 1);
-							setTerminalTitle('Spectra');
-						}
+					if (sessionId.current === id) {
+						sessionId.current = null;
+						sessionState.switchSession(null);
+						setRoute('home');
+						setHomeKey((k) => k + 1);
+						setTerminalTitle('Spectra');
+						setDialogStep(null);
+					}
 						showToast('Session deleted', 'success');
 					}}
 					onRename={(id, title) => {
@@ -771,6 +772,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						resetAgentForModelSwitch();
 						setSelectedModel(modelId);
 						setSelectedProvider(providerId);
+						setSavedConfig({ model: modelId, provider: providerId });
 						setDialogStep(null);
 						saveModelConfig(modelId, providerId);
 						showToast(`Switched model`, 'info');
