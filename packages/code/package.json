@@ -37,6 +37,7 @@
         "@mohanscodex/spectra-ai": "workspace:*",
         "@opentui/core": "^0.3.3",
         "@opentui/react": "^0.3.3",
+        "better-sqlite3": "^12.10.1",
         "chalk": "^5.6.2",
         "clipboardy": "^5.3.1",
         "diff": "^9.0.0",
@@ -55,7 +56,6 @@
         "@types/react-dom": "^19.2.3",
         "@types/strip-ansi": "^5.2.1",
         "@types/yargs": "^17.0.0",
-        "better-sqlite3": "^12.10.1",
         "tsx": "^4.19.0",
         "typescript": "^5.7.0",
         "vitest": "^3.2.0"
