@@ -7,7 +7,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 
-const DEFAULT_TIMEOUT = 2 * 60 * 1000;
+const DEFAULT_TIMEOUT = 30 * 60 * 1000;
 const MAX_OUTPUT_LINES = 2000;
 const MAX_OUTPUT_BYTES = 50 * 1024;
 const SIGKILL_GRACE_MS = 200;
@@ -101,7 +101,7 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 	parameters: z.object({
 		command: z.string().describe('The shell command to execute'),
 		description: z.string().optional().describe('Brief description of what this command does'),
-		timeout: z.number().optional().describe('Timeout in milliseconds (default: 2 min, max: 10 min)'),
+		timeout: z.number().optional().describe('Timeout in milliseconds (default: 30 min, max: 60 min)'),
 		workdir: z.string().optional().describe('Working directory for the command'),
 	}),
 	execute: async ({ command, description, timeout, workdir }, ctx: ToolContext) => {
@@ -110,7 +110,7 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 			const isWindows = info.os === 'windows';
 			const shell = info.shell;
 			const isPwsh = /^pwsh(\.exe)?$/i.test(shell) || /^powershell(\.exe)?$/i.test(shell);
-			const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, 10 * 60 * 1000);
+			const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, 60 * 60 * 1000);
 			const onUpdate = ctx.onUpdate;
 
 			let proc: ChildProcess;
