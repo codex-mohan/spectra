@@ -113,7 +113,7 @@ jobs:
             [ -f "$f" ] || continue
             FNAME=$(basename "$f")
             ID="File${COMP_COUNT}"
-            COMPONENTS="${COMPS}<Component Id=\"${ID}\" Guid=\"*\"><File Id=\"${ID}File\" Source=\"windows-x64\\${FNAME}\" KeyPath=\"yes\" /></Component>"
+            COMPONENTS="${COMPONENTS}<Component Id=\"${ID}\" Guid=\"*\"><File Id=\"${ID}File\" Source=\"windows-x64\\${FNAME}\" KeyPath=\"yes\" /></Component>"
             COMP_COUNT=$((COMP_COUNT + 1))
           done
           # Also include any subdirectories (assets/)
@@ -124,7 +124,7 @@ jobs:
               [ -f "$f" ] || continue
               FNAME=$(basename "$f")
               ID="File${COMP_COUNT}"
-              COMPONENTS="${COMPS}<Component Id=\"${ID}\" Guid=\"*\"><File Id=\"${ID}File\" Source=\"windows-x64\\${DNAME}\\${FNAME}\" KeyPath=\"yes\" /></Component>"
+              COMPONENTS="${COMPONENTS}<Component Id=\"${ID}\" Guid=\"*\"><File Id=\"${ID}File\" Source=\"windows-x64\\${DNAME}\\${FNAME}\" KeyPath=\"yes\" /></Component>"
               COMP_COUNT=$((COMP_COUNT + 1))
             done
           done
