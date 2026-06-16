@@ -1,6 +1,6 @@
 {
     "name": "@mohanscodex/spectra-code",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "type": "module",
     "description": "Spectra Code — TUI coding agent with CLI commands, tools, and LLM integration",
     "bin": {

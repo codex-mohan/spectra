@@ -1,39 +1,39 @@
 {
-    "name":  "@mohanscodex/spectra-app",
-    "version":  "0.5.0",
-    "description":  "Spectra App - Session management, concurrency, and orchestration",
-    "type":  "module",
-    "main":  "./dist/index.js",
-    "types":  "./dist/index.d.ts",
-    "exports":  {
-                    ".":  {
-                              "types":  "./dist/index.d.ts",
-                              "import":  "./dist/index.js"
-                          }
-                },
-    "files":  [
-                  "dist"
-              ],
-    "scripts":  {
-                    "build":  "tsc",
-                    "dev":  "tsc --watch",
-                    "test":  "vitest --run",
-                    "lint":  "tsc --noEmit"
-                },
-    "dependencies":  {
-                         "@mohanscodex/spectra-agent":  "workspace:*",
-                         "@mohanscodex/spectra-ai":  "workspace:*",
-                         "uuid":  "^14.0.0"
-                     },
-    "optionalDependencies":  {
-                                 "better-sqlite3":  "^12.9.0",
-                                 "ioredis":  "^5.6.0"
-                             },
-    "devDependencies":  {
-                            "@types/better-sqlite3":  "^7.6.13",
-                            "@types/uuid":  "^10.0.0",
-                            "typescript":  "^5.7.0",
-                            "vitest":  "^3.2.0"
-                        },
-    "license":  "MIT"
+    "name": "@mohanscodex/spectra-app",
+    "version": "0.5.1",
+    "description": "Spectra App - Session management, concurrency, and orchestration",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "test": "vitest --run",
+        "lint": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@mohanscodex/spectra-agent": "workspace:*",
+        "@mohanscodex/spectra-ai": "workspace:*",
+        "uuid": "^14.0.0"
+    },
+    "optionalDependencies": {
+        "better-sqlite3": "^12.9.0",
+        "ioredis": "^5.6.0"
+    },
+    "devDependencies": {
+        "@types/better-sqlite3": "^7.6.13",
+        "@types/uuid": "^10.0.0",
+        "typescript": "^5.7.0",
+        "vitest": "^3.2.0"
+    },
+    "license": "MIT"
 }
