@@ -3,6 +3,7 @@ import { c } from '../theme.js';
 import { listProviders, getModels } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { readAll } from '../../services/auth-store.js';
+import { getProviderDisplayName } from '../utils/provider-meta.js';
 
 export interface ModelSwitcherProps {
 	providerId: string;
@@ -25,35 +26,7 @@ function isProviderConnected(providerId: string): boolean {
 	return cred?.type === 'api' && !!cred.key;
 }
 
-function getProviderDisplayName(providerId: string, customProviders: Record<string, { name?: string }>): string {
-	const custom = customProviders[providerId];
-	if (custom?.name) return custom.name;
-	const builtinNames: Record<string, string> = {
-		anthropic: 'Anthropic',
-		openai: 'OpenAI',
-		'openai-completions': 'OpenAI',
-		'openai-responses': 'OpenAI',
-		openrouter: 'OpenRouter',
-		groq: 'Groq',
-		google: 'Google',
-		xai: 'xAI',
-		deepseek: 'DeepSeek',
-		mistral: 'Mistral',
-		cerebras: 'Cerebras',
-		'fireworks-ai': 'Fireworks AI',
-		togetherai: 'Together AI',
-		perplexity: 'Perplexity',
-		cohere: 'Cohere',
-		'novita-ai': 'Novita AI',
-		moonshotai: 'Moonshot AI',
-		chutes: 'Chutes',
-		minimax: 'MiniMax',
-		huggingface: 'Hugging Face',
-		nvidia: 'NVIDIA',
-		zai: 'Z.AI',
-	};
-	return builtinNames[providerId] || providerId;
-}
+
 
 export function ModelSwitcher(props: ModelSwitcherProps) {
 	const { providerId, termWidth, termHeight, onModelSelected, onClose, registerHandler } = props;

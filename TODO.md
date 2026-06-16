@@ -4,10 +4,10 @@
 
 Make the Spectra Code package installable via npm (or other package managers) so users can add it as a dependency rather than needing the full monorepo.
 
-- [ ] Ensure `packages/code/package.json` has correct `name`, `version`, `exports`, `files`, `bin` entries
-- [ ] Verify `@mohanscodex/spectra-code` resolves and imports correctly in an isolated project (extend `test:import` to include it)
-- [ ] Set up changeset release workflow to include the code package
-- [ ] Document install + usage instructions for npm consumers
+- [x] Ensure `packages/code/package.json` has correct `name`, `version`, `exports`, `files`, `bin` entries
+- [x] Verify `@mohanscodex/spectra-code` resolves and imports correctly in an isolated project (extend `test:import` to include it)
+- [x] Set up changeset release workflow to include the code package
+- [x] Document install + usage instructions for npm consumers
 
 ## 2. Custom states from tool calls (generative UI support)
 
@@ -31,21 +31,21 @@ Ability to stream a tool's content in real time as it is produced, rather than w
 
 Automatic context management that summarizes old conversation history when approaching token limits, preserving recent turns verbatim.
 
-- [ ] Implement overflow detection: trigger when total tokens >= `usable capacity - 20K buffer`
-- [ ] Head/tail split: summarize older context, preserve last 2-4 turns verbatim (25% of usable tokens, clamped 2K-8K)
-- [ ] Structured summary template (Goal, Constraints, Progress, Key Decisions, Next Steps, Critical Context, Relevant Files)
+- [x] Implement overflow detection: trigger when total tokens >= `usable capacity - 20K buffer`
+- [x] Head/tail split: summarize older context, preserve last 2-4 turns verbatim (25% of usable tokens, clamped 2K-8K)
+- [x] Structured summary template (Goal, Constraints, Progress, Key Decisions, Next Steps, Critical Context, Relevant Files)
 - [ ] Anchored summaries: incrementally update previous summary instead of rebuilding from scratch
-- [ ] Tool output truncation during compaction (2K chars max, media stripped)
+- [x] Tool output truncation during compaction (2K chars max, media stripped)
 - [ ] Async pruning pass: mark old tool outputs as compacted, protect recent 40K, never prune `skill` tool outputs
 - [ ] Auto-continue after compaction ("Continue if you have next steps...")
-- [ ] Configurable: `compaction.auto` toggle, `compaction.reserved` buffer, `compaction.preserve_recent_tokens`
-- [ ] Implement in TypeScript (`packages/agent`) for Spectra Code, with Rust SDK following later
+- [x] Configurable: `compaction.auto` toggle, `compaction.reserved` buffer, `compaction.preserve_recent_tokens`
+- [x] Implement in TypeScript (`packages/agent`) for Spectra Code, with Rust SDK following later
 
 ## 5. Agent loop safety guards
 
 Defensive mechanisms in the agent loop to prevent common failure modes. Based on patterns from OwlCoda's conversation engine.
 
-- [ ] Tool loop detection: track consecutive identical tool calls, hard-stop after threshold (e.g., 5 identical calls)
+- [x] Tool loop detection: track consecutive identical tool calls, hard-stop after threshold (e.g., 5 identical calls)
 - [ ] Narration loop detection: detect repetitive output patterns (e.g., same sentence repeated 3+ times), interrupt and prompt user
 - [ ] Output bloat detection: warn when single tool output exceeds reasonable size (e.g., 50K chars), offer to truncate
 - [ ] Task no-progress hard stop: if agent makes N turns with no file writes or meaningful progress, pause and ask for direction
@@ -68,16 +68,16 @@ Broaden the slash command surface to cover observability, session management, gi
 - [x] `/search` — search sessions (opens session list dialog)
 - [ ] `/export` — export session to JSON/Markdown
 - [ ] `/history` — show conversation turn history
-- [ ] `/compress` — manually trigger context compaction
+- [x] `/compress` — manually trigger context compaction
 
 **Git:**
 - [ ] `/commit` — stage and commit changes with AI-generated message (requires template prompt system)
 - [ ] `/review` — review uncommitted changes or current branch (requires template prompt + subagent spawning)
 
 **Config:**
-- [x] `/theme` — switch color theme
-- [x] `/permissions` — view/edit tool permission settings
-- [x] `/settings` — open settings panel
+- [ ] `/theme` — switch color theme (command registered but no dialog renders — broken)
+- [ ] `/permissions` — view/edit tool permission settings (command registered but no dialog renders — broken)
+- [ ] `/settings` — open settings panel (command registered but no dialog renders — broken)
 
 ## 7. Plugin system
 
@@ -119,11 +119,11 @@ interface SpectraPlugin {
 
 Per-request metrics, cost tracking, and runtime health visibility at the HTTP proxy/transport layer.
 
-- [ ] Per-model cost tracking: token counts × configured pricing, cumulative per session
+- [x] Per-model cost tracking: token counts × configured pricing, cumulative per session
 - [ ] Request latency metrics: time-to-first-token, total duration, p50/p95/p99 aggregates
 - [ ] Rate limit headers parsing: extract `X-RateLimit-*` headers from provider responses, surface to UI
-- [ ] Circuit breaker state exposure: expose open/half-open/closed state per model via `/status` or event stream
-- [ ] Token usage breakdown: input, output, cache read, cache write tokens per request
+- [x] Circuit breaker state exposure: expose open/half-open/closed state per model via `/status` or event stream
+- [x] Token usage breakdown: input, output, cache read, cache write tokens per request
 - [ ] Expose metrics through agent event stream so TUI can render `/cost`, `/tokens`, `/stats` commands
 
 ## 9. Session handling overhaul
@@ -131,15 +131,15 @@ Per-request metrics, cost tracking, and runtime health visibility at the HTTP pr
 Spectra's session system is fundamentally weaker than OpenCode's. The current JSON-per-file storage, shallow fork, and missing compaction will not scale.
 
 **Storage:**
-- [ ] Migrate from JSON files to SQLite (indexed queries, pagination, cascade deletes)
+- [x] Migrate from JSON files to SQLite (indexed queries, pagination, cascade deletes)
 - [ ] Schema: sessions table, messages table, parts table with foreign keys
-- [ ] Indexed columns: project_id, parent_id, time_created, time_updated
+- [x] Indexed columns: project_id, parent_id, time_created, time_updated
 - [ ] Cursor-based pagination for session listing
 
 **Fork & Branch:**
 - [ ] Deep copy with ID remapping (prevent collisions between forked sessions)
 - [ ] Fork from specific message point (not just entire session)
-- [ ] Parent-child relationship tracking via parent_id
+- [x] Parent-child relationship tracking via parent_id
 - [ ] Fork count in title (e.g. "Title (fork #1)")
 
 **Search & Filtering:**
@@ -334,10 +334,10 @@ Commands like `/commit` and `/review` need structured prompts that are loaded fr
 Commands like `/review` need to spawn a child agent session with restricted tools (read-only for review, full access for commit).
 
 **Design:**
-- [ ] `subtask: true` flag on command definition — spawns a child session
+- [x] `subtask: true` flag on command definition — spawns a child session (implemented as `mode: 'subagent'` on AgentDefinition)
 - [ ] Child session inherits permission rules from parent (external_directory, deny rules)
-- [ ] Tool restrictions: `/review` gets read-only tools (read, glob, grep, bash for git), no write/edit
-- [ ] After subtask completes, inject result into parent session as context
+- [x] Tool restrictions: `/review` gets read-only tools (read, glob, grep, bash for git), no write/edit
+- [x] After subtask completes, inject result into parent session as context
 - [ ] Child session title: `"${description} (@${agent} subagent)"`
 
 **Commands that need this:**
@@ -387,13 +387,42 @@ Skills that are automatically synthesized from past sessions, creating a self-im
 - Boost score in TF-IDF matching: `score * (1 + min(0.1 * log(1 + useCount), 0.5))`
 
 **Implementation:**
-- [ ] Skill storage: save/load evolving skills from `~/.spectra/skills/`
-- [ ] Session trace extraction: summarize tools called, outcomes, patterns
-- [ ] Skill synthesis prompt: generate SKILL.md from trace
-- [ ] Duplicate detection: TF-IDF similarity check before saving
-- [ ] Evolution/forking: version bump or parentId-linked fork
-- [ ] useCount tracking: increment on load, boost in matching
-- [ ] Three-tier merge: bundled → evolving → user in `discoverAndCreateSkillTools()`
+- [x] Skill storage: save/load evolving skills from `~/.spectra/skills/`
+- [x] Session trace extraction: summarize tools called, outcomes, patterns
+- [x] Skill synthesis prompt: generate SKILL.md from trace
+- [x] Duplicate detection: TF-IDF similarity check before saving
+- [x] Evolution/forking: version bump or parentId-linked fork
+- [x] useCount tracking: increment on load, boost in matching
+- [x] Three-tier merge: bundled → evolving → user in `discoverAndCreateSkillTools()`
+
+## 15. Coding plan provider integrations
+
+Support bundled access to popular AI coding subscription plans — giving users affordable, multi-model access without managing individual provider API keys. These plans are OpenAI/Anthropic-compatible and work with any agent that speaks those protocols.
+
+**Why this matters:** The 2026 coding plan ecosystem (OpenCode Go/Zen, MiniMax Token Plan, GLM Coding Plan, Kimi Code Plan, Qwen Coding Plan) offers $10-120/mo subscriptions with generous quotas, but each has its own model roster, quota windows, and rate limits. Spectra should integrate these as first-class providers with smart routing and quota awareness.
+
+**Plans to support:**
+
+| Plan | Price | Models | Quota System | API Compatibility |
+|------|-------|--------|--------------|-------------------|
+| OpenCode Go | $10/mo | 14 open models (DeepSeek V4, GLM 5.1, Qwen 3.7, Kimi K2.5/K2.6, MiniMax M2.5/M2.7, MiMo-V2.5) | Dollar-equivalent: $12/5h, $30/week, $60/month | OpenAI-compatible |
+| OpenCode Zen | Pay-as-you-go | 40+ models (Claude, GPT, Gemini, DeepSeek, GLM, Kimi) | Per-token billing | OpenAI + Anthropic-compatible |
+| MiniMax Token Plan | $20-120/mo | M3, M2.7, M2.7-highspeed | 5h + weekly token windows, 3-7 concurrent agents | OpenAI-compatible |
+| GLM Coding Plan (Zhipu) | ¥49-469/mo (~$7-65) | GLM-5/5.1, GLM-4.7, GLM-4.6 | 5h + weekly prompt windows, MCP included | OpenAI + Anthropic-compatible |
+| Kimi Code Plan (Moonshot) | ¥49-699/mo (~$7-97) | Kimi K2.5, K2.6, K2.7 | 5h token quota, 7-day refresh | Anthropic-compatible |
+| Qwen Coding Plan (Alibaba) | TBD | Qwen 3.6/3.7 Plus/Max | Token-based quota | OpenAI-compatible |
+
+**Implementation:**
+- [ ] Provider registry: define plan metadata (name, models, pricing, quota windows, API endpoints) in a config file or registry
+- [ ] Subscription key management: store plan API keys in auth store, support multiple concurrent plans
+- [ ] Quota tracker: monitor 5h/weekly/monthly usage windows per plan, expose remaining quota to UI
+- [ ] Smart model router: given a task, pick the best available model across all subscribed plans based on capability, remaining quota, and cost
+- [ ] Fallback chain: when one plan hits quota limits, automatically route to next available model/plan
+- [ ] Plan status command: `/plans` — show all subscribed plans, models, remaining quota, reset times
+- [ ] Per-plan cost tracking: aggregate token usage and dollar-equivalent cost per plan per session
+- [ ] Rate limit awareness: respect 5h rolling windows, warn when approaching quota limits
+- [ ] Model capability registry: map each plan's models to their context windows, strengths, and benchmarks
+- [ ] Integration with existing provider system: plans register as providers in `packages/ai` registry
 
 ### Future (deferred)
 

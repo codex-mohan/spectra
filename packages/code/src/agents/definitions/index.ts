@@ -3,6 +3,7 @@ import { buildAgent } from './build.js';
 import { planAgent } from './plan.js';
 import { debugAgent } from './debug.js';
 import { exploreAgent } from './explore.js';
+import { generalAgent } from './general.js';
 import { titleAgent } from './title.js';
 
 export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
@@ -10,6 +11,7 @@ export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
 	[planAgent.name]: planAgent,
 	[debugAgent.name]: debugAgent,
 	[exploreAgent.name]: exploreAgent,
+	[generalAgent.name]: generalAgent,
 	[titleAgent.name]: titleAgent,
 };
 

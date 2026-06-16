@@ -3,29 +3,7 @@ import { c } from '../theme.js';
 import { write, type ApiCredential } from '../../services/auth-store.js';
 import { listProviders, getModels } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
-
-const BUILTIN_META: Record<string, { name: string; desc: string; popular: boolean }> = {
-	anthropic: { name: 'Anthropic', desc: 'Claude models', popular: true },
-	openai: { name: 'OpenAI', desc: 'GPT models', popular: true },
-	openrouter: { name: 'OpenRouter', desc: 'Multi-model gateway', popular: true },
-	groq: { name: 'Groq', desc: 'Fast inference', popular: true },
-	google: { name: 'Google', desc: 'Gemini models', popular: true },
-	xai: { name: 'xAI', desc: 'Grok models', popular: true },
-	deepseek: { name: 'DeepSeek', desc: 'DeepSeek models', popular: true },
-	mistral: { name: 'Mistral', desc: 'Mistral models', popular: true },
-	cerebras: { name: 'Cerebras', desc: 'Fast inference', popular: true },
-	'fireworks-ai': { name: 'Fireworks AI', desc: 'Fast inference', popular: false },
-	togetherai: { name: 'Together AI', desc: 'Open-source models', popular: false },
-	perplexity: { name: 'Perplexity', desc: 'Search models', popular: false },
-	cohere: { name: 'Cohere', desc: 'Command models', popular: false },
-	'novita-ai': { name: 'Novita AI', desc: 'Inference API', popular: false },
-	moonshotai: { name: 'Moonshot AI', desc: 'Chinese models', popular: false },
-	chutes: { name: 'Chutes', desc: 'Inference API', popular: false },
-	minimax: { name: 'MiniMax', desc: 'MiniMax models', popular: false },
-	huggingface: { name: 'Hugging Face', desc: 'Open models', popular: false },
-	nvidia: { name: 'NVIDIA', desc: 'NVIDIA models', popular: false },
-	zai: { name: 'Z.AI', desc: 'Chinese models', popular: false },
-};
+import { PROVIDER_META, resolveMetaKey, getApiKeyDesc } from '../utils/provider-meta.js';
 
 // ── Shared select list ──
 
@@ -104,6 +82,7 @@ function SelectDialog(props: {
 		return () => registerHandler(null);
 	}, [filtered, sel, onSelect, onCancel, registerHandler]);
 
+	// Build rows — items are pre-sorted by category so each header appears once.
 	const rows: any[] = [];
 	let prevCat = '';
 	for (let i = 0; i < filtered.length; i++) {
@@ -221,17 +200,6 @@ function ApiKeyDialog(props: {
 	const [err, setErr] = useState('');
 	const keyDoneRef = useRef(false);
 
-	const descs: Record<string, string> = {
-		anthropic: 'Get your key at https://console.anthropic.com',
-		openai: 'Get your key at https://platform.openai.com',
-		openrouter: 'Get your key at https://openrouter.ai/keys',
-		groq: 'Get your key at https://console.groq.com',
-		google: 'Get your key at https://aistudio.google.com/apikey',
-		deepseek: 'Get your key at https://platform.deepseek.com',
-		xai: 'Get your key at https://x.ai/api',
-		mistral: 'Get your key at https://console.mistral.ai',
-	};
-
 	useEffect(() => {
 		registerHandler((key: any) => {
 			if (key.name === 'escape' && !keyDoneRef.current) {
@@ -274,7 +242,7 @@ function ApiKeyDialog(props: {
 				<text fg={c.accent} attributes={1}>
 					{providerName} API Key
 				</text>
-				<text fg={c.dim}>{descs[providerId] || `Enter your ${providerName} API key`}</text>
+				<text fg={c.dim}>{getApiKeyDesc(providerId, providerName)}</text>
 				<box flexDirection="row" alignItems="center" gap={1}>
 					<text fg={c.accent}>›</text>
 					<box flexGrow={1}>
@@ -294,6 +262,68 @@ function ApiKeyDialog(props: {
 	);
 }
 
+// ── Manual model ID input ──
+
+function ModelInputDialog(props: {
+	providerName: string;
+	onSubmit: (modelId: string) => void;
+	onCancel: () => void;
+	termWidth: number;
+	termHeight: number;
+	registerHandler: (fn: ((key: any) => void) | null) => void;
+}) {
+	const { providerName, onSubmit, onCancel, termWidth, termHeight, registerHandler } = props;
+	const mw = Math.min(64, termWidth - 4);
+	const ml = Math.floor((termWidth - mw) / 2);
+	const mh = 8;
+	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
+
+	useEffect(() => {
+		registerHandler((key: any) => {
+			if (key.name === 'escape') {
+				onCancel();
+			}
+		});
+		return () => registerHandler(null);
+	}, [onCancel, registerHandler]);
+
+	return (
+		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
+			<box
+				position="absolute"
+				left={ml}
+				top={mt}
+				width={mw}
+				height={mh}
+				backgroundColor={c.bgCard}
+				padding={2}
+				flexDirection="column"
+				gap={1}
+			>
+				<text fg={c.accent} attributes={1}>
+					{providerName} — Enter Model ID
+				</text>
+				<text fg={c.dim}>Type the exact model ID and press Enter</text>
+				<box flexDirection="row" alignItems="center" gap={1}>
+					<text fg={c.accent}>›</text>
+					<box flexGrow={1}>
+						<input
+							key="model-id-input"
+							placeholder="e.g. claude-sonnet-4-5"
+							onSubmit={(v) => {
+								const val = String(v).trim();
+								if (val) onSubmit(val);
+							}}
+							focused={true}
+						/>
+					</box>
+				</box>
+				<text fg={c.dim}>enter confirm · esc cancel</text>
+			</box>
+		</box>
+	);
+}
+
 // ── Root ──
 
 export interface ProviderDialogProps {
@@ -307,7 +337,8 @@ export interface ProviderDialogProps {
 type Step =
 	| { phase: 'provider-list' }
 	| { phase: 'api-key'; id: string; name: string }
-	| { phase: 'model-select'; id: string; name: string };
+	| { phase: 'model-select'; id: string; name: string }
+	| { phase: 'model-input'; id: string; name: string };
 
 export function ProviderDialog(props: ProviderDialogProps) {
 	const { termWidth, termHeight, onModelSelected, onClose, keyHandlerRef } = props;
@@ -324,19 +355,40 @@ export function ProviderDialog(props: ProviderDialogProps) {
 	if (step.phase === 'provider-list') {
 		const cfg = loadConfig();
 		const customProviders = cfg.providers || {};
-		const providerIds = listProviders();
-		const builtinItems = providerIds
-			.filter((id) => BUILTIN_META[id])
-			.map((id) => {
-				const m = BUILTIN_META[id];
-				return { id, name: m.name, desc: m.desc, cat: m.popular ? 'Popular' : 'Providers' };
+
+		// Build the builtin list from the registry, resolving each registry ID to
+		// a canonical metadata key. Deduplicate so that `openai-completions` and
+		// `openai-responses` both fold into a single "OpenAI" row.
+		const seenMetaKeys = new Set<string>();
+		const builtinItems = listProviders()
+			.reduce<{ id: string; name: string; desc: string; cat: string }[]>((acc, registryId) => {
+				const metaKey = resolveMetaKey(registryId);
+				const meta = PROVIDER_META[metaKey];
+				if (!meta || seenMetaKeys.has(metaKey)) return acc;
+				seenMetaKeys.add(metaKey);
+				// Use the canonical metaKey as the provider ID for API-key storage and
+				// model lookup; openai-completions and openai-responses both map to "openai".
+				acc.push({
+					id: metaKey,
+					name: meta.name,
+					desc: meta.desc,
+					cat: meta.popular ? 'Popular' : 'Providers',
+				});
+				return acc;
+			}, [])
+			// Sort so all Popular entries come first — prevents multiple section headers.
+			.sort((a, b) => {
+				if (a.cat === b.cat) return 0;
+				return a.cat === 'Popular' ? -1 : 1;
 			});
+
 		const customItems = Object.entries(customProviders).map(([id, cfg]) => ({
 			id,
 			name: cfg.name || id,
 			desc: cfg.baseUrl,
 			cat: 'Custom',
 		}));
+
 		const items = [...builtinItems, ...customItems];
 		return (
 			<SelectDialog
@@ -391,30 +443,76 @@ export function ProviderDialog(props: ProviderDialogProps) {
 	if (step.phase === 'model-select') {
 		const cfg = loadConfig();
 		const customCfg = cfg.providers?.[step.id];
+		const metaKey = resolveMetaKey(step.id);
+		const providerMeta = PROVIDER_META[metaKey];
+
 		let items: { id: string; name: string; desc: string; cat: string }[];
 		if (models && models.length > 0) {
+			// Models fetched live from the registry (API or local DB).
 			items = models.map((m) => ({ id: m.id, name: m.name, desc: '', cat: 'Models' }));
 		} else if (customCfg?.models) {
+			// Models defined in the user's custom provider config.
 			items = Object.entries(customCfg.models).map(([id, meta]) => ({
 				id,
 				name: meta.name || id,
 				desc: '',
 				cat: 'Models',
 			}));
+		} else if (providerMeta?.defaultModels && providerMeta.defaultModels.length > 0) {
+			// Curated fallback list from provider-meta (e.g. opencode-zen).
+			items = providerMeta.defaultModels.map((m) => ({ id: m.id, name: m.name, desc: '', cat: 'Models' }));
 		} else {
-			items = [{ id: step.id, name: 'Enter model ID manually', desc: 'Type the model ID', cat: '' }];
+			// Nothing known — route to free-form model ID input.
+			return (
+				<ModelInputDialog
+					providerName={step.name}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onSubmit={(modelId) => {
+						onModelSelected(modelId, step.id);
+						onClose();
+					}}
+					onCancel={onClose}
+					registerHandler={registerHandler}
+				/>
+			);
 		}
+
+		// Append an "Enter manually" option at the bottom of any model list
+		// so users can always type a custom/newer model ID.
+		const manualEntry = { id: '__manual__', name: 'Enter model ID manually…', desc: '', cat: '' };
+
 		return (
 			<SelectDialog
-				items={items}
+				items={[...items, manualEntry]}
 				placeholder="Search models..."
 				termWidth={termWidth}
 				termHeight={termHeight}
-				onSelect={(id, name) => {
-					onModelSelected(id, step.id);
-					onClose();
+				onSelect={(id) => {
+					if (id === '__manual__') {
+						setStep({ phase: 'model-input', id: step.id, name: step.name });
+					} else {
+						onModelSelected(id, step.id);
+						onClose();
+					}
 				}}
 				onCancel={onClose}
+				registerHandler={registerHandler}
+			/>
+		);
+	}
+
+	if (step.phase === 'model-input') {
+		return (
+			<ModelInputDialog
+				providerName={step.name}
+				termWidth={termWidth}
+				termHeight={termHeight}
+				onSubmit={(modelId) => {
+					onModelSelected(modelId, step.id);
+					onClose();
+				}}
+				onCancel={() => setStep({ phase: 'model-select', id: step.id, name: step.name })}
 				registerHandler={registerHandler}
 			/>
 		);
