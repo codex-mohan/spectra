@@ -110,7 +110,7 @@ describe('ACP Protocol', () => {
 
 			const { AGENT_DEFINITIONS: acpDefs } = await import('../agents/index.js');
 			expect(acpDefs).toBe(tuiDefs);
-			expect(Object.keys(acpDefs)).toEqual(['build', 'plan', 'debug', 'explore', 'title']);
+			expect(Object.keys(acpDefs)).toEqual(['build', 'plan', 'debug', 'explore', 'general', 'title']);
 		});
 
 		it('session/new creates a real Agent with tools registered', async () => {
