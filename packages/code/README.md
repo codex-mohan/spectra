@@ -8,7 +8,7 @@ Spectra Code is a terminal-native coding agent with a full-screen TUI, CLI utili
 
 - **Full-screen TUI** — Chat with agents, switch models/providers, manage sessions, view costs, and control permissions.
 - **Agent modes** — `build`, `plan`, and `debug` modes with tailored tool access; `explore` is available as a fast read-only sub-agent.
-- **Bundled and evolving skills** — 185+ bundled skills plus skills learned from sessions and custom user/project skills.
+- **Bundled and evolving skills** — 60+ bundled skills plus skills learned from sessions and custom user/project skills.
 - **Custom tools** — Add `.ts` or `.js` tools in `.spectra/tools/`, `.opencode/tools/`, `.claude/tools/`, `.agents/tools/`, or the global Spectra config directory.
 - **MCP integration** — Connect stdio and HTTP MCP servers and expose their tools to the agent.
 - **ACP support** — Run as an Agent Client Protocol server for editors such as Zed, Neovim, JetBrains, and other ACP-compatible clients.
@@ -299,7 +299,7 @@ Skill layers, from lowest to highest precedence:
 
 | Layer | Location | Notes |
 | --- | --- | --- |
-| Bundled | Included in the npm package | Shipped with 185+ workflows |
+| Bundled | Included in the npm package | Shipped with 60+ workflows |
 | Evolving | `~/.spectra/skills/` | Generated from previous sessions |
 | User/project | `.claude/skills/`, `.agents/skills/`, `~/.claude/skills/`, and other discovered skill directories | Override bundled and evolving skills |
 
