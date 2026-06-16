@@ -106,7 +106,30 @@ jobs:
         run: |
           cd packages/code/binaries
 
-          cat > spectra.wxs << 'WXS'
+          # Dynamically build Component elements for all files in windows-x64/
+          COMPONENTS=""
+          COMP_COUNT=0
+          for f in windows-x64/*; do
+            [ -f "$f" ] || continue
+            FNAME=$(basename "$f")
+            ID="File${COMP_COUNT}"
+            COMPONENTS="${COMPS}<Component Id=\"${ID}\" Guid=\"*\"><File Id=\"${ID}File\" Source=\"windows-x64\\${FNAME}\" KeyPath=\"yes\" /></Component>"
+            COMP_COUNT=$((COMP_COUNT + 1))
+          done
+          # Also include any subdirectories (assets/)
+          for d in windows-x64/*/; do
+            [ -d "$d" ] || continue
+            DNAME=$(basename "$d")
+            for f in "$d"*; do
+              [ -f "$f" ] || continue
+              FNAME=$(basename "$f")
+              ID="File${COMP_COUNT}"
+              COMPONENTS="${COMPS}<Component Id=\"${ID}\" Guid=\"*\"><File Id=\"${ID}File\" Source=\"windows-x64\\${DNAME}\\${FNAME}\" KeyPath=\"yes\" /></Component>"
+              COMP_COUNT=$((COMP_COUNT + 1))
+            done
+          done
+
+          cat > spectra.wxs << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
             <Package Name="Spectra" Language="1033" Version="0.5.1"
@@ -124,16 +147,11 @@ jobs:
             </Fragment>
             <Fragment>
               <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-                <Component Id="MainExecutable" Guid="*">
-                  <File Id="SpectraExe" Source="windows-x64\spectra.exe" KeyPath="yes" />
-                </Component>
-                <Component Id="NativeLib" Guid="*">
-                  <File Id="OpenTuiDll" Source="windows-x64\opentui.dll" />
-                </Component>
+                ${COMPONENTS}
               </ComponentGroup>
             </Fragment>
           </Wix>
-          WXS
+          EOF
 
           wix build spectra.wxs -o spectra-${{ matrix.platform }}.msi
         shell: bash
