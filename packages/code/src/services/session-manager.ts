@@ -273,9 +273,10 @@ export class SessionManager {
 
 		const last = msgs[msgs.length - 1];
 
-		// Pop empty trailing assistant message (no tokens arrived before abort).
+		// Pop truly empty trailing assistant message (no content blocks at all — no tokens arrived before abort).
 		// Prevents DeepSeek 400 — it requires content or tool_calls on every assistant turn.
-		if (last.role === 'assistant' && !last.content.some((c) => c.type === 'text' || c.type === 'toolCall')) {
+		// Thinking-only messages are kept — the reasoning context is valuable even if interrupted.
+		if (last.role === 'assistant' && last.content.length === 0) {
 			msgs.pop();
 			agent.restoreHistory(msgs);
 			return;
