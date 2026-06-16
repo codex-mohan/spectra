@@ -226,9 +226,13 @@ export class SessionManager {
 		state.status = 'busy';
 		this.emit({ type: 'status_change', sessionId, status: 'busy' });
 
+		let abortedMidStream = false;
 		try {
 			for await (const ev of agent.run(prompt)) {
-				if (abortController.signal.aborted) break;
+				if (abortController.signal.aborted) {
+					abortedMidStream = true;
+					break;
+				}
 
 				if (ev.type === 'message_start' && ev.message.role === 'assistant') {
 					options.onMessageStart?.('');
@@ -253,10 +257,42 @@ export class SessionManager {
 			state.status = 'error';
 			this.emit({ type: 'error', sessionId, error: err instanceof Error ? err.message : String(err) });
 		} finally {
+			if (abortedMidStream) {
+				this.handleInterrupt(agent, sessionId);
+			}
 			state.isStreaming = false;
 			state.abortController = null;
 			state.status = 'idle';
 			this.emit({ type: 'status_change', sessionId, status: 'idle' });
+		}
+	}
+
+	private handleInterrupt(agent: Agent, sessionId: string): void {
+		const msgs = agent.messages;
+		if (msgs.length === 0) return;
+
+		const last = msgs[msgs.length - 1];
+
+		// Pop empty trailing assistant message (no tokens arrived before abort).
+		// Prevents DeepSeek 400 — it requires content or tool_calls on every assistant turn.
+		if (last.role === 'assistant' && !last.content.some((c) => c.type === 'text' || c.type === 'toolCall')) {
+			msgs.pop();
+			agent.restoreHistory(msgs);
+			return;
+		}
+
+		// Assistant with real content was interrupted — inject hidden user marker
+		// so the model knows it was cut off (prevents mid-sentence continuation).
+		if (last.role === 'assistant' && last.content.some((c) => c.type === 'text')) {
+			const interruptMsg: Message = {
+				role: 'user',
+				content: '[Response interrupted by user]',
+				timestamp: Date.now(),
+				metadata: { hidden: true },
+			};
+			msgs.push(interruptMsg);
+			agent.restoreHistory(msgs);
+			this.sessionStore.addMessage(sessionId, interruptMsg);
 		}
 	}
 

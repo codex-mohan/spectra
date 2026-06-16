@@ -22,7 +22,8 @@ export function sdkMessagesToChatMessages(data: {
 		}
 	}
 
-	const messages: ChatMessage[] = data.messages.map((m: any) => {
+	const visible = data.messages.filter((m: any) => !m.metadata?.hidden);
+	const messages: ChatMessage[] = visible.map((m: any) => {
 		const id = genId();
 		if (m.role === 'user') {
 			return {
