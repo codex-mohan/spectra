@@ -1,5 +1,17 @@
 # @mohanscodex/spectra-ai
 
+## 0.5.0
+
+### Minor Changes
+
+- [`88c3c56`](https://github.com/codex-mohan/spectra/commit/88c3c56) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add prompt caching hints for Anthropic and OpenRouter to reduce token costs on repeated context
+
+- [`d0fcd10`](https://github.com/codex-mohan/spectra/commit/d0fcd10) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add models.dev pricing data with cost/tokens formatting for all providers
+
+### Patch Changes
+
+- CI pipeline fixes: matrix build with native runners, build-binaries workflow, smoke test, and lockfile resolution
+
 ## 0.4.9
 
 ### Patch Changes

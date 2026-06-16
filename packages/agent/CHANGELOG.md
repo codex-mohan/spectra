@@ -1,5 +1,20 @@
 # @mohanscodex/spectra-agent
 
+## 0.5.0
+
+### Minor Changes
+
+- [`af1908e`](https://github.com/codex-mohan/spectra/commit/af1908e) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add skill system with TF-IDF indexing and `find_skills` tool for discovering and loading agent skills
+
+- [`a7a9828`](https://github.com/codex-mohan/spectra/commit/a7a9828) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Evolving skills system with 3-tier merge, synthesis, and useCount tracking — skills learn from usage patterns
+
+### Patch Changes
+
+- [`71bf089`](https://github.com/codex-mohan/spectra/commit/71bf089) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Handle CRLF line endings in skill frontmatter parsing for Windows compatibility
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.5.0
+
 ## 0.4.9
 
 ### Patch Changes

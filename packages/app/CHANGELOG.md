@@ -1,5 +1,15 @@
 # @mohanscodex/spectra-app
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.5.0
+  - @mohanscodex/spectra-agent@0.5.0
+
+- CI pipeline fixes: matrix build with native runners, build-binaries workflow, smoke test, and lockfile resolution
+
 ## 0.4.9
 
 ### Patch Changes

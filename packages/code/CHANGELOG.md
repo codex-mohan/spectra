@@ -1,5 +1,43 @@
 # @mohanscodex/spectra-code
 
+## 0.5.0
+
+### Minor Changes
+
+- [`7d54df0`](https://github.com/codex-mohan/spectra/commit/7d54df0) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Integrate skills into agent with bundled skills loading — agents can now discover and use specialized skill files
+
+- [`792e648`](https://github.com/codex-mohan/spectra/commit/792e648) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add slash commands with real data integration for quick access to sessions, agents, and settings
+
+- [`030637f`](https://github.com/codex-mohan/spectra/commit/030637f) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Terminal title and LLM-powered session naming via hidden title agent — sessions auto-name based on first message
+
+- [`9c52a51`](https://github.com/codex-mohan/spectra/commit/9c52a51) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Git-based snapshots, atomic revert, cursor-aware history, and Anthropic cache fixes
+
+- [`712a1a5`](https://github.com/codex-mohan/spectra/commit/712a1a5) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Render unified diff with line numbers and syntax highlighting for edit/write tools
+
+### Patch Changes
+
+- [`f5ea9fb`](https://github.com/codex-mohan/spectra/commit/f5ea9fb) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add cost dialog and improve prompt bar token colors
+
+- [`f9a3b6e`](https://github.com/codex-mohan/spectra/commit/f9a3b6e) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Refactor agent definitions into per-agent files with blacklist approach
+
+- [`6561239`](https://github.com/codex-mohan/spectra/commit/6561239) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Upgrade OpenTUI to 0.3.3+ for BindingError fix, clear prompt on submit
+
+- [`459936d`](https://github.com/codex-mohan/spectra/commit/459936d) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Cursor-aware history with two-press boundary detection
+
+- [`86ba7ae`](https://github.com/codex-mohan/spectra/commit/86ba7ae) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Scope session listing to current working directory
+
+- [`3a08c87`](https://github.com/codex-mohan/spectra/commit/3a08c87) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add right padding to chat scrollbox to clear scrollbar
+
+- [`7043acf`](https://github.com/codex-mohan/spectra/commit/7043acf) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Replace stub setStatus calls with toast notifications
+
+- [`a5242d2`](https://github.com/codex-mohan/spectra/commit/a5242d2) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Pipe stdio in glob/grep execSync to prevent stderr bleed into TUI
+
+- [`cbfe112`](https://github.com/codex-mohan/spectra/commit/cbfe112) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Fix version resolution and update dialog keyboard focus
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.5.0
+  - @mohanscodex/spectra-agent@0.5.0
+
 ## 0.4.9
 
 ### Patch Changes

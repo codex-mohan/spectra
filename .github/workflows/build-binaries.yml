@@ -74,13 +74,78 @@ jobs:
           bash ../../scripts/copy-native-libs.sh ${{ matrix.platform }}
         shell: bash
 
-      - name: Create archive
+      - name: Create archive (Linux)
+        if: runner.os == 'Linux'
         run: |
           cd packages/code/binaries
-          if [[ "${{ matrix.platform }}" == "windows-x64" ]]; then
-            powershell -Command "Compress-Archive -Path '${{ matrix.platform }}/*' -DestinationPath 'spectra-${{ matrix.platform }}.zip'"
+          mv ${{ matrix.platform }} spectra && tar -czf spectra-${{ matrix.platform }}.tar.gz spectra && mv spectra ${{ matrix.platform }}
+        shell: bash
+
+      - name: Create DMG (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd packages/code/binaries
+          # Stage files for DMG volume
+          mkdir -p dmg-staging
+          cp ${{ matrix.platform }}/spectra dmg-staging/
+          cp ${{ matrix.platform }}/libopentui.dylib dmg-staging/ 2>/dev/null || true
+          cp -r ${{ matrix.platform }}/assets dmg-staging/ 2>/dev/null || true
+          ln -s /usr/local/bin dmg-staging/bin
+          # Create DMG
+          hdiutil create -volname "Spectra" -srcfolder dmg-staging -ov -format UDZO spectra-${{ matrix.platform }}.dmg
+          rm -rf dmg-staging
+        shell: bash
+
+      - name: Create MSI (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd packages/code/binaries
+
+          # Generate WiX source file
+          cat > spectra.wxs << 'WXS'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+            <Product Id="*" Name="Spectra" Language="1033" Version="0.5.1"
+                     Manufacturer="codex-mohan" UpgradeCode="A7B9C2D4-E5F6-7890-ABCD-EF1234567890">
+              <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser" />
+              <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+              <Feature Id="ProductFeature" Title="Spectra" Level="1">
+                <ComponentGroupRef Id="ProductComponents" />
+              </Feature>
+            </Product>
+            <Fragment>
+              <Directory Id="TARGETDIR" Name="SourceDir">
+                <Directory Id="LocalAppDataFolder">
+                  <Directory Id="INSTALLFOLDER" Name="Spectra" />
+                </Directory>
+              </Directory>
+            </Fragment>
+            <Fragment>
+              <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+                <Component Id="MainExecutable" Guid="*">
+                  <File Id="SpectraExe" Source="windows-x64\spectra.exe" KeyPath="yes" />
+                </Component>
+                <Component Id="NativeLib" Guid="*">
+                  <File Id="OpenTuiDll" Source="windows-x64\opentui.dll" />
+                </Component>
+              </ComponentGroup>
+            </Fragment>
+          </Wix>
+          WXS
+
+          # Find WiX toolset
+          WIX_DIR="C:\Program Files (x86)\WiX Toolset v3.11\bin"
+          if [ ! -d "$WIX_DIR" ]; then
+            WIX_DIR=$(find /c/Program\ Files* -name "candle.exe" -path "*/WiX*" 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+          fi
+
+          if [ -n "$WIX_DIR" ] && [ -d "$WIX_DIR" ]; then
+            "$WIX_DIR/candle.exe" spectra.wxs -out spectra.wixobj
+            "$WIX_DIR/light.exe" spectra.wixobj -out spectra-${{ matrix.platform }}.msi -ext WixUIExtension
           else
-            mv ${{ matrix.platform }} spectra && tar -czf spectra-${{ matrix.platform }}.tar.gz spectra && mv spectra ${{ matrix.platform }}
+            echo "WiX not found, falling back to zip"
+            powershell -Command "Compress-Archive -Path '${{ matrix.platform }}/*' -DestinationPath 'spectra-${{ matrix.platform }}.zip'"
           fi
         shell: bash
 
@@ -90,6 +155,8 @@ jobs:
           name: spectra-${{ matrix.platform }}
           path: |
             packages/code/binaries/spectra-${{ matrix.platform }}.tar.gz
+            packages/code/binaries/spectra-${{ matrix.platform }}.dmg
+            packages/code/binaries/spectra-${{ matrix.platform }}.msi
             packages/code/binaries/spectra-${{ matrix.platform }}.zip
 
   release:
@@ -117,7 +184,7 @@ jobs:
           # Collect all archives
           FILES=""
           for dir in spectra-*/; do
-            for f in "$dir"*.{tar.gz,zip}; do
+            for f in "$dir"*.{tar.gz,zip,dmg,msi}; do
               [ -f "$f" ] && FILES="$FILES $f"
             done
           done
