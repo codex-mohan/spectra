@@ -45,11 +45,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Delete per-package tags
+      - name: Delete per-package tags and draft releases
         run: |
+          # Delete per-package tags
           for TAG in $(git tag -l "@mohanscodex/spectra-*"); do
             git push origin ":refs/tags/$TAG" || true
           done
+          # Delete per-package draft releases created by changesets
+          for RELEASE in $(gh release list --limit 50 --json tagName --jq '.[] | select(.tagName | startswith("@mohanscodex/")) | .tagName'); do
+            gh release delete "$RELEASE" --yes 2>/dev/null || true
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Smoke test published packages
         if: steps.changesets.outputs.published == 'true'
