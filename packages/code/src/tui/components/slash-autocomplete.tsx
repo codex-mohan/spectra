@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { c } from '../theme.js';
 import type { CmdItem } from './command-palette.js';
 
@@ -14,32 +14,41 @@ export interface SlashAutocompleteProps {
 	promptWidth?: number;
 }
 
-const MAX_ITEMS = 8;
+// Visible-row budget for the list window. Unlike the command palette (a centered
+// modal with lots of vertical room), this menu floats directly above the prompt
+// and grows upward — so the window must be clamped to the space actually
+// available above the prompt, not a flat cap. The scrollbox then handles any
+// overflow beyond the window.
+const MAX_LIST_ROWS = 8;
+const MIN_LIST_ROWS = 3;
+const MENU_CHROME = 3; // header + divider + footer rows surrounding the list
 
 export function SlashAutocomplete(props: SlashAutocompleteProps) {
 	const { query, selected, items, termWidth, termHeight, route, promptTop, promptLeft, promptWidth } = props;
-
-	const count = Math.min(items.length, MAX_ITEMS);
-	if (count === 0) return null;
-
-	const mw = Math.min(50, termWidth - 8);
-	const mh = count + 4;
+	const scrollRef = useRef<any>(null);
 
 	const isChat = route === 'chat';
 
-	const menuLeft = promptLeft ?? 3;
-	const menuWidth = promptWidth ?? mw;
+	// Vertical space above the prompt that the menu is allowed to occupy.
+	// On chat route the menu is anchored above the prompt; on home route there is
+	// no prompt so we fall back to the full terminal height.
+	const spaceAbove = isChat ? Math.max(0, (promptTop ?? termHeight) - MENU_CHROME - 1) : termHeight;
+	const listH = Math.max(MIN_LIST_ROWS, Math.min(MAX_LIST_ROWS, items.length, spaceAbove));
+	const mh = listH + MENU_CHROME;
 
+	const menuLeft = promptLeft ?? 3;
+	const menuWidth = promptWidth ?? Math.min(50, termWidth - 8);
 	const menuTop = isChat ? (promptTop ?? termHeight) - mh - 1 : Math.floor(termHeight / 2) - mh - 2;
 
 	const rows = useMemo(() => {
 		const r: any[] = [];
-		for (let i = 0; i < count; i++) {
+		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
 			const isSel = i === selected;
 			r.push(
 				<box
 					key={item.id}
+					id={item.id}
 					height={1}
 					paddingLeft={1}
 					paddingRight={1}
@@ -57,7 +66,26 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 			);
 		}
 		return r;
-	}, [items, selected, count]);
+	}, [items, selected]);
+
+	// Keep the highlighted row inside the scroll window. Same approach as
+	// command-palette.tsx: prefer scrollChildIntoView, fall back to manual scrollBy.
+	useEffect(() => {
+		if (!scrollRef.current) return;
+		const sel = items[selected];
+		if (!sel) return;
+		const el = scrollRef.current;
+		if (typeof el.scrollChildIntoView === 'function') {
+			el.scrollChildIntoView(sel.id);
+			return;
+		}
+		const child = el.getChildren?.()?.find?.((ch: any) => ch.id === sel.id);
+		if (child) {
+			const y = child.y - (el.y || 0);
+			if (y >= (el.height || listH)) el.scrollBy?.(y - (el.height || listH) + 1);
+			if (y < 0) el.scrollBy?.(y);
+		}
+	}, [selected, items, listH]);
 
 	return (
 		<box
@@ -88,12 +116,16 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 			<box height={1} paddingLeft={1} paddingRight={1}>
 				<text fg={c.border}>{'─'.repeat(menuWidth - 2)}</text>
 			</box>
-			<box flexDirection="column">{rows}</box>
-			{items.length > MAX_ITEMS && (
-				<box height={1} paddingLeft={1}>
-					<text fg={c.dim}>...{items.length - MAX_ITEMS} more</text>
-				</box>
-			)}
+			<scrollbox
+				ref={(r: any) => {
+					scrollRef.current = r;
+				}}
+				maxHeight={listH}
+				scrollY={true}
+				scrollbarOptions={{ visible: false }}
+			>
+				<box flexDirection="column">{rows}</box>
+			</scrollbox>
 			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between">
 				<text fg={c.dim}>{'\u2191\u2193'} navigate</text>
 				<text fg={c.dim}>esc dismiss</text>

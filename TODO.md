@@ -1,15 +1,6 @@
 # Spectra Roadmap
 
-## 1. Publish `@mohanscodex/spectra-code` to npm
-
-Make the Spectra Code package installable via npm (or other package managers) so users can add it as a dependency rather than needing the full monorepo.
-
-- [x] Ensure `packages/code/package.json` has correct `name`, `version`, `exports`, `files`, `bin` entries
-- [x] Verify `@mohanscodex/spectra-code` resolves and imports correctly in an isolated project (extend `test:import` to include it)
-- [x] Set up changeset release workflow to include the code package
-- [x] Document install + usage instructions for npm consumers
-
-## 2. Custom states from tool calls (generative UI support)
+## 1. Custom states from tool calls (generative UI support)
 
 Tool calls should be capable of emitting custom states during execution. This enables generative UI patterns where the tool can surface intermediate progress, status changes, or arbitrary state updates to the caller — useful for showing loading states, progress bars, or dynamic UI transitions.
 
@@ -18,7 +9,7 @@ Tool calls should be capable of emitting custom states during execution. This en
 - [ ] Surface these states through the agent event stream so callers can render them reactively
 - [ ] Ensure both TypeScript (`packages/agent`) and Rust (`crates/spectra-rs`) support this
 
-## 3. Real-time tool content streaming
+## 2. Real-time tool content streaming
 
 Ability to stream a tool's content in real time as it is produced, rather than waiting for the full `ToolResult` before surfacing anything. This builds on the current tool call implementation to support progressive output.
 
@@ -27,48 +18,32 @@ Ability to stream a tool's content in real time as it is produced, rather than w
 - [ ] Ensure backward compatibility — non-streaming tools (current `execute` returning `ToolResult`) still work
 - [ ] Implement in both TypeScript (`packages/agent`) and Rust (`crates/spectra-rs`)
 
-## 4. Context compaction
+## 3. Context compaction
 
 Automatic context management that summarizes old conversation history when approaching token limits, preserving recent turns verbatim.
 
-- [x] Implement overflow detection: trigger when total tokens >= `usable capacity - 20K buffer`
-- [x] Head/tail split: summarize older context, preserve last 2-4 turns verbatim (25% of usable tokens, clamped 2K-8K)
-- [x] Structured summary template (Goal, Constraints, Progress, Key Decisions, Next Steps, Critical Context, Relevant Files)
 - [ ] Anchored summaries: incrementally update previous summary instead of rebuilding from scratch
-- [x] Tool output truncation during compaction (2K chars max, media stripped)
 - [ ] Async pruning pass: mark old tool outputs as compacted, protect recent 40K, never prune `skill` tool outputs
 - [ ] Auto-continue after compaction ("Continue if you have next steps...")
-- [x] Configurable: `compaction.auto` toggle, `compaction.reserved` buffer, `compaction.preserve_recent_tokens`
-- [x] Implement in TypeScript (`packages/agent`) for Spectra Code, with Rust SDK following later
 
-## 5. Agent loop safety guards
+## 4. Agent loop safety guards
 
 Defensive mechanisms in the agent loop to prevent common failure modes. Based on patterns from OwlCoda's conversation engine.
 
-- [x] Tool loop detection: track consecutive identical tool calls, hard-stop after threshold (e.g., 5 identical calls)
 - [ ] Narration loop detection: detect repetitive output patterns (e.g., same sentence repeated 3+ times), interrupt and prompt user
 - [ ] Output bloat detection: warn when single tool output exceeds reasonable size (e.g., 50K chars), offer to truncate
 - [ ] Task no-progress hard stop: if agent makes N turns with no file writes or meaningful progress, pause and ask for direction
 - [ ] Convergence state machine: track whether agent is making forward progress or cycling between states
 - [ ] Surface safety events (interrupt, warning, hard-stop) through the agent event stream so TUI can render them
 
-## 6. Expanded slash commands
+## 5. Expanded slash commands
 
 Broaden the slash command surface to cover observability, session management, git workflows, and configuration — matching capabilities found in OwlCoda (70+ commands).
 
-**Observability:**
-- [x] `/cost` — show estimated cost for current session (opens cost dialog with detailed breakdown)
-- [x] `/tokens` — show token usage breakdown (input, output, context window %)
-- [x] `/stats` — session statistics (model, provider, turns, duration, tok/s, cost)
-- [x] `/context` — show context window usage and remaining capacity
-- [x] `/status` — system status (model, provider, MCPs, agent, tokens, cost)
-
 **Session:**
 - [ ] `/save` — explicitly save current session
-- [x] `/search` — search sessions (opens session list dialog)
 - [ ] `/export` — export session to JSON/Markdown
 - [ ] `/history` — show conversation turn history
-- [x] `/compress` — manually trigger context compaction
 
 **Git:**
 - [ ] `/commit` — stage and commit changes with AI-generated message (requires template prompt system)
@@ -79,7 +54,7 @@ Broaden the slash command surface to cover observability, session management, gi
 - [ ] `/permissions` — view/edit tool permission settings (command registered but no dialog renders — broken)
 - [ ] `/settings` — open settings panel (command registered but no dialog renders — broken)
 
-## 7. Plugin system
+## 6. Plugin system
 
 Dynamic, hook-based plugin system. Plugins extend behavior without modifying core code.
 
@@ -115,31 +90,25 @@ interface SpectraPlugin {
 - [ ] Plugin discovery CLI: `spectra plugin list`, `spectra plugin install`
 - [ ] Integrate with existing Extension trait in Rust SDK (parallel implementation)
 
-## 8. Observability middleware
+## 7. Observability middleware
 
 Per-request metrics, cost tracking, and runtime health visibility at the HTTP proxy/transport layer.
 
-- [x] Per-model cost tracking: token counts × configured pricing, cumulative per session
 - [ ] Request latency metrics: time-to-first-token, total duration, p50/p95/p99 aggregates
 - [ ] Rate limit headers parsing: extract `X-RateLimit-*` headers from provider responses, surface to UI
-- [x] Circuit breaker state exposure: expose open/half-open/closed state per model via `/status` or event stream
-- [x] Token usage breakdown: input, output, cache read, cache write tokens per request
 - [ ] Expose metrics through agent event stream so TUI can render `/cost`, `/tokens`, `/stats` commands
 
-## 9. Session handling overhaul
+## 8. Session handling overhaul
 
 Spectra's session system is fundamentally weaker than OpenCode's. The current JSON-per-file storage, shallow fork, and missing compaction will not scale.
 
 **Storage:**
-- [x] Migrate from JSON files to SQLite (indexed queries, pagination, cascade deletes)
 - [ ] Schema: sessions table, messages table, parts table with foreign keys
-- [x] Indexed columns: project_id, parent_id, time_created, time_updated
 - [ ] Cursor-based pagination for session listing
 
 **Fork & Branch:**
 - [ ] Deep copy with ID remapping (prevent collisions between forked sessions)
 - [ ] Fork from specific message point (not just entire session)
-- [x] Parent-child relationship tracking via parent_id
 - [ ] Fork count in title (e.g. "Title (fork #1)")
 
 **Search & Filtering:**
@@ -159,7 +128,7 @@ Spectra's session system is fundamentally weaker than OpenCode's. The current JS
 - [ ] Sort by updated/created
 - [ ] Show token count and cost per session
 
-## 10. Skills system
+## 9. Skills system
 
 Learned, reusable skill files that provide specialized workflows and context for specific tasks. Skills are markdown-based instruction files with YAML frontmatter, following the Claude Code format (compatible with OwlCoda and OpenCode).
 
@@ -193,15 +162,6 @@ skill-name/
 3. Config-defined: custom paths + URLs in config file
 
 **Implementation:**
-- [x] Skill loader: scan directories, parse YAML frontmatter, validate `name` field
-- [x] Auto-tag extraction from directory category, name segments, section headers, description keywords
-- [x] TF-IDF index with cosine similarity matching (zero-dependency, cached 60s TTL)
-- [x] `find_skills` tool: query mode (scored results) + `all: true` fallback (full catalog)
-- [x] `skill` tool: load full SKILL.md by name with `$ARGUMENTS` substitution
-- [x] String substitutions: `$ARGUMENTS`, `$0`, `${SPECTRA_SKILL_DIR}`
-- [x] Bundled skills: ship 65 skills with Spectra Code, resolved via `import.meta.url`
-- [x] Three-layer precedence: user-defined (`~/.claude/skills/`) > project (`.claude/skills/`) > bundled
-- [x] Skills hint in system prompt: "Use find_skills to discover skills"
 - [ ] Dynamic context injection: `` !`command` `` syntax to run shell commands before injection
 - [ ] Permission system: per-skill allow/deny/ask via config
 
@@ -315,7 +275,7 @@ skill-name/
 *Meta / Using Skills (1):*
 - `using-skills` — mandatory workflows for how to find, read, and use skills
 
-## 11. Template prompt system
+## 10. Template prompt system
 
 Commands like `/commit` and `/review` need structured prompts that are loaded from files, not hardcoded in JS. This enables maintainable, user-overridable command behavior.
 
@@ -329,22 +289,19 @@ Commands like `/commit` and `/review` need structured prompts that are loaded fr
 - [ ] `commit.txt` — git commit protocol (run git status/diff/log, analyze staged changes, draft message, commit)
 - [ ] `review.txt` — code review template (determine review type, gather context, check bugs/structure/performance)
 
-## 12. Subagent spawning from commands
+## 11. Subagent spawning from commands
 
 Commands like `/review` need to spawn a child agent session with restricted tools (read-only for review, full access for commit).
 
 **Design:**
-- [x] `subtask: true` flag on command definition — spawns a child session (implemented as `mode: 'subagent'` on AgentDefinition)
 - [ ] Child session inherits permission rules from parent (external_directory, deny rules)
-- [x] Tool restrictions: `/review` gets read-only tools (read, glob, grep, bash for git), no write/edit
-- [x] After subtask completes, inject result into parent session as context
 - [ ] Child session title: `"${description} (@${agent} subagent)"`
 
 **Commands that need this:**
 - [ ] `/review` — spawns read-only subagent with review template
 - [ ] `/commit` — can run inline (main agent) or spawn subagent with commit template
 
-## 13. Commit protocol in bash tool
+## 12. Commit protocol in bash tool
 
 Embed git commit instructions directly in the bash tool's system prompt, so the agent knows the correct commit workflow without needing a dedicated command.
 
@@ -355,47 +312,7 @@ Embed git commit instructions directly in the bash tool's system prompt, so the 
 - [ ] Secret detection: refuse to commit files likely containing secrets (.env, credentials.json)
 - [ ] Style matching: read recent commit messages to match tone/format
 
-## 14. Evolving skills (self-learning system)
-
-Skills that are automatically synthesized from past sessions, creating a self-improving agent that learns from successful interactions.
-
-**Three-tier skill system (highest precedence wins):**
-1. Bundled — read-only defaults from the package (lowest)
-2. Evolving — auto-synthesized from sessions, stored in `~/.spectra/skills/` (middle)
-3. User-defined — manually created in project/user dirs (highest)
-
-**Storage:**
-- `~/.spectra/skills/<id>/metadata.json` — full skill document with useCount, version, parentId
-- `~/.spectra/skills/<id>/SKILL.md` — rendered markdown (upstream-compatible)
-
-**Synthesis flow:**
-- After session ends, analyze trace: tools called, success/failure, complexity score
-- If complexity >= threshold (min 3 tool calls, min 6 messages), trigger synthesis
-- LLM generates SKILL.md from session trace (name, description, when_to_use, procedure, pitfalls)
-- Before saving, check for duplicates via TF-IDF similarity (threshold 0.7)
-- If similar skill exists: evolve (version bump) or fork (new ID with parentId linkage)
-- If no duplicate: save as new skill
-
-**Evolution:**
-- Version bump: update existing skill in-place (increment version)
-- Fork: create new skill with different ID, link via parentId
-- `getSkillLineage()`: walk parentId chain for version history
-
-**useCount tracking:**
-- Increment useCount when skill is loaded via `skill` tool
-- Update updatedAt timestamp
-- Boost score in TF-IDF matching: `score * (1 + min(0.1 * log(1 + useCount), 0.5))`
-
-**Implementation:**
-- [x] Skill storage: save/load evolving skills from `~/.spectra/skills/`
-- [x] Session trace extraction: summarize tools called, outcomes, patterns
-- [x] Skill synthesis prompt: generate SKILL.md from trace
-- [x] Duplicate detection: TF-IDF similarity check before saving
-- [x] Evolution/forking: version bump or parentId-linked fork
-- [x] useCount tracking: increment on load, boost in matching
-- [x] Three-tier merge: bundled → evolving → user in `discoverAndCreateSkillTools()`
-
-## 15. Coding plan provider integrations
+## 13. Coding plan provider integrations
 
 Support bundled access to popular AI coding subscription plans — giving users affordable, multi-model access without managing individual provider API keys. These plans are OpenAI/Anthropic-compatible and work with any agent that speaks those protocols.
 
@@ -423,6 +340,12 @@ Support bundled access to popular AI coding subscription plans — giving users 
 - [ ] Rate limit awareness: respect 5h rolling windows, warn when approaching quota limits
 - [ ] Model capability registry: map each plan's models to their context windows, strengths, and benchmarks
 - [ ] Integration with existing provider system: plans register as providers in `packages/ai` registry
+
+## 14. TUI / UX fixes
+
+- [x] Fix scroll issue in the slash (`/`) command menu in prompt input
+- [ ] Double Esc press to interrupt an active stream
+- [ ] Clearer status reporting for subagents and other areas when they encounter an error
 
 ### Future (deferred)
 
