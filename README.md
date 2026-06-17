@@ -139,7 +139,7 @@ Spectra Code is a full-screen TUI for coding with AI — chat with agents, run t
 </p>
 
 - **Agent modes** — `build`, `plan`, `debug`, and read-only `explore`
-- **185+ bundled skills** — plus skills learned from sessions and custom user skills
+- **60+ bundled skills** — plus skills learned from sessions and custom user skills
 - **MCP integration** — connect stdio and HTTP tool servers
 - **ACP support** — run as an agent server for Zed, Neovim, JetBrains
 - **Custom tools** — drop `.ts`/`.js` files in `.spectra/tools/`

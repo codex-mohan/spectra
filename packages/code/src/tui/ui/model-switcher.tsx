@@ -21,9 +21,11 @@ interface ModelEntry {
 	providerName: string;
 }
 
-function isProviderConnected(providerId: string): boolean {
+function isProviderConnected(providerId: string, customProviders?: Record<string, { apiKey?: string }>): boolean {
 	const cred = readAll()[providerId];
-	return cred?.type === 'api' && !!cred.key;
+	if (cred?.type === 'api' && !!cred.key) return true;
+	if (customProviders?.[providerId]?.apiKey) return true;
+	return false;
 }
 
 
@@ -41,8 +43,8 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
 		const builtinIds = listProviders();
 		const collected: ModelEntry[] = [];
 
-		const connectedBuiltins = builtinIds.filter(isProviderConnected);
-		const connectedCustoms = Object.entries(customProviders).filter(([id]) => isProviderConnected(id));
+		const connectedBuiltins = builtinIds.filter((id) => isProviderConnected(id, customProviders));
+		const connectedCustoms = Object.entries(customProviders).filter(([id]) => isProviderConnected(id, customProviders));
 
 		const promises = connectedBuiltins.map((id) =>
 			getModels(id).then((models) => {
