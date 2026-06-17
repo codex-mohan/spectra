@@ -3533,6 +3533,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 202800
     },
     {
+      "id": "zai-org/GLM-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 131072
+    },
+    {
       "id": "moonshotai/Kimi-K2.5",
       "name": "Kimi K2.5",
       "contextWindow": 262000
@@ -3540,6 +3545,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "moonshotai/Kimi-K2.6",
       "name": "Kimi K2.6",
+      "contextWindow": 262000
+    },
+    {
+      "id": "moonshotai/Kimi-K2.7-Code",
+      "name": "Kimi K2.7 Code",
       "contextWindow": 262000
     },
     {
@@ -4042,6 +4052,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "@cf/google/gemma-4-26b-a4b-it",
       "name": "Gemma 4 26B A4B IT",
       "contextWindow": 256000
+    },
+    {
+      "id": "@cf/zai-org/glm-5.2",
+      "name": "Glm 5.2",
+      "contextWindow": 262144
     },
     {
       "id": "@cf/zai-org/glm-4.7-flash",
@@ -5363,6 +5378,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "accounts/fireworks/routers/glm-5p1-fast",
       "name": "GLM 5.1 Fast",
       "contextWindow": 202800
+    },
+    {
+      "id": "accounts/fireworks/models/glm-5p2",
+      "name": "GLM 5.2",
+      "contextWindow": 1048576
     },
     {
       "id": "accounts/fireworks/models/gpt-oss-120b",
@@ -12097,11 +12117,6 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "neuralwatt": [
     {
-      "id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
-      "name": "Devstral Small 2 24B Instruct 2512",
-      "contextWindow": 262128
-    },
-    {
       "id": "glm-5-fast",
       "name": "GLM 5 Fast",
       "contextWindow": 202736
@@ -12117,9 +12132,9 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 202736
     },
     {
-      "id": "openai/gpt-oss-20b",
-      "name": "GPT OSS 20B",
-      "contextWindow": 16368
+      "id": "glm-5.2",
+      "name": "GLM 5.2",
+      "contextWindow": 1048560
     },
     {
       "id": "moonshotai/Kimi-K2.5",
@@ -12145,11 +12160,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "moonshotai/Kimi-K2.7-Code",
       "name": "Kimi K2.7 Code",
       "contextWindow": 262144
-    },
-    {
-      "id": "MiniMaxAI/MiniMax-M2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 196592
     },
     {
       "id": "Qwen/Qwen3.5-397B-A17B-FP8",
@@ -13754,7 +13764,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "deepseek/deepseek-v4-flash",
       "name": "DeepSeek V4 Flash",
-      "contextWindow": 1048575
+      "contextWindow": 1000000
     },
     {
       "id": "deepseek/deepseek-v4-pro",
@@ -13874,7 +13884,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "z-ai/glm-4.5-air",
       "name": "GLM-4.5-Air",
-      "contextWindow": 131070
+      "contextWindow": 131072
     },
     {
       "id": "z-ai/glm-4.5v",
@@ -13915,6 +13925,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "z-ai/glm-5.1",
       "name": "GLM-5.1",
       "contextWindow": 202752
+    },
+    {
+      "id": "z-ai/glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1048576
     },
     {
       "id": "~google/gemini-flash-latest",
@@ -14189,7 +14204,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "kwaipilot/kat-coder-pro-v2",
       "name": "KAT-Coder-Pro V2",
-      "contextWindow": 256000
+      "contextWindow": 262144
     },
     {
       "id": "moonshotai/kimi-k2",
@@ -14329,7 +14344,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "minimax/minimax-m3",
       "name": "MiniMax-M3",
-      "contextWindow": 524288
+      "contextWindow": 1000000
     },
     {
       "id": "mistralai/ministral-14b-2512",
@@ -14724,7 +14739,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "qwen/qwen3.5-9b",
       "name": "Qwen3.5-9B",
-      "contextWindow": 262144
+      "contextWindow": 256000
     },
     {
       "id": "qwen/qwen3.5-flash-02-23",
@@ -18681,6 +18696,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 200000
     },
     {
+      "id": "zai-org-glm-5-2",
+      "name": "GLM 5.2",
+      "contextWindow": 1000000
+    },
+    {
       "id": "z-ai-glm-5v-turbo",
       "name": "GLM 5V Turbo",
       "contextWindow": 200000
@@ -19151,6 +19171,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "zai/glm-5.1",
       "name": "GLM 5.1",
       "contextWindow": 202800
+    },
+    {
+      "id": "zai/glm-5.2",
+      "name": "GLM 5.2",
+      "contextWindow": 1000000
     },
     {
       "id": "zai/glm-5v-turbo",
