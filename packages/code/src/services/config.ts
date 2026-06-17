@@ -89,8 +89,7 @@ export function loadConfig(cwd?: string): SpectraConfig {
 			if (existsSync(filePath)) {
 				try {
 					const content = readFileSync(filePath, 'utf-8');
-					const parsed = JSON.parse(stripJsonc(content));
-					Object.assign(cfg, parsed);
+					Object.assign(cfg, safeJsonParse(content) as SpectraConfig);
 				} catch {}
 			}
 		}
@@ -103,8 +102,7 @@ export function loadConfig(cwd?: string): SpectraConfig {
 			if (existsSync(filePath)) {
 				try {
 					const content = readFileSync(filePath, 'utf-8');
-					const parsed = JSON.parse(stripJsonc(content));
-					Object.assign(cfg, parsed);
+					Object.assign(cfg, safeJsonParse(content) as SpectraConfig);
 				} catch {}
 			}
 		}
@@ -145,9 +143,15 @@ export function getEffectiveProvider(cfg: SpectraConfig): string {
 	return cfg.provider || cfg.model?.split('/')[0] || 'anthropic';
 }
 
-function stripJsonc(text: string): string {
-	return text
-		.replace(/\/\/.*$/gm, '')
-		.replace(/\/\*[\s\S]*?\*\//g, '')
-		.trim();
+function safeJsonParse(text: string): unknown {
+	try {
+		return JSON.parse(text);
+	} catch {
+		return JSON.parse(
+			text
+				.replace(/(?<![:"])\/\/.*$/gm, '')
+				.replace(/\/\*[\s\S]*?\*\//g, '')
+				.trim(),
+		);
+	}
 }
