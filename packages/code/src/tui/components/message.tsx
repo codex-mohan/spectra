@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { c, mdStyle } from '../theme.js';
+import { c, mdStyle, mdStyleMuted } from '../theme.js';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
@@ -249,9 +249,16 @@ export function MessageView({
 								<>
 									{hasThinking &&
 										thinkBlocks.map((block, i) => (
-											<box key={`think-${i}`} marginTop={i === 0 ? 0 : 1}>
-												<text fg={c.dim}>{block.content}</text>
-											</box>
+											<markdown
+												key={`think-${i}`}
+												content={block.content}
+												syntaxStyle={mdStyleMuted}
+												streaming={!!msg.streaming}
+												conceal={true}
+												width="100%"
+												tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
+												marginTop={i === 0 ? 0 : 1}
+											/>
 										))}
 									{mdContent ? (
 										<markdown

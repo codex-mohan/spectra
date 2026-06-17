@@ -61,6 +61,28 @@ export const mdStyle = SyntaxStyle.fromStyles({
 	default: { fg: RGBA.fromHex(c.text) },
 });
 
+export const mdStyleMuted = SyntaxStyle.fromStyles({
+	'markup.heading.1': { fg: RGBA.fromHex(c.dim), bold: true },
+	'markup.heading.2': { fg: RGBA.fromHex(c.dim), bold: true },
+	'markup.heading.3': { fg: RGBA.fromHex(c.dim), bold: true },
+	'markup.heading.4': { fg: RGBA.fromHex(c.dim) },
+	'markup.bold': { bold: true },
+	'markup.italic': { italic: true },
+	'markup.list': { fg: RGBA.fromHex(c.dim) },
+	'markup.raw': { fg: RGBA.fromHex(c.dim) },
+	'markup.link': { fg: RGBA.fromHex(c.dim) },
+	'markup.quote': { fg: RGBA.fromHex(c.dim) },
+	'markup.table': { fg: RGBA.fromHex(c.dim) },
+	'markup.table.header': { fg: RGBA.fromHex(c.dim), bold: true },
+	keyword: { fg: RGBA.fromHex(c.dim) },
+	string: { fg: RGBA.fromHex(c.dim) },
+	comment: { fg: RGBA.fromHex(c.dim), italic: true },
+	number: { fg: RGBA.fromHex(c.dim) },
+	function: { fg: RGBA.fromHex(c.dim) },
+	type: { fg: RGBA.fromHex(c.dim) },
+	default: { fg: RGBA.fromHex(c.dim) },
+});
+
 export const SPINNER = [
 	'\u280B',
 	'\u2819',
