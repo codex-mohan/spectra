@@ -626,8 +626,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 											<text fg={c.dim}>Streaming...</text>
 										</box>
 										<box flexDirection="row" gap={1}>
-											<text fg={c.accent}>esc</text>
-											<text fg={c.dim}>interrupt</text>
+											<text fg={interruptKey === 1 ? c.warn : c.accent}>
+												{interruptKey === 1 ? 'esc again' : 'esc'}
+											</text>
+											<text fg={c.dim}>{interruptKey === 1 ? 'confirm' : 'interrupt'}</text>
 										</box>
 									</box>
 								) : (

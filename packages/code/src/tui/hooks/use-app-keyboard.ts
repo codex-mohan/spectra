@@ -7,6 +7,8 @@ import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { cycleEffort } from '../variant-cycle.js';
 import { AGENTS } from '../app-constants.js';
 
+const INTERRUPT_CONFIRM_MS = 3000;
+
 interface UseAppKeyboardDeps {
 	renderer: CliRenderer;
 	isStreamingRef: React.MutableRefObject<boolean>;
@@ -110,6 +112,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 	} = deps;
 
 	const lastCursorRef = useRef<number>(-1);
+	const interruptArmedAtRef = useRef<number>(0);
 
 	useKeyboard((key) => {
 		if (dialogStep || updateVersion || msgControls || permissionRequest !== null) {
@@ -188,26 +191,43 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		}
 		if (key.name === 'escape') {
 			if (isStreamingRef.current) {
-			if (interruptKey === 1) {
-				if (sessionId.current) {
-					abortSession(sessionId.current);
-				}
-				const duration = Math.round(performance.now() - (currentTurnStartRef.current ?? 0));
-				if (currentTurnMsgIdRef.current) {
-					updateMessage(currentTurnMsgIdRef.current, {
-						turnStatus: 'interrupted',
-						streaming: false,
-						turnDurationMs: duration,
-					});
-				}
-				if (sessionId.current) {
-					updateLastAssistantMeta(sessionId.current, { turnStatus: 'interrupted', turnDurationMs: duration });
-				}
+				const now = performance.now();
+				const isInterruptArmed =
+					interruptArmedAtRef.current > 0 && now - interruptArmedAtRef.current <= INTERRUPT_CONFIRM_MS;
+
+				if (isInterruptArmed) {
+					if (sessionId.current) {
+						abortSession(sessionId.current);
+					}
+					const duration =
+						currentTurnStartRef.current === null
+							? undefined
+							: Math.round(performance.now() - currentTurnStartRef.current);
+					if (currentTurnMsgIdRef.current) {
+						updateMessage(currentTurnMsgIdRef.current, {
+							turnStatus: 'interrupted',
+							streaming: false,
+							turnDurationMs: duration,
+						});
+					}
+					if (sessionId.current) {
+						updateLastAssistantMeta(sessionId.current, { turnStatus: 'interrupted', turnDurationMs: duration });
+					}
+					interruptArmedAtRef.current = 0;
 					setInterruptKey(0);
+					setStatus('Interrupted');
 					return;
 				}
+
+				interruptArmedAtRef.current = now;
 				setInterruptKey(1);
-				setTimeout(() => setInterruptKey(0), 3000);
+				setStatus('Press Esc again to interrupt');
+				setTimeout(() => {
+					if (interruptArmedAtRef.current !== now) return;
+					interruptArmedAtRef.current = 0;
+					setInterruptKey(0);
+					if (isStreamingRef.current) setStatus('Streaming...');
+				}, INTERRUPT_CONFIRM_MS);
 				return;
 			}
 			return;

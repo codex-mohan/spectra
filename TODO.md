@@ -344,7 +344,7 @@ Support bundled access to popular AI coding subscription plans — giving users 
 ## 14. TUI / UX fixes
 
 - [x] Fix scroll issue in the slash (`/`) command menu in prompt input
-- [ ] Double Esc press to interrupt an active stream
+- [x] Double Esc press to interrupt an active stream
 - [ ] Clearer status reporting for subagents and other areas when they encounter an error
 
 ### Future (deferred)
