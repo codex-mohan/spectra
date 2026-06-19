@@ -29,7 +29,7 @@ import { CostDialog } from './ui/cost-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import clipboard from 'clipboardy';
-import { loadPricingFromModelsDev, calculateCost, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
+import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
 import { buildCmdItems, collectSlashNames } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
@@ -157,12 +157,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	};
 
 	const costDisplay = useMemo(() => {
-		const total = tokenUsage.input + tokenUsage.output;
-		if (total === 0 || !selectedModel) return null;
+		if (!selectedModel) return null;
+		const cost = sessionState.activeState.costSoFar;
+		if (cost > 0) return formatCost(cost);
 		if (isFreeModel(selectedModel)) return 'Free';
-		const cost = calculateCost(selectedModel, tokenUsage);
-		return cost.total > 0 ? formatCost(cost.total) : null;
-	}, [tokenUsage, selectedModel]);
+		return null;
+	}, [sessionState.activeState.costSoFar, selectedModel]);
 
 	// --- Refs ---
 	const promptTextareaRef = useRef<any>(null);
@@ -713,12 +713,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termHeight={termHeight}
 					mode={dialogStep.mode || 'load'}
 					onLoad={(data) => {
-						const { messages: loadedMsgs, tokenUsage: tu } = sdkMessagesToChatMessages(data);
+						const { messages: loadedMsgs, tokenUsage: tu, costSoFar } = sdkMessagesToChatMessages(data);
 						// Switch to the session's per-session state
 						sessionState.switchSession(data.id);
 						sessionState.set(data.id, {
 							messages: loadedMsgs,
 							tokenUsage: tu,
+							costSoFar,
 							selectedModel: data.model,
 							selectedProvider: data.provider || data.model.split('/')[0],
 							selectedAgent: data.agent || 'build',

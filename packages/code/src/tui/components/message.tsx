@@ -120,12 +120,12 @@ function DiffContent(props: { text: string; maxLines: number }) {
 	);
 }
 
-function InlineTool(props: { icon: string; title: string; meta?: string; color?: string; marginTop?: number }) {
+function InlineTool(props: { icon: string; title: string; meta?: string; color?: string; titleColor?: string; marginTop?: number }) {
 	return (
 		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0}>
 			<text fg={props.color || c.tool}>{props.icon} </text>
-			<text fg={c.dim}>{props.title}</text>
-			{props.meta ? <text fg={c.dim}> {props.meta}</text> : null}
+			<text fg={props.titleColor || c.dim}>{props.title}</text>
+			{props.meta ? <text fg={props.titleColor || c.dim}> {props.meta}</text> : null}
 		</box>
 	);
 }
@@ -152,14 +152,14 @@ function BlockTool(props: { title: string; titleColor?: string; borderColor?: st
 	);
 }
 
-function TruncatedContent(props: { text: string; maxLines: number }) {
+function TruncatedContent(props: { text: string; maxLines: number; color?: string }) {
 	const [expanded, setExpanded] = useState(false);
 	const lines = props.text.split('\n');
 	const overflow = lines.length > props.maxLines;
 	const display = expanded || !overflow ? props.text : lines.slice(0, props.maxLines).join('\n') + '\n…';
 	return (
 		<box flexDirection="column" onMouseDown={overflow ? () => setExpanded(!expanded) : undefined}>
-			<text fg={c.text}>{display}</text>
+			<text fg={props.color || c.text}>{display}</text>
 			{overflow ? <text fg={c.dim}>{expanded ? 'click to collapse' : 'click to expand'}</text> : null}
 		</box>
 	);
@@ -321,6 +321,7 @@ export function MessageView({
 
 		const output = stripAnsi(msg.content || '');
 		const isReadingTool = ['read', 'glob', 'grep'].includes(tName);
+		const toolError = msg.toolError === true;
 
 		// Reading tools: only show inline indicator, never show output
 		if (isReadingTool) {
@@ -348,7 +349,8 @@ export function MessageView({
 				<InlineTool
 					icon={icon}
 					title={displayTitle}
-					color={c.readTool}
+					color={toolError ? c.error : c.readTool}
+					titleColor={toolError ? c.error : undefined}
 					marginTop={mt}
 				/>
 			);
@@ -358,6 +360,8 @@ export function MessageView({
 			const subagentType = (argsObj as any)?.subagent_type || 'subagent';
 			const description = (argsObj as any)?.description || '';
 			const title = `@${subagentType} ${description}`.slice(0, 60);
+			const statusColor = toolError ? c.error : c.success;
+			const borderColor = toolError ? c.error : c.thinking;
 
 			if (!output) {
 				return (
@@ -380,12 +384,12 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.thinking}
+					borderColor={borderColor}
 				>
 					<box flexDirection="row" gap={1} paddingLeft={1}>
-						<text fg={c.thinking}>◆</text>
+						<text fg={borderColor}>{toolError ? '!' : '◆'}</text>
 						<text fg={c.dim}>{title}</text>
-						<text fg={c.success}>(done)</text>
+						<text fg={statusColor}>{toolError ? '(failed)' : '(done)'}</text>
 					</box>
 					<box paddingLeft={2}>
 						<markdown
@@ -404,7 +408,8 @@ export function MessageView({
 			const command = (argsObj as any)?.command || argsStr;
 			const description = (argsObj as any)?.description;
 			const exitCode = msg.exitCode ?? null;
-			const exitColor = exitCode === 0 ? c.success : c.error;
+			const exitColor = exitCode === 0 && !toolError ? c.success : c.error;
+			const shellColor = toolError ? c.error : c.execTool;
 
 			return (
 				<box
@@ -417,7 +422,7 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.execTool}
+					borderColor={shellColor}
 				>
 					<box flexDirection="row" justifyContent="space-between" alignItems="flex-start" paddingLeft={1}>
 						<box flexDirection="column" gap={1}>
@@ -426,15 +431,16 @@ export function MessageView({
 									{description}
 								</text>
 							) : null}
-							<text fg={c.execTool}>$ {command}</text>
+							<text fg={shellColor}>$ {command}</text>
 						</box>
-						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 ? '✓' : '✗'} Exit {exitCode}</text>}
+						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
+						{exitCode === null && toolError && <text fg={c.error}>✗ Failed</text>}
 					</box>
 					<box paddingLeft={2}>
 						{output ? (
-							<TruncatedContent text={output} maxLines={MAX_SHELL_LINES} />
+							<TruncatedContent text={output} maxLines={MAX_SHELL_LINES} color={toolError ? c.error : undefined} />
 						) : (
-							<text fg={c.dim}>No output</text>
+							<text fg={toolError ? c.error : c.dim}>{toolError ? 'Command failed with no output' : 'No output'}</text>
 						)}
 					</box>
 				</box>
@@ -445,7 +451,8 @@ export function MessageView({
 			const path = (argsObj as any)?.path || argsStr;
 			const fileName = path ? basename(path) : '';
 			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
-			const displayTitle = fileName ? `Wrote ${fileName}` : 'Wrote';
+			const displayTitle = toolError ? (fileName ? `Write failed: ${fileName}` : 'Write failed') : fileName ? `Wrote ${fileName}` : 'Wrote';
+			const writeColor = toolError ? c.error : c.writeTool;
 			return (
 				<box
 					flexDirection="column"
@@ -457,17 +464,19 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.writeTool}
+					borderColor={writeColor}
 				>
-					<text fg={c.writeTool}>
+					<text fg={writeColor}>
 						{displayTitle}
 					</text>
 					<box paddingLeft={2}>
 						{dirPath ? <text fg={c.dim}>{dirPath}</text> : null}
-						{output ? (
+						{toolError && output ? (
+							<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
+						) : output ? (
 							<DiffContent text={output} maxLines={MAX_DIFF_LINES} />
 						) : (
-							<text fg={c.dim}>File written</text>
+							<text fg={toolError ? c.error : c.dim}>{toolError ? 'Write failed with no output' : 'File written'}</text>
 						)}
 					</box>
 				</box>
@@ -478,7 +487,8 @@ export function MessageView({
 			const path = (argsObj as any)?.path || argsStr;
 			const fileName = path ? basename(path) : '';
 			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
-			const displayTitle = fileName ? `Edit ${fileName}` : 'Edit';
+			const displayTitle = toolError ? (fileName ? `Edit failed: ${fileName}` : 'Edit failed') : fileName ? `Edit ${fileName}` : 'Edit';
+			const editColor = toolError ? c.error : c.editTool;
 			return (
 				<box
 					flexDirection="column"
@@ -488,16 +498,18 @@ export function MessageView({
 					backgroundColor={c.bgTool}
 					border={['left']}
 					customBorderChars={SB}
-					borderColor={c.editTool}
+					borderColor={editColor}
 				>
 					<box paddingTop={1} flexDirection="row" gap={1}>
-						<text height={1} fg={c.editTool}>{displayTitle}</text>
+						<text height={1} fg={editColor}>{displayTitle}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
 					</box>
-					{output ? (
+					{toolError && output ? (
+						<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
+					) : output ? (
 						<DiffContent text={output} maxLines={MAX_DIFF_LINES} />
 					) : (
-						<text fg={c.dim} paddingLeft={1}>Edit applied</text>
+						<text fg={toolError ? c.error : c.dim} paddingLeft={1}>{toolError ? 'Edit failed with no output' : 'Edit applied'}</text>
 					)}
 				</box>
 			);
@@ -505,20 +517,22 @@ export function MessageView({
 
 		if (tName === 'web_fetch') {
 			const url = argsObj.url || argsStr;
-			const displayTitle = url ? `Fetch ${url}` : 'Fetch';
-			if (!output) return <InlineTool icon="↗" title={displayTitle} color={c.info} marginTop={mt} />;
+			const displayTitle = toolError ? (url ? `Fetch failed: ${url}` : 'Fetch failed') : url ? `Fetch ${url}` : 'Fetch';
+			const fetchColor = toolError ? c.error : c.info;
+			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} marginTop={mt} />;
 			return (
-				<BlockTool title={displayTitle} titleColor={c.info} borderColor={c.info} marginTop={mt}>
-					<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} />
+				<BlockTool title={displayTitle} titleColor={fetchColor} borderColor={fetchColor} marginTop={mt}>
+					<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
 				</BlockTool>
 			);
 		}
 
-		if (!output) return <InlineTool icon="⚙" title={raw} color={c.dim} marginTop={mt} />;
-		const displayTitle = argsStr ? `${tName} ${argsStr}` : tName;
+		if (!output) return <InlineTool icon={toolError ? '!' : '⚙'} title={toolError ? `${raw} failed` : raw} color={toolError ? c.error : c.dim} marginTop={mt} />;
+		const displayTitle = toolError ? `${argsStr ? `${tName} ${argsStr}` : tName} failed` : argsStr ? `${tName} ${argsStr}` : tName;
+		const genericColor = toolError ? c.error : c.tool;
 		return (
-			<BlockTool title={displayTitle} titleColor={c.tool} marginTop={mt}>
-				<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} />
+			<BlockTool title={displayTitle} titleColor={genericColor} borderColor={genericColor} marginTop={mt}>
+				<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
 			</BlockTool>
 		);
 	}

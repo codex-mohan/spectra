@@ -25,6 +25,8 @@ export interface ChatMessage {
 	turnTokens?: { input: number; output: number };
 	/** Exit code for shell tool results (structured, no regex parsing needed) */
 	exitCode?: number;
+	/** Whether a tool result reported an error */
+	toolError?: boolean;
 	/** Agent that generated this message */
 	agent?: string;
 }

@@ -1,10 +1,12 @@
 import type { Message } from '@mohanscodex/spectra-ai';
+import { calculateCost } from '@mohanscodex/spectra-ai';
 import type { ChatMessage } from '../types.js';
 import { genId } from '../utils.js';
 
 export interface ConvertedMessages {
 	messages: ChatMessage[];
 	tokenUsage: { input: number; output: number };
+	costSoFar: number;
 }
 
 export function sdkMessagesToChatMessages(data: {
@@ -14,11 +16,20 @@ export function sdkMessagesToChatMessages(data: {
 }): ConvertedMessages {
 	let maxInputTokens = 0;
 	let outputTokens = 0;
+	let costSoFar = 0;
 
 	for (const m of data.messages) {
 		if (m.role === 'assistant' && m.usage) {
 			maxInputTokens = Math.max(maxInputTokens, m.usage.input || 0);
 			outputTokens += m.usage.output || 0;
+			const turnModel = m.model || data.model;
+			if (turnModel) {
+				const turnCost = calculateCost(turnModel, {
+					input: m.usage.input || 0,
+					output: m.usage.output || 0,
+				});
+				costSoFar += turnCost.total;
+			}
 		}
 	}
 
@@ -67,12 +78,20 @@ export function sdkMessagesToChatMessages(data: {
 			const toolOutput = m.content?.[0]?.text || '';
 			const args = (m as any).details?.args || {};
 			const meta = `${m.toolName}(${JSON.stringify(args)})`;
-			return { id, role: 'tool' as const, content: toolOutput, meta, agent: data.agent };
+			return {
+				id,
+				role: 'tool' as const,
+				content: toolOutput,
+				meta,
+				agent: data.agent,
+				toolError: m.isError === true,
+				exitCode: typeof (m as any).details?.exitCode === 'number' ? (m as any).details.exitCode : undefined,
+			};
 		}
 		return { id, role: 'user' as const, content: '', model: data.model };
 	});
 
-	return { messages, tokenUsage: { input: maxInputTokens, output: outputTokens } };
+	return { messages, tokenUsage: { input: maxInputTokens, output: outputTokens }, costSoFar };
 }
 
 export function sdkMessagesToLoadedMessages(data: any): {

@@ -345,7 +345,7 @@ Support bundled access to popular AI coding subscription plans — giving users 
 
 - [x] Fix scroll issue in the slash (`/`) command menu in prompt input
 - [x] Double Esc press to interrupt an active stream
-- [ ] Clearer status reporting for subagents and other areas when they encounter an error
+- [x] Clearer status reporting for subagents and other areas when they encounter an error
 
 ### Future (deferred)
 

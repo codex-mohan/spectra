@@ -6,6 +6,7 @@ export interface SessionViewState {
 	isLoading: boolean;
 	status: string;
 	tokenUsage: { input: number; output: number };
+	costSoFar: number;
 	elapsedMs: number | null;
 	tokPerSec: number | null;
 	selectedAgent: string;
@@ -19,6 +20,7 @@ const DEFAULT_STATE: SessionViewState = {
 	isLoading: false,
 	status: 'Ready',
 	tokenUsage: { input: 0, output: 0 },
+	costSoFar: 0,
 	elapsedMs: null,
 	tokPerSec: null,
 	selectedAgent: 'build',
@@ -88,6 +90,11 @@ export function useSessionState() {
 		set(sessionId, { tokPerSec: value });
 	}
 
+	function addCostIn(sessionId: string, amount: number) {
+		const current = getState(sessionId);
+		set(sessionId, { costSoFar: current.costSoFar + amount });
+	}
+
 	// --- Active-session setters (for UI-driven changes like model switch) ---
 
 	function setActive(patch: Partial<SessionViewState>) {
@@ -112,6 +119,7 @@ export function useSessionState() {
 		setTokenUsageIn,
 		setElapsedMsIn,
 		setTokPerSecIn,
+		addCostIn,
 
 		// Convenience: active session state for rendering
 		get activeState() {

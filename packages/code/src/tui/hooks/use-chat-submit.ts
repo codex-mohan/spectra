@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import type { Message, AssistantMessage } from '@mohanscodex/spectra-ai';
+import { calculateCost } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SnapshotManager } from '../../services/snapshot-manager.js';
@@ -251,6 +252,7 @@ Return ONLY the title text, nothing else.`;
 				sessionManager.current.createSession(sess.id);
 				sessionManager.current.setActiveSession(sess.id);
 				setTokenUsage(() => ({ input: 0, output: 0 }));
+				sessionState.set(sess.id, { costSoFar: 0 });
 			}
 
 			// Capture the session ID for this run — all events target THIS session
@@ -399,7 +401,9 @@ Return ONLY the title text, nothing else.`;
 						sessionState.setElapsedMsIn(runSessionId, e);
 						const ot = m.usage.output;
 						if (ot > 0 && e > 0) sessionState.setTokPerSecIn(runSessionId, ot / (e / 1000));
-						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: m.usage.input, output: p.output + ot }));
+						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: Math.max(p.input, m.usage.input), output: p.output + ot }));
+						const turnCost = calculateCost(selectedModel, { input: m.usage.input, output: m.usage.output });
+						if (turnCost.total > 0) sessionState.addCostIn(runSessionId, turnCost.total);
 						currentAssistantId = null;
 						streamingIdRef.current = null;
 
@@ -458,6 +462,12 @@ Return ONLY the title text, nothing else.`;
 						if (!shownToolCalls.current.has(ev.toolCallId)) {
 							shownToolCalls.current.add(ev.toolCallId);
 							toolArgsMap.current.set(ev.toolCallId, ev.args);
+							if (ev.toolName === 'task') {
+								const taskArgs = (ev.args ?? {}) as Record<string, unknown>;
+								const subagent = String(taskArgs.subagent_type || 'subagent');
+								const description = taskArgs.description ? `: ${String(taskArgs.description)}` : '';
+								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} running${description}`.slice(0, 120));
+							}
 							const tuiId = genId();
 							toolMsgMap.current.set(ev.toolCallId, tuiId);
 							sessionState.addMessageTo(runSessionId, {
@@ -472,6 +482,22 @@ Return ONLY the title text, nothing else.`;
 					if (ev.type === 'tool_execution_end') {
 						const args = toolArgsMap.current.get(ev.toolCallId) || {};
 						const resultDetails = (ev.result?.details as Record<string, unknown> | undefined) ?? {};
+						const toolOutput = ev.result?.content?.[0]?.text || '';
+						if (ev.isError) {
+							const firstLine =
+								toolOutput.split('\n').find((line: string) => line.trim().length > 0)?.trim() || 'Unknown error';
+							if (ev.toolName === 'task') {
+								const taskArgs = args as Record<string, unknown>;
+								const subagent = String(taskArgs.subagent_type || 'subagent');
+								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} failed: ${firstLine}`.slice(0, 160));
+							} else {
+								sessionState.setStatusIn(runSessionId, `${ev.toolName} failed: ${firstLine}`.slice(0, 160));
+							}
+						} else if (ev.toolName === 'task') {
+							const taskArgs = args as Record<string, unknown>;
+							const subagent = String(taskArgs.subagent_type || 'subagent');
+							sessionState.setStatusIn(runSessionId, `Subagent @${subagent} completed`);
+						}
 						const toolMsg: Message = {
 							role: 'toolResult',
 							toolCallId: ev.toolCallId,
@@ -484,9 +510,12 @@ Return ONLY the title text, nothing else.`;
 						persistMessage(runSessionId, toolMsg);
 						const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						if (tuiId) {
-							const toolOutput = ev.result?.content?.[0]?.text || '';
 							const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
-							sessionState.updateMessageIn(runSessionId, tuiId, { content: toolOutput, exitCode });
+							sessionState.updateMessageIn(runSessionId, tuiId, {
+								content: toolOutput,
+								exitCode,
+								toolError: ev.isError || undefined,
+							});
 						}
 					}
 					if (ev.type === 'agent_end') {
