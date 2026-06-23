@@ -112,7 +112,7 @@ export function useAgent(deps: UseAgentDeps) {
 				getApiKey: (p: string) => getAuthKey(p),
 			};
 
-			const allTools = createAllToolsWithSecurity(manager, agentConfig);
+			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sessionId);
 			const { filterToolsByAgent } = await import('../../agents/index.js');
 
 			// Discover skills and create skill tools
@@ -287,6 +287,7 @@ export function createSessionFactory(securityConfig: { permission: any; security
 		customProviders: Record<string, CustomProviderConfig>,
 		thinkingEffort: string | undefined,
 		securityManager: SecurityManager,
+		sessionId?: string,
 	) => {
 		const { Agent } = await import('@mohanscodex/spectra-agent');
 		const { initProviders } = await import('@mohanscodex/spectra-ai');
@@ -308,7 +309,7 @@ export function createSessionFactory(securityConfig: { permission: any; security
 			getApiKey: (p: string) => getAuthKey(p),
 		};
 
-		const allTools = createAllToolsWithSecurity(securityManager, agentConfig);
+		const allTools = createAllToolsWithSecurity(securityManager, agentConfig, undefined, sessionId);
 		const { filterToolsByAgent } = await import('../../agents/index.js');
 
 		let skillTools: import('@mohanscodex/spectra-agent').AgentTool[] = [];

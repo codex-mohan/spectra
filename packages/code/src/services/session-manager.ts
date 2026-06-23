@@ -18,6 +18,8 @@ export interface SessionState {
 	agentKey: string | null;
 	securityManager: SecurityManager | null;
 	loadedMessages: Message[];
+	customProviders?: Record<string, CustomProviderConfig>;
+	thinkingEffort?: string;
 }
 
 export type SessionEventType = 'status_change' | 'messages_update' | 'error';
@@ -46,6 +48,7 @@ export class SessionManager {
 			customProviders: Record<string, CustomProviderConfig>,
 			thinkingEffort: string | undefined,
 			securityManager: SecurityManager,
+			sessionId?: string,
 		) => Promise<{ agent: Agent; config: AgentRegistryConfig; securityManager: SecurityManager }>,
 		private createSecurityManager: () => SecurityManager,
 	) {}
@@ -171,11 +174,13 @@ export class SessionManager {
 		}
 
 		const securityManager = state.securityManager || this.createSecurityManager();
-		const result = await this.agentFactory(model, provider, agentName, customProviders, thinkingEffort, securityManager);
+		const result = await this.agentFactory(model, provider, agentName, customProviders, thinkingEffort, securityManager, sessionId);
 
 		state.agent = result.agent;
 		state.agentKey = agentKey;
 		state.securityManager = result.securityManager;
+		state.customProviders = customProviders;
+		state.thinkingEffort = thinkingEffort;
 
 		if (state.loadedMessages.length > 0) {
 			result.agent.restoreHistory(state.loadedMessages);
@@ -264,6 +269,47 @@ export class SessionManager {
 			state.abortController = null;
 			state.status = 'idle';
 			this.emit({ type: 'status_change', sessionId, status: 'idle' });
+		}
+	}
+
+	injectBackgroundResult(
+		parentSessionId: string,
+		childSessionId: string,
+		result: string,
+		agentType: string,
+		description: string,
+	): void {
+		const state = this.sessions.get(parentSessionId);
+		if (!state) return;
+
+		const summaryText = result || '(no output)';
+		const syntheticMessage: Message = {
+			role: 'user',
+			content: [
+				`<task id="${childSessionId}" state="completed">`,
+				`<summary>Background task completed: ${description}</summary>`,
+				`<agent>${agentType}</agent>`,
+				`<task_result>${summaryText}</task_result>`,
+				`</task>`,
+			].join('\n'),
+			timestamp: Date.now(),
+		};
+
+		this.sessionStore.addMessage(parentSessionId, syntheticMessage);
+
+		// If parent is idle, trigger a new agent turn so it can act on the result
+		if (state.status === 'idle' && state.agent && !state.isStreaming) {
+			const parts = state.agentKey?.split(':') || [];
+			const agentName = parts[0] || 'build';
+			const model = parts[1] || '';
+			const provider = parts[2] || '';
+			this.runPrompt(parentSessionId, '[Background task completed]', {
+				model,
+				provider,
+				agent: agentName,
+				customProviders: state.customProviders || {},
+				thinkingEffort: parts[3] || undefined,
+			}).catch(() => {});
 		}
 	}
 

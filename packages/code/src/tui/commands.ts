@@ -5,6 +5,7 @@ import { titlecase } from './utils.js';
 import { calculateCost, formatCost, formatTokens, isFreeModel } from '@mohanscodex/spectra-ai';
 import { lookupContextWindow } from './utils/model-config.js';
 import { showToast } from './components/toast.js';
+import { backgroundTasks } from '../services/background-tasks.js';
 
 export function buildCmdItems(opts: {
 	renderer: { destroy: () => void };
@@ -288,6 +289,26 @@ export function buildCmdItems(opts: {
 			slashAliases: ['toggle-mcp'],
 			action: () => {
 				setDialogStep({ type: 'toggle-mcp' });
+			},
+		},
+		// Background subagent management
+		{
+			id: 'background-tasks',
+			label: 'Background Tasks',
+			desc: 'View and manage background subagent tasks',
+			cat: 'Agent',
+			slashName: 'bg',
+			slashAliases: ['background', 'background-tasks'],
+			action: () => {
+				const running = backgroundTasks.getRunningForParent(opts.sessionIdRef.current || '');
+				if (running.length === 0) {
+					showToast('No running background tasks for this session', 'info');
+					return;
+				}
+				for (const task of running) {
+					backgroundTasks.promote(task.id);
+				}
+				showToast(`Promoted ${running.length} task(s) to background`, 'success');
 			},
 		},
 		// Navigation

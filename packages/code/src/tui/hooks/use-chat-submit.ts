@@ -508,16 +508,20 @@ Return ONLY the title text, nothing else.`;
 							timestamp: Date.now(),
 						};
 						persistMessage(runSessionId, toolMsg);
-						const tuiId = toolMsgMap.current.get(ev.toolCallId);
-						if (tuiId) {
-							const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
-							sessionState.updateMessageIn(runSessionId, tuiId, {
-								content: toolOutput,
-								exitCode,
-								toolError: ev.isError || undefined,
-							});
-						}
+const tuiId = toolMsgMap.current.get(ev.toolCallId);
+					if (tuiId) {
+						const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
+						const childSessionId = typeof resultDetails.childSessionId === 'string' ? resultDetails.childSessionId : undefined;
+						const isBackground = resultDetails.background === true ? true : undefined;
+						sessionState.updateMessageIn(runSessionId, tuiId, {
+							content: toolOutput,
+							exitCode,
+							toolError: ev.isError || undefined,
+							childSessionId,
+							background: isBackground,
+						});
 					}
+				}
 					if (ev.type === 'agent_end') {
 						sessionState.setStatusIn(runSessionId, 'Ready');
 						if (currentTurnMsgIdRef.current) {

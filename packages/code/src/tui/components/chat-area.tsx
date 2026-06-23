@@ -8,12 +8,14 @@ export function ChatArea({
 	showToolCalls = true,
 	revertPoint,
 	onMessageClick,
+	onTaskClick,
 }: {
 	messages: ChatMessage[];
 	showThinking?: boolean;
 	showToolCalls?: boolean;
 	revertPoint?: string | null;
 	onMessageClick?: (msg: ChatMessage) => void;
+	onTaskClick?: (childSessionId: string) => void;
 }) {
 	const visible = messages.filter((msg) => {
 		if (msg.role === 'tool' && !showToolCalls) return false;
@@ -59,6 +61,7 @@ export function ChatArea({
 							isFirst={i === 0}
 							isRevertPoint={msg.id === revertPoint}
 							onClick={msg.role === 'user' ? () => onMessageClick?.(msg) : undefined}
+							onTaskClick={onTaskClick}
 						/>
 					))
 				)}

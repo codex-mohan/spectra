@@ -86,6 +86,8 @@ export function sdkMessagesToChatMessages(data: {
 				agent: data.agent,
 				toolError: m.isError === true,
 				exitCode: typeof (m as any).details?.exitCode === 'number' ? (m as any).details.exitCode : undefined,
+				childSessionId: typeof (m as any).details?.childSessionId === 'string' ? (m as any).details.childSessionId : undefined,
+				background: (m as any).details?.background === true ? true : undefined,
 			};
 		}
 		return { id, role: 'user' as const, content: '', model: data.model };

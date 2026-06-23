@@ -17,6 +17,7 @@ import { loadCustomTools } from '../integrations/custom-tools/index.js';
 import type { SecurityManager } from '../security/index.js';
 import { PermissionDeniedError } from '../security/index.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
+import type { SessionStore } from '../services/session-store.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -236,10 +237,15 @@ export async function createAllToolsWithExtensions(): Promise<{
 	};
 }
 
-export function createAllToolsWithSecurity(security: SecurityManager, config?: AgentRegistryConfig): AgentTool[] {
+export function createAllToolsWithSecurity(
+	security: SecurityManager,
+	config?: AgentRegistryConfig,
+	sessionStore?: SessionStore,
+	parentSessionId?: string,
+): AgentTool[] {
 	const tools = builtinTools.map((t) => spectraToolToAgentTool(t, security));
 	if (config) {
-		tools.push(spectraToolToAgentTool(createTaskTool(config, security), security));
+		tools.push(spectraToolToAgentTool(createTaskTool(config, security, sessionStore, parentSessionId), security));
 	}
 	return tools;
 }

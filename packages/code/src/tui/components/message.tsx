@@ -171,12 +171,14 @@ export function MessageView({
 	isFirst = false,
 	isRevertPoint = false,
 	onClick,
+	onTaskClick,
 }: {
 	msg: ChatMessage;
 	showThinking?: boolean;
 	isFirst?: boolean;
 	isRevertPoint?: boolean;
 	onClick?: () => void;
+	onTaskClick?: (childSessionId: string) => void;
 }) {
 	const mt = isFirst ? 0 : 1;
 
@@ -362,13 +364,40 @@ export function MessageView({
 			const title = `@${subagentType} ${description}`.slice(0, 60);
 			const statusColor = toolError ? c.error : c.success;
 			const borderColor = toolError ? c.error : c.thinking;
+			const childSessionId = msg.childSessionId;
+			const isBackground = msg.background === true;
+			const clickable = !!(childSessionId && onTaskClick);
+			const isRunningInBackground = isBackground && !output;
 
 			if (!output) {
 				return (
-					<box flexDirection="row" paddingLeft={2} marginTop={mt} gap={1}>
-						<text fg={c.thinking}>◆</text>
-						<text fg={c.dim}>{title}</text>
-						<text fg={c.accent}>(running...)</text>
+					<box
+						flexDirection="column"
+						paddingTop={1}
+						paddingBottom={1}
+						paddingLeft={2}
+						marginTop={mt}
+						gap={1}
+						backgroundColor={c.bgTool}
+						border={['left']}
+						customBorderChars={SB}
+						borderColor={borderColor}
+						{...(clickable ? { onMouseUp: () => onTaskClick!(childSessionId!) } : {})}
+					>
+						<box flexDirection="row" gap={1} paddingLeft={1}>
+							<text fg={borderColor}>{toolError ? '!' : '◆'}</text>
+							<text fg={c.dim}>{title}</text>
+							{isRunningInBackground ? (
+								<text fg={c.accent}>(running in background...)</text>
+							) : (
+								<text fg={c.accent}>(running...)</text>
+							)}
+						</box>
+						{clickable && (
+							<box paddingLeft={2}>
+								<text fg={c.dim}>{isBackground ? 'click to open · bg' : 'click to open'}</text>
+							</box>
+						)}
 					</box>
 				);
 			}
@@ -385,11 +414,13 @@ export function MessageView({
 					border={['left']}
 					customBorderChars={SB}
 					borderColor={borderColor}
+					{...(clickable ? { onMouseUp: () => onTaskClick!(childSessionId!) } : {})}
 				>
 					<box flexDirection="row" gap={1} paddingLeft={1}>
 						<text fg={borderColor}>{toolError ? '!' : '◆'}</text>
 						<text fg={c.dim}>{title}</text>
 						<text fg={statusColor}>{toolError ? '(failed)' : '(done)'}</text>
+						{clickable && <text fg={c.accent}>· click to open</text>}
 					</box>
 					<box paddingLeft={2}>
 						<markdown

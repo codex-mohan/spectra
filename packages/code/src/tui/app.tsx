@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
-import { useTerminalDimensions } from '@opentui/react';
+import { useTerminalDimensions, useKeyboard } from '@opentui/react';
 import type { CliRenderer } from '@opentui/core';
 import { execFileSync } from 'child_process';
 import { c, SPINNER } from './theme.js';
@@ -28,6 +28,7 @@ import { UpdateDialog } from './ui/update-dialog.js';
 import { CostDialog } from './ui/cost-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { ToastContainer, showToast } from './components/toast.js';
+import { SubagentFooter } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
 import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
 import { buildCmdItems, collectSlashNames } from './commands.js';
@@ -51,6 +52,7 @@ import { useAppKeyboard } from './hooks/use-app-keyboard.js';
 import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
+import { backgroundTasks } from '../services/background-tasks.js';
 
 export function App({ renderer }: { renderer: CliRenderer }) {
 	const { width: termWidth, height: termHeight } = useTerminalDimensions();
@@ -83,6 +85,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [draftText, setDraftText] = useState('');
 	const [slashSelected, setSlashSelected] = useState(0);
 	const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 });
+
+	// Child session view-switching state (Phase 1)
+	const [viewingChildSession, setViewingChildSession] = useState<string | null>(null);
 
 	// Per-session state
 	const sessionState = useSessionState();
@@ -248,6 +253,64 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			renderer.off?.('selection', handler);
 		};
 	}, [renderer]);
+
+	// ─── Phase 2/6: background task completion → inject result + toast ───
+	useEffect(() => {
+		const unsub = backgroundTasks.onCompletion((task) => {
+			if (task.status === 'completed') {
+				showToast(`Subagent @${task.agentType} completed: ${task.description}`.slice(0, 100), 'success');
+			} else if (task.status === 'error') {
+				showToast(`Subagent @${task.agentType} failed: ${task.error || 'unknown error'}`.slice(0, 100), 'error');
+			}
+			if (task.background) {
+				sessionManager.current.injectBackgroundResult(
+					task.parentSessionId,
+					task.id,
+					task.result || '',
+					task.agentType,
+					task.description,
+				);
+			}
+		});
+		return unsub;
+	}, []);
+
+	// ─── Phase 1: keyboard navigation for child session view ───
+	useKeyboard(
+		(key) => {
+			if (!viewingChildSession) return;
+			if (dialogStep || updateVersion || msgControls || permissionRequest || showCmd) return;
+			if (key.name === 'escape') {
+				setViewingChildSession(null);
+				return;
+			}
+			if (key.name === 'p') {
+				const child = sessionStore.current.get(viewingChildSession);
+				if (child?.parentId) setViewingChildSession(child.parentId);
+				return;
+			}
+			if (key.name === '[') {
+				const child = sessionStore.current.get(viewingChildSession);
+				const parent = child?.parentId ? sessionStore.current.getParent(viewingChildSession) : null;
+				if (parent) {
+					const siblings = sessionStore.current.getChildren(parent.id);
+					const idx = siblings.findIndex((s) => s.id === viewingChildSession);
+					if (idx > 0) setViewingChildSession(siblings[idx - 1].id);
+				}
+				return;
+			}
+			if (key.name === ']') {
+				const child = sessionStore.current.get(viewingChildSession);
+				const parent = child?.parentId ? sessionStore.current.getParent(viewingChildSession) : null;
+				if (parent) {
+					const siblings = sessionStore.current.getChildren(parent.id);
+					const idx = siblings.findIndex((s) => s.id === viewingChildSession);
+					if (idx >= 0 && idx < siblings.length - 1) setViewingChildSession(siblings[idx + 1].id);
+				}
+				return;
+			}
+		},
+	);
 
 	// --- Hooks (order matters for ref lifecycle) ---
 	const securityRef = useRef<SecurityManager | null>(null);
@@ -584,8 +647,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							showToolCalls={showToolCalls}
 							revertPoint={revertPoint}
 							onMessageClick={(msg) => setMsgControls(msg)}
+							onTaskClick={(childSessionId) => setViewingChildSession(childSessionId)}
 						/>
 					</box>
+					{viewingChildSession ? (
+						<SubagentFooter
+							childSessionId={viewingChildSession}
+							sessionStore={sessionStore.current}
+							onBack={() => setViewingChildSession(null)}
+							onNavigate={(id) => setViewingChildSession(id)}
+						/>
+					) : (
 					<box flexShrink={0}>
 						<PromptBar
 							isLoading={isLoading}
@@ -665,6 +737,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							</box>
 						</box>
 					</box>
+					)}
 				</box>
 			)}
 			{showCmd && (

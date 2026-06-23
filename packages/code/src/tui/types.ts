@@ -29,4 +29,8 @@ export interface ChatMessage {
 	toolError?: boolean;
 	/** Agent that generated this message */
 	agent?: string;
+	/** Child session id produced by a task tool call (for view switching) */
+	childSessionId?: string;
+	/** True when the task was spawned in the background (returns immediately) */
+	background?: boolean;
 }
