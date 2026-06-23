@@ -1,5 +1,6 @@
 export { Agent } from './agent.js';
 export { defineTool } from './define-tool.js';
+export { runSubagent } from './subagent.js';
 export type {
 	Skill,
 	SkillMetadata,
@@ -48,4 +49,5 @@ export type {
 	RetryContext,
 	RetryDecision,
 } from './types.js';
+export type { SubagentConfig, SubagentResult, SubagentBudget } from './subagent.js';
 export type { AssistantMessageEvent } from '@mohanscodex/spectra-ai';
