@@ -12,8 +12,10 @@ import {
 	SequentialWorkerPool,
 	createAgentRunner,
 } from '../index.js';
-import { Agent } from '@mohanscodex/spectra-agent';
-import type { Model, Message } from '@mohanscodex/spectra-ai';
+import { Agent, defineTool } from '@mohanscodex/spectra-agent';
+import type { Model, Message, AssistantMessage } from '@mohanscodex/spectra-ai';
+import { AssistantMessageEventStream, registerProvider } from '@mohanscodex/spectra-ai';
+import { z } from 'zod';
 
 const testModel: Model = {
 	id: 'test-model',
@@ -589,7 +591,217 @@ describe('AgentRegistry', () => {
 		expect(results[0].success).toBe(false);
 		expect(results[1].success).toBe(false);
 	});
+
+	it('should delegate to a registered agent and return result', async () => {
+		const providerModel: Model = { id: 'test-model', name: 'Test', provider: 'test-provider', api: 'test' };
+		const provider = createMockProvider('test-provider', [[createTextMessage('Found 12 files')]]);
+		registerProvider(provider);
+
+		const orchestrator = new AgentRegistry();
+		orchestrator.registerAgent('explore', {
+			model: providerModel,
+			systemPrompt: 'You are an explorer.',
+		});
+
+		const result = await orchestrator.delegate('explore', 'find auth files');
+
+		expect(result.success).toBe(true);
+		expect(result.result).toBe('Found 12 files');
+		expect(result.messages).toBeDefined();
+		expect(result.messages!.length).toBeGreaterThan(0);
+		expect(result.usage).toBeDefined();
+	});
+
+	it('should create child session with parentSessionId when sessionManager provided', async () => {
+		const providerModel: Model = { id: 'test-model', name: 'Test', provider: 'test-provider', api: 'test' };
+		const provider = createMockProvider('test-provider', [[createTextMessage('done')]]);
+		registerProvider(provider);
+
+		const store = new InMemorySessionStore();
+		const manager = new SessionManager(store);
+		const orchestrator = new AgentRegistry(manager);
+		orchestrator.registerAgent('explore', { model: providerModel, systemPrompt: 'Explore.' });
+
+		const parentSession = await manager.create({ model: providerModel });
+
+		const result = await orchestrator.delegate('explore', 'test', {
+			parentSessionId: parentSession.id,
+		});
+
+		expect(result.success).toBe(true);
+		expect(result.childSessionId).toBeDefined();
+		expect(result.messages!.length).toBeGreaterThan(0);
+
+		const childSession = await manager.load(result.childSessionId!);
+		expect(childSession).not.toBeNull();
+		expect(childSession!.metadata.parentSessionId).toBe(parentSession.id);
+		expect(childSession!.entries.length).toBeGreaterThan(0);
+	});
+
+	it('should use parentModel as fallback when agent has no model', async () => {
+		let capturedModel: Model | undefined;
+		const parentModel: Model = { id: 'gpt-4o', name: 'GPT-4o', provider: 'test-provider', api: 'test' };
+		const provider = {
+			name: 'test-provider',
+			stream(model: Model) {
+				capturedModel = model;
+				const stream = new AssistantMessageEventStream();
+				const msg = createTextMessage('ok');
+				setTimeout(() => {
+					stream.push({ type: 'start', partial: msg });
+					stream.push({ type: 'done', reason: 'stop', message: msg });
+					stream.end();
+				}, 10);
+				return stream;
+			},
+		};
+		registerProvider(provider);
+
+		const orchestrator = new AgentRegistry();
+		orchestrator.registerAgent('explore', { systemPrompt: 'Explore.' });
+
+		await orchestrator.delegate('explore', 'test', { parentModel });
+
+		expect(capturedModel?.id).toBe('gpt-4o');
+	});
+
+	it('should use agent model as override when agent has a model', async () => {
+		let capturedModel: Model | undefined;
+		const cheapModel: Model = { id: 'deepseek-flash', name: 'DeepSeek', provider: 'test-provider', api: 'test' };
+		const parentModel: Model = { id: 'gpt-4o', name: 'GPT-4o', provider: 'test-provider', api: 'test' };
+		const provider = {
+			name: 'test-provider',
+			stream(model: Model) {
+				capturedModel = model;
+				const stream = new AssistantMessageEventStream();
+				const msg = createTextMessage('ok');
+				setTimeout(() => {
+					stream.push({ type: 'start', partial: msg });
+					stream.push({ type: 'done', reason: 'stop', message: msg });
+					stream.end();
+				}, 10);
+				return stream;
+			},
+		};
+		registerProvider(provider);
+
+		const orchestrator = new AgentRegistry();
+		orchestrator.registerAgent('explore', { model: cheapModel, systemPrompt: 'Explore.' });
+
+		await orchestrator.delegate('explore', 'test', { parentModel });
+
+		expect(capturedModel?.id).toBe('deepseek-flash');
+	});
+
+	it('should pass tools to child agent', async () => {
+		const providerModel: Model = { id: 'test-model', name: 'Test', provider: 'test-provider', api: 'test' };
+		const provider = createMockProvider('test-provider', [[createTextMessage('Echoed: hi')]]);
+		registerProvider(provider);
+
+		const echoTool = defineTool({
+			name: 'echo',
+			description: 'Echo',
+			parameters: z.object({ text: z.string() }),
+			execute: async ({ text }) => ({
+				content: [{ type: 'text', text: `Echo: ${text}` }],
+			}),
+		});
+
+		const orchestrator = new AgentRegistry();
+		orchestrator.registerAgent('worker', { model: providerModel, systemPrompt: 'Worker.' });
+
+		const result = await orchestrator.delegate('worker', 'echo hi', { tools: [echoTool] });
+
+		expect(result.success).toBe(true);
+		expect(result.result).toBe('Echoed: hi');
+	});
+
+	it('should wire onEvent callback to child agent events', async () => {
+		const providerModel: Model = { id: 'test-model', name: 'Test', provider: 'test-provider', api: 'test' };
+		const provider = createMockProvider('test-provider', [[createTextMessage('ok')]]);
+		registerProvider(provider);
+
+		const orchestrator = new AgentRegistry();
+		orchestrator.registerAgent('worker', { model: providerModel, systemPrompt: 'Worker.' });
+
+		const events: string[] = [];
+		await orchestrator.delegate('worker', 'test', {
+			onEvent: (e) => events.push(e.type),
+		});
+
+		expect(events).toContain('agent_start');
+		expect(events).toContain('agent_end');
+	});
+
+	it('should return error for missing model', async () => {
+		const orchestrator = new AgentRegistry();
+		orchestrator.registerAgent('broken', { systemPrompt: 'No model.' });
+
+		const result = await orchestrator.delegate('broken', 'test');
+
+		expect(result.success).toBe(false);
+		expect(result.error).toContain('No model available');
+	});
 });
+
+function createTextMessage(text: string): AssistantMessage {
+	return {
+		role: 'assistant',
+		content: [{ type: 'text', text }],
+		provider: 'test-provider',
+		model: 'test-model',
+		usage: { input: 10, output: 20, cacheRead: 0, cacheWrite: 0, totalTokens: 30 },
+		stopReason: 'stop',
+		timestamp: Date.now(),
+	};
+}
+
+function createMockProvider(name: string, responseSequence: AssistantMessage[][]) {
+	let callIndex = 0;
+
+	return {
+		name,
+		stream(model: Model) {
+			const stream = new AssistantMessageEventStream();
+			const responses = responseSequence[callIndex] || [];
+			callIndex++;
+
+			setTimeout(() => {
+				const partial: AssistantMessage = {
+					role: 'assistant',
+					content: [],
+					provider: model.provider,
+					model: model.id,
+					usage: { input: 10, output: 20, cacheRead: 0, cacheWrite: 0, totalTokens: 30 },
+					stopReason: 'stop',
+					timestamp: Date.now(),
+				};
+
+				stream.push({ type: 'start', partial });
+
+				for (let i = 0; i < responses.length; i++) {
+					const msg = responses[i];
+					for (const block of msg.content) {
+						if (block.type === 'text') {
+							stream.push({
+								type: 'text_delta',
+								contentIndex: i,
+								delta: block.text,
+								partial: { ...partial, content: [block] },
+							});
+						}
+					}
+				}
+
+				const lastResponse = responses[responses.length - 1] || partial;
+				stream.push({ type: 'done', reason: lastResponse.stopReason, message: lastResponse });
+				stream.end();
+			}, 10);
+
+			return stream;
+		},
+	};
+}
 
 describe('WorkerPool', () => {
 	it('should enqueue and process jobs', async () => {

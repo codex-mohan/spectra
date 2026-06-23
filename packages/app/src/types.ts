@@ -136,9 +136,18 @@ export interface RateLimitResult {
 	resetAt: Date;
 }
 
+export interface DelegateOptions {
+	parentModel?: Model;
+	parentSessionId?: string;
+	signal?: AbortSignal;
+	onEvent?: (event: AgentEvent) => void;
+	tools?: AgentTool[];
+	budget?: Budget;
+}
+
 export interface Orchestrator {
-	delegate(agentType: string, task: string, budget?: Budget): Promise<DelegationResult>;
-	executeParallel(tasks: TaskConfig[]): Promise<DelegationResult[]>;
+	delegate(agentType: string, task: string, opts?: DelegateOptions): Promise<DelegationResult>;
+	executeParallel(tasks: TaskConfig[], opts?: Pick<DelegateOptions, 'parentModel' | 'parentSessionId' | 'signal'>): Promise<DelegationResult[]>;
 }
 
 export interface Budget {
@@ -150,6 +159,7 @@ export interface Budget {
 export interface TaskConfig {
 	agentType: string;
 	task: string;
+	tools?: AgentTool[];
 	budget?: Budget;
 }
 
@@ -157,6 +167,8 @@ export interface DelegationResult {
 	agentType: string;
 	success: boolean;
 	result: string;
+	messages?: Message[];
+	childSessionId?: string;
 	usage?: Usage;
 	error?: string;
 }

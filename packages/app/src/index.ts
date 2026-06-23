@@ -36,6 +36,7 @@ export type {
 	RateLimiter,
 	RateLimitResult,
 	Orchestrator,
+	DelegateOptions,
 	Budget,
 	TaskConfig,
 	DelegationResult,
