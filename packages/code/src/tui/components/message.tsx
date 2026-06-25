@@ -80,7 +80,7 @@ function DiffContent(props: { text: string; maxLines: number }) {
 	const display = expanded || !overflow ? diffRows : diffRows.slice(0, props.maxLines);
 
 	return (
-		<box flexDirection="column" gap={0}>
+		<box flexDirection="column" gap={1}>
 			<box flexDirection="row" gap={1}>
 				{deletions > 0 && <text fg={c.error}>-{deletions}</text>}
 				{additions > 0 && <text fg={c.success}>+{additions}</text>}
@@ -93,7 +93,7 @@ function DiffContent(props: { text: string; maxLines: number }) {
 					else if (row.type === 'remove') fg = c.error;
 					
 					return (
-						<box key={i} flexDirection="row" gap={1}
+						<box key={i} flexDirection="row" height={1}
 							backgroundColor={row.type === 'remove' ? c.diffRemoveBg : row.type === 'add' ? c.diffAddBg : undefined}
 						>
 							<text fg={c.dim} width={5}>
@@ -487,8 +487,7 @@ export function MessageView({
 			return (
 				<box
 					flexDirection="column"
-					paddingTop={1}
-					paddingBottom={1}
+					paddingY={1}
 					paddingLeft={2}
 					marginTop={mt}
 					gap={1}
@@ -524,6 +523,7 @@ export function MessageView({
 				<box
 					flexDirection="column"
 					paddingLeft={2}
+					paddingY={1}
 					marginTop={mt}
 					gap={1}
 					backgroundColor={c.bgTool}
@@ -531,7 +531,7 @@ export function MessageView({
 					customBorderChars={SB}
 					borderColor={editColor}
 				>
-					<box paddingTop={1} flexDirection="row" gap={1}>
+					<box flexDirection="row" gap={1}>
 						<text height={1} fg={editColor}>{displayTitle}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
 					</box>
