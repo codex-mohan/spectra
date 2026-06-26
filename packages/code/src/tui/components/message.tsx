@@ -288,7 +288,7 @@ export function MessageView({
 					icon={icon}
 					title={displayTitle}
 					color={toolError ? c.error : c.readTool}
-					titleColor={toolError ? c.error : undefined}
+					titleColor={toolError ? c.error : c.readTool}
 					marginTop={mt}
 					status={toolError ? 'error' : 'success'}
 				/>
@@ -419,7 +419,7 @@ export function MessageView({
 						)}
 					</box>
 					{(wallStr || timeoutStr) && (
-						<box flexDirection="row" gap={1} paddingLeft={2}>
+						<box flexDirection="row" gap={1} paddingLeft={1}>
 							<text fg={c.dim}>[</text>
 							{wallStr && <text fg={c.subtext}>Wall: {wallStr}</text>}
 							{wallStr && timeoutStr && <text fg={c.dim}> | </text>}
@@ -511,7 +511,7 @@ export function MessageView({
 			const url = argsObj.url || argsStr;
 			const displayTitle = toolError ? (url ? `Fetch failed: ${url}` : 'Fetch failed') : url ? `Fetch ${url}` : 'Fetch';
 			const fetchColor = toolError ? c.error : c.info;
-			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'} />;
+			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} titleColor={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'} />;
 			return (
 				<BlockTool title={displayTitle} titleColor={fetchColor} borderColor={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'}>
 					<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
@@ -519,7 +519,7 @@ export function MessageView({
 			);
 		}
 
-		if (!output) return <InlineTool icon={toolError ? '!' : '⚙'} title={toolError ? `${raw} failed` : raw} color={toolError ? c.error : c.dim} marginTop={mt} status={toolError ? 'error' : 'success'} />;
+		if (!output) return <InlineTool icon={toolError ? '!' : '⚙'} title={toolError ? `${raw} failed` : raw} color={toolError ? c.error : c.tool} titleColor={toolError ? c.error : c.tool} marginTop={mt} status={toolError ? 'error' : 'success'} />;
 		const displayTitle = toolError ? `${argsStr ? `${tName} ${argsStr}` : tName} failed` : argsStr ? `${tName} ${argsStr}` : tName;
 		const genericColor = toolError ? c.error : c.tool;
 		return (
