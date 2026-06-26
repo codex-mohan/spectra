@@ -27,6 +27,10 @@ export interface ChatMessage {
 	exitCode?: number;
 	/** Whether a tool result reported an error */
 	toolError?: boolean;
+	/** Shell tool wall time in milliseconds */
+	wallTimeMs?: number;
+	/** Shell tool timeout in milliseconds */
+	timeoutMs?: number;
 	/** Agent that generated this message */
 	agent?: string;
 	/** Child session id produced by a task tool call (for view switching) */

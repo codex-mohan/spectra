@@ -51,7 +51,6 @@ interface UseChatSubmitDeps {
 	setRoute: (r: 'home' | 'chat') => void;
 	setElapsedMs: (v: number | null) => void;
 	setTokPerSec: (v: number | null) => void;
-	setTokenUsage: (fn: (prev: { input: number; output: number }) => { input: number; output: number }) => void;
 	setDraftText: (t: string) => void;
 	setSlashSelected: (i: number) => void;
 	setSubmitKey: (fn: (k: number) => number) => void;
@@ -89,7 +88,6 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		setRoute,
 		setElapsedMs,
 		setTokPerSec,
-		setTokenUsage,
 		setDraftText,
 		setSlashSelected,
 		setSubmitKey,
@@ -251,7 +249,7 @@ Return ONLY the title text, nothing else.`;
 				switchSession(sess.id);
 				sessionManager.current.createSession(sess.id);
 				sessionManager.current.setActiveSession(sess.id);
-				setTokenUsage(() => ({ input: 0, output: 0 }));
+				sessionState.setTokenUsageIn(sess.id, () => ({ input: 0, output: 0 }));
 				sessionState.set(sess.id, { costSoFar: 0 });
 			}
 
@@ -418,7 +416,12 @@ Return ONLY the title text, nothing else.`;
 							const sid = runSessionId;
 							(async () => {
 								try {
-									const { synthesizeSkill, isSessionEligibleForSynthesis, loadAllEvolvingSkills } = await import('@mohanscodex/spectra-agent');
+									const { generateSkillContent, isSessionEligibleForSynthesis, loadAllEvolvingSkills, saveEvolvingSkill, findSimilarSkill, evolveSkill } = await import('@mohanscodex/spectra-agent');
+									const { loadConfig } = await import('../../services/config.js');
+									const cfg = loadConfig();
+
+									if (cfg.skills?.autoSynthesize === false) return;
+
 									const sess = sessionStore.current.get(sid);
 									if (!sess) return;
 
@@ -450,8 +453,29 @@ Return ONLY the title text, nothing else.`;
 
 									if (!isSessionEligibleForSynthesis(trace)) return;
 
+									const generated = generateSkillContent(trace);
+									if (!generated) return;
+
+									const { id, name, description, whenToUse, content } = generated;
+
+									if (cfg.skills?.confirmBeforeSave !== false) {
+										const { enqueuePendingSkill } = await import('../../services/pending-skills.js');
+										enqueuePendingSkill({ id, name, description, whenToUse, content, createdAt: new Date().toISOString() });
+										showToast(`Learned new skill: ${name}. Use /skills to save.`, 'info');
+										return;
+									}
+
 									const existing = await loadAllEvolvingSkills();
-									await synthesizeSkill(trace, existing);
+									const { saveEvolvingSkill: save, findSimilarSkill: findSimilar, evolveSkill: evolve } = await import('@mohanscodex/spectra-agent');
+									const similar = await findSimilar(name, description, whenToUse, existing);
+									if (similar) {
+										await evolve(similar.name, { description, whenToUse }, content);
+										showToast(`Evolved skill: ${similar.name}`, 'success');
+									} else {
+										const meta = { id, name, description, whenToUse, tags: [] as string[], useCount: 0, version: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), origin: 'learned' as const };
+										await save(meta, content);
+										showToast(`Saved skill: ${name}`, 'success');
+									}
 								} catch {
 									// Synthesis failed silently
 								}
@@ -509,14 +533,18 @@ Return ONLY the title text, nothing else.`;
 						};
 						persistMessage(runSessionId, toolMsg);
 const tuiId = toolMsgMap.current.get(ev.toolCallId);
-					if (tuiId) {
+				if (tuiId) {
 						const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
+						const wallTimeMs = typeof resultDetails.wallTimeMs === 'number' ? resultDetails.wallTimeMs : undefined;
+						const timeoutMs = typeof resultDetails.timeoutMs === 'number' ? resultDetails.timeoutMs : undefined;
 						const childSessionId = typeof resultDetails.childSessionId === 'string' ? resultDetails.childSessionId : undefined;
 						const isBackground = resultDetails.background === true ? true : undefined;
 						sessionState.updateMessageIn(runSessionId, tuiId, {
 							content: toolOutput,
 							exitCode,
 							toolError: ev.isError || undefined,
+							wallTimeMs,
+							timeoutMs,
 							childSessionId,
 							background: isBackground,
 						});

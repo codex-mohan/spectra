@@ -86,8 +86,9 @@ export function sdkMessagesToChatMessages(data: {
 				agent: data.agent,
 				toolError: m.isError === true,
 				exitCode: typeof (m as any).details?.exitCode === 'number' ? (m as any).details.exitCode : undefined,
+				wallTimeMs: typeof (m as any).details?.wallTimeMs === 'number' ? (m as any).details.wallTimeMs : undefined,
+				timeoutMs: typeof (m as any).details?.timeoutMs === 'number' ? (m as any).details.timeoutMs : undefined,
 				childSessionId: typeof (m as any).details?.childSessionId === 'string' ? (m as any).details.childSessionId : undefined,
-				background: (m as any).details?.background === true ? true : undefined,
 			};
 		}
 		return { id, role: 'user' as const, content: '', model: data.model };

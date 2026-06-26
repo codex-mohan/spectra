@@ -378,6 +378,10 @@ export function MessageView({
 			const exitCode = msg.exitCode ?? null;
 			const exitColor = exitCode === 0 && !toolError ? c.success : c.error;
 			const shellColor = toolError ? c.error : c.execTool;
+			const wallTimeMs = msg.wallTimeMs;
+			const timeoutMs = msg.timeoutMs;
+			const wallStr = wallTimeMs != null ? (wallTimeMs >= 1000 ? `${(wallTimeMs / 1000).toFixed(2)}s` : `${wallTimeMs}ms`) : null;
+			const timeoutStr = timeoutMs != null ? `${Math.round(timeoutMs / 1000)}s` : null;
 
 			return (
 				<box
@@ -414,6 +418,15 @@ export function MessageView({
 							<text fg={toolError ? c.error : c.dim}>{toolError ? 'Command failed with no output' : 'No output'}</text>
 						)}
 					</box>
+					{(wallStr || timeoutStr) && (
+						<box flexDirection="row" gap={1} paddingLeft={2}>
+							<text fg={c.dim}>[</text>
+							{wallStr && <text fg={c.subtext}>Wall: {wallStr}</text>}
+							{wallStr && timeoutStr && <text fg={c.dim}> | </text>}
+							{timeoutStr && <text fg={c.subtext}>Timeout: {timeoutStr}</text>}
+							<text fg={c.dim}>]</text>
+						</box>
+					)}
 				</box>
 			);
 		}

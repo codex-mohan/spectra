@@ -19,6 +19,8 @@ interface ShellDetails {
 	command: string;
 	truncated?: boolean;
 	outputPath?: string;
+	wallTimeMs?: number;
+	timeoutMs?: number;
 }
 
 function killProcess(pid: number): Promise<void> {
@@ -111,7 +113,9 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 			const shell = info.shell;
 			const isPwsh = /^pwsh(\.exe)?$/i.test(shell) || /^powershell(\.exe)?$/i.test(shell);
 			const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, 60 * 60 * 1000);
+			const startTime = Date.now();
 			const onUpdate = ctx.onUpdate;
+
 
 			let proc: ChildProcess;
 			if (isWindows) {
@@ -144,6 +148,10 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 				if (resolved) return;
 				resolved = true;
 				if (forceKillTimer) clearTimeout(forceKillTimer);
+				if (result.details) {
+					result.details.wallTimeMs = Date.now() - startTime;
+					result.details.timeoutMs = effectiveTimeout;
+				}
 				resolve(result);
 			};
 
