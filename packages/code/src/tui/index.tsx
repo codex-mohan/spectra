@@ -1,5 +1,6 @@
-import { createCliRenderer } from '@opentui/core';
+import { createCliRenderer, addDefaultParsers } from '@opentui/core';
 import { createRoot } from '@opentui/react';
+import { parsers } from './parsers-config.js';
 import { App } from './app.js';
 
 export interface TuiOptions {
@@ -21,6 +22,9 @@ export async function launchTui(_options: TuiOptions = {}): Promise<void> {
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught exception:', err);
 	});
+
+	// Register tree-sitter parsers for syntax highlighting
+	addDefaultParsers(parsers);
 
 	try {
 		const renderer = await createCliRenderer({

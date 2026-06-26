@@ -399,7 +399,10 @@ export function MessageView({
 									{description}
 								</text>
 							) : null}
-							<text fg={shellColor}>$ {command}</text>
+							<box flexDirection="row" gap={0}>
+								<text fg={shellColor}>$ </text>
+								<code content={command} syntaxStyle={mdStyle} filetype="bash" conceal={true} drawUnstyledText={true} />
+							</box>
 						</box>
 						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
 						{exitCode === null && toolError && <text fg={c.error}>✗ Failed</text>}

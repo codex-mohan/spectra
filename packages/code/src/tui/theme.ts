@@ -18,7 +18,7 @@ export const c = {
 
 	// Tool-specific colors
 	readTool: '#7EC8D0',    // teal — passive read
-	execTool: '#E0A860',    // orange — command execution
+	execTool: '#A3D9A0',    // green — command execution
 	writeTool: '#A3D9A0',   // green — file creation
 	editTool: '#E0C8A0',    // amber — file modification
 
