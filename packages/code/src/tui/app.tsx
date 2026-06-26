@@ -26,6 +26,9 @@ import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
 import { UpdateDialog } from './ui/update-dialog.js';
 import { CostDialog } from './ui/cost-dialog.js';
+import { MemoryDialog } from './ui/memory-dialog.js';
+import { SettingsDialog } from './ui/settings-dialog.js';
+import { SkillsDialog } from './ui/skills-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import { SubagentFooter } from './components/subagent-footer.js';
@@ -88,6 +91,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	// Child session view-switching state (Phase 1)
 	const [viewingChildSession, setViewingChildSession] = useState<string | null>(null);
+	const parentSessionIdRef = useRef<string | null>(null);
 
 	// Per-session state
 	const sessionState = useSessionState();
@@ -275,42 +279,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		return unsub;
 	}, []);
 
-	// ─── Phase 1: keyboard navigation for child session view ───
-	useKeyboard(
-		(key) => {
-			if (!viewingChildSession) return;
-			if (dialogStep || updateVersion || msgControls || permissionRequest || showCmd) return;
-			if (key.name === 'escape') {
-				setViewingChildSession(null);
-				return;
-			}
-			if (key.name === 'p') {
-				const child = sessionStore.current.get(viewingChildSession);
-				if (child?.parentId) setViewingChildSession(child.parentId);
-				return;
-			}
-			if (key.name === '[') {
-				const child = sessionStore.current.get(viewingChildSession);
-				const parent = child?.parentId ? sessionStore.current.getParent(viewingChildSession) : null;
-				if (parent) {
-					const siblings = sessionStore.current.getChildren(parent.id);
-					const idx = siblings.findIndex((s) => s.id === viewingChildSession);
-					if (idx > 0) setViewingChildSession(siblings[idx - 1].id);
-				}
-				return;
-			}
-			if (key.name === ']') {
-				const child = sessionStore.current.get(viewingChildSession);
-				const parent = child?.parentId ? sessionStore.current.getParent(viewingChildSession) : null;
-				if (parent) {
-					const siblings = sessionStore.current.getChildren(parent.id);
-					const idx = siblings.findIndex((s) => s.id === viewingChildSession);
-					if (idx >= 0 && idx < siblings.length - 1) setViewingChildSession(siblings[idx + 1].id);
-				}
-				return;
-			}
-		},
-	);
+	// ─── Child view keyboard handler is registered after switchToChildSession/exitChildView are defined ───
 
 	// --- Hooks (order matters for ref lifecycle) ---
 	const securityRef = useRef<SecurityManager | null>(null);
@@ -448,7 +417,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setRoute,
 		setElapsedMs,
 		setTokPerSec,
-		setTokenUsage,
 		setDraftText,
 		setSlashSelected,
 		setSubmitKey,
@@ -457,6 +425,114 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		discardRevert,
 		promptHistoryService,
 	});
+
+	// ─── Child session view-switching ───
+	const switchToChildSession = useCallback((childId: string) => {
+		const childData = sessionStore.current.get(childId);
+		if (!childData) return;
+
+		const { messages: childMsgs, tokenUsage: childTokens, costSoFar: childCost } = sdkMessagesToChatMessages({
+			messages: childData.messages,
+			model: childData.model,
+			agent: childData.agent,
+		});
+
+		sessionState.switchSession(childId);
+		sessionState.set(childId, {
+			messages: childMsgs,
+			tokenUsage: childTokens,
+			costSoFar: childCost,
+			selectedModel: childData.model,
+			selectedProvider: childData.provider || childData.model.split('/')[0],
+			selectedAgent: childData.agent || 'build',
+			thinkingEffort: childData.thinkingEffort || undefined,
+		});
+		sessionId.current = childId;
+		setViewingChildSession(childId);
+
+		restoreSessionHistory(
+			childId,
+			childData.model,
+			childData.provider || childData.model.split('/')[0],
+			childData.agent || 'build',
+			customProviders,
+			childData.thinkingEffort || undefined,
+			childData.messages as unknown as Message[],
+		).catch(() => {});
+
+		securityRef.current?.getReadTracker().reset();
+		securityRef.current?.getDoomLoop().reset();
+		setTerminalTitle(formatSessionTitle(childData.title));
+	}, [sessionState, sessionStore, sessionId, restoreSessionHistory, customProviders, securityRef]);
+
+	const exitChildView = useCallback(() => {
+		const parentId = parentSessionIdRef.current;
+		if (parentId) {
+			sessionState.switchSession(parentId);
+			sessionId.current = parentId;
+			const parentData = sessionStore.current.get(parentId);
+			if (parentData) setTerminalTitle(formatSessionTitle(parentData.title));
+		}
+		parentSessionIdRef.current = null;
+		setViewingChildSession(null);
+		securityRef.current?.getReadTracker().reset();
+		securityRef.current?.getDoomLoop().reset();
+	}, [sessionState, sessionStore, sessionId, securityRef]);
+
+	const handleViewChildSession = useCallback((childSessionId: string) => {
+		parentSessionIdRef.current = sessionId.current;
+		switchToChildSession(childSessionId);
+	}, [switchToChildSession, sessionId]);
+
+	// ─── Child view keyboard navigation ───
+	useKeyboard(
+		(key) => {
+			if (!viewingChildSession) return;
+			if (dialogStep || updateVersion || msgControls || permissionRequest || showCmd) return;
+			if (key.name === 'escape') {
+				if (isStreamingRef.current) return;
+				exitChildView();
+				return;
+			}
+			if (key.name === 'p') {
+				const child = sessionStore.current.get(viewingChildSession);
+				if (!child?.parentId) return;
+				const parent = sessionStore.current.getParent(viewingChildSession);
+				if (!parent) return;
+				if (parent.parentId) {
+					parentSessionIdRef.current = parent.parentId;
+					switchToChildSession(parent.id);
+				} else {
+					parentSessionIdRef.current = null;
+					sessionState.switchSession(parent.id);
+					sessionId.current = parent.id;
+					setViewingChildSession(null);
+					setTerminalTitle(formatSessionTitle(parent.title));
+				}
+				return;
+			}
+			if (key.name === '[') {
+				const child = sessionStore.current.get(viewingChildSession);
+				const parent = child?.parentId ? sessionStore.current.getParent(viewingChildSession) : null;
+				if (parent) {
+					const siblings = sessionStore.current.getChildren(parent.id);
+					const idx = siblings.findIndex((s) => s.id === viewingChildSession);
+					if (idx > 0) switchToChildSession(siblings[idx - 1].id);
+				}
+				return;
+			}
+			if (key.name === ']') {
+				const child = sessionStore.current.get(viewingChildSession);
+				const parent = child?.parentId ? sessionStore.current.getParent(viewingChildSession) : null;
+				if (parent) {
+					const siblings = sessionStore.current.getChildren(parent.id);
+					const idx = siblings.findIndex((s) => s.id === viewingChildSession);
+					if (idx >= 0 && idx < siblings.length - 1) switchToChildSession(siblings[idx + 1].id);
+				}
+				return;
+			}
+		},
+	);
 
 	// --- cmdFiltered + slash ---
 	const cmdFiltered = useMemo(() => {
@@ -640,6 +716,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							</box>
 						</box>
 					)}
+					{viewingChildSession && (
+						<SubagentFooter
+							childSessionId={viewingChildSession}
+							sessionStore={sessionStore.current}
+							onBack={exitChildView}
+							onNavigate={switchToChildSession}
+						/>
+					)}
 					<box flexDirection="column" flexGrow={1} paddingBottom={1}>
 						<ChatArea
 							messages={messages}
@@ -647,40 +731,51 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							showToolCalls={showToolCalls}
 							revertPoint={revertPoint}
 							onMessageClick={(msg) => setMsgControls(msg)}
-							onTaskClick={(childSessionId) => setViewingChildSession(childSessionId)}
+							onTaskClick={handleViewChildSession}
 						/>
 					</box>
-					{viewingChildSession ? (
-						<SubagentFooter
-							childSessionId={viewingChildSession}
-							sessionStore={sessionStore.current}
-							onBack={() => setViewingChildSession(null)}
-							onNavigate={(id) => setViewingChildSession(id)}
-						/>
-					) : (
 					<box flexShrink={0}>
-						<PromptBar
-							isLoading={isLoading}
-							spinnerFrame={spinnerFrame}
-							inputKey={`c-${submitKey}-${navKey}`}
-							placeholder="Reply..."
-							onSubmit={handleSubmit}
-							hasModel={hasModel}
-							agent={selectedAgent}
-							model={selectedModel || ''}
-							provider={provider || ''}
-							thinkingEffort={thinkingEffort}
-							initialValue={revertDraftRef.current || ''}
-							elapsedMs={elapsedMs}
-							tokenUsage={tokenUsage}
-							width={termWidth - 4}
-							focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
-							onTextChange={(t) => setDraftText(t)}
-							onGetTextarea={(r) => {
-								promptTextareaRef.current = r;
-							}}
-							onPositionChange={setPromptPosition}
-						/>
+						{viewingChildSession ? (
+							<box
+								flexDirection="row"
+								gap={1}
+								alignItems="center"
+								height={3}
+								backgroundColor={c.bgInput}
+								border={['top', 'bottom']}
+								borderColor={c.border}
+								paddingLeft={3}
+								paddingRight={2}
+							>
+								<text fg={c.dim}>◆</text>
+								<text fg={c.subtext}>Read-only — press </text>
+								<text fg={c.accent}>esc</text>
+								<text fg={c.subtext}> to return</text>
+							</box>
+						) : (
+							<PromptBar
+								isLoading={isLoading}
+								spinnerFrame={spinnerFrame}
+								inputKey={`c-${submitKey}-${navKey}`}
+								placeholder={'Reply...'}
+								onSubmit={handleSubmit}
+								hasModel={hasModel}
+								agent={selectedAgent}
+								model={selectedModel || ''}
+								provider={provider || ''}
+								thinkingEffort={thinkingEffort}
+								initialValue={revertDraftRef.current || ''}
+								elapsedMs={elapsedMs}
+								tokenUsage={tokenUsage}
+								width={termWidth - 4}
+								focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
+								onTextChange={(t) => setDraftText(t)}
+								onGetTextarea={(r) => {
+									promptTextareaRef.current = r;
+								}}
+								onPositionChange={setPromptPosition}
+							/>
+						)}
 						<box height={1} />
 						<box
 							flexDirection="row"
@@ -722,6 +817,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 									})()}
 							</box>
 							<box flexDirection="row" gap={2} alignItems="center">
+								{viewingChildSession && (
+									<text fg={c.accent}>◆ read-only</text>
+								)}
 								<box flexDirection="row">
 									<text fg={c.text}>tab</text>
 									<text fg={c.dim}> agent</text>
@@ -737,7 +835,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							</box>
 						</box>
 					</box>
-					)}
 				</box>
 			)}
 			{showCmd && (
@@ -983,6 +1080,36 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					selectedModel={selectedModel || ''}
 					provider={provider || ''}
 					tokenUsage={tokenUsage}
+					onClose={() => setDialogStep(null)}
+					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'memory' && (
+				<MemoryDialog
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onClose={() => setDialogStep(null)}
+					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'settings' && (
+				<SettingsDialog
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onClose={() => setDialogStep(null)}
+					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'skills' && (
+				<SkillsDialog
+					termWidth={termWidth}
+					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}
 					registerHandler={(fn: any) => {
 						dialogKeyHandler.current = fn;

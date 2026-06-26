@@ -37,6 +37,13 @@ export const c = {
 
 	diffAddBg: '#1B2A1B',
 	diffRemoveBg: '#2A1B1B',
+	diffContextBg: '#0C0C12',
+	diffAddSign: '#A3D9A0',
+	diffRemoveSign: '#E0A0A8',
+	diffLineNumber: '#5A6070',
+	diffLineNumberBg: '#141420',
+	diffAddLineNumberBg: '#1B2A1B',
+	diffRemoveLineNumberBg: '#2A1B1B',
 };
 
 export const mdStyle = SyntaxStyle.fromStyles({

@@ -3,7 +3,7 @@ import { c, mdStyle, mdStyleMuted } from '../theme.js';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
-import { parsePatch } from 'diff';
+import { filetype } from '../utils/filetype.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -22,115 +22,47 @@ const SB = {
 
 const MAX_SHELL_LINES = 10;
 const MAX_GENERIC_LINES = 3;
-const MAX_DIFF_LINES = 6;
 
-function DiffContent(props: { text: string; maxLines: number }) {
-	const [expanded, setExpanded] = useState(false);
-	
-	// Parse the unified diff to get line numbers
-	const diffRows: { content: string; type: 'add' | 'remove' | 'context'; oldLine?: number; newLine?: number }[] = [];
-	let additions = 0;
-	let deletions = 0;
-	
-	try {
-		const patches = parsePatch(props.text);
-		for (const patch of patches) {
-			for (const hunk of patch.hunks) {
-				let oldLine = hunk.oldStart;
-				let newLine = hunk.newStart;
-				
-				for (const line of hunk.lines) {
-					const content = line.slice(1);
-					const prefix = line[0];
-					
-					if (prefix === ' ') {
-						diffRows.push({ content, type: 'context', oldLine, newLine });
-						oldLine++;
-						newLine++;
-					} else if (prefix === '-') {
-						deletions++;
-						diffRows.push({ content, type: 'remove', oldLine, newLine });
-						oldLine++;
-					} else if (prefix === '+') {
-						additions++;
-						diffRows.push({ content, type: 'add', oldLine, newLine });
-						newLine++;
-					}
-					// Skip '\\' (no newline marker) and '+++'/'---' headers
-				}
-			}
-		}
-	} catch {
-		// Fallback: just show raw lines
-		const lines = props.text.split('\n');
-		for (const line of lines) {
-			if (line.startsWith('+')) {
-				additions++;
-				diffRows.push({ content: line.slice(1), type: 'add' });
-			} else if (line.startsWith('-')) {
-				deletions++;
-				diffRows.push({ content: line.slice(1), type: 'remove' });
-			} else if (line && !line.startsWith('@@') && !line.startsWith('===') && !line.startsWith('---') && !line.startsWith('+++')) {
-				diffRows.push({ content: line.startsWith(' ') ? line.slice(1) : line, type: 'context' });
-			}
-		}
-	}
-
-	const overflow = diffRows.length > props.maxLines;
-	const display = expanded || !overflow ? diffRows : diffRows.slice(0, props.maxLines);
-
+function DiffContent(props: { text: string; filePath?: string }) {
+	const ft = props.filePath ? filetype(props.filePath) : undefined;
 	return (
-		<box flexDirection="column" gap={1}>
-			<box flexDirection="row" gap={1}>
-				{deletions > 0 && <text fg={c.error}>-{deletions}</text>}
-				{additions > 0 && <text fg={c.success}>+{additions}</text>}
-			</box>
-			<box flexDirection="column" gap={0} onMouseDown={overflow ? () => setExpanded(!expanded) : undefined}>
-				{display.map((row, i) => {
-					let fg = c.text;
-					let bg = undefined;
-					if (row.type === 'add') fg = c.success;
-					else if (row.type === 'remove') fg = c.error;
-					
-					return (
-						<box key={i} flexDirection="row" height={1}
-							backgroundColor={row.type === 'remove' ? c.diffRemoveBg : row.type === 'add' ? c.diffAddBg : undefined}
-						>
-							<text fg={c.dim} width={5}>
-								{row.type === 'remove'
-									? (row.oldLine !== undefined ? String(row.oldLine).padStart(4, ' ') : '    ')
-									: (row.newLine !== undefined ? String(row.newLine).padStart(4, ' ') : '    ')
-								}
-							</text>
-							<text fg={fg} width={2}>
-								{row.type === 'remove' ? '-' : row.type === 'add' ? '+' : ' '}
-							</text>
-							<text fg={fg}>{row.content}</text>
-						</box>
-					);
-				})}
-				{overflow && !expanded && <text fg={c.dim} height={1} marginTop={1}>
-					click to expand
-				</text>}
-				{overflow && expanded && <text fg={c.dim} height={1} marginTop={1}>
-					click to collapse
-				</text>}
-			</box>
-		</box>
+		<diff
+			diff={props.text}
+			view="unified"
+			syntaxStyle={mdStyle}
+			{...(ft ? { filetype: ft } : {})}
+			showLineNumbers={true}
+			fg={c.text}
+			addedBg={c.diffAddBg}
+			removedBg={c.diffRemoveBg}
+			contextBg={c.diffContextBg}
+			addedSignColor={c.diffAddSign}
+			removedSignColor={c.diffRemoveSign}
+			lineNumberFg={c.diffLineNumber}
+			lineNumberBg={c.diffLineNumberBg}
+			addedLineNumberBg={c.diffAddLineNumberBg}
+			removedLineNumberBg={c.diffRemoveLineNumberBg}
+			wrapMode="none"
+		/>
 	);
 }
 
-function InlineTool(props: { icon: string; title: string; meta?: string; color?: string; titleColor?: string; marginTop?: number }) {
+function InlineTool(props: { icon: string; title: string; meta?: string; color?: string; titleColor?: string; marginTop?: number; status?: 'success' | 'error' }) {
+	const statusIcon = props.status === 'success' ? ' ✓' : props.status === 'error' ? ' ✗' : '';
+	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
 		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0}>
 			<text fg={props.color || c.tool}>{props.icon} </text>
 			<text fg={props.titleColor || c.dim}>{props.title}</text>
 			{props.meta ? <text fg={props.titleColor || c.dim}> {props.meta}</text> : null}
+			{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
 		</box>
 	);
 }
 
-function BlockTool(props: { title: string; titleColor?: string; borderColor?: string; children: any; marginTop?: number }) {
+function BlockTool(props: { title: string; titleColor?: string; borderColor?: string; children: any; marginTop?: number; status?: 'success' | 'error' }) {
+	const statusIcon = props.status === 'success' ? ' ✓' : props.status === 'error' ? ' ✗' : '';
+	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
 		<box
 			flexDirection="column"
@@ -144,9 +76,10 @@ function BlockTool(props: { title: string; titleColor?: string; borderColor?: st
 			customBorderChars={SB}
 			borderColor={props.borderColor || c.tool}
 		>
-			<text fg={props.titleColor || c.tool} paddingLeft={1}>
-				{props.title}
-			</text>
+			<box flexDirection="row" paddingLeft={1} gap={0}>
+				<text fg={props.titleColor || c.tool}>{props.title}</text>
+				{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
+			</box>
 			<box paddingLeft={2}>{props.children}</box>
 		</box>
 	);
@@ -325,14 +258,17 @@ export function MessageView({
 		const isReadingTool = ['read', 'glob', 'grep'].includes(tName);
 		const toolError = msg.toolError === true;
 
-		// Reading tools: only show inline indicator, never show output
+		// Reading tools: inline indicator only
 		if (isReadingTool) {
 			const displayTitle = (() => {
 				if (tName === 'read') {
 					const filePath = argsObj.path || argsObj.file_path || argsStr.split(' ')[0] || '';
+					const offset = argsObj.offset as number | undefined;
 					const limit = argsObj.limit as number | undefined;
-					const suffix = limit ? ` (${limit} lines)` : '';
-					return `Read ${filePath}${suffix}`;
+					if (offset && limit) return `Read ${filePath}:${offset}-${offset + limit - 1} (${limit} lines)`;
+					if (offset) return `Read ${filePath}:${offset}`;
+					if (limit) return `Read ${filePath} (${limit} lines)`;
+					return `Read ${filePath}`;
 				}
 				if (tName === 'glob') {
 					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
@@ -354,6 +290,7 @@ export function MessageView({
 					color={toolError ? c.error : c.readTool}
 					titleColor={toolError ? c.error : undefined}
 					marginTop={mt}
+					status={toolError ? 'error' : 'success'}
 				/>
 			);
 		}
@@ -484,6 +421,7 @@ export function MessageView({
 			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
 			const displayTitle = toolError ? (fileName ? `Write failed: ${fileName}` : 'Write failed') : fileName ? `Wrote ${fileName}` : 'Wrote';
 			const writeColor = toolError ? c.error : c.writeTool;
+			const ft = path ? filetype(path) : undefined;
 			return (
 				<box
 					flexDirection="column"
@@ -497,14 +435,21 @@ export function MessageView({
 					borderColor={writeColor}
 				>
 					<text fg={writeColor}>
-						{displayTitle}
+						{displayTitle}{toolError ? ' ✗' : ' ✓'}
 					</text>
-					<box paddingLeft={2}>
+					<box paddingLeft={1}>
 						{dirPath ? <text fg={c.dim}>{dirPath}</text> : null}
 						{toolError && output ? (
 							<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
 						) : output ? (
-							<DiffContent text={output} maxLines={MAX_DIFF_LINES} />
+							<code
+								content={output}
+								syntaxStyle={mdStyle}
+								{...(ft ? { filetype: ft } : {})}
+								streaming={!!msg.streaming}
+								conceal={true}
+								drawUnstyledText={true}
+							/>
 						) : (
 							<text fg={toolError ? c.error : c.dim}>{toolError ? 'Write failed with no output' : 'File written'}</text>
 						)}
@@ -517,7 +462,7 @@ export function MessageView({
 			const path = (argsObj as any)?.path || argsStr;
 			const fileName = path ? basename(path) : '';
 			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
-			const displayTitle = toolError ? (fileName ? `Edit failed: ${fileName}` : 'Edit failed') : fileName ? `Edit ${fileName}` : 'Edit';
+			const displayTitle = toolError ? (fileName ? `✎ Edit failed: ${fileName}` : '✎ Edit failed') : fileName ? `✎ Edit ${fileName}` : '✎ Edit';
 			const editColor = toolError ? c.error : c.editTool;
 			return (
 				<box
@@ -532,13 +477,13 @@ export function MessageView({
 					borderColor={editColor}
 				>
 					<box flexDirection="row" gap={1}>
-						<text height={1} fg={editColor}>{displayTitle}</text>
+						<text height={1} fg={editColor}>{displayTitle}{toolError ? ' ✗' : ' ✓'}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
 					</box>
 					{toolError && output ? (
 						<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
 					) : output ? (
-						<DiffContent text={output} maxLines={MAX_DIFF_LINES} />
+						<DiffContent text={output} filePath={path} />
 					) : (
 						<text fg={toolError ? c.error : c.dim} paddingLeft={1}>{toolError ? 'Edit failed with no output' : 'Edit applied'}</text>
 					)}
@@ -550,19 +495,19 @@ export function MessageView({
 			const url = argsObj.url || argsStr;
 			const displayTitle = toolError ? (url ? `Fetch failed: ${url}` : 'Fetch failed') : url ? `Fetch ${url}` : 'Fetch';
 			const fetchColor = toolError ? c.error : c.info;
-			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} marginTop={mt} />;
+			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'} />;
 			return (
-				<BlockTool title={displayTitle} titleColor={fetchColor} borderColor={fetchColor} marginTop={mt}>
+				<BlockTool title={displayTitle} titleColor={fetchColor} borderColor={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'}>
 					<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
 				</BlockTool>
 			);
 		}
 
-		if (!output) return <InlineTool icon={toolError ? '!' : '⚙'} title={toolError ? `${raw} failed` : raw} color={toolError ? c.error : c.dim} marginTop={mt} />;
+		if (!output) return <InlineTool icon={toolError ? '!' : '⚙'} title={toolError ? `${raw} failed` : raw} color={toolError ? c.error : c.dim} marginTop={mt} status={toolError ? 'error' : 'success'} />;
 		const displayTitle = toolError ? `${argsStr ? `${tName} ${argsStr}` : tName} failed` : argsStr ? `${tName} ${argsStr}` : tName;
 		const genericColor = toolError ? c.error : c.tool;
 		return (
-			<BlockTool title={displayTitle} titleColor={genericColor} borderColor={genericColor} marginTop={mt}>
+			<BlockTool title={displayTitle} titleColor={genericColor} borderColor={genericColor} marginTop={mt} status={toolError ? 'error' : 'success'}>
 				<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
 			</BlockTool>
 		);
