@@ -5,7 +5,7 @@ import type { PromptAttachment } from '../prompt-bar.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
 import { filetype } from '../utils/filetype.js';
-import { formatAttachmentBadge, getFileIcon } from '../utils/file-visuals.js';
+import { formatAttachmentBadge, getDisplayIcon, getFileIcon, getFileVisual } from '../utils/file-visuals.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -25,10 +25,17 @@ const SB = {
 function ToolTitleRow({ icon, toolName, toolColor, fileName }: {
 	icon: string; toolName: string; toolColor: string; fileName?: string;
 }) {
+	const fileVisual = fileName ? getFileVisual({ filename: fileName, mime: 'application/octet-stream' }) : undefined;
+	const fileIcon = fileName ? getDisplayIcon({ filename: fileName, mime: 'application/octet-stream' }) : undefined;
 	return (
 		<box flexDirection="row" gap={0}>
 			<text fg={toolColor}>{icon} {toolName}</text>
-			{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
+			{fileName && fileVisual && fileIcon ? (
+				<>
+					<text fg={fileVisual.color}> {fileIcon}</text>
+					<text fg={fileVisual.color}> {fileName}</text>
+				</>
+			) : null}
 		</box>
 	);
 }
@@ -65,8 +72,8 @@ function InlineTool(props: { icon: string; title: string; titleContent?: any; me
 	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
 		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0}>
-			{props.titleContent || <><text fg={props.color || c.tool}>{props.icon} </text><text fg={props.titleColor || c.dim}>{props.title}</text></>}
-			{props.meta ? <text fg={props.titleColor || c.dim}> {props.meta}</text> : null}
+			{props.titleContent || <><text fg={props.titleColor || c.tool}>{props.icon} </text><text fg={props.titleColor || c.tool}>{props.title}</text></>}
+			{props.meta ? <text fg={props.color || c.dim}> {props.meta}</text> : null}
 			{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
 		</box>
 	);
@@ -297,10 +304,11 @@ export function MessageView({
 						icon={icon}
 						title={`Read ${filePath}`}
 						titleContent={<ToolTitleRow icon={icon} toolName={'Read'} toolColor={readColor} fileName={filePath} />}
-						color={readColor}
+						color={c.text}
+						titleColor={readColor}
 						marginTop={mt}
 						status={toolError ? 'error' : 'success'}
-						meta={range ? `${filePath}:${offset || 1}-${offset ? (offset + (limit || 1) - 1) : (limit || '?')}` : undefined}
+						meta={range ? `${offset || 1}-${offset ? (offset + (limit || 1) - 1) : (limit || '?')}` : undefined}
 					/>
 				);
 			}
@@ -310,9 +318,9 @@ export function MessageView({
 				return (
 					<InlineTool
 						icon={icon}
-						title={`Glob ${pattern}${dir ? ` in ${dir}` : ''}`}
-						titleContent={<ToolTitleRow icon={icon} toolName={'Glob'} toolColor={readColor} />}
-						color={readColor}
+						title={`Glob`}
+						color={c.text}
+						titleColor={readColor}
 						marginTop={mt}
 						status={toolError ? 'error' : 'success'}
 						meta={pattern + (dir ? ` in ${dir}` : '')}
@@ -325,9 +333,9 @@ export function MessageView({
 				return (
 					<InlineTool
 						icon={icon}
-						title={`Grep ${pattern}${dir ? ` in ${dir}` : ''}`}
-						titleContent={<ToolTitleRow icon={icon} toolName={'Grep'} toolColor={readColor} />}
-						color={readColor}
+						title={`Grep`}
+						color={c.text}
+						titleColor={readColor}
 						marginTop={mt}
 						status={toolError ? 'error' : 'success'}
 						meta={pattern + (dir ? ` in ${dir}` : '')}
@@ -549,8 +557,8 @@ export function MessageView({
 					<box flexDirection="row" gap={0}>
 						<text height={1} fg={editColor}>{toolError ? 'Edit failed' : 'Edit'}</text>
 						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
-						<text fg={editColor}>{toolError ? ' ✗' : ' ✓'}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
+						<text fg={editColor}>{toolError ? ' ✗' : ' ✓'}</text>
 					</box>
 					{toolError && output ? (
 						<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
