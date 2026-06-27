@@ -65,8 +65,7 @@ function InlineTool(props: { icon: string; title: string; titleContent?: any; me
 	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
 		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0}>
-			<text fg={props.color || c.tool}>{props.icon} </text>
-			{props.titleContent || <text fg={props.titleColor || c.dim}>{props.title}</text>}
+			{props.titleContent || <><text fg={props.color || c.tool}>{props.icon} </text><text fg={props.titleColor || c.dim}>{props.title}</text></>}
 			{props.meta ? <text fg={props.titleColor || c.dim}> {props.meta}</text> : null}
 			{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
 		</box>
