@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
-import type { Message, AssistantMessage } from '@mohanscodex/spectra-ai';
+import type { Message, AssistantMessage, FileContent, TextContent } from '@mohanscodex/spectra-ai';
+import type { PromptSubmitPayload } from '../prompt-bar.js';
 import { calculateCost } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
 import type { SessionManager } from '../../services/session-manager.js';
@@ -102,7 +103,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const toolArgsMap = useRef(new Map<string, unknown>());
 	const streamingIdRef = useRef<string | null>(null);
 	const streamingSessionsRef = useRef(new Set<string>());
-	const queuedMessageRef = useRef<string | null>(null);
+	const queuedMessageRef = useRef<PromptSubmitPayload | null>(null);
 	const preEditSnapshotRef = useRef<string | undefined>(undefined);
 	const titleGeneratedRef = useRef(false);
 	const firstUserMessageRef = useRef<string | null>(null);
@@ -187,32 +188,34 @@ Return ONLY the title text, nothing else.`;
 			// Title generation failed silently
 		}
 	}
-
 	const handleSubmit = useCallback(
-		async (text: string) => {
-			const trimmed = text.trim();
-			if (!trimmed) return;
+		async (payload: PromptSubmitPayload) => {
+			const { text: trimmed, attachments } = payload;
+			if (!trimmed && attachments.length === 0) return;
 
 			// Only block if THIS session is streaming
 			const currentSessionId = sessionId.current || '';
 			if (streamingSessionsRef.current.has(currentSessionId)) {
-				queuedMessageRef.current = trimmed;
+				queuedMessageRef.current = { text: trimmed, attachments };
 				return;
 			}
 
-			const parsed = parseSlashCommand(trimmed, slashNames);
-			if (parsed.type === 'command') {
-				const cmd = cmdItems.find((item) => {
-					if (item.slashName === parsed.command.name) return true;
-					if (item.slashAliases?.includes(parsed.command.name)) return true;
-					return false;
-				});
-				if (cmd) {
-					cmd.action();
-					setDraftText('');
-					setSlashSelected(0);
-					setSubmitKey((k) => k + 1);
-					return;
+			// Slash commands only work when there are no attachments
+			if (attachments.length === 0) {
+				const parsed = parseSlashCommand(trimmed, slashNames);
+				if (parsed.type === 'command') {
+					const cmd = cmdItems.find((item) => {
+						if (item.slashName === parsed.command.name) return true;
+						if (item.slashAliases?.includes(parsed.command.name)) return true;
+						return false;
+					});
+					if (cmd) {
+						cmd.action();
+						setDraftText('');
+						setSlashSelected(0);
+						setSubmitKey((k) => k + 1);
+						return;
+					}
 				}
 			}
 
@@ -220,6 +223,7 @@ Return ONLY the title text, nothing else.`;
 				showToast('Connect a provider to send prompts', 'warn');
 				return;
 			}
+
 
 			if (revertPoint !== null) {
 				discardRevert();
@@ -233,7 +237,7 @@ Return ONLY the title text, nothing else.`;
 			shownToolCalls.current.clear();
 			toolMsgMap.current.clear();
 			toolArgsMap.current.clear();
-			promptHistoryService.current.append(trimmed);
+			if (trimmed) promptHistoryService.current.append(trimmed);
 
 			// Create session FIRST so switchSession sets activeIdRef before any messages
 			if (!sessionId.current) {
@@ -256,9 +260,25 @@ Return ONLY the title text, nothing else.`;
 			// Capture the session ID for this run — all events target THIS session
 			const runSessionId = sessionId.current!;
 
+			// Build message content: text + file attachments
+			const userContent: Message['content'] = attachments.length > 0
+				? [
+					...(trimmed ? [{ type: 'text' as const, text: trimmed } satisfies TextContent] : []),
+					...attachments.map((att): FileContent => ({
+						type: 'file' as const,
+						mime: att.mime,
+						filename: att.filename,
+						url: att.url,
+						source: att.source,
+						metadata: att.metadata,
+					})),
+				]
+				: trimmed;
+
 			const uid = genId();
-			const userMsg: Message = { role: 'user', content: trimmed, timestamp: Date.now() };
-			sessionState.addMessageTo(runSessionId, { id: uid, role: 'user', content: trimmed, model: selectedModel });
+			const userMsg: Message = { role: 'user', content: userContent, timestamp: Date.now() };
+			const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
+			sessionState.addMessageTo(runSessionId, { id: uid, role: 'user', content: displayContent, attachments, model: selectedModel });
 			sessionState.setLoadingIn(runSessionId, true);
 			sessionState.setStatusIn(runSessionId, 'Streaming...');
 			setRoute('chat');
@@ -270,9 +290,10 @@ Return ONLY the title text, nothing else.`;
 
 			const sess = sessionStore.current.get(runSessionId);
 			if (sess && sess.messages.length === 1) {
-				sess.title = trimmed.length > 60 ? trimmed.slice(0, 57) + '...' : trimmed;
+				const titleText = displayContent.length > 60 ? displayContent.slice(0, 57) + '...' : displayContent;
+				sess.title = titleText;
 				sessionStore.current.save(sess);
-				firstUserMessageRef.current = trimmed;
+				firstUserMessageRef.current = displayContent;
 			}
 
 			const start = performance.now();
@@ -289,18 +310,18 @@ Return ONLY the title text, nothing else.`;
 					thinkingEffort,
 				);
 
-				let promptInput = trimmed;
+				let promptInputText = trimmed;
 				const prevAgent = lastAgentRef.current;
 				if (prevAgent && prevAgent !== selectedAgent) {
 					const def = AGENT_DEFINITIONS[selectedAgent];
 					const prevDef = AGENT_DEFINITIONS[prevAgent];
 					if (prevDef?.mode === 'primary' && def?.mode === 'primary') {
 						if (prevAgent === 'plan' && selectedAgent !== 'plan') {
-							promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode. The previous agent was in plan mode — a plan may have been created. Execute on it if one exists.\n</system-reminder>\n\n${trimmed}`;
+							promptInputText = `<system-reminder>\nYou are now in ${selectedAgent} mode. The previous agent was in plan mode — a plan may have been created. Execute on it if one exists.\n</system-reminder>\n\n${trimmed}`;
 						} else if (selectedAgent === 'plan') {
-							promptInput = `<system-reminder>\nPlan mode active. You are in read-only analysis mode — do NOT make edits, do NOT run destructive commands. Use read, glob, grep, and web_fetch only. When done, call plan_exit so the user can switch to build mode.\n</system-reminder>\n\n${trimmed}`;
+							promptInputText = `<system-reminder>\nPlan mode active. You are in read-only analysis mode — do NOT make edits, do NOT run destructive commands. Use read, glob, grep, and web_fetch only. When done, call plan_exit so the user can switch to build mode.\n</system-reminder>\n\n${trimmed}`;
 						} else {
-							promptInput = `<system-reminder>\nYou are now in ${selectedAgent} mode (was ${prevAgent}). Your available tools and behavior have changed to match this mode.\n</system-reminder>\n\n${trimmed}`;
+							promptInputText = `<system-reminder>\nYou are now in ${selectedAgent} mode (was ${prevAgent}). Your available tools and behavior have changed to match this mode.\n</system-reminder>\n\n${trimmed}`;
 						}
 					}
 				}
@@ -312,7 +333,7 @@ Return ONLY the title text, nothing else.`;
 					console.error('Snapshot track failed:', err);
 				}
 
-				for await (const ev of agent.run(promptInput)) {
+				for await (const ev of agent.run(attachments.length > 0 ? { ...userMsg, content: userContent } : promptInputText)) {
 					if (ev.type === 'message_start' && ev.message.role === 'assistant') {
 						const newId = genId();
 						currentAssistantId = newId;
@@ -627,4 +648,5 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 		persistMessage,
 		updateLastAssistantMeta,
 	};
+
 }

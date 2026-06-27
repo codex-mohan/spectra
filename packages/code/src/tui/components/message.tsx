@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { c, mdStyle, mdStyleMuted } from '../theme.js';
 import type { ChatMessage, ContentBlock } from '../types.js';
+import type { PromptAttachment } from '../prompt-bar.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
 import { filetype } from '../utils/filetype.js';
+import { formatAttachmentBadge } from '../utils/file-visuals.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -134,6 +136,16 @@ export function MessageView({
 				<text fg={c.text} attributes={1} maxHeight={10}>
 					{msg.content}
 				</text>
+				{msg.attachments && msg.attachments.length > 0 && (
+					<box flexDirection="row" flexWrap="wrap" gap={1} marginTop={0}>
+						{msg.attachments.map((att: PromptAttachment, i: number) => (
+							<box key={`${att.filename}-${i}`} flexDirection="row" gap={0}>
+								<text fg={att.badge.color} attributes={1}>{formatAttachmentBadge(att, { includeFilename: false })}</text>
+								<text fg={c.dim}> {att.filename}</text>
+							</box>
+						))}
+					</box>
+				)}
 				{isRevertPoint && (
 					<box flexDirection="row" marginTop={1} gap={1}>
 						<text fg={c.warn} height={1}>

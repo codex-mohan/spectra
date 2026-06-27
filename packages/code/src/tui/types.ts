@@ -1,3 +1,5 @@
+import type { PromptAttachment } from './prompt-bar.js';
+
 export type ContentBlock =
 	| { type: 'text'; content: string }
 	| { type: 'thinking'; content: string }
@@ -17,6 +19,8 @@ export interface ChatMessage {
 	meta?: string;
 	streaming?: boolean;
 	model?: string;
+	/** Attachments for user messages */
+	attachments?: PromptAttachment[];
 	/** Turn status — set when the assistant turn completes/interrupts/errors */
 	turnStatus?: 'completed' | 'interrupted' | 'error';
 	/** Turn duration in milliseconds */
