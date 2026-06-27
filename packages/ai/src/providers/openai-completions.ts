@@ -6,6 +6,7 @@ import type {
 import type {
 	AssistantMessage,
 	Context,
+	FileContent,
 	Model,
 	StreamOptions,
 	TextContent,
@@ -28,6 +29,26 @@ function getEnvApiKey(provider: string): string | undefined {
 	return keys[provider];
 }
 
+function extractBase64FromDataUrl(url: string): string {
+	const comma = url.indexOf(',');
+	return comma >= 0 ? url.slice(comma + 1) : '';
+}
+
+function fileAttachmentHeader(file: FileContent): string {
+	const lines = [
+		`[Attachment: ${file.filename}]`,
+		`Path: ${file.source?.path ?? '(clipboard or unknown path)'}`,
+		`MIME: ${file.mime}`,
+	];
+	if (file.metadata?.sizeBytes != null) lines.push(`Size: ${file.metadata.sizeBytes} bytes`);
+	if (file.source?.text) lines.push(`Text range: ${file.source.text.start}-${file.source.text.end}`);
+	return lines.join('\n');
+}
+
+function isTextFile(file: FileContent): boolean {
+	return file.mime.startsWith('text/') || file.mime === 'application/json' || file.mime === 'application/xml';
+}
+
 export interface OpenAICompletionsOptions extends StreamOptions {
 	toolChoice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string } };
 	reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
@@ -36,6 +57,12 @@ export interface OpenAICompletionsOptions extends StreamOptions {
 export function createOpenAICompletionsProvider() {
 	return {
 		name: 'openai-completions',
+		supportedMediaTypes: [
+			'image/png', 'image/jpeg', 'image/gif', 'image/webp',
+			'text/plain', 'text/markdown', 'text/csv', 'text/html', 'text/css',
+			'text/javascript', 'text/typescript',
+			'application/json', 'application/xml',
+		],
 		listModels: () => import('../models.js').then((m) => m.getProviderModels('openai')),
 		stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
 			const stream = new AssistantMessageEventStream();
@@ -345,14 +372,35 @@ function convertMessages(model: Model, context: Context): ChatCompletionMessageP
 			if (typeof msg.content === 'string') {
 				params.push({ role: 'user', content: sanitizeSurrogates(msg.content) });
 			} else {
-				const content = msg.content.map((item) => {
+				const content = msg.content.flatMap((item) => {
 					if (item.type === 'text') {
-						return { type: 'text' as const, text: sanitizeSurrogates(item.text) };
+						return [{ type: 'text' as const, text: sanitizeSurrogates(item.text) }];
 					}
-					return {
-						type: 'image_url' as const,
-						image_url: { url: `data:${item.mimeType};base64,${item.data}` },
-					};
+					if (item.type === 'image') {
+						return [{
+							type: 'image_url' as const,
+							image_url: { url: `data:${item.mimeType};base64,${item.data}` },
+						}];
+					}
+					if (item.type === 'file') {
+						const file = item as FileContent;
+						const header = fileAttachmentHeader(file);
+						if (file.mime.startsWith('image/')) {
+							return [
+								{ type: 'text' as const, text: sanitizeSurrogates(header) },
+								{
+									type: 'image_url' as const,
+									image_url: { url: file.url },
+								},
+							];
+						}
+						if (isTextFile(file)) {
+							const text = Buffer.from(extractBase64FromDataUrl(file.url), 'base64').toString('utf-8');
+							return [{ type: 'text' as const, text: sanitizeSurrogates(`${header}\n\n${text}`) }];
+						}
+						return [{ type: 'text' as const, text: sanitizeSurrogates(`${header}\n\nThis file type is not parsed by the provider serializer. If local file tools are available, inspect the path above directly.`) }];
+					}
+					return [{ type: 'text' as const, text: '' }];
 				});
 				params.push({ role: 'user', content });
 			}

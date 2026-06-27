@@ -15,6 +15,7 @@ import type {
 import type {
 	AssistantMessage,
 	Context,
+	FileContent,
 	Model,
 	StreamOptions,
 	TextContent,
@@ -33,6 +34,26 @@ function getEnvApiKey(provider: string): string | undefined {
 	return keys[provider];
 }
 
+function extractBase64FromDataUrl(url: string): string {
+	const comma = url.indexOf(',');
+	return comma >= 0 ? url.slice(comma + 1) : '';
+}
+
+function fileAttachmentHeader(file: FileContent): string {
+	const lines = [
+		`[Attachment: ${file.filename}]`,
+		`Path: ${file.source?.path ?? '(clipboard or unknown path)'}`,
+		`MIME: ${file.mime}`,
+	];
+	if (file.metadata?.sizeBytes != null) lines.push(`Size: ${file.metadata.sizeBytes} bytes`);
+	if (file.source?.text) lines.push(`Text range: ${file.source.text.start}-${file.source.text.end}`);
+	return lines.join('\n');
+}
+
+function isTextFile(file: FileContent): boolean {
+	return file.mime.startsWith('text/') || file.mime === 'application/json' || file.mime === 'application/xml';
+}
+
 export interface OpenAIResponsesOptions extends StreamOptions {
 	reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
 	reasoningSummary?: 'auto' | 'detailed' | 'concise' | null;
@@ -41,6 +62,12 @@ export interface OpenAIResponsesOptions extends StreamOptions {
 export function createOpenAIResponsesProvider() {
 	return {
 		name: 'openai-responses',
+		supportedMediaTypes: [
+			'image/png', 'image/jpeg', 'image/gif', 'image/webp',
+			'text/plain', 'text/markdown', 'text/csv', 'text/html', 'text/css',
+			'text/javascript', 'text/typescript',
+			'application/json', 'application/xml',
+		],
 		listModels: () => import('../models.js').then((m) => m.getProviderModels('openai')),
 		stream(model: Model, context: Context, options?: OpenAIResponsesOptions): AssistantMessageEventStream {
 			const stream = new AssistantMessageEventStream();
@@ -317,14 +344,35 @@ function convertResponsesMessages(model: Model, context: Context): unknown[] {
 					content: [{ type: 'input_text', text: sanitizeSurrogates(msg.content) }],
 				});
 			} else {
-				const content = msg.content.map((item) => {
+				const content = msg.content.flatMap((item) => {
 					if (item.type === 'text') {
-						return { type: 'input_text', text: sanitizeSurrogates(item.text) };
+						return [{ type: 'input_text' as const, text: sanitizeSurrogates(item.text) }];
 					}
-					return {
-						type: 'input_image',
-						image_url: `data:${item.mimeType};base64,${item.data}`,
-					};
+					if (item.type === 'image') {
+						return [{
+							type: 'input_image' as const,
+							image_url: `data:${item.mimeType};base64,${item.data}`,
+						}];
+					}
+					if (item.type === 'file') {
+						const file = item as FileContent;
+						const header = fileAttachmentHeader(file);
+						if (file.mime.startsWith('image/')) {
+							return [
+								{ type: 'input_text' as const, text: sanitizeSurrogates(header) },
+								{
+									type: 'input_image' as const,
+									image_url: file.url,
+								},
+							];
+						}
+						if (isTextFile(file)) {
+							const text = Buffer.from(extractBase64FromDataUrl(file.url), 'base64').toString('utf-8');
+							return [{ type: 'input_text' as const, text: sanitizeSurrogates(`${header}\n\n${text}`) }];
+						}
+						return [{ type: 'input_text' as const, text: sanitizeSurrogates(`${header}\n\nThis file type is not parsed by the provider serializer. If local file tools are available, inspect the path above directly.`) }];
+					}
+					return [{ type: 'input_text' as const, text: '' }];
 				});
 				messages.push({ role: 'user', content });
 			}

@@ -10,6 +10,7 @@ import type {
 import type {
 	AssistantMessage,
 	Context,
+	FileContent,
 	Message,
 	Model,
 	StreamOptions,
@@ -21,7 +22,7 @@ import type {
 import { AssistantMessageEventStream } from '../event-stream.js';
 import { sanitizeSurrogates } from './shared.js';
 
-type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam;
+type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam | { type: 'document'; source: { type: 'base64'; media_type: 'application/pdf'; data: string } };
 type StreamBlock = (ThinkingContent | TextContent | ToolCall) & { index?: number; partialJson?: string };
 
 const THINKING_BUDGETS: Record<string, number> = {
@@ -38,28 +39,90 @@ function getEnvApiKey(provider: string): string | undefined {
 	return keys[provider];
 }
 
+/** Extract base64 data from a data:mime;base64,... URL. Falls back to empty string. */
+function extractBase64FromDataUrl(url: string): string {
+	const comma = url.indexOf(',');
+	return comma >= 0 ? url.slice(comma + 1) : '';
+}
+
+/** Decode base64 to UTF-8 text. */
+function base64ToUtf8(b64: string): string {
+	return Buffer.from(b64, 'base64').toString('utf-8');
+}
+
+function fileAttachmentHeader(file: FileContent): string {
+	const lines = [
+		`[Attachment: ${file.filename}]`,
+		`Path: ${file.source?.path ?? '(clipboard or unknown path)'}`,
+		`MIME: ${file.mime}`,
+	];
+	if (file.metadata?.sizeBytes != null) lines.push(`Size: ${file.metadata.sizeBytes} bytes`);
+	if (file.source?.text) lines.push(`Text range: ${file.source.text.start}-${file.source.text.end}`);
+	return lines.join('\n');
+}
+
+function isTextFile(file: FileContent): boolean {
+	return file.mime.startsWith('text/') || file.mime === 'application/json' || file.mime === 'application/xml';
+}
+
 function toAnthropicMessage(message: Message): MessageParam {
 	if (message.role === 'user') {
 		const content =
 			typeof message.content === 'string'
 				? sanitizeSurrogates(message.content)
-				: message.content.map((block) => {
+				: message.content.flatMap((block): ContentBlockParam[] => {
 						if (block.type === 'text') {
-							return { type: 'text' as const, text: sanitizeSurrogates(block.text) };
+							return [{ type: 'text' as const, text: sanitizeSurrogates(block.text) }];
 						}
 						if (block.type === 'image') {
-							return {
+							return [{
 								type: 'image' as const,
 								source: {
 									type: 'base64' as const,
 									media_type: block.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
 									data: block.data,
 								},
-							};
+							}];
 						}
-						return { type: 'text' as const, text: '' };
+						if (block.type === 'file') {
+							const file = block as FileContent;
+							const base64Data = extractBase64FromDataUrl(file.url);
+							const header = fileAttachmentHeader(file);
+							if (file.mime.startsWith('image/')) {
+								return [
+									{ type: 'text' as const, text: sanitizeSurrogates(header) },
+									{
+										type: 'image' as const,
+										source: {
+											type: 'base64' as const,
+											media_type: file.mime as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+											data: base64Data,
+										},
+									},
+								];
+							}
+							if (file.mime === 'application/pdf') {
+								return [
+									{ type: 'text' as const, text: sanitizeSurrogates(header) },
+									{
+										type: 'document' as const,
+										source: {
+											type: 'base64' as const,
+											media_type: 'application/pdf' as const,
+											data: base64Data,
+										},
+									},
+								];
+							}
+							if (isTextFile(file)) {
+								const text = base64ToUtf8(base64Data);
+								return [{ type: 'text' as const, text: sanitizeSurrogates(`${header}\n\n${text}`) }];
+							}
+							return [{ type: 'text' as const, text: sanitizeSurrogates(`${header}\n\nThis file type is not parsed by the provider serializer. If local file tools are available, inspect the path above directly.`) }];
+						}
+						return [{ type: 'text' as const, text: '' }];
 					});
-		return { role: 'user', content };
+		return { role: 'user', content: content as unknown as MessageParam['content'] };
 	}
 
 	if (message.role === 'assistant') {
@@ -93,7 +156,7 @@ function toAnthropicMessage(message: Message): MessageParam {
 			}
 			return { type: 'text' as const, text: '' };
 		});
-		return { role: 'assistant', content };
+		return { role: 'assistant', content: content as unknown as MessageParam['content'] };
 	}
 
 	if (message.role === 'toolResult') {
@@ -123,7 +186,7 @@ function toAnthropicMessage(message: Message): MessageParam {
 			}
 			return { type: 'tool_result' as const, tool_use_id: message.toolCallId, content: '' };
 		});
-		return { role: 'user', content };
+		return { role: 'user', content: content as unknown as MessageParam['content'] };
 	}
 
 	return { role: 'user', content: '' };
@@ -196,6 +259,13 @@ function mapStopReason(reason: string): 'stop' | 'length' | 'toolUse' | 'error' 
 export function createAnthropicProvider() {
 	return {
 		name: 'anthropic',
+		supportedMediaTypes: [
+			'image/png', 'image/jpeg', 'image/gif', 'image/webp',
+			'application/pdf',
+			'text/plain', 'text/markdown', 'text/csv', 'text/html', 'text/css',
+			'text/javascript', 'text/typescript',
+			'application/json', 'application/xml',
+		],
 		listModels: () => import('../models.js').then((m) => m.getProviderModels('anthropic')),
 		stream(model: Model, context: Context, options?: StreamOptions): AssistantMessageEventStream {
 			const stream = new AssistantMessageEventStream();
