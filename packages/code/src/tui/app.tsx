@@ -5,7 +5,8 @@ import { execFileSync } from 'child_process';
 import { c, SPINNER } from './theme.js';
 import { ChatArea } from './components/chat-area.js';
 import { CommandPalette } from './components/command-palette.js';
-import { PromptBar } from './prompt-bar.js';
+import { PromptBar, type PromptBarRef } from './prompt-bar.js';
+import { FileAutocomplete } from './components/file-autocomplete.js';
 import { Tips } from './tips.js';
 import { titlecase } from './utils.js';
 import type { ChatMessage } from './types.js';
@@ -174,10 +175,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	}, [sessionState.activeState.costSoFar, selectedModel]);
 
 	// --- Refs ---
-	const promptTextareaRef = useRef<any>(null);
+	const promptTextareaRef = useRef<unknown>(null);
+	const promptBarRef = useRef<PromptBarRef | null>(null);
 	const sessionStore = useRef(new SessionStore());
 	const sessionId = useRef<string | null>(null);
-	const dialogKeyHandler = useRef<((key: any) => void) | null>(null);
+	const dialogKeyHandler = useRef<((key: unknown) => void) | null>(null);
 	const isStreamingRef = useRef(false);
 	const currentTurnStartRef = useRef<number | null>(null);
 	const currentTurnMsgIdRef = useRef<string | null>(null);
@@ -560,6 +562,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	}, [cmdItems, draftText]);
 
 	const slashActive = useMemo(() => slashHead(draftText) !== undefined, [draftText]);
+	const fileAtActive = useMemo(() => /(^|\s)@([^\s]*)$/.test(draftText), [draftText]);
 	useEffect(() => {
 		setSlashSelected(0);
 	}, [draftText]);
@@ -597,6 +600,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		slashActive,
 		slashFiltered,
 		slashSelected,
+		fileAtActive,
 		promptHistoryService,
 		interruptKey,
 		selectedAgent,
@@ -652,6 +656,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								promptTextareaRef.current = r;
 							}}
 							onPositionChange={setPromptPosition}
+							onGetPromptBar={(r) => { promptBarRef.current = r; }}
 						/>
 						<box height={1} />
 						<box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
@@ -753,6 +758,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								<text fg={c.subtext}> to return</text>
 							</box>
 						) : (
+							<>
 							<PromptBar
 								isLoading={isLoading}
 								spinnerFrame={spinnerFrame}
@@ -774,7 +780,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 									promptTextareaRef.current = r;
 								}}
 								onPositionChange={setPromptPosition}
+								onGetPromptBar={(r) => { promptBarRef.current = r; }}
 							/>
+							</>
 						)}
 						<box height={1} />
 						<box
@@ -857,6 +865,18 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					promptTop={promptPosition.top}
 					promptLeft={promptPosition.left}
 					promptWidth={promptPosition.width}
+				/>
+			)}
+			{fileAtActive && (
+				<FileAutocomplete
+					draftText={draftText}
+					promptTop={promptPosition.top}
+					promptLeft={promptPosition.left}
+					promptWidth={promptPosition.width}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					route={route}
+					promptBarRef={promptBarRef}
 				/>
 			)}
 			{dialogStep?.type === 'provider' && (

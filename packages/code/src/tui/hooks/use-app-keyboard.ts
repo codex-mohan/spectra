@@ -35,6 +35,7 @@ interface UseAppKeyboardDeps {
 	slashActive: boolean;
 	slashFiltered: CmdItem[];
 	slashSelected: number;
+	fileAtActive: boolean;
 
 	interruptKey: number;
 	selectedAgent: string;
@@ -87,6 +88,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		slashActive,
 		slashFiltered,
 		slashSelected,
+		fileAtActive,
 		interruptKey,
 		selectedAgent,
 		thinkingEffort,
@@ -190,6 +192,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			return;
 		}
 		if (key.name === 'escape') {
+			if (fileAtActive) return;
 			if (isStreamingRef.current) {
 				const now = performance.now();
 				const isInterruptArmed =
@@ -233,7 +236,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			return;
 		}
 		if (key.name === 'up' || key.name === 'down') {
-			if (slashActive) return;
+			if (slashActive || fileAtActive) return;
 			const textarea = promptTextareaRef.current;
 			if (!textarea) return;
 			const text: string = textarea.plainText ?? '';
@@ -256,6 +259,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			return;
 		}
 		if (key.name === 'tab') {
+			if (fileAtActive) return;
 			setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]);
 			securityRef.current?.getReadTracker().reset();
 			securityRef.current?.getDoomLoop().reset();
