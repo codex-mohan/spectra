@@ -5,7 +5,7 @@ import type { PromptAttachment } from '../prompt-bar.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
 import { filetype } from '../utils/filetype.js';
-import { formatAttachmentBadge } from '../utils/file-visuals.js';
+import { formatAttachmentBadge, getFileIcon } from '../utils/file-visuals.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -21,6 +21,17 @@ const SB = {
 	leftT: '',
 	rightT: '',
 };
+
+function ToolTitleRow({ icon, toolName, toolColor, fileName }: {
+	icon: string; toolName: string; toolColor: string; fileName?: string;
+}) {
+	return (
+		<box flexDirection="row" gap={0}>
+			<text fg={toolColor}>{icon} {toolName}</text>
+			{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
+		</box>
+	);
+}
 
 const MAX_SHELL_LINES = 10;
 const MAX_GENERIC_LINES = 3;
@@ -49,20 +60,20 @@ function DiffContent(props: { text: string; filePath?: string }) {
 	);
 }
 
-function InlineTool(props: { icon: string; title: string; meta?: string; color?: string; titleColor?: string; marginTop?: number; status?: 'success' | 'error' }) {
+function InlineTool(props: { icon: string; title: string; titleContent?: any; meta?: string; color?: string; titleColor?: string; marginTop?: number; status?: 'success' | 'error' }) {
 	const statusIcon = props.status === 'success' ? ' ✓' : props.status === 'error' ? ' ✗' : '';
 	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
 		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0}>
 			<text fg={props.color || c.tool}>{props.icon} </text>
-			<text fg={props.titleColor || c.dim}>{props.title}</text>
+			{props.titleContent || <text fg={props.titleColor || c.dim}>{props.title}</text>}
 			{props.meta ? <text fg={props.titleColor || c.dim}> {props.meta}</text> : null}
 			{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
 		</box>
 	);
 }
 
-function BlockTool(props: { title: string; titleColor?: string; borderColor?: string; children: any; marginTop?: number; status?: 'success' | 'error' }) {
+function BlockTool(props: { title: string; titleContent?: any; titleColor?: string; borderColor?: string; children: any; marginTop?: number; status?: 'success' | 'error' }) {
 	const statusIcon = props.status === 'success' ? ' ✓' : props.status === 'error' ? ' ✗' : '';
 	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
@@ -79,7 +90,7 @@ function BlockTool(props: { title: string; titleColor?: string; borderColor?: st
 			borderColor={props.borderColor || c.tool}
 		>
 			<box flexDirection="row" paddingLeft={1} gap={0}>
-				<text fg={props.titleColor || c.tool}>{props.title}</text>
+				{props.titleContent || <text fg={props.titleColor || c.tool}>{props.title}</text>}
 				{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
 			</box>
 			<box paddingLeft={2}>{props.children}</box>
@@ -272,35 +283,65 @@ export function MessageView({
 
 		// Reading tools: inline indicator only
 		if (isReadingTool) {
-			const displayTitle = (() => {
-				if (tName === 'read') {
-					const filePath = argsObj.path || argsObj.file_path || argsStr.split(' ')[0] || '';
-					const offset = argsObj.offset as number | undefined;
-					const limit = argsObj.limit as number | undefined;
-					if (offset && limit) return `Read ${filePath}:${offset}-${offset + limit - 1} (${limit} lines)`;
-					if (offset) return `Read ${filePath}:${offset}`;
-					if (limit) return `Read ${filePath} (${limit} lines)`;
-					return `Read ${filePath}`;
-				}
-				if (tName === 'glob') {
-					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
-					const dir = argsObj.path || argsObj.dir || '';
-					return `Glob ${pattern}${dir ? ` in ${dir}` : ''}`;
-				}
-				if (tName === 'grep') {
-					const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
-					const dir = argsObj.path || argsObj.dir || '';
-					return `Grep ${pattern}${dir ? ` in ${dir}` : ''}`;
-				}
-				return argsStr ? `${tName} ${argsStr}` : tName;
-			})();
+			const readColor = toolError ? c.error : c.readTool;
 			const icon = tName === 'read' ? '→' : tName === 'glob' ? '◎' : '⊕';
+			if (tName === 'read') {
+				const filePath = String(argsObj.path || argsObj.file_path || argsStr.split(' ')[0] || '');
+				const offset = argsObj.offset as number | undefined;
+				const limit = argsObj.limit as number | undefined;
+				let range: string | undefined;
+				if (offset && limit) range = `${filePath}:${offset}-${offset + limit - 1} (${limit} lines)`;
+				else if (offset) range = `${filePath}:${offset}`;
+				else if (limit) range = `${filePath} (${limit} lines)`;
+				return (
+					<InlineTool
+						icon={icon}
+						title={`Read ${filePath}`}
+						titleContent={<ToolTitleRow icon={icon} toolName={'Read'} toolColor={readColor} fileName={filePath} />}
+						color={readColor}
+						marginTop={mt}
+						status={toolError ? 'error' : 'success'}
+						meta={range ? `${filePath}:${offset || 1}-${offset ? (offset + (limit || 1) - 1) : (limit || '?')}` : undefined}
+					/>
+				);
+			}
+			if (tName === 'glob') {
+				const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
+				const dir = argsObj.path || argsObj.dir || '';
+				return (
+					<InlineTool
+						icon={icon}
+						title={`Glob ${pattern}${dir ? ` in ${dir}` : ''}`}
+						titleContent={<ToolTitleRow icon={icon} toolName={'Glob'} toolColor={readColor} />}
+						color={readColor}
+						marginTop={mt}
+						status={toolError ? 'error' : 'success'}
+						meta={pattern + (dir ? ` in ${dir}` : '')}
+					/>
+				);
+			}
+			if (tName === 'grep') {
+				const pattern = argsObj.pattern || argsStr.split(' ')[0] || '';
+				const dir = argsObj.path || argsObj.dir || '';
+				return (
+					<InlineTool
+						icon={icon}
+						title={`Grep ${pattern}${dir ? ` in ${dir}` : ''}`}
+						titleContent={<ToolTitleRow icon={icon} toolName={'Grep'} toolColor={readColor} />}
+						color={readColor}
+						marginTop={mt}
+						status={toolError ? 'error' : 'success'}
+						meta={pattern + (dir ? ` in ${dir}` : '')}
+					/>
+				);
+			}
+			const displayTitle = argsStr ? `${tName} ${argsStr}` : tName;
 			return (
 				<InlineTool
 					icon={icon}
 					title={displayTitle}
-					color={toolError ? c.error : c.readTool}
-					titleColor={toolError ? c.error : c.readTool}
+					color={readColor}
+					titleColor={readColor}
 					marginTop={mt}
 					status={toolError ? 'error' : 'success'}
 				/>
@@ -462,9 +503,11 @@ export function MessageView({
 					customBorderChars={SB}
 					borderColor={writeColor}
 				>
-					<text fg={writeColor}>
-						{displayTitle}{toolError ? ' ✗' : ' ✓'}
-					</text>
+					<box flexDirection="row" gap={0}>
+						<text fg={writeColor}>{toolError ? 'Write failed' : 'Write'}</text>
+						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
+						<text fg={writeColor}>{toolError ? ' ✗' : ' ✓'}</text>
+					</box>
 					<box paddingLeft={1}>
 						{dirPath ? <text fg={c.dim}>{dirPath}</text> : null}
 						{toolError && output ? (
@@ -504,8 +547,10 @@ export function MessageView({
 					customBorderChars={SB}
 					borderColor={editColor}
 				>
-					<box flexDirection="row" gap={1}>
-						<text height={1} fg={editColor}>{displayTitle}{toolError ? ' ✗' : ' ✓'}</text>
+					<box flexDirection="row" gap={0}>
+						<text height={1} fg={editColor}>{toolError ? 'Edit failed' : 'Edit'}</text>
+						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
+						<text fg={editColor}>{toolError ? ' ✗' : ' ✓'}</text>
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
 					</box>
 					{toolError && output ? (
@@ -531,11 +576,39 @@ export function MessageView({
 			);
 		}
 
-		if (!output) return <InlineTool icon={toolError ? '!' : '⚙'} title={toolError ? `${raw} failed` : raw} color={toolError ? c.error : c.tool} titleColor={toolError ? c.error : c.tool} marginTop={mt} status={toolError ? 'error' : 'success'} />;
-		const displayTitle = toolError ? `${argsStr ? `${tName} ${argsStr}` : tName} failed` : argsStr ? `${tName} ${argsStr}` : tName;
 		const genericColor = toolError ? c.error : c.tool;
+		if (!output) return (
+			<InlineTool
+				icon={toolError ? '!' : '⚙'}
+				title={toolError ? `${raw} failed` : raw}
+				titleContent={
+					<box flexDirection="row" gap={0}>
+						<text fg={genericColor}>⚙ {tName}</text>
+						{argsStr ? <text fg={c.text}> {argsStr}</text> : null}
+						{toolError ? <text fg={c.error}> failed</text> : null}
+					</box>
+				}
+				color={genericColor}
+				marginTop={mt}
+				status={toolError ? 'error' : 'success'}
+			/>
+		);
+		const displayTitle = toolError ? `${argsStr ? `${tName} ${argsStr}` : tName} failed` : argsStr ? `${tName} ${argsStr}` : tName;
 		return (
-			<BlockTool title={displayTitle} titleColor={genericColor} borderColor={genericColor} marginTop={mt} status={toolError ? 'error' : 'success'}>
+			<BlockTool
+				title={displayTitle}
+				titleContent={
+					<box flexDirection="row" gap={0}>
+						<text fg={genericColor}>⚙ {tName}</text>
+						{argsStr ? <text fg={c.text}> {argsStr}</text> : null}
+						{toolError ? <text fg={c.error}> failed</text> : null}
+					</box>
+				}
+				titleColor={genericColor}
+				borderColor={genericColor}
+				marginTop={mt}
+				status={toolError ? 'error' : 'success'}
+			>
 				<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
 			</BlockTool>
 		);

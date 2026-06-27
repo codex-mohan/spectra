@@ -1,5 +1,6 @@
 import { c } from '../theme.js';
-export { EXTENSION_TO_MIME, MEDIA_SIZE_LIMITS, getSizeLimit, isSupportedMime } from './file-data.js';
+import { EXTENSION_TO_MIME } from './file-data.js';
+export { MEDIA_SIZE_LIMITS, getSizeLimit, isSupportedMime } from './file-data.js';
 
 export interface FileVisual {
 	icon: string;
@@ -184,6 +185,13 @@ export function hasNerdFont(): boolean {
 
 export function getDisplayIcon(input: { filename: string; mime: string }): string {
 	return hasNerdFont() ? getFileVisual(input).icon : getFallbackIcon(input);
+}
+
+export function getFileIcon(filename: string): string {
+	const ext = filename.lastIndexOf(".");
+	const extStr = ext >= 0 ? filename.slice(ext).toLowerCase() : "";
+	const mime = EXTENSION_TO_MIME[extStr] || "application/octet-stream";
+	return getDisplayIcon({ filename, mime });
 }
 
 export function formatAttachmentBadge(input: { filename: string; mime: string }, options: { includeFilename?: boolean } = {}): string {
