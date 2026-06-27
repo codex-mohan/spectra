@@ -17,6 +17,7 @@ export type {
 	TextContent,
 	ThinkingContent,
 	ImageContent,
+	FileContent,
 	ToolCall,
 	StopReason,
 	Usage,

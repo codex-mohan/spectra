@@ -12,6 +12,8 @@ export interface Provider {
 	name: string;
 	stream: StreamFunction;
 	listModels?: () => ModelInfo[] | Promise<ModelInfo[]>;
+	/** MIME types this provider can handle in user messages. Undefined = text only. */
+	supportedMediaTypes?: string[];
 }
 
 const providers = new Map<string, Provider>();

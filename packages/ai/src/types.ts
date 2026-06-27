@@ -16,6 +16,26 @@ export interface ImageContent {
 	mimeType: string;
 }
 
+export interface FileContent {
+	type: 'file';
+	mime: string;
+	filename: string;
+	/** Data URL (data:mime;base64,...) or file:// URL for directories */
+	url: string;
+	source?: {
+		type: 'file' | 'clipboard' | 'directory';
+		path?: string;
+		text?: { start: number; end: number; value: string };
+	};
+	metadata?: {
+		sizeBytes?: number;
+		width?: number;
+		height?: number;
+		durationMs?: number;
+		files?: number;
+	};
+}
+
 export interface ToolCall {
 	type: 'toolCall';
 	id: string;
@@ -43,7 +63,7 @@ export interface Usage {
 
 export interface UserMessage {
 	role: 'user';
-	content: string | (TextContent | ImageContent)[];
+	content: string | (TextContent | ImageContent | FileContent)[];
 	timestamp: number;
 	/** Arbitrary metadata for app/ui use. Ignored by LLM context. */
 	metadata?: Record<string, unknown>;
@@ -67,7 +87,7 @@ export interface ToolResultMessage<TDetails = unknown> {
 	role: 'toolResult';
 	toolCallId: string;
 	toolName: string;
-	content: (TextContent | ImageContent)[];
+	content: (TextContent | ImageContent | FileContent)[];
 	/** Typed tool-specific metadata (e.g. diff, truncation info). Ignored by LLM context. */
 	details?: TDetails;
 	isError: boolean;
