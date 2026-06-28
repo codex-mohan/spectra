@@ -1,8 +1,8 @@
 import { useRef, useCallback } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
-import type { Message, AssistantMessage, FileContent, TextContent } from '@mohanscodex/spectra-ai';
+import type { Message, AssistantMessage, FileContent, TextContent, ToolResultMessage } from '@mohanscodex/spectra-ai';
 import type { PromptSubmitPayload } from '../prompt-bar.js';
-import { calculateCost } from '@mohanscodex/spectra-ai';
+import { calculateCost, stream } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SnapshotManager } from '../../services/snapshot-manager.js';
@@ -14,7 +14,12 @@ import { parseSlashCommand } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
 import type { CmdItem } from '../components/command-palette.js';
 import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
+import { getAuthKey } from '../utils/model-config.js';
 import type { useSessionState } from './use-session-state.js';
+import { loadConfig } from '../../services/config.js';
+import { enqueuePendingSkill } from '../../services/pending-skills.js';
+import { synthesizeSkillWithAgent } from '../../services/skill-synth.js';
+import { loadAllEvolvingSkills, saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
 
@@ -132,13 +137,11 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		titleGeneratedRef.current = true;
 
 		try {
-			const { stream } = await import('@mohanscodex/spectra-ai');
 			const titleDef = AGENT_DEFINITIONS['title'];
 			let modelId = titleDef?.model?.id ?? deps.selectedModel;
 			let prov = titleDef?.model?.provider ?? deps.provider;
 			if (!modelId || !prov) return;
 
-			const { getAuthKey } = await import('../utils/model-config.js');
 			let apiKey = getAuthKey(prov);
 
 			if (!apiKey && titleDef?.model?.provider) {
@@ -437,10 +440,7 @@ Return ONLY the title text, nothing else.`;
 							const sid = runSessionId;
 							(async () => {
 								try {
-									const { generateSkillContent, isSessionEligibleForSynthesis, loadAllEvolvingSkills, saveEvolvingSkill, findSimilarSkill, evolveSkill } = await import('@mohanscodex/spectra-agent');
-									const { loadConfig } = await import('../../services/config.js');
 									const cfg = loadConfig();
-
 									if (cfg.skills?.autoSynthesize === false) return;
 
 									const sess = sessionStore.current.get(sid);
@@ -452,14 +452,13 @@ Return ONLY the title text, nothing else.`;
 											const content = Array.isArray(msg.content) ? msg.content : [];
 											for (const block of content) {
 												if (block.type === 'toolCall') {
-													const tc = block as { type: 'toolCall'; id: string; name: string; arguments: Record<string, unknown> };
-													const resultMsg = sess.messages.find(
-														(r) => r.role === 'toolResult' && (r as any).toolCallId === tc.id,
+													const resultMsg = sess.messages.find((message): message is ToolResultMessage =>
+														message.role === 'toolResult' && message.toolCallId === block.id,
 													);
 													toolCalls.push({
-														name: tc.name,
-														args: tc.arguments,
-														success: !resultMsg || !(resultMsg as any).isError,
+														name: block.name,
+														args: block.arguments,
+														success: !resultMsg || !resultMsg.isError,
 													});
 												}
 											}
@@ -472,30 +471,31 @@ Return ONLY the title text, nothing else.`;
 										duration: e,
 									};
 
-									if (!isSessionEligibleForSynthesis(trace)) return;
-
-									const generated = generateSkillContent(trace);
+									const existing = await loadAllEvolvingSkills();
+									const generated = await synthesizeSkillWithAgent(trace, existing, {
+										model: deps.selectedModel,
+										provider: deps.provider,
+										getApiKey: getAuthKey,
+									});
 									if (!generated) return;
 
-									const { id, name, description, whenToUse, content } = generated;
+									const id = generated.action === 'evolve' && generated.existingSkillId
+										? generated.existingSkillId
+										: generated.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
 
 									if (cfg.skills?.confirmBeforeSave !== false) {
-										const { enqueuePendingSkill } = await import('../../services/pending-skills.js');
-										enqueuePendingSkill({ id, name, description, whenToUse, content, createdAt: new Date().toISOString() });
-										showToast(`Learned new skill: ${name}. Use /skills to save.`, 'info');
+										enqueuePendingSkill({ id, action: generated.action, existingSkillId: generated.existingSkillId, name: generated.name, description: generated.description, whenToUse: generated.whenToUse, content: generated.content, reason: generated.reason, createdAt: new Date().toISOString() });
+										showToast(`${generated.action === 'evolve' ? 'Evolved' : 'Learned new'} skill: ${generated.name}. Use /skills to save.`, 'info');
 										return;
 									}
 
-									const existing = await loadAllEvolvingSkills();
-									const { saveEvolvingSkill: save, findSimilarSkill: findSimilar, evolveSkill: evolve } = await import('@mohanscodex/spectra-agent');
-									const similar = await findSimilar(name, description, whenToUse, existing);
-									if (similar) {
-										await evolve(similar.name, { description, whenToUse }, content);
-										showToast(`Evolved skill: ${similar.name}`, 'success');
+									if (generated.action === 'evolve' && generated.existingSkillId) {
+										await evolveSkill(generated.existingSkillId, { description: generated.description, whenToUse: generated.whenToUse }, generated.content);
+										showToast(`Evolved skill: ${generated.name}`, 'success');
 									} else {
-										const meta = { id, name, description, whenToUse, tags: [] as string[], useCount: 0, version: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), origin: 'learned' as const };
-										await save(meta, content);
-										showToast(`Saved skill: ${name}`, 'success');
+										const meta = { id, name: generated.name, description: generated.description, whenToUse: generated.whenToUse, tags: [] as string[], useCount: 0, version: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), origin: 'learned' as const };
+										await saveEvolvingSkill(meta, generated.content);
+										showToast(`Saved skill: ${generated.name}`, 'success');
 									}
 								} catch {
 									// Synthesis failed silently

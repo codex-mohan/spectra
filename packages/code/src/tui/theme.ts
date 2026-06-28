@@ -40,7 +40,7 @@ export const c = {
 	langToml: '#D88A55',
 
 	// Tool-specific colors
-	readTool: '#7EC8D0',    // teal — passive read
+	readTool: '#7EC8D0',    // passive cyan — read-only tool
 	execTool: '#A3D9A0',    // green — command execution
 	writeTool: '#A3D9A0',   // green — file creation
 	editTool: '#E0C8A0',    // amber — file modification
@@ -112,6 +112,7 @@ export const mdStyleMuted = SyntaxStyle.fromStyles({
 	function: { fg: RGBA.fromHex(c.dim) },
 	type: { fg: RGBA.fromHex(c.dim) },
 	default: { fg: RGBA.fromHex(c.dim) },
+	code: { fg: RGBA.fromHex(c.dim) },
 });
 
 export const SPINNER = [

@@ -4,12 +4,21 @@ import { getGlobalConfigDir } from '../../utils/paths.js';
 import { readAll } from '../../services/auth-store.js';
 import { getProviderModels } from '@mohanscodex/spectra-ai';
 
+function readProviderId(value: unknown): string | null {
+	if (typeof value === 'string') return value;
+	if (value && typeof value === 'object') {
+		const [firstProvider] = Object.keys(value);
+		return firstProvider || null;
+	}
+	return null;
+}
+
 export function loadSavedConfig(): { model: string | null; provider: string | null } {
 	try {
 		const configPath = join(getGlobalConfigDir(), 'spectra.json');
 		if (!existsSync(configPath)) return { model: null, provider: null };
 		const cfg = JSON.parse(readFileSync(configPath, 'utf-8'));
-		return { model: cfg.model || null, provider: cfg.provider || null };
+		return { model: typeof cfg.model === 'string' ? cfg.model : null, provider: readProviderId(cfg.provider) };
 	} catch {
 		return { model: null, provider: null };
 	}

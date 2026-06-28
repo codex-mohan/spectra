@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import type { Skill } from './skill.js';
+import type { Skill } from '@mohanscodex/spectra-agent';
 
 export interface EvolvingSkillMeta {
 	id: string;
@@ -17,6 +17,8 @@ export interface EvolvingSkillMeta {
 	updatedAt: string;
 	origin: 'learned' | 'evolved';
 }
+
+export type EvolvingSkill = Skill & { evolvingSkillId: string };
 
 function getSpectraDir(): string {
 	return process.env.SPECTRA_HOME || path.join(homedir(), '.spectra');
@@ -40,6 +42,19 @@ function getSkillMdPath(id: string): string {
 
 function isValidSkillId(id: string): boolean {
 	return /^[a-z0-9][a-z0-9-]{1,79}$/.test(id);
+}
+
+export function getEvolvingSkillId(skill: Skill): string | null {
+	if ('evolvingSkillId' in skill && typeof skill.evolvingSkillId === 'string' && isValidSkillId(skill.evolvingSkillId)) {
+		return skill.evolvingSkillId;
+	}
+
+	const skillDir = path.resolve(skill.location);
+	const skillsDir = path.resolve(getSkillsDir());
+	if (path.dirname(skillDir) !== skillsDir) return null;
+
+	const id = path.basename(skillDir);
+	return isValidSkillId(id) ? id : null;
 }
 
 export async function ensureSkillsDir(): Promise<void> {
@@ -76,11 +91,11 @@ export async function loadEvolvingSkill(id: string): Promise<{ meta: EvolvingSki
 	return null;
 }
 
-export async function loadAllEvolvingSkills(): Promise<Skill[]> {
+export async function loadAllEvolvingSkills(): Promise<EvolvingSkill[]> {
 	const dir = getSkillsDir();
 	if (!existsSync(dir)) return [];
 
-	const skills: Skill[] = [];
+	const skills: EvolvingSkill[] = [];
 	try {
 		const entries = await fs.readdir(dir, { withFileTypes: true });
 		for (const entry of entries) {
@@ -95,11 +110,12 @@ export async function loadAllEvolvingSkills(): Promise<Skill[]> {
 					content: loaded.content,
 					files: [],
 					tags: loaded.meta.tags,
+					evolvingSkillId: loaded.meta.id,
 				});
 			}
 		}
 	} catch {
-		// Skip unreadable directories
+		// Skip unreadable directories.
 	}
 	return skills;
 }
@@ -112,20 +128,6 @@ export async function incrementUseCount(id: string): Promise<void> {
 	await saveEvolvingSkill(loaded.meta, loaded.content);
 }
 
-export async function findSimilarSkill(
-	name: string,
-	description: string,
-	whenToUse: string,
-	existingSkills: Skill[],
-): Promise<Skill | null> {
-	if (existingSkills.length === 0) return null;
-
-	const { buildIndex, matchSkills } = await import('./skill.js');
-	const index = buildIndex(existingSkills);
-	const queryText = [name, description, whenToUse].join(' ');
-	const matches = matchSkills(queryText, index, { topK: 1, threshold: 0.3 });
-	return matches.length > 0 ? matches[0].skill : null;
-}
 
 export async function evolveSkill(
 	existingId: string,
@@ -167,4 +169,31 @@ export async function forkSkill(
 		origin: 'learned',
 	};
 	await saveEvolvingSkill(meta, content);
+}
+
+const STALE_SKILL_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+export async function pruneStaleSkills(): Promise<string[]> {
+	const dir = getSkillsDir();
+	if (!existsSync(dir)) return [];
+
+	const pruned: string[] = [];
+	const now = Date.now();
+	try {
+		const entries = await fs.readdir(dir, { withFileTypes: true });
+		for (const entry of entries) {
+			if (!entry.isDirectory()) continue;
+			const loaded = await loadEvolvingSkill(entry.name);
+			if (!loaded) continue;
+			const { meta } = loaded;
+			if (meta.origin !== 'learned' || meta.useCount > 0) continue;
+			const age = now - new Date(meta.createdAt).getTime();
+			if (age < STALE_SKILL_AGE_MS) continue;
+			await fs.rm(getSkillDir(entry.name), { recursive: true, force: true });
+			pruned.push(entry.name);
+		}
+	} catch {
+		// Skip unreadable directories.
+	}
+	return pruned;
 }

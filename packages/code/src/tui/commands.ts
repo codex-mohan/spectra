@@ -44,6 +44,8 @@ export function buildCmdItems(opts: {
 			| { type: 'theme' }
 			| { type: 'permissions' }
 			| { type: 'settings' }
+			| { type: 'memory' }
+			| { type: 'skills' }
 			| null,
 	) => void;
 	sessionIdRef: { current: string | null };
@@ -309,6 +311,27 @@ export function buildCmdItems(opts: {
 					backgroundTasks.promote(task.id);
 				}
 				showToast(`Promoted ${running.length} task(s) to background`, 'success');
+			},
+		},
+		// Memory
+		{
+			id: 'memory',
+			label: 'Memory',
+			desc: 'View and manage persistent memory',
+			cat: 'Agent',
+			slashName: 'memory',
+			action: () => {
+				setDialogStep({ type: 'memory' });
+			},
+		},
+		{
+			id: 'skills',
+			label: 'Skills',
+			desc: 'Review and approve pending skills',
+			cat: 'Agent',
+			slashName: 'skills',
+			action: () => {
+				setDialogStep({ type: 'skills' });
 			},
 		},
 		// Navigation

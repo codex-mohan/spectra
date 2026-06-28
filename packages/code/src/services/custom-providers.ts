@@ -104,15 +104,26 @@ export function registerCustomProvider(id: string, config: CustomProviderConfig)
 					if (context.systemPrompt) {
 						messages.push({ role: 'system', content: context.systemPrompt });
 					}
-					for (const msg of context.messages) {
+				for (const msg of context.messages) {
 						if (msg.role === 'user') {
-							messages.push({
-								role: 'user',
-								content:
-									typeof msg.content === 'string'
-										? msg.content
-										: msg.content.map((c: any) => (c.type === 'text' ? { type: 'text', text: c.text } : c)),
-							});
+							if (typeof msg.content === 'string') {
+								messages.push({ role: 'user', content: msg.content });
+							} else {
+								const content = msg.content.map((item) => {
+									if (item.type === 'text') return { type: 'text' as const, text: item.text };
+									if (item.type === 'image') return { type: 'image_url' as const, image_url: { url: `data:${item.mimeType};base64,${item.data}` } };
+									if (item.type === 'file') {
+										const file = item as { mime: string; url: string; filename: string };
+										if (file.mime.startsWith('image/')) return { type: 'image_url' as const, image_url: { url: file.url } };
+										const comma = file.url.indexOf(',');
+										const b64 = comma >= 0 ? file.url.slice(comma + 1) : '';
+										const text = Buffer.from(b64, 'base64').toString('utf-8');
+										return { type: 'text' as const, text: `[${file.filename}]\n${text}` };
+									}
+									return { type: 'text' as const, text: '' };
+								});
+								messages.push({ role: 'user', content });
+							}
 						} else if (msg.role === 'assistant') {
 							const text = msg.content
 								.filter((b: any) => b.type === 'text')

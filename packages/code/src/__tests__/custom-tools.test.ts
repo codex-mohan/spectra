@@ -11,7 +11,7 @@ describe('Custom Tools', () => {
 	});
 
 	it('loads a tool module with default export', async () => {
-		const tmpDir = mkdtempSync(join(tmpdir(), 'spectra-tools-'));
+		const tmpDir = mkdtempSync(join(process.cwd(), '.spectra-tools-test-'));
 		const toolFile = join(tmpDir, 'greet.ts');
 
 		writeFileSync(
@@ -40,7 +40,7 @@ describe('Custom Tools', () => {
 	});
 
 	it('loads named exports as separate tools', async () => {
-		const tmpDir = mkdtempSync(join(tmpdir(), 'spectra-tools-'));
+		const tmpDir = mkdtempSync(join(process.cwd(), '.spectra-tools-test-'));
 		const toolFile = join(tmpDir, 'math.ts');
 
 		writeFileSync(
@@ -73,8 +73,8 @@ describe('Custom Tools', () => {
 	it('merges into createAllToolsWithExtensions', async () => {
 		const { createAllToolsWithExtensions } = await import('../tools/index.js');
 		const result = await createAllToolsWithExtensions();
-		expect(result.builtin).toHaveLength(7);
+		expect(result.builtin).toHaveLength((await import('../tools/index.js')).builtinTools.length);
 		expect(Array.isArray(result.custom)).toBe(true);
-		expect(result.all.length).toBeGreaterThanOrEqual(7);
+		expect(result.all.length).toBeGreaterThanOrEqual(result.builtin.length);
 	});
 });

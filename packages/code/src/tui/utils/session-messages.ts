@@ -1,8 +1,9 @@
-import type { Message } from '@mohanscodex/spectra-ai';
+import type { FileContent, Message } from '@mohanscodex/spectra-ai';
 import { calculateCost } from '@mohanscodex/spectra-ai';
 import type { ChatMessage } from '../types.js';
 import { genId } from '../utils.js';
 import { getFileVisual } from './file-visuals.js';
+import type { PromptAttachment } from '../prompt-bar.js';
 
 export interface ConvertedMessages {
 	messages: ChatMessage[];
@@ -56,7 +57,8 @@ export function sdkMessagesToChatMessages(data: {
 						if (p.type === 'text' && typeof p.text === 'string') {
 							textParts.push(p.text);
 						} else if (p.type === 'file') {
-							fileAttachments.push(p as unknown as NonNullable<ChatMessage['attachments']>[number]);
+							const attachment = hydrateFileAttachment(p);
+							if (attachment) fileAttachments.push(attachment);
 						} else if (p.type === 'image') {
 							const mime = (p.mimeType as string) || 'image/png';
 							const visual = getFileVisual({ filename: 'image.png', mime });
@@ -134,6 +136,62 @@ export function sdkMessagesToChatMessages(data: {
 	});
 
 	return { messages, tokenUsage: { input: maxInputTokens, output: outputTokens }, costSoFar };
+}
+
+function hydrateFileAttachment(value: Record<string, unknown>): PromptAttachment | null {
+	const mime = typeof value.mime === 'string' ? value.mime : null;
+	const filename = typeof value.filename === 'string' ? value.filename : null;
+	const url = typeof value.url === 'string' ? value.url : null;
+	if (!mime || !filename || !url) return null;
+
+	const file: FileContent = {
+		type: 'file',
+		mime,
+		filename,
+		url,
+	};
+
+	if ('source' in value && isRecord(value.source)) {
+		const source = hydrateFileSource(value.source);
+		if (source) file.source = source;
+	}
+
+	if ('metadata' in value && isRecord(value.metadata)) {
+		const metadata = hydrateFileMetadata(value.metadata);
+		if (metadata) file.metadata = metadata;
+	}
+
+	const visual = getFileVisual(file);
+	return { ...file, badge: { icon: visual.icon, label: visual.label, color: visual.color } };
+}
+
+function hydrateFileSource(value: Record<string, unknown>): FileContent['source'] | null {
+	if (value.type !== 'file' && value.type !== 'clipboard' && value.type !== 'directory') return null;
+	const source: FileContent['source'] = { type: value.type };
+	if (typeof value.path === 'string') source.path = value.path;
+	if (isRecord(value.text)) {
+		const start = typeof value.text.start === 'number' ? value.text.start : null;
+		const end = typeof value.text.end === 'number' ? value.text.end : null;
+		const textValue = typeof value.text.value === 'string' ? value.text.value : null;
+		if (start !== null && end !== null && textValue !== null) {
+			source.text = { start, end, value: textValue };
+		}
+	}
+	return source;
+}
+
+function hydrateFileMetadata(value: Record<string, unknown>): FileContent['metadata'] | null {
+	const metadata: NonNullable<FileContent['metadata']> = {};
+	if (typeof value.sizeBytes === 'number') metadata.sizeBytes = value.sizeBytes;
+	if (typeof value.width === 'number') metadata.width = value.width;
+	if (typeof value.height === 'number') metadata.height = value.height;
+	if (typeof value.durationMs === 'number') metadata.durationMs = value.durationMs;
+	if (typeof value.files === 'number') metadata.files = value.files;
+	return Object.keys(metadata).length > 0 ? metadata : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
 }
 
 export function sdkMessagesToLoadedMessages(data: any): {

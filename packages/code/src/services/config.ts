@@ -30,6 +30,18 @@ export interface SpectraConfig {
 	shell?: string;
 	logLevel?: 'debug' | 'info' | 'warn' | 'error';
 	providers?: Record<string, CustomProviderConfig>;
+	memory?: MemoryConfig;
+	skills?: SkillsConfig;
+}
+
+export interface MemoryConfig {
+	enabled?: boolean;
+	projectScope?: boolean;
+}
+
+export interface SkillsConfig {
+	autoSynthesize?: boolean;
+	confirmBeforeSave?: boolean;
 }
 
 export interface AgentConfig {

@@ -5,6 +5,7 @@ import { debugAgent } from './debug.js';
 import { exploreAgent } from './explore.js';
 import { generalAgent } from './general.js';
 import { titleAgent } from './title.js';
+import { skillSynthAgent } from './skill-synth.js';
 
 export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
 	[buildAgent.name]: buildAgent,
@@ -13,6 +14,7 @@ export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
 	[exploreAgent.name]: exploreAgent,
 	[generalAgent.name]: generalAgent,
 	[titleAgent.name]: titleAgent,
+	[skillSynthAgent.name]: skillSynthAgent,
 };
 
 export const PRIMARY_AGENTS = Object.values(AGENT_DEFINITIONS)

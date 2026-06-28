@@ -6,9 +6,10 @@ import { editTool } from './edit.js';
 import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
+import { memoryTool } from './memory.js';
 import { createTaskTool } from './task.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
-import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool, loadAllEvolvingSkills, incrementUseCount } from '@mohanscodex/spectra-agent';
+import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
 import type { Skill } from '@mohanscodex/spectra-agent';
 import { textResult } from './utils.js';
 import { listConnectedServers } from '../integrations/mcp/index.js';
@@ -17,6 +18,7 @@ import { loadCustomTools } from '../integrations/custom-tools/index.js';
 import type { SecurityManager } from '../security/index.js';
 import { PermissionDeniedError } from '../security/index.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
+import { loadAllEvolvingSkills, incrementUseCount, getEvolvingSkillId } from '../services/skill-store.js';
 import type { SessionStore } from '../services/session-store.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -31,6 +33,7 @@ export const builtinTools: SpectraTool[] = [
 	grepTool,
 	globTool,
 	webFetchTool,
+	memoryTool,
 ];
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
@@ -277,7 +280,20 @@ export async function discoverAndCreateSkillTools(): Promise<{
 
 	const tools: AgentTool[] = [];
 	if (skills.size > 0) {
-		tools.push(createFindSkillsTool(skills), createSkillTool(skills));
+		const skillTool = createSkillTool(skills);
+		const executeSkill = skillTool.execute;
+		skillTool.execute = async (toolCallId, args) => {
+			const result = await executeSkill(toolCallId, args);
+			if (!result.isError && typeof args.name === 'string') {
+				const usedSkill = skills.get(args.name);
+				if (usedSkill) {
+					const evolvingSkillId = getEvolvingSkillId(usedSkill);
+					if (evolvingSkillId) incrementUseCount(evolvingSkillId).catch(() => {});
+				}
+			}
+			return result;
+		};
+		tools.push(createFindSkillsTool(skills), skillTool);
 	}
 	return { skills, tools };
 }

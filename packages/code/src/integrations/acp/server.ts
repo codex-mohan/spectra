@@ -9,7 +9,6 @@ import { AGENT_DEFINITIONS, filterToolsByAgent } from '../../agents/index.js';
 import { createAllToolsWithExtensions } from '../../tools/index.js';
 import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
-import { getSystemPrompt } from '../../utils/platform.js';
 
 const PKG_VERSION = '0.4.0';
 
@@ -126,14 +125,10 @@ export class ACPAdapter {
 			const agentTools = def ? filterToolsByAgent(toolResult.all, agentName) : toolResult.all;
 			const context = loadContext();
 
-			let agentsMd = '';
-			try {
-				const { readFileSync, existsSync } = await import('fs');
-				const p = `${process.cwd()}/AGENTS.md`;
-				if (existsSync(p)) agentsMd = readFileSync(p, 'utf-8');
-			} catch {}
+			const { loadMemorySnapshot } = await import('../../services/memory.js');
+			const memorySnapshot = loadMemorySnapshot();
 
-			const systemPrompt = [getSystemPrompt(), agentsMd, def.prompt].filter(Boolean).join('\n\n');
+			const systemPrompt = [context.systemPrompt, memorySnapshot, def.prompt].filter(Boolean).join('\n\n');
 
 			const agent = new Agent({
 				model: { id: modelId, name: modelId, provider, api: provider },

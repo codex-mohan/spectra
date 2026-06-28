@@ -79,15 +79,7 @@ describe('ACP Protocol', () => {
 			const tools = createAllTools();
 
 			expect(tools).toHaveLength(builtinTools.length);
-			expect(tools.map((t) => t.name).sort()).toEqual([
-				'bash',
-				'edit',
-				'glob',
-				'grep',
-				'read',
-				'web_fetch',
-				'write',
-			]);
+			expect(tools.map((t) => t.name).sort()).toEqual(builtinTools.map((t) => t.name).sort());
 		});
 
 		it('shares the same config loader', async () => {
@@ -110,7 +102,7 @@ describe('ACP Protocol', () => {
 
 			const { AGENT_DEFINITIONS: acpDefs } = await import('../agents/index.js');
 			expect(acpDefs).toBe(tuiDefs);
-			expect(Object.keys(acpDefs)).toEqual(['build', 'plan', 'debug', 'explore', 'general', 'title']);
+			expect(Object.keys(acpDefs)).toEqual(['build', 'plan', 'debug', 'explore', 'general', 'title', 'skill-synth']);
 		});
 
 		it('session/new creates a real Agent with tools registered', async () => {

@@ -192,13 +192,13 @@ export function ManageProvidersDialog(props: {
 	const rows: any[] = [];
 	if (mode === 'list') {
 		rows.push(
-			<box paddingX={2} paddingTop={1} height={1} flexDirection="row" justifyContent="space-between">
-				<box flexDirection="row" gap={1}>
+			<box paddingX={2} paddingTop={1} height={2} flexDirection="column" justifyContent="space-between">
+				<box flexDirection="row" gap={1} height={1}>
 					<text fg={c.accent}>{'>'}</text>
 					<text fg={c.text}>Manage Providers</text>
 				</box>
 				<box flexDirection="row" height={1}>
-					<text fg={c.dim}>esc close</text>
+					<text fg={c.dim}>esc</text>
 				</box>
 			</box>,
 			<box height={1} paddingX={2}>
@@ -225,7 +225,7 @@ export function ManageProvidersDialog(props: {
 						gap={0}
 						backgroundColor={isSel ? c.bgSelect : undefined}
 					>
-						<box flexDirection="row" justifyContent="space-between">
+						<box flexDirection="row" justifyContent="space-between" width={mw - 5}>
 							<text fg={isSel ? c.accent : c.text} attributes={isSel ? 1 : 0}>
 								{cfg.name || id}
 							</text>

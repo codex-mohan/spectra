@@ -10,6 +10,13 @@ import type { PermissionRequest } from '../../security/types.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SessionStore } from '../../services/session-store.js';
 import type { Message } from '@mohanscodex/spectra-ai';
+import type { AgentTool } from '@mohanscodex/spectra-agent';
+import { pruneStaleSkills } from '../../services/skill-store.js';
+
+const MEMORY_SKILL_DISTINCTION = `Memory and skills have different jobs:
+- Memory is for durable facts: user preferences, project facts, decisions, constraints, and reminders.
+- Skills are for reusable procedures: when to use a workflow, steps to run it, checks to verify it, and pitfalls.
+- Store facts in memory; use skills only for repeatable workflows.`;
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
@@ -116,7 +123,7 @@ export function useAgent(deps: UseAgentDeps) {
 			const { filterToolsByAgent } = await import('../../agents/index.js');
 
 			// Discover skills and create skill tools
-			let skillTools: import('@mohanscodex/spectra-agent').AgentTool[] = [];
+			let skillTools: AgentTool[] = [];
 			let skillCount = 0;
 			try {
 				const { discoverAndCreateSkillTools } = await import('../../tools/index.js');
@@ -127,21 +134,16 @@ export function useAgent(deps: UseAgentDeps) {
 
 			const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], selectedAgent) : [...allTools, ...skillTools];
 
-			let agentsMd = '';
-			try {
-				const agentsPath = `${process.cwd()}/AGENTS.md`;
-				const { readFileSync, existsSync } = await import('fs');
-				if (existsSync(agentsPath)) {
-					agentsMd = readFileSync(agentsPath, 'utf-8');
-				}
-			} catch {}
+			const { loadContext } = await import('../../services/context.js');
+			const context = loadContext();
 
-			const { getSystemPrompt } = await import('../../utils/platform.js');
+			const { loadMemorySnapshot } = await import('../../services/memory.js');
+			const memorySnapshot = loadMemorySnapshot();
 
 			const skillsHint = skillCount > 0
 				? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
 				: '';
-			const systemPrompt = [getSystemPrompt() + skillsHint, agentsMd, def?.prompt].filter(Boolean).join('\n\n');
+			const systemPrompt = [context.systemPrompt + skillsHint, MEMORY_SKILL_DISTINCTION, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
 
 			const { createTransformContextFn } = await import('../../services/compaction.js');
 			const transformContext = createTransformContextFn(
@@ -168,6 +170,9 @@ export function useAgent(deps: UseAgentDeps) {
 
 			agentsMapRef.current.set(sessionKey, agent);
 			lastAgentRef.current = selectedAgent;
+
+			// Prune stale junk skills (fire-and-forget, once per agent creation)
+			pruneStaleSkills().catch(() => {});
 
 			// Restore conversation history from persistent storage
 			if (sessionId) {
@@ -312,7 +317,7 @@ export function createSessionFactory(securityConfig: { permission: any; security
 		const allTools = createAllToolsWithSecurity(securityManager, agentConfig, undefined, sessionId);
 		const { filterToolsByAgent } = await import('../../agents/index.js');
 
-		let skillTools: import('@mohanscodex/spectra-agent').AgentTool[] = [];
+		let skillTools: AgentTool[] = [];
 		let skillCount = 0;
 		try {
 			const { discoverAndCreateSkillTools } = await import('../../tools/index.js');
@@ -323,21 +328,16 @@ export function createSessionFactory(securityConfig: { permission: any; security
 
 		const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], agentName) : [...allTools, ...skillTools];
 
-		let agentsMd = '';
-		try {
-			const agentsPath = `${process.cwd()}/AGENTS.md`;
-			const { readFileSync, existsSync } = await import('fs');
-			if (existsSync(agentsPath)) {
-				agentsMd = readFileSync(agentsPath, 'utf-8');
-			}
-		} catch {}
+		const { loadContext } = await import('../../services/context.js');
+		const context = loadContext();
 
-		const { getSystemPrompt } = await import('../../utils/platform.js');
+		const { loadMemorySnapshot } = await import('../../services/memory.js');
+		const memorySnapshot = loadMemorySnapshot();
 
 		const skillsHint = skillCount > 0
 			? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
 			: '';
-		const systemPrompt = [getSystemPrompt() + skillsHint, agentsMd, def?.prompt].filter(Boolean).join('\n\n');
+		const systemPrompt = [context.systemPrompt + skillsHint, MEMORY_SKILL_DISTINCTION, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
 
 		const agent = new Agent({
 			model: {
