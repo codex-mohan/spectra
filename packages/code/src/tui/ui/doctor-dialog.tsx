@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { DoctorResult } from '../../commands/doctor.js';
+import { ModalFrame } from './modal-frame.js';
 import { c } from '../theme.js';
 
 export function DoctorDialog({
@@ -26,15 +27,8 @@ export function DoctorDialog({
 		registerHandler?.(handler);
 	}, [onClose, registerHandler]);
 
-	const mw = Math.min(68, termWidth - 4);
-	const ml = Math.floor((termWidth - mw) / 2);
-	const mh = Math.min(32, termHeight - 4);
-	const mt = Math.max(0, Math.floor((termHeight - mh) / 3));
-	const innerW = mw - 4;
-	const listH = mh - 5;
-
 	const failedCount = result.checks.filter((check) => !check.passed).length;
-
+	const innerW = Math.min(68, termWidth - 4) - 4;
 	// Name/detail inline: ✓ Name  detail
 	// Reserve: icon(1) + gap(1) + gap(2) + detail padding = ~4 chars overhead
 	const nameMax = Math.floor(innerW * 0.35);
@@ -81,24 +75,24 @@ export function DoctorDialog({
 	}
 
 	return (
-		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
-			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
-				<box height={1} paddingX={2} paddingTop={1} paddingBottom={1} backgroundColor={c.bgCard}>
-					<text fg={result.allPassed ? c.success : c.error}>
-						{result.allPassed ? '✓ All checks passed' : `✗ ${failedCount}/${result.checks.length} failed`}
-					</text>
-				</box>
-
-				<box height={1} paddingX={2} backgroundColor={c.bgCard}>
-					<text fg={c.border}>{'─'.repeat(innerW)}</text>
-				</box>
-
+		<ModalFrame
+			termWidth={termWidth}
+			termHeight={termHeight}
+			width={68}
+			height={Math.min(32, termHeight - 4)}
+			top="upper"
+			title={result.allPassed ? '✓ All checks passed' : `✗ ${failedCount}/${result.checks.length} failed`}
+			titleColor={result.allPassed ? c.success : c.error}
+			rightHint={undefined}
+			footer={<text fg={c.dim}>esc/enter close</text>}
+		>
+			{({ height }) => (
 				<scrollbox
 					ref={(r: any) => {
 						scrollRef.current = r;
 					}}
 					paddingX={1}
-					maxHeight={listH}
+					maxHeight={height - 5}
 					scrollY={true}
 					backgroundColor={c.bgCard}
 				>
@@ -112,11 +106,7 @@ export function DoctorDialog({
 						)}
 					</box>
 				</scrollbox>
-
-				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
-					<text fg={c.dim}>esc/enter close</text>
-				</box>
-			</box>
-		</box>
+			)}
+		</ModalFrame>
 	);
 }

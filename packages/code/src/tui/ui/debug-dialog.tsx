@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from 'react';
 import { c } from '../theme.js';
+import { ModalFrame } from './modal-frame.js';
 import { loadConfig } from '../../services/config.js';
 import { listConnectedServers } from '../../integrations/mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
@@ -36,12 +37,6 @@ export function DebugDialog(props: DebugDialogProps) {
 		registerHandler,
 	} = props;
 
-	const mw = Math.min(64, termWidth - 4);
-	const ml = Math.floor((termWidth - mw) / 2);
-	const mh = Math.min(24, termHeight - 4);
-	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
-	const innerW = mw - 4;
-	const listH = mh - 5;
 
 	const info = useMemo(() => {
 		const config = loadConfig();
@@ -100,28 +95,16 @@ export function DebugDialog(props: DebugDialogProps) {
 	}, [onClose, registerHandler]);
 
 	return (
-		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
-			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
-				<box
-					height={1}
-					paddingX={2}
-					paddingTop={1}
-					paddingBottom={1}
-					flexDirection="row"
-					justifyContent="space-between"
-					backgroundColor={c.bgCard}
-				>
-					<text fg={c.accent} flexDirection="row" attributes={1} height={1}>
-						Debug
-					</text>
-					<text fg={c.dim} flexDirection="row" height={1}>
-						esc
-					</text>
-				</box>
-				<box height={1} paddingX={2}>
-					<text fg={c.border}>{'─'.repeat(innerW)}</text>
-				</box>
-				<scrollbox maxHeight={listH} paddingX={2} scrollY={true} scrollbarOptions={{ visible: false }}>
+		<ModalFrame
+			termWidth={termWidth}
+			termHeight={termHeight}
+			width={64}
+			height={Math.min(24, termHeight - 4)}
+			title="Debug"
+			footer={<text fg={c.dim}>esc/enter close</text>}
+		>
+			{({ height }) => (
+				<scrollbox maxHeight={height - 5} paddingX={2} scrollY={true} scrollbarOptions={{ visible: false }}>
 					<box flexDirection="column">
 						{info.map((group, gi) => (
 							<box key={gi} flexDirection="column">
@@ -142,10 +125,7 @@ export function DebugDialog(props: DebugDialogProps) {
 						))}
 					</box>
 				</scrollbox>
-				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
-					<text fg={c.dim}>esc/enter close</text>
-				</box>
-			</box>
-		</box>
+			)}
+		</ModalFrame>
 	);
 }

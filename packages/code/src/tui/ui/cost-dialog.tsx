@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { c } from '../theme.js';
+import { ModalFrame } from './modal-frame.js';
 import { calculateCost, formatCost, formatTokens, getModelPricing, isFreeModel } from '@mohanscodex/spectra-ai';
 import { lookupContextWindow } from '../utils/model-config.js';
 
@@ -30,32 +31,18 @@ export function CostDialog({ onClose, termWidth, termHeight, registerHandler, se
 	const ctxPct = ctxMax ? Math.round((totalTokens / ctxMax) * 100) : null;
 	const free = isFreeModel(selectedModel);
 
-	const mw = Math.min(56, termWidth - 4);
-	const ml = Math.floor((termWidth - mw) / 2);
-	const mh = pricing ? 18 : 14;
-	const mt = Math.max(0, Math.floor((termHeight - mh) / 3));
-	const innerW = mw - 4;
-
 	return (
-		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
-			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
-				<box
-					height={1}
-					paddingX={2}
-					paddingTop={1}
-					paddingBottom={1}
-					flexDirection="row"
-					justifyContent="space-between"
-					backgroundColor={c.bgCard}
-				>
-					<text fg={c.accent}>Session Cost</text>
-					<text fg={c.dim}>esc</text>
-				</box>
-				<box height={1} paddingX={2}>
-					<text fg={c.border}>{'─'.repeat(innerW)}</text>
-				</box>
+		<ModalFrame
+			termWidth={termWidth}
+			termHeight={termHeight}
+			width={56}
+			height={pricing ? 18 : 14}
+			top="upper"
+			title="Session Cost"
+			footer={<text fg={c.dim}>esc/enter close</text>}
+		>
+			{({ innerWidth }) => (
 				<box flexDirection="column" paddingX={2} gap={0} flexGrow={1}>
-					{/* Model */}
 					<box flexDirection="row" justifyContent="space-between">
 						<text fg={c.dim}>Model</text>
 						<text fg={c.text}>{selectedModel}</text>
@@ -66,10 +53,9 @@ export function CostDialog({ onClose, termWidth, termHeight, registerHandler, se
 					</box>
 
 					<box height={1} paddingX={0}>
-						<text fg={c.border}>{'─'.repeat(innerW)}</text>
+						<text fg={c.border}>{'─'.repeat(innerWidth)}</text>
 					</box>
 
-					{/* Token usage */}
 					<box flexDirection="row" justifyContent="space-between">
 						<text fg={c.dim}>Input tokens</text>
 						<text fg={c.text}>{formatTokens(tokenUsage.input)}{free ? '' : ` → ${formatCost(cost.input)}`}</text>
@@ -79,7 +65,6 @@ export function CostDialog({ onClose, termWidth, termHeight, registerHandler, se
 						<text fg={c.text}>{formatTokens(tokenUsage.output)}{free ? '' : ` → ${formatCost(cost.output)}`}</text>
 					</box>
 
-					{/* Context window */}
 					{ctxMax && (
 						<box flexDirection="row" justifyContent="space-between">
 							<text fg={c.dim}>Context window</text>
@@ -87,11 +72,10 @@ export function CostDialog({ onClose, termWidth, termHeight, registerHandler, se
 						</box>
 					)}
 
-					{/* Per-token rates */}
 					{pricing && !free && (
 						<>
 							<box height={1} paddingX={0}>
-								<text fg={c.border}>{'─'.repeat(innerW)}</text>
+								<text fg={c.border}>{'─'.repeat(innerWidth)}</text>
 							</box>
 							<box flexDirection="row" justifyContent="space-between">
 								<text fg={c.dim}>Input rate</text>
@@ -110,19 +94,15 @@ export function CostDialog({ onClose, termWidth, termHeight, registerHandler, se
 						</>
 					)}
 
-					{/* Total */}
 					<box height={1} paddingX={0}>
-						<text fg={c.border}>{'─'.repeat(innerW)}</text>
+						<text fg={c.border}>{'─'.repeat(innerWidth)}</text>
 					</box>
 					<box flexDirection="row" justifyContent="space-between">
 						<text fg={c.accent}>Total cost</text>
 						<text fg={free ? c.warn : c.accent}>{free ? 'Free model' : formatCost(cost.total)}</text>
 					</box>
 				</box>
-				<box paddingX={2} paddingY={1} paddingBottom={1} flexDirection="row" justifyContent="center">
-					<text fg={c.dim}>esc/enter close</text>
-				</box>
-			</box>
-		</box>
+			)}
+		</ModalFrame>
 	);
 }
