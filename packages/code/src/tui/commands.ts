@@ -256,6 +256,10 @@ export function buildCmdItems(opts: {
 			cat: 'Agent',
 			slashName: 'agent',
 			slashAliases: ['agents', 'switch-agent'],
+			argCompleter: (args: string) => {
+				const q = args.trim().toLowerCase();
+				return ['build', 'plan', 'debug', 'explore', 'general'].filter((a) => a.includes(q));
+			},
 			action: () => {
 				setDialogStep({ type: 'switch-agent' });
 			},
@@ -320,6 +324,15 @@ export function buildCmdItems(opts: {
 			desc: 'View and manage persistent memory',
 			cat: 'Agent',
 			slashName: 'memory',
+			argCompleter: (args: string) => {
+				const parts = args.trim().split(/\s+/);
+				if (parts.length <= 1) {
+					const q = (parts[0] || '').toLowerCase();
+					return ['read', 'add', 'replace', 'remove', 'list'].filter((a) => a.includes(q));
+				}
+				const q = (parts[1] || '').toLowerCase();
+				return ['memory', 'user', 'project'].filter((a) => a.includes(q));
+			},
 			action: () => {
 				setDialogStep({ type: 'memory' });
 			},
@@ -330,6 +343,37 @@ export function buildCmdItems(opts: {
 			desc: 'Review and approve pending skills',
 			cat: 'Agent',
 			slashName: 'skills',
+			argCompleter: (args: string) => {
+				const q = args.trim().toLowerCase();
+				return ['pending', 'browse'].filter((a) => a.includes(q));
+			},
+			action: () => {
+				setDialogStep({ type: 'skills' });
+			},
+		},
+		{
+			id: 'load-skill',
+			label: 'Load Skill',
+			desc: 'Load a skill by name',
+			cat: 'Agent',
+			slashName: 'skill',
+			argCompleter: async (args: string) => {
+				const q = args.trim().toLowerCase();
+				try {
+					const { loadAllEvolvingSkills } = await import('../services/skill-store.js');
+					const { discoverSkills } = await import('@mohanscodex/spectra-agent');
+					const evolving = await loadAllEvolvingSkills();
+					const bundled = await discoverSkills();
+					const names = [
+						...evolving.map((s) => s.name),
+						...[...bundled.values()].map((s) => s.name),
+					];
+					const unique = [...new Set(names)];
+					return q ? unique.filter((n) => n.toLowerCase().includes(q)) : unique;
+				} catch {
+					return [];
+				}
+			},
 			action: () => {
 				setDialogStep({ type: 'skills' });
 			},

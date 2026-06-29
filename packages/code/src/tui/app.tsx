@@ -800,7 +800,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								<text fg={c.subtext}> to return</text>
 							</box>
 						) : (
-							<>
+							
 							<PromptBar
 								isLoading={isLoading}
 								spinnerFrame={spinnerFrame}
@@ -824,7 +824,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								onPositionChange={setPromptPosition}
 								onGetPromptBar={(r) => { promptBarRef.current = r; }}
 							/>
-							</>
+							
 						)}
 						<box height={1} />
 						<box
@@ -832,8 +832,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							justifyContent="space-between"
 							alignItems="center"
 							height={1}
-							paddingLeft={3}
-							paddingRight={1}
 						>
 							<box flexDirection="row" gap={2} alignItems="center" overflow="hidden">
 								{isLoading ? (

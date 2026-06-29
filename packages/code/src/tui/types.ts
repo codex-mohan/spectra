@@ -12,12 +12,18 @@ export interface Patch {
 }
 
 export interface ChatMessage {
+	/** Unique identifier for this message */
 	id: string;
+	/** The role of the message sender */
 	role: 'user' | 'assistant' | 'tool' | 'error';
 	content: string;
+	/** Optional structured content blocks for the message */
 	blocks?: ContentBlock[];
+	/** Additional metadata for the message */
 	meta?: string;
+	/** Whether the message is being streamed */
 	streaming?: boolean;
+	/** The model used for this message */
 	model?: string;
 	/** Attachments for user messages */
 	attachments?: PromptAttachment[];

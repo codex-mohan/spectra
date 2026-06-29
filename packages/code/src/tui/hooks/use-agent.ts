@@ -13,10 +13,26 @@ import type { Message } from '@mohanscodex/spectra-ai';
 import type { AgentTool } from '@mohanscodex/spectra-agent';
 import { pruneStaleSkills } from '../../services/skill-store.js';
 
-const MEMORY_SKILL_DISTINCTION = `Memory and skills have different jobs:
-- Memory is for durable facts: user preferences, project facts, decisions, constraints, and reminders.
-- Skills are for reusable procedures: when to use a workflow, steps to run it, checks to verify it, and pitfalls.
-- Store facts in memory; use skills only for repeatable workflows.`;
+const RUNTIME_KNOWLEDGE_POLICY = `## Runtime knowledge policy
+
+### Memory
+- Store durable facts: user preferences, project rules, repeated decisions, and environment choices.
+- Do not store secrets, transient outputs, or reusable procedures in memory.
+
+### Skills
+- Skills are reusable procedures with trigger conditions, steps, and verification.
+- Do not store plain facts or preferences as skills.
+
+### Evolving skills
+- Evolving skills are created and evolved by a hidden LLM judge, not by the main agent.
+- A session may become a skill only if it teaches a reusable workflow.
+- The judge may return: create, evolve, or skip.
+- If approval mode is enabled, skill candidates are saved only after approval.
+
+### Tool behavior
+- Use find_skills to discover skills.
+- Use skill to load instructions.
+- Keep memory and skills conceptually separate.`;
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
@@ -143,7 +159,7 @@ export function useAgent(deps: UseAgentDeps) {
 			const skillsHint = skillCount > 0
 				? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
 				: '';
-			const systemPrompt = [context.systemPrompt + skillsHint, MEMORY_SKILL_DISTINCTION, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
+			const systemPrompt = [context.systemPrompt + skillsHint, RUNTIME_KNOWLEDGE_POLICY, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
 
 			const { createTransformContextFn } = await import('../../services/compaction.js');
 			const transformContext = createTransformContextFn(
@@ -337,7 +353,7 @@ export function createSessionFactory(securityConfig: { permission: any; security
 		const skillsHint = skillCount > 0
 			? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
 			: '';
-		const systemPrompt = [context.systemPrompt + skillsHint, MEMORY_SKILL_DISTINCTION, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
+		const systemPrompt = [context.systemPrompt + skillsHint, RUNTIME_KNOWLEDGE_POLICY, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
 
 		const agent = new Agent({
 			model: {

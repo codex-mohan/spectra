@@ -341,7 +341,65 @@ Support bundled access to popular AI coding subscription plans — giving users 
 - [ ] Model capability registry: map each plan's models to their context windows, strengths, and benchmarks
 - [ ] Integration with existing provider system: plans register as providers in `packages/ai` registry
 
-## 14. TUI / UX fixes
+## 14. Multimodal input support
+
+Enable users to attach files (images, audio, video, text, PDFs, etc.) directly in the prompt input and send them as multimodal content to LLMs. Refer to OpenCode's implementation for the UX baseline — their prompt component uses extmarks (virtual text placeholders) and a MIME-typed badge system.
+
+**Badge display in prompt input:**
+- Each attached file renders as an inline badge/pill in the prompt textarea using extmarks
+- Badge format: `[Icon Label] filename` — two-segment pill with a colored icon segment + muted filename
+- Icon/label per media type with distinct colors:
+
+| Media Type | MIME Group | Badge Label | Icon | Color |
+|------------|-----------|-------------|------|-------|
+| Text files | `text/*` | `TXT` | `T` (document icon) | `theme.secondary` |
+| Images | `image/*` | `IMG` | camera/image icon | `theme.accent` |
+| PDFs | `application/pdf` | `PDF` | document icon | `theme.primary` |
+| Audio | `audio/*` | `AUD` | speaker/sound icon | `theme.warning` |
+| Video | `video/*` | `VID` | film/video icon | `theme.error` |
+| Directories | `application/x-directory` | `DIR` | folder icon | `theme.secondary` |
+| Other | fallback | MIME shortname | file icon | `theme.secondary` |
+
+**Supported MIME types:**
+- Images: `image/png`, `image/jpeg`, `image/gif`, `image/webp`
+- Audio: `audio/mpeg`, `audio/wav`, `audio/ogg`, `audio/flac`, `audio/aac`
+- Video: `video/mp4`, `video/webm`, `video/quicktime`
+- Documents: `application/pdf`, `text/plain`, `text/markdown`, `text/csv`, `text/html`, `text/css`, `text/javascript`, `application/json`, `application/xml`
+- Directories: `application/x-directory`
+
+**Attachment methods (match OpenCode patterns):**
+- [ ] `@` fuzzy search — type `@` to trigger autocomplete, fuzzy-search files by path, select one
+- [ ] Paste/drag file path — detect pasted file paths, read content based on MIME extension mapping
+- [ ] Clipboard image paste — read system clipboard for image data (cross-platform: macOS/Linux/Windows)
+- [ ] Clipboard audio/video paste — read clipboard for media file references where supported
+
+**Provider-level multimodal message construction:**
+- [ ] Anthropic Messages API: `{ type: "image", source: { type: "base64", media_type, data } }` for images; `{ type: "document", source: { type: "base64", media_type, data } }` for PDFs; audio via `{ type: "input_audio", input_audio: { data, format } }`
+- [ ] OpenAI Chat Completions: `{ type: "image_url", image_url: { url: dataUrl } }` for images; `{ type: "input_audio", input_audio: { data, format } }` for audio (supported models only)
+- [ ] OpenAI Responses API: `{ type: "input_image", image_url }` for images; `{ type: "input_audio", audio: { data, format } }` for audio
+- [ ] Gemini: `{ inlineData: { mimeType, data } }` — supports all media types natively
+- [ ] Capabilities per provider: track which providers support which media types, gracefully degrade (e.g., skip audio/video for providers that don't handle it, show a warning badge)
+
+**Implementation:**
+- [x] `FilePart` type: `{ type: "file", mime, filename, url: dataUrl, source? }` — unified attachment model
+- [x] MIME detection from file extension (local-attachment map) — extend existing map with audio/video extensions
+- [x] Size limits per media type (images: 20MB, audio: 25MB, video: 50MB, documents: 10MB) — warn user if exceeded
+- [x] Badge rendering in prompt input: extmark-based styled virtual text spans (two-segment pill: colored label + muted filename)
+- [x] Badge rendering in message display: inline two-segment pills with flexWrap, matching MIME_BADGE map pattern
+- [ ] Attachment preview: optional thumbnail for images, duration/size metadata for audio/video in badge tooltip
+- [x] `store.prompt.parts[]` tracking: maintain ordered list of file parts synced with extmark positions
+- [x] Provider registry: expose `supportedMediaTypes` per provider so the UI can show which attachments will work
+
+**OpenCode reference files:**
+- `packages/tui/src/component/prompt/index.tsx` — extmark creation, paste handling, submission
+- `packages/tui/src/component/prompt/autocomplete.tsx` — `@` file search, `createFilePart()`
+- `packages/tui/src/component/prompt/local-attachment.ts` — MIME detection by extension
+- `packages/tui/src/routes/session/index.tsx:1353-1435` — `MIME_BADGE` map + badge rendering
+- `packages/tui/src/theme/index.ts:600-621` — extmark style definitions
+- `packages/llm/src/schema/messages.ts` — `MediaPart` schema
+- `packages/llm/src/protocols/shared.ts` — `IMAGE_MIMES`, `validateMedia()`
+
+## 15. TUI / UX fixes
 
 - [x] Fix scroll issue in the slash (`/`) command menu in prompt input
 - [x] Double Esc press to interrupt an active stream

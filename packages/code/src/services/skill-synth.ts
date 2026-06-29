@@ -99,7 +99,17 @@ function normalizeSkillSynthesisDecision(
 }
 
 function buildSkillSynthesisPrompt(agentPrompt: string, trace: SessionTrace, existingSkills: Skill[]): string {
-	return `${agentPrompt}
+	return `You are evaluating whether a coding session contains a reusable procedure that should become or evolve a skill.
+
+## Runtime knowledge policy
+- Memory stores durable facts only: user preferences, project facts, decisions, constraints, reminders.
+- Skills store reusable procedures only: trigger conditions, steps, verification, pitfalls.
+- Do not create skills from facts, preferences, one-off commands, transient debugging, or raw transcripts.
+- Create when the session taught a reusable workflow not covered by existing skills.
+- Evolve when the session improves an existing reusable workflow; use the exact stored skill id.
+- Prefer skip when confidence is low.
+
+${agentPrompt}
 
 <existing_skills>
 ${formatExistingSkills(existingSkills)}
