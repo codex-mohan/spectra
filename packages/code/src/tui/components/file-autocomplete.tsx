@@ -6,7 +6,7 @@ import { c } from '../theme.js';
 import type { PromptBarRef } from '../prompt-bar.js';
 import { getDisplayIcon, getFileVisual } from '../utils/file-visuals.js';
 import { detectMime } from '../utils/local-attachment.js';
-import { getCenteredWindow } from '../utils/selection-window.js';
+import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
 
 export interface FileAutocompleteProps {
 	draftText: string;
@@ -33,9 +33,6 @@ interface Trigger {
 	range?: { start: number; end: number };
 }
 
-const MAX_LIST_ROWS = 8;
-const MIN_LIST_ROWS = 3;
-const MENU_CHROME = 3;
 const MAX_SCAN_RESULTS = 2500;
 const MAX_DEPTH = 8;
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', 'build', 'target', '.next', '__pycache__', '.venv', 'vendor']);
@@ -160,81 +157,69 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 
 	if (!trigger) return null;
 
-	const isChat = route === 'chat';
-	const spaceAbove = isChat ? Math.max(0, (promptTop ?? termHeight) - MENU_CHROME - 1) : termHeight;
-	const listH = Math.max(MIN_LIST_ROWS, Math.min(MAX_LIST_ROWS, files.length, spaceAbove));
-	const mh = listH + MENU_CHROME;
-	const menuLeft = promptLeft ?? 3;
-	const menuWidth = promptWidth ?? Math.min(50, termWidth - 8);
-	const menuTop = isChat ? (promptTop ?? termHeight) - mh - 1 : Math.floor(termHeight / 2) - mh - 2;
-
-	const visibleWindow = getCenteredWindow(files.length, selected, listH);
-	const visibleFiles = files.slice(visibleWindow.start, visibleWindow.end);
 
 	return (
-		<box
-			position="absolute"
-			left={menuLeft}
-			top={menuTop}
-			width={menuWidth}
-			height={mh}
-			zIndex={100}
-			backgroundColor={c.bgCard}
-		>
-			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between" alignItems="center">
+		<PromptAnchoredMenu
+			termWidth={termWidth}
+			termHeight={termHeight}
+			route={route}
+			promptTop={promptTop}
+			promptLeft={promptLeft}
+			promptWidth={promptWidth}
+			itemCount={files.length}
+			selected={selected}
+			headerLeft={
 				<box flexDirection="row" gap={1}>
 					<text fg={c.accent}>@</text>
 					<text fg={c.text}>{trigger.query || 'files'}</text>
 				</box>
-				<text fg={c.dim}>{loading ? 'searching...' : `${files.length} results`}</text>
-			</box>
-			<box height={1} paddingLeft={1} paddingRight={1}>
-				<text fg={c.border}>{'─'.repeat(Math.max(0, menuWidth - 2))}</text>
-			</box>
-			{loading && files.length === 0 && (
-				<box height={1} paddingLeft={1} paddingRight={1}>
-					<text fg={c.dim}>Scanning project files...</text>
-				</box>
-			)}
-			{!loading && files.length === 0 && (
-				<box height={1} paddingLeft={1} paddingRight={1}>
-					<text fg={c.dim}>No matching files</text>
-				</box>
-			)}
-			{files.length > 0 && (
-				<box height={listH} flexDirection="column">
-					{visibleFiles.map((file, offset) => {
-						const actualIndex = visibleWindow.start + offset;
-						const isSel = actualIndex === selected;
-						const mime = file.isDirectory ? 'application/x-directory' : detectMime(file.path);
-						const visual = getFileVisual({ filename: file.name, mime });
-						return (
-							<box
-								key={file.path}
-								height={1}
-								paddingLeft={1}
-								paddingRight={1}
-								backgroundColor={isSel ? c.bgSelect : c.bgCard}
-								flexDirection="row"
-								justifyContent="space-between"
-								alignItems="center"
-								onMouseDown={() => { setSelected(actualIndex); void handleSelect(file, false); }}
-							>
-								<box flexDirection="row" gap={1}>
-									<text fg={visual.color}>{getDisplayIcon({ filename: file.name, mime })}</text>
-									<text fg={isSel ? c.accent : c.text}>{file.path}</text>
-								</box>
-								<text fg={c.dim}>{file.isDirectory ? 'dir' : visual.label}</text>
+			}
+			headerRight={<text fg={c.dim}>{loading ? 'searching...' : `${files.length} results`}</text>}
+			footerLeft={<text fg={c.dim}>↑↓ navigate</text>}
+			footerRight={<text fg={c.dim}>tab/enter select · esc dismiss</text>}
+		>
+			{({ visibleWindow }) => {
+				if (loading && files.length === 0) {
+					return (
+						<box height={1} paddingLeft={1} paddingRight={1}>
+							<text fg={c.dim}>Scanning project files...</text>
+						</box>
+					);
+				}
+				if (!loading && files.length === 0) {
+					return (
+						<box height={1} paddingLeft={1} paddingRight={1}>
+							<text fg={c.dim}>No matching files</text>
+						</box>
+					);
+				}
+				return files.slice(visibleWindow.start, visibleWindow.end).map((file, offset) => {
+					const actualIndex = visibleWindow.start + offset;
+					const isSel = actualIndex === selected;
+					const mime = file.isDirectory ? 'application/x-directory' : detectMime(file.path);
+					const visual = getFileVisual({ filename: file.name, mime });
+					return (
+						<box
+							key={file.path}
+							height={1}
+							paddingLeft={1}
+							paddingRight={1}
+							backgroundColor={isSel ? c.bgSelect : c.bgCard}
+							flexDirection="row"
+							justifyContent="space-between"
+							alignItems="center"
+							onMouseDown={() => { setSelected(actualIndex); void handleSelect(file, false); }}
+						>
+							<box flexDirection="row" gap={1}>
+								<text fg={visual.color}>{getDisplayIcon({ filename: file.name, mime })}</text>
+								<text fg={isSel ? c.accent : c.text}>{file.path}</text>
 							</box>
-						);
-					})}
-				</box>
-			)}
-			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between">
-				<text fg={c.dim}>↑↓ navigate</text>
-				<text fg={c.dim}>tab/enter select · esc dismiss</text>
-			</box>
-		</box>
+							<text fg={c.dim}>{file.isDirectory ? 'dir' : visual.label}</text>
+						</box>
+					);
+				});
+			}}
+		</PromptAnchoredMenu>
 	);
 }
 

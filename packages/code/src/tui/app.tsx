@@ -38,6 +38,7 @@ import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/
 import { buildCmdItems, collectSlashNames } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
+import { ArgAutocomplete } from './components/arg-autocomplete.js';
 import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
 import { setTerminalTitle, formatSessionTitle } from './utils/terminal-title.js';
@@ -88,6 +89,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [revertPoint, setRevertPoint] = useState<string | null>(null);
 	const [draftText, setDraftText] = useState('');
 	const [slashSelected, setSlashSelected] = useState(0);
+	const [slashArgSelected, setSlashArgSelected] = useState(0);
 	const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 });
 
 	// Child session view-switching state (Phase 1)
@@ -561,10 +563,45 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		});
 	}, [cmdItems, draftText]);
 
-	const slashActive = useMemo(() => slashHead(draftText) !== undefined, [draftText]);
+	const [slashArgItems, setSlashArgItems] = useState<string[]>([]);
+
+	useEffect(() => {
+		let cancelled = false;
+		const head = slashHead(draftText);
+		const hasArgumentInput = head !== undefined && draftText.length > head.end;
+		if (!head || !hasArgumentInput) {
+			setSlashArgItems([]);
+			return;
+		}
+		const matched = cmdItems.find((item) => {
+			if (item.slashName === head.name) return true;
+			if (item.slashAliases?.includes(head.name)) return true;
+			return false;
+		});
+		if (!matched?.argCompleter) {
+			setSlashArgItems([]);
+			return;
+		}
+		const result = matched.argCompleter(head.arguments);
+		if (Array.isArray(result)) {
+			setSlashArgItems(result);
+		} else {
+			result.then((items) => {
+				if (!cancelled) setSlashArgItems(items);
+			});
+		}
+		return () => { cancelled = true; };
+	}, [cmdItems, draftText]);
+
+	const currentSlashHead = slashHead(draftText);
+	const hasSlashArgumentInput = currentSlashHead !== undefined && draftText.length > currentSlashHead.end;
+	const slashArgActive = hasSlashArgumentInput && slashArgItems.length > 0;
+
+	const slashActive = currentSlashHead !== undefined && !hasSlashArgumentInput;
 	const fileAtActive = useMemo(() => /(^|\s)@([^\s]*)$/.test(draftText), [draftText]);
 	useEffect(() => {
 		setSlashSelected(0);
+		setSlashArgSelected(0);
 	}, [draftText]);
 	useEffect(() => {
 		if (cmdSelected >= cmdFiltered.length && cmdFiltered.length > 0) setCmdSelected(cmdFiltered.length - 1);
@@ -600,6 +637,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		slashActive,
 		slashFiltered,
 		slashSelected,
+		slashArgItems,
+		slashArgActive,
+		slashArgSelected,
 		fileAtActive,
 		promptHistoryService,
 		interruptKey,
@@ -607,6 +647,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		thinkingEffort,
 		provider,
 		securityRef,
+		promptBarRef,
 		sessionId,
 		abortSession,
 		promptTextareaRef,
@@ -615,6 +656,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setCmdSelected,
 		setDraftText,
 		setSlashSelected,
+		setSlashArgSelected,
 		setNavKey,
 		setInterruptKey,
 		setSelectedAgent,
@@ -859,6 +901,20 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					query={slashHead(draftText)?.name || ''}
 					selected={slashSelected}
 					items={slashFiltered}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					route={route}
+					promptTop={promptPosition.top}
+					promptLeft={promptPosition.left}
+					promptWidth={promptPosition.width}
+				/>
+			)}
+			{slashArgActive && (
+				<ArgAutocomplete
+					commandName={slashHead(draftText)?.name || ''}
+					query={slashHead(draftText)?.arguments || ''}
+					selected={slashArgSelected}
+					items={slashArgItems}
 					termWidth={termWidth}
 					termHeight={termHeight}
 					route={route}

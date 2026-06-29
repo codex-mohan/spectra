@@ -6,6 +6,7 @@ import type { ChatMessage } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { cycleEffort } from '../variant-cycle.js';
 import { AGENTS } from '../app-constants.js';
+import { slashHead } from '../slash-commands.js';
 
 const INTERRUPT_CONFIRM_MS = 3000;
 
@@ -18,7 +19,7 @@ interface UseAppKeyboardDeps {
 	revertedMessagesRef: React.MutableRefObject<ChatMessage[]>;
 	runRedo: () => void;
 	promptHistoryService: React.MutableRefObject<PromptHistoryService>;
-	promptTextareaRef: React.MutableRefObject<any>;
+	promptBarRef: React.MutableRefObject<{ setText: (text: string, cursorOffset?: number) => void } | null>;
 
 	dialogStep: any;
 	updateVersion: string | null;
@@ -35,6 +36,9 @@ interface UseAppKeyboardDeps {
 	slashActive: boolean;
 	slashFiltered: CmdItem[];
 	slashSelected: number;
+	slashArgItems: string[];
+	slashArgActive: boolean;
+	slashArgSelected: number;
 	fileAtActive: boolean;
 
 	interruptKey: number;
@@ -45,12 +49,14 @@ interface UseAppKeyboardDeps {
 	securityRef: React.MutableRefObject<any>;
 	sessionId: React.MutableRefObject<string | null>;
 	abortSession: (sessionId: string) => void;
+	promptTextareaRef: React.MutableRefObject<any>;
 
 	setShowCmd: (v: boolean) => void;
 	setCmdFilter: React.Dispatch<React.SetStateAction<string>>;
 	setCmdSelected: React.Dispatch<React.SetStateAction<number>>;
 	setDraftText: React.Dispatch<React.SetStateAction<string>>;
 	setSlashSelected: React.Dispatch<React.SetStateAction<number>>;
+	setSlashArgSelected: React.Dispatch<React.SetStateAction<number>>;
 	setNavKey: React.Dispatch<React.SetStateAction<number>>;
 	setInterruptKey: React.Dispatch<React.SetStateAction<number>>;
 	setSelectedAgent: React.Dispatch<React.SetStateAction<string>>;
@@ -74,7 +80,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		revertedMessagesRef,
 		runRedo,
 		promptHistoryService,
-		promptTextareaRef,
+		promptBarRef,
 		dialogStep,
 		updateVersion,
 		msgControls,
@@ -88,6 +94,9 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		slashActive,
 		slashFiltered,
 		slashSelected,
+		slashArgItems,
+		slashArgActive,
+		slashArgSelected,
 		fileAtActive,
 		interruptKey,
 		selectedAgent,
@@ -96,11 +105,13 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		securityRef,
 		sessionId,
 		abortSession,
+		promptTextareaRef,
 		setShowCmd,
 		setCmdFilter,
 		setCmdSelected,
 		setDraftText,
 		setSlashSelected,
+		setSlashArgSelected,
 		setNavKey,
 		setInterruptKey,
 		setSelectedAgent,
@@ -153,21 +164,53 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			}
 			return;
 		}
+		if (slashArgActive) {
+			if (key.name === 'escape') {
+				const head = slashHead(draftText);
+				if (head) {
+					const cmdText = `/${head.name} `;
+					promptBarRef.current?.setText(cmdText, cmdText.length);
+					setDraftText(cmdText);
+				}
+				setSlashArgSelected(0);
+				return;
+			}
+			if (key.name === 'tab' || key.name === 'return' || key.name === 'enter') {
+				const arg = slashArgItems[slashArgSelected];
+				if (arg) {
+					const head = slashHead(draftText);
+					if (head) {
+						const newText = `/${head.name} ${arg}`;
+						promptBarRef.current?.setText(newText, newText.length);
+						setDraftText(newText);
+						setSlashArgSelected(0);
+					}
+				}
+				return;
+			}
+			if (key.name === 'up') {
+				setSlashArgSelected((p) => (p > 0 ? p - 1 : slashArgItems.length - 1));
+				return;
+			}
+			if (key.name === 'down') {
+				setSlashArgSelected((p) => (p < slashArgItems.length - 1 ? p + 1 : 0));
+				return;
+			}
+		}
 		if (slashActive && slashFiltered.length > 0) {
 			if (key.name === 'escape') {
 				setDraftText('');
 				setSlashSelected(0);
-				if (promptTextareaRef.current) {
-					promptTextareaRef.current.setText('');
-				}
+				promptBarRef.current?.setText('');
 				return;
 			}
 			if (key.name === 'tab') {
 				const item = slashFiltered[slashSelected];
-				if (item && promptTextareaRef.current) {
+				if (item) {
 					const cmdName = item.slashName || item.id;
-					promptTextareaRef.current.setText(`/${cmdName} `);
-					setDraftText(`/${cmdName} `);
+					const newText = `/${cmdName} `;
+					promptBarRef.current?.setText(newText, newText.length);
+					setDraftText(newText);
 					setSlashSelected(0);
 				}
 				return;
