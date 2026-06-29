@@ -1,5 +1,6 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { c } from '../theme.js';
+import { getCenteredWindow } from '../utils/selection-window.js';
 import type { CmdItem } from './command-palette.js';
 
 export interface SlashAutocompleteProps {
@@ -25,7 +26,6 @@ const MENU_CHROME = 3; // header + divider + footer rows surrounding the list
 
 export function SlashAutocomplete(props: SlashAutocompleteProps) {
 	const { query, selected, items, termWidth, termHeight, route, promptTop, promptLeft, promptWidth } = props;
-	const scrollRef = useRef<any>(null);
 
 	const isChat = route === 'chat';
 
@@ -40,11 +40,15 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 	const menuWidth = promptWidth ?? Math.min(50, termWidth - 8);
 	const menuTop = isChat ? (promptTop ?? termHeight) - mh - 1 : Math.floor(termHeight / 2) - mh - 2;
 
+	const visibleWindow = getCenteredWindow(items.length, selected, listH);
+	const visibleItems = items.slice(visibleWindow.start, visibleWindow.end);
+
 	const rows = useMemo(() => {
 		const r: any[] = [];
-		for (let i = 0; i < items.length; i++) {
-			const item = items[i];
-			const isSel = i === selected;
+		for (let offset = 0; offset < visibleItems.length; offset++) {
+			const item = visibleItems[offset];
+			const actualIndex = visibleWindow.start + offset;
+			const isSel = actualIndex === selected;
 			r.push(
 				<box
 					key={item.id}
@@ -66,26 +70,8 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 			);
 		}
 		return r;
-	}, [items, selected]);
+	}, [visibleItems, visibleWindow.start, selected]);
 
-	// Keep the highlighted row inside the scroll window. Same approach as
-	// command-palette.tsx: prefer scrollChildIntoView, fall back to manual scrollBy.
-	useEffect(() => {
-		if (!scrollRef.current) return;
-		const sel = items[selected];
-		if (!sel) return;
-		const el = scrollRef.current;
-		if (typeof el.scrollChildIntoView === 'function') {
-			el.scrollChildIntoView(sel.id);
-			return;
-		}
-		const child = el.getChildren?.()?.find?.((ch: any) => ch.id === sel.id);
-		if (child) {
-			const y = child.y - (el.y || 0);
-			if (y >= (el.height || listH)) el.scrollBy?.(y - (el.height || listH) + 1);
-			if (y < 0) el.scrollBy?.(y);
-		}
-	}, [selected, items, listH]);
 
 	return (
 		<box
@@ -116,16 +102,7 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 			<box height={1} paddingLeft={1} paddingRight={1}>
 				<text fg={c.border}>{'─'.repeat(menuWidth - 2)}</text>
 			</box>
-			<scrollbox
-				ref={(r: any) => {
-					scrollRef.current = r;
-				}}
-				maxHeight={listH}
-				scrollY={true}
-				scrollbarOptions={{ visible: false }}
-			>
-				<box flexDirection="column">{rows}</box>
-			</scrollbox>
+			<box height={listH} flexDirection="column">{rows}</box>
 			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between">
 				<text fg={c.dim}>{'\u2191\u2193'} navigate</text>
 				<text fg={c.dim}>esc dismiss</text>

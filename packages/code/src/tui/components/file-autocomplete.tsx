@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { useKeyboard } from '@opentui/react';
@@ -6,6 +6,7 @@ import { c } from '../theme.js';
 import type { PromptBarRef } from '../prompt-bar.js';
 import { getDisplayIcon, getFileVisual } from '../utils/file-visuals.js';
 import { detectMime } from '../utils/local-attachment.js';
+import { getCenteredWindow } from '../utils/selection-window.js';
 
 export interface FileAutocompleteProps {
 	draftText: string;
@@ -65,7 +66,6 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 	const { draftText, promptTop, promptLeft, promptWidth, termWidth, termHeight, route, promptBarRef } = props;
 	const [selected, setSelected] = useState(0);
 	const [trigger, setTrigger] = useState<Trigger | null>(null);
-	const scrollRef = useRef<Record<string, unknown>>(null);
 	const [files, setFiles] = useState<FileEntry[]>([]);
 	const [loading, setLoading] = useState(false);
 
@@ -91,7 +91,7 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 					.map((entry) => ({ ...entry, score: scoreEntry(entry.path, entry.name, trigger.query) }))
 					.filter((entry) => entry.score < Number.POSITIVE_INFINITY)
 					.sort((a, b) => a.score - b.score || a.path.length - b.path.length || a.path.localeCompare(b.path));
-				if (!cancelled) setFiles(ranked.slice(0, MAX_LIST_ROWS));
+				if (!cancelled) setFiles(ranked);
 			} catch {
 				if (!cancelled) setFiles([]);
 			} finally {
@@ -168,6 +168,9 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 	const menuWidth = promptWidth ?? Math.min(50, termWidth - 8);
 	const menuTop = isChat ? (promptTop ?? termHeight) - mh - 1 : Math.floor(termHeight / 2) - mh - 2;
 
+	const visibleWindow = getCenteredWindow(files.length, selected, listH);
+	const visibleFiles = files.slice(visibleWindow.start, visibleWindow.end);
+
 	return (
 		<box
 			position="absolute"
@@ -199,34 +202,33 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 				</box>
 			)}
 			{files.length > 0 && (
-				<scrollbox ref={(r: unknown) => { scrollRef.current = r as Record<string, unknown>; }} maxHeight={listH} scrollY={true} scrollbarOptions={{ visible: false }}>
-					<box flexDirection="column">
-						{files.map((file, i) => {
-							const isSel = i === selected;
-							const mime = file.isDirectory ? 'application/x-directory' : detectMime(file.path);
-							const visual = getFileVisual({ filename: file.name, mime });
-							return (
-								<box
-									key={file.path}
-									height={1}
-									paddingLeft={1}
-									paddingRight={1}
-									backgroundColor={isSel ? c.bgSelect : c.bgCard}
-									flexDirection="row"
-									justifyContent="space-between"
-									alignItems="center"
-									onMouseDown={() => { setSelected(i); void handleSelect(file, false); }}
-								>
-									<box flexDirection="row" gap={1}>
-										<text fg={visual.color}>{getDisplayIcon({ filename: file.name, mime })}</text>
-										<text fg={isSel ? c.accent : c.text}>{file.path}</text>
-									</box>
-									<text fg={c.dim}>{file.isDirectory ? 'dir' : visual.label}</text>
+				<box height={listH} flexDirection="column">
+					{visibleFiles.map((file, offset) => {
+						const actualIndex = visibleWindow.start + offset;
+						const isSel = actualIndex === selected;
+						const mime = file.isDirectory ? 'application/x-directory' : detectMime(file.path);
+						const visual = getFileVisual({ filename: file.name, mime });
+						return (
+							<box
+								key={file.path}
+								height={1}
+								paddingLeft={1}
+								paddingRight={1}
+								backgroundColor={isSel ? c.bgSelect : c.bgCard}
+								flexDirection="row"
+								justifyContent="space-between"
+								alignItems="center"
+								onMouseDown={() => { setSelected(actualIndex); void handleSelect(file, false); }}
+							>
+								<box flexDirection="row" gap={1}>
+									<text fg={visual.color}>{getDisplayIcon({ filename: file.name, mime })}</text>
+									<text fg={isSel ? c.accent : c.text}>{file.path}</text>
 								</box>
-							);
-						})}
-					</box>
-				</scrollbox>
+								<text fg={c.dim}>{file.isDirectory ? 'dir' : visual.label}</text>
+							</box>
+						);
+					})}
+				</box>
 			)}
 			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between">
 				<text fg={c.dim}>↑↓ navigate</text>

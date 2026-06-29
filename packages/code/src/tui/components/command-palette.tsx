@@ -1,5 +1,6 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { c } from '../theme.js';
+import { getCenteredWindow } from '../utils/selection-window.js';
 
 export interface CmdItem {
 	id: string;
@@ -9,6 +10,7 @@ export interface CmdItem {
 	action: () => void;
 	slashName?: string;
 	slashAliases?: string[];
+	argCompleter?: (args: string) => string[] | Promise<string[]>;
 }
 
 export interface CommandPaletteProps {
@@ -21,7 +23,6 @@ export interface CommandPaletteProps {
 
 export function CommandPalette(props: CommandPaletteProps) {
 	const { filter, selected, items, termWidth, termHeight } = props;
-	const scrollRef = useRef<any>(null);
 
 	const mw = Math.min(64, termWidth - 4);
 	const ml = Math.floor((termWidth - mw) / 2);
@@ -30,8 +31,9 @@ export function CommandPalette(props: CommandPaletteProps) {
 	const innerW = mw - 4;
 	const listH = mh - 5;
 
-	const rows = useMemo(() => {
+	const { rows, selectedRowIndex } = useMemo(() => {
 		const r: any[] = [];
+		let selectedRowIndex = 0;
 		let prevCat = '';
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
@@ -49,6 +51,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 				);
 			}
 			const isSelected = i === selected;
+			if (isSelected) selectedRowIndex = r.length;
 			r.push(
 				<box
 					key={item.id}
@@ -70,23 +73,12 @@ export function CommandPalette(props: CommandPaletteProps) {
 				</box>,
 			);
 		}
-		return r;
+		return { rows: r, selectedRowIndex };
 	}, [items, selected]);
 
-	useEffect(() => {
-		if (!scrollRef.current || !items[selected]) return;
-		const el = scrollRef.current;
-		if (typeof el.scrollChildIntoView === 'function') {
-			el.scrollChildIntoView(items[selected].id);
-		} else {
-			const child = el.getChildren?.()?.find?.((ch: any) => ch.id === items[selected].id);
-			if (child) {
-				const y = child.y - (el.y || 0);
-				if (y >= (el.height || listH)) el.scrollBy?.(y - (el.height || listH) + 1);
-				if (y < 0) el.scrollBy?.(y);
-			}
-		}
-	}, [selected, items, listH]);
+	const visibleWindow = getCenteredWindow(rows.length, selectedRowIndex, listH);
+	const visibleRows = rows.slice(visibleWindow.start, visibleWindow.end);
+
 
 	return (
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
@@ -111,25 +103,15 @@ export function CommandPalette(props: CommandPaletteProps) {
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>
-				<scrollbox
-					ref={(r: any) => {
-						scrollRef.current = r;
-					}}
-					paddingX={1}
-					maxHeight={listH}
-					scrollY={true}
-					scrollbarOptions={{ visible: false }}
-				>
-					<box flexDirection="column">
-						{rows.length === 0 ? (
-							<box height={1} paddingX={1} backgroundColor={c.bgCard}>
-								<text fg={c.dim}>No matching commands</text>
-							</box>
-						) : (
-							rows
-						)}
-					</box>
-				</scrollbox>
+				<box paddingX={1} height={listH} flexDirection="column">
+					{rows.length === 0 ? (
+						<box height={1} paddingX={1} backgroundColor={c.bgCard}>
+							<text fg={c.dim}>No matching commands</text>
+						</box>
+					) : (
+						visibleRows
+					)}
+				</box>
 				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
 					<text fg={c.dim}>
 						{'\u2191\u2193'} navigate · {'\u23CE'} select · esc close
