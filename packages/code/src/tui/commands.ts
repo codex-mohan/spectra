@@ -1,4 +1,4 @@
-import type { CmdItem } from './components/command-palette.js';
+import type { CmdItem } from './command-types.js';
 import type { SessionStore } from '../services/session-store.js';
 import { getEffortLabel } from './variant-cycle.js';
 import { titlecase } from './utils.js';
@@ -6,6 +6,7 @@ import { calculateCost, formatCost, formatTokens, isFreeModel } from '@mohanscod
 import { lookupContextWindow } from './utils/model-config.js';
 import { showToast } from './components/toast.js';
 import { backgroundTasks } from '../services/background-tasks.js';
+import { AGENT_DEFINITIONS, PRIMARY_AGENTS } from '../agents/index.js';
 
 export function buildCmdItems(opts: {
 	renderer: { destroy: () => void };
@@ -28,6 +29,7 @@ export function buildCmdItems(opts: {
 	setShowToolCalls: (fn: (v: boolean) => boolean) => void;
 	setHomeKey: (fn: (k: number) => number) => void;
 	setNavKey: (fn: (k: number) => number) => void;
+	onAgentSelected: (agent: string) => void;
 	setDialogStep: (
 		v:
 			| { type: 'provider' }
@@ -80,6 +82,7 @@ export function buildCmdItems(opts: {
 		setShowToolCalls,
 		setHomeKey,
 		setNavKey,
+		onAgentSelected,
 		setDialogStep,
 		currentEffort,
 		selectedAgent,
@@ -258,10 +261,24 @@ export function buildCmdItems(opts: {
 			slashAliases: ['agents', 'switch-agent'],
 			argCompleter: (args: string) => {
 				const q = args.trim().toLowerCase();
-				return ['build', 'plan', 'debug', 'explore', 'general'].filter((a) => a.includes(q));
+				const agents = PRIMARY_AGENTS.map((name) => ({
+					value: name,
+					desc: AGENT_DEFINITIONS[name]?.description || 'agent mode',
+				}));
+				return agents.filter((a) => a.value.includes(q) || a.desc.includes(q));
 			},
-			action: () => {
-				setDialogStep({ type: 'switch-agent' });
+			action: ({ args }) => {
+				const agent = args.trim();
+				if (!agent) {
+					setDialogStep({ type: 'switch-agent' });
+					return;
+				}
+				if (!PRIMARY_AGENTS.includes(agent)) {
+					showToast(`Unknown agent mode: ${agent}`, 'warn');
+					return;
+				}
+				onAgentSelected(agent);
+				showToast(`Switched to ${titlecase(agent)} agent`, 'info');
 			},
 		},
 		{
@@ -328,10 +345,22 @@ export function buildCmdItems(opts: {
 				const parts = args.trim().split(/\s+/);
 				if (parts.length <= 1) {
 					const q = (parts[0] || '').toLowerCase();
-					return ['read', 'add', 'replace', 'remove', 'list'].filter((a) => a.includes(q));
+					const actions = [
+						{ value: 'read', desc: 'show memory entries' },
+						{ value: 'add', desc: 'append a new entry' },
+						{ value: 'replace', desc: 'replace an entry' },
+						{ value: 'remove', desc: 'delete an entry' },
+						{ value: 'list', desc: 'list memory scopes' },
+					];
+					return actions.filter((a) => a.value.includes(q) || a.desc.includes(q));
 				}
 				const q = (parts[1] || '').toLowerCase();
-				return ['memory', 'user', 'project'].filter((a) => a.includes(q));
+				const scopes = [
+					{ value: 'memory', desc: 'agent notes' },
+					{ value: 'user', desc: 'user profile facts' },
+					{ value: 'project', desc: 'project context' },
+				];
+				return scopes.filter((s) => s.value.includes(q) || s.desc.includes(q));
 			},
 			action: () => {
 				setDialogStep({ type: 'memory' });
@@ -340,38 +369,29 @@ export function buildCmdItems(opts: {
 		{
 			id: 'skills',
 			label: 'Skills',
-			desc: 'Review and approve pending skills',
+			desc: 'Review pending and saved skills',
 			cat: 'Agent',
 			slashName: 'skills',
-			argCompleter: (args: string) => {
-				const q = args.trim().toLowerCase();
-				return ['pending', 'browse'].filter((a) => a.includes(q));
-			},
-			action: () => {
-				setDialogStep({ type: 'skills' });
-			},
-		},
-		{
-			id: 'load-skill',
-			label: 'Load Skill',
-			desc: 'Load a skill by name',
-			cat: 'Agent',
-			slashName: 'skill',
 			argCompleter: async (args: string) => {
 				const q = args.trim().toLowerCase();
+				const builtins = [
+					{ value: 'pending', desc: 'review learned skills' },
+					{ value: 'browse', desc: 'view saved skills' },
+				];
 				try {
 					const { loadAllEvolvingSkills } = await import('../services/skill-store.js');
 					const { discoverSkills } = await import('@mohanscodex/spectra-agent');
 					const evolving = await loadAllEvolvingSkills();
 					const bundled = await discoverSkills();
-					const names = [
-						...evolving.map((s) => s.name),
-						...[...bundled.values()].map((s) => s.name),
+					const skills = [
+						...evolving.map((s) => ({ value: s.name, desc: s.description || 'saved skill' })),
+						...[...bundled.values()].map((s: any) => ({ value: s.name, desc: s.description || s.whenToUse || 'bundled skill' })),
 					];
-					const unique = [...new Set(names)];
-					return q ? unique.filter((n) => n.toLowerCase().includes(q)) : unique;
+					const unique = new Map<string, { value: string; desc: string }>();
+					for (const item of [...builtins, ...skills]) unique.set(item.value, item);
+					return [...unique.values()].filter((n) => !q || n.value.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q));
 				} catch {
-					return [];
+					return builtins.filter((n) => !q || n.value.includes(q) || n.desc.includes(q));
 				}
 			},
 			action: () => {
@@ -479,34 +499,29 @@ export function buildCmdItems(opts: {
 			},
 		},
 		{
-			id: 'stats',
-			label: 'Show Stats',
-			desc: 'Session statistics',
+			id: 'session-stats',
+			label: 'Session Stats',
+			desc: 'Current session turns, messages, tokens, and runtime metrics',
 			cat: 'Observability',
 			slashName: 'stats',
 			action: () => {
-				const parts: string[] = [];
-				if (selectedModel) parts.push(`Model: ${selectedModel}`);
-				if (provider) parts.push(`Provider: ${provider}`);
-				if (turnCount != null) parts.push(`Turns: ${turnCount}`);
-				if (messagesLength > 0) parts.push(`Messages: ${messagesLength}`);
-				if (elapsedMs != null) {
-					const sec = (elapsedMs / 1000).toFixed(1);
-					parts.push(`Duration: ${sec}s`);
-				}
-				if (tokPerSec != null && tokPerSec > 0) {
-					parts.push(`${tokPerSec.toFixed(1)} tok/s`);
-				}
+				const parts = [
+					`Turns: ${turnCount ?? 0}`,
+					`Messages: ${messagesLength}`,
+					`Duration: ${elapsedMs != null ? `${(elapsedMs / 1000).toFixed(1)}s` : 'n/a'}`,
+					`Rate: ${tokPerSec != null && tokPerSec > 0 ? `${tokPerSec.toFixed(1)} tok/s` : 'n/a'}`,
+				];
 				const input = tokenUsage?.input ?? 0;
 				const output = tokenUsage?.output ?? 0;
-				if (input + output > 0) {
-					if (selectedModel && !isFreeModel(selectedModel)) {
-						const cost = calculateCost(selectedModel, { input, output });
-						parts.push(`Cost: ${formatCost(cost.total)}`);
-					}
-					parts.push(`Tokens: ↑${formatTokens(input)} ↓${formatTokens(output)}`);
+				const total = input + output;
+				parts.push(total > 0 ? `Tokens: ↑${formatTokens(input)} ↓${formatTokens(output)}` : 'Tokens: none');
+				if (total > 0 && selectedModel && !isFreeModel(selectedModel)) {
+					const cost = calculateCost(selectedModel, { input, output });
+					parts.push(`Cost: ${formatCost(cost.total)}`);
+				} else {
+					parts.push('Cost: n/a');
 				}
-				setStatus(parts.join(' · ') || 'No stats available');
+				setStatus(`Session stats · ${parts.join(' · ')}`);
 				setTimeout(() => setStatus('Ready'), 5000);
 			},
 		},
@@ -544,27 +559,24 @@ export function buildCmdItems(opts: {
 			},
 		},
 		{
-			id: 'status',
-			label: 'Status',
-			desc: 'System status',
+			id: 'system-stats',
+			label: 'System Stats',
+			desc: 'Runtime configuration, model, provider, and connected services',
 			cat: 'Observability',
-			slashName: 'status',
+			slashName: 'system-stats',
 			action: () => {
-				const parts: string[] = [];
-				if (selectedModel) parts.push(`Model: ${selectedModel}`);
-				if (provider) parts.push(`Provider: ${provider}`);
-				if (mcpCount > 0) parts.push(`MCPs: ${mcpCount}`);
-				if (selectedAgent) parts.push(`Agent: ${selectedAgent}`);
-				const input = tokenUsage?.input ?? 0;
-				const output = tokenUsage?.output ?? 0;
-				if (input + output > 0) {
-					parts.push(`Tokens: ↑${formatTokens(input)} ↓${formatTokens(output)}`);
-					if (selectedModel && !isFreeModel(selectedModel)) {
-						const cost = calculateCost(selectedModel, { input, output });
-						parts.push(`Cost: ${formatCost(cost.total)}`);
-					}
-				}
-				setStatus(parts.join(' · ') || 'No model selected');
+				const effort = currentEffort ? getEffortLabel(currentEffort) : 'default';
+				const parts = [
+					`Model: ${selectedModel ?? 'none'}`,
+					`Provider: ${provider ?? 'none'}`,
+					`Agent: ${selectedAgent || 'none'}`,
+					`MCPs: ${mcpCount}`,
+					`Custom providers: ${customProviderCount}`,
+					`Thinking: ${effort}`,
+					`Display: thinking ${showThinking ? 'on' : 'off'}, tools ${showToolCalls ? 'on' : 'off'}`,
+				];
+				if (!hasModel) parts.push('Model not configured');
+				setStatus(`System status · ${parts.join(' · ')}`);
 				setTimeout(() => setStatus('Ready'), 5000);
 			},
 		},

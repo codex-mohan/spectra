@@ -1,6 +1,6 @@
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
-import type { CmdItem } from './command-palette.js';
+import type { CmdItem } from '../command-types.js';
 
 export interface SlashAutocompleteProps {
 	query: string;
@@ -35,7 +35,7 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 			}
 			headerRight={
 				<box flexDirection="row" gap={1} height={1}>
-					<text fg={c.dim}>tab</text>
+					<text fg={c.dim}>tab/enter</text>
 				</box>
 			}
 			footerLeft={<text fg={c.dim}>{'\u2191\u2193'} navigate</text>}

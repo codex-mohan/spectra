@@ -38,6 +38,7 @@ import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/
 import { buildCmdItems, collectSlashNames } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
+import { executeCommand, type ArgCompletion, type CmdItem } from './command-types.js';
 import { ArgAutocomplete } from './components/arg-autocomplete.js';
 import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
@@ -105,6 +106,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const elapsedMs = sessionState.activeState.elapsedMs;
 	const tokPerSec = sessionState.activeState.tokPerSec;
 	const selectedAgent = sessionState.activeState.selectedAgent;
+	const turnCount = messages.filter((m: any) => m.role === 'user').length;
 	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
 	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
 	const thinkingEffort = sessionState.activeState.thinkingEffort;
@@ -348,6 +350,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				setHomeKey,
 				setNavKey,
 				setDialogStep,
+				onAgentSelected: (agent) => {
+					setSelectedAgent(agent);
+					resetAgentForModelSwitch();
+				},
 				onCycleVariant: handleCycleVariant,
 				currentEffort: thinkingEffort,
 				selectedAgent,
@@ -358,6 +364,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				tokenUsage,
 				elapsedMs,
 				tokPerSec,
+				turnCount,
 			}),
 		[
 			renderer,
@@ -389,6 +396,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			tokenUsage,
 			elapsedMs,
 			tokPerSec,
+			resetAgentForModelSwitch,
 		],
 	);
 
@@ -563,7 +571,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		});
 	}, [cmdItems, draftText]);
 
-	const [slashArgItems, setSlashArgItems] = useState<string[]>([]);
+	const normalizeArgCompletion = useCallback((item: string | ArgCompletion): ArgCompletion => {
+		return typeof item === 'string' ? { value: item } : item;
+	}, []);
+
+	const [slashArgItems, setSlashArgItems] = useState<ArgCompletion[]>([]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -584,14 +596,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		}
 		const result = matched.argCompleter(head.arguments);
 		if (Array.isArray(result)) {
-			setSlashArgItems(result);
+			setSlashArgItems(result.map(normalizeArgCompletion));
 		} else {
 			result.then((items) => {
-				if (!cancelled) setSlashArgItems(items);
+				if (!cancelled) setSlashArgItems(items.map(normalizeArgCompletion));
 			});
 		}
 		return () => { cancelled = true; };
-	}, [cmdItems, draftText]);
+	}, [cmdItems, draftText, normalizeArgCompletion]);
 
 	const currentSlashHead = slashHead(draftText);
 	const hasSlashArgumentInput = currentSlashHead !== undefined && draftText.length > currentSlashHead.end;
@@ -608,8 +620,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	}, [cmdSelected, cmdFiltered.length]);
 
 	const execCmd = useCallback(
-		(item: any) => {
-			item.action();
+		(item: CmdItem) => {
+			void executeCommand(item, { source: 'palette', args: '' });
 			setShowCmd(false);
 		},
 		[setShowCmd],
@@ -691,6 +703,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							provider={provider || ''}
 							thinkingEffort={thinkingEffort}
 							initialValue={revertDraftRef.current || ''}
+							status={status}
 							width={Math.min(68, termWidth - 8)}
 							focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
 							onTextChange={(t) => setDraftText(t)}
@@ -815,6 +828,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								initialValue={revertDraftRef.current || ''}
 								elapsedMs={elapsedMs}
 								tokenUsage={tokenUsage}
+								status={status}
 								width={termWidth - 4}
 								focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
 								onTextChange={(t) => setDraftText(t)}

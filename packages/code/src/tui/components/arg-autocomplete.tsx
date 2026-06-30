@@ -1,11 +1,12 @@
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
+import type { ArgCompletion } from '../command-types.js';
 
 export interface ArgAutocompleteProps {
 	commandName: string;
 	query: string;
 	selected: number;
-	items: string[];
+	items: ArgCompletion[];
 	termWidth: number;
 	termHeight: number;
 	route: 'home' | 'chat';
@@ -56,9 +57,11 @@ export function ArgAutocomplete(props: ArgAutocompleteProps) {
 							paddingRight={1}
 							backgroundColor={isSel ? c.bgSelect : c.bgCard}
 							flexDirection="row"
+							justifyContent="space-between"
 							alignItems="center"
 						>
-							<text fg={isSel ? c.accent : c.text}>{item}</text>
+							<text fg={isSel ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1}>{item.value}</text>
+							{item.desc && <text fg={c.dim} flexShrink={0}>{item.desc}</text>}
 						</box>
 					);
 				});

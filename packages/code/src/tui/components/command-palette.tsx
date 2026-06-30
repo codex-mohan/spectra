@@ -1,17 +1,8 @@
 import { useMemo } from 'react';
 import { c } from '../theme.js';
 import { getCenteredWindow } from '../utils/selection-window.js';
+import type { CmdItem } from '../command-types.js';
 
-export interface CmdItem {
-	id: string;
-	label: string;
-	desc: string;
-	cat?: string;
-	action: () => void;
-	slashName?: string;
-	slashAliases?: string[];
-	argCompleter?: (args: string) => string[] | Promise<string[]>;
-}
 
 export interface CommandPaletteProps {
 	filter: string;

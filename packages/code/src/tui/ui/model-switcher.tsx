@@ -14,7 +14,7 @@ export interface ModelSwitcherProps {
 	registerHandler: (fn: ((key: any) => void) | null) => void;
 }
 
-interface ModelEntry {
+export interface ModelEntry {
 	id: string;
 	name: string;
 	provider: string;
@@ -28,6 +28,20 @@ function isProviderConnected(providerId: string, customProviders?: Record<string
 	return false;
 }
 
+
+export function dedupeModels(models: ModelEntry[]): ModelEntry[] {
+	const seen = new Set<string>();
+	const unique: ModelEntry[] = [];
+
+	for (const model of models) {
+		const key = `${model.provider}\0${model.id}`;
+		if (seen.has(key)) continue;
+		seen.add(key);
+		unique.push(model);
+	}
+
+	return unique;
+}
 
 
 export function ModelSwitcher(props: ModelSwitcherProps) {
@@ -64,7 +78,7 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
 		}
 
 		Promise.all(promises).then(() => {
-			const sorted = collected.sort((a, b) => {
+			const sorted = dedupeModels(collected).sort((a, b) => {
 				const nameCmp = a.providerName.localeCompare(b.providerName);
 				if (nameCmp !== 0) return nameCmp;
 				return a.name.localeCompare(b.name);
@@ -111,6 +125,11 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
 			}
 			if (key.name === 'backspace') {
 				setFilter((p) => p.slice(0, -1));
+				setSel(0);
+				return;
+			}
+			if (key.name === 'space' && !key.ctrl && !key.meta) {
+				setFilter((p) => p + ' ');
 				setSel(0);
 				return;
 			}

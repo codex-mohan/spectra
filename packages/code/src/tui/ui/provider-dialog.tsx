@@ -73,6 +73,11 @@ function SelectDialog(props: {
 				setSel(0);
 				return;
 			}
+			if (key.name === 'space' && !key.ctrl && !key.meta) {
+				setFilter((p) => p + ' ');
+				setSel(0);
+				return;
+			}
 			if (key.name.length === 1 && !key.ctrl && !key.meta) {
 				setFilter((p) => p + key.name);
 				setSel(0);

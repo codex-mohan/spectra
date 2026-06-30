@@ -25,7 +25,7 @@ export interface PromptAnchoredMenuProps {
 
 const MAX_LIST_ROWS = 8;
 const MIN_LIST_ROWS = 3;
-const MENU_CHROME = 3;
+const MENU_CHROME = 4;
 
 export function PromptAnchoredMenu({
 	termWidth,
@@ -43,16 +43,17 @@ export function PromptAnchoredMenu({
 	children,
 }: PromptAnchoredMenuProps) {
 	const isChat = route === 'chat';
-	const spaceAbove = isChat ? Math.max(0, (promptTop ?? termHeight) - MENU_CHROME - 1) : termHeight;
+	const spaceAbove = isChat ? Math.max(0, (promptTop ?? termHeight) - MENU_CHROME) : termHeight;
 	const listHeight = Math.max(MIN_LIST_ROWS, Math.min(MAX_LIST_ROWS, itemCount, spaceAbove));
 	const height = listHeight + MENU_CHROME;
 	const left = promptLeft ?? 3;
 	const width = promptWidth ?? Math.min(50, termWidth - 8);
-	const top = isChat ? (promptTop ?? termHeight) - height - 1 : Math.floor(termHeight / 2) - height - 2;
+	const top = isChat ? Math.max(0, (promptTop ?? termHeight) - height) : Math.floor(termHeight / 2) - height - 2;
 	const visibleWindow = getCenteredWindow(itemCount, selected, listHeight);
 
 	return (
 		<box position="absolute" left={left} top={top} width={width} height={height} zIndex={100} backgroundColor={c.bgCard}>
+			<box height={1} />
 			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between" alignItems="center">
 				{headerLeft}
 				{headerRight}
