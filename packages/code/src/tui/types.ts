@@ -23,6 +23,8 @@ export interface ChatMessage {
 	meta?: string;
 	/** Whether the message is being streamed */
 	streaming?: boolean;
+	/** Queue state for a user message sent while an assistant response is active */
+	steeringStatus?: 'queued' | 'sent';
 	/** The model used for this message */
 	model?: string;
 	/** Attachments for user messages */

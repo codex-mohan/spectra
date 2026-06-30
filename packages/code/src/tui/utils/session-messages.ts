@@ -46,6 +46,7 @@ export function sdkMessagesToChatMessages(data: {
 		if (m.role === 'user') {
 			let content = '';
 			let attachments: ChatMessage['attachments'];
+			const metadata = (m.metadata || {}) as Record<string, unknown>;
 			if (typeof m.content === 'string') {
 				content = m.content;
 			} else if (Array.isArray(m.content)) {
@@ -80,6 +81,7 @@ export function sdkMessagesToChatMessages(data: {
 				role: 'user' as const,
 				content: content || '',
 				attachments,
+				steeringStatus: metadata.steeringStatus === 'queued' || metadata.steeringStatus === 'sent' ? metadata.steeringStatus : undefined,
 				model: data.model,
 			};
 		}

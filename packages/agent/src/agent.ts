@@ -303,6 +303,13 @@ export class Agent {
 
 			if (toolCalls.length === 0) {
 				await emit({ type: 'turn_end', message: assistantMessage, toolResults: [] });
+				if (await this.drainQueuedMessages(this.steeringQueue, emit)) {
+					continue;
+				}
+				if (await this.drainQueuedMessages(this.followUpQueue, emit)) {
+					turns = 0;
+					continue;
+				}
 				await emit({ type: 'agent_end', messages: this._messages });
 				return;
 			}
@@ -314,33 +321,28 @@ export class Agent {
 
 			await emit({ type: 'turn_end', message: assistantMessage, toolResults });
 
-			// Check steering queue after tool execution
-			const steeringMessages = this.steeringQueue.drain();
-			if (steeringMessages.length > 0) {
-				for (const msg of steeringMessages) {
-					this._messages.push(msg);
-					await emit({ type: 'message_start', message: msg });
-					await emit({ type: 'message_end', message: msg });
-				}
-				// Continue loop with steering messages
+			if (await this.drainQueuedMessages(this.steeringQueue, emit)) {
 				continue;
 			}
 
-			// Check follow-up queue before ending
-			const followUpMessages = this.followUpQueue.drain();
-			if (followUpMessages.length > 0) {
-				for (const msg of followUpMessages) {
-					this._messages.push(msg);
-					await emit({ type: 'message_start', message: msg });
-					await emit({ type: 'message_end', message: msg });
-				}
-				// Reset turns and continue with follow-up messages
+			if (await this.drainQueuedMessages(this.followUpQueue, emit)) {
 				turns = 0;
 				continue;
 			}
 		}
 
 		await emit({ type: 'agent_end', messages: this._messages });
+	}
+
+	private async drainQueuedMessages(queue: PendingMessageQueue, emit: EmitFn): Promise<boolean> {
+		const queuedMessages = queue.drain();
+		if (queuedMessages.length === 0) return false;
+		for (const msg of queuedMessages) {
+			this._messages.push(msg);
+			await emit({ type: 'message_start', message: msg });
+			await emit({ type: 'message_end', message: msg });
+		}
+		return true;
 	}
 
 	private async streamAssistantResponse(

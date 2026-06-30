@@ -150,6 +150,16 @@ export function MessageView({
 				<text fg={c.user} attributes={1} height={1}>
 					You
 				</text>
+				{msg.steeringStatus && (
+					<box flexDirection="row" gap={1}>
+						<text fg={msg.steeringStatus === 'queued' ? c.warn : c.success}>
+							{msg.steeringStatus === 'queued' ? '⏳' : '✓'}
+						</text>
+						<text fg={c.dim}>
+							{msg.steeringStatus === 'queued' ? 'queued for current response' : 'sent to model'}
+						</text>
+					</box>
+				)}
 				<text fg={c.text} attributes={1} maxHeight={10}>
 					{msg.content}
 				</text>

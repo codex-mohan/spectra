@@ -10,9 +10,9 @@ import type { Patch } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { genId, getMessageBlocks } from '../utils.js';
 import { AGENT_DEFINITIONS } from '../../agents/index.js';
-import { parseSlashCommand } from '../slash-commands.js';
+import { parseSlashCommand, slashHead } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
-import type { CmdItem } from '../components/command-palette.js';
+import { executeCommand, type CmdItem } from '../command-types.js';
 import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
 import { getAuthKey } from '../utils/model-config.js';
 import type { useSessionState } from './use-session-state.js';
@@ -108,14 +108,33 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	const toolArgsMap = useRef(new Map<string, unknown>());
 	const streamingIdRef = useRef<string | null>(null);
 	const streamingSessionsRef = useRef(new Set<string>());
-	const queuedMessageRef = useRef<PromptSubmitPayload | null>(null);
 	const preEditSnapshotRef = useRef<string | undefined>(undefined);
 	const titleGeneratedRef = useRef(false);
 	const firstUserMessageRef = useRef<string | null>(null);
+	const steeringMessagesRef = useRef(new Set<Message>());
+	const steeringMessageIdsRef = useRef(new Map<Message, string>());
+
 
 	function persistMessage(targetSessionId: string, sdkMsg: Message) {
 		if (!targetSessionId) return;
 		sessionStore.current.addMessage(targetSessionId, sdkMsg);
+	}
+
+	function updatePersistedMessageMetadata(targetSessionId: string, sdkMsg: Message, metadata: Record<string, unknown>) {
+		if (!targetSessionId) return;
+		const sess = sessionStore.current.get(targetSessionId);
+		if (!sess) return;
+		const index = sess.messages.findIndex((message) => message === sdkMsg || (
+			message.role === sdkMsg.role &&
+			message.timestamp === sdkMsg.timestamp &&
+			JSON.stringify(message.content) === JSON.stringify(sdkMsg.content)
+		));
+		if (index === -1) return;
+		sess.messages[index] = {
+			...sess.messages[index],
+			metadata: { ...sess.messages[index].metadata, ...metadata },
+		} as Message;
+		sessionStore.current.save(sess);
 	}
 
 	function updateLastAssistantMeta(targetSessionId: string, meta: Record<string, unknown>) {
@@ -196,15 +215,9 @@ Return ONLY the title text, nothing else.`;
 			const { text: trimmed, attachments } = payload;
 			if (!trimmed && attachments.length === 0) return;
 
-			// Only block if THIS session is streaming
-			const currentSessionId = sessionId.current || '';
-			if (streamingSessionsRef.current.has(currentSessionId)) {
-				queuedMessageRef.current = { text: trimmed, attachments };
-				return;
-			}
-
-			// Slash commands only work when there are no attachments
-			if (attachments.length === 0) {
+			// Slash commands only work when there are no attachments. A partial slash token is UI
+			// state, not a prompt; never send it to the model.
+			if (attachments.length === 0 && trimmed.startsWith('/')) {
 				const parsed = parseSlashCommand(trimmed, slashNames);
 				if (parsed.type === 'command') {
 					const cmd = cmdItems.find((item) => {
@@ -213,13 +226,78 @@ Return ONLY the title text, nothing else.`;
 						return false;
 					});
 					if (cmd) {
-						cmd.action();
+						await executeCommand(cmd, { source: 'slash', args: parsed.command.arguments });
 						setDraftText('');
 						setSlashSelected(0);
 						setSubmitKey((k) => k + 1);
 						return;
 					}
 				}
+				if (slashHead(trimmed)) {
+					showToast('Select a slash command with tab or enter before submitting', 'warn');
+					return;
+				}
+			}
+
+			const currentSessionId = sessionId.current || '';
+			if (currentSessionId && streamingSessionsRef.current.has(currentSessionId)) {
+				if (!selectedModel || !provider) {
+					showToast('Connect a provider to send prompts', 'warn');
+					return;
+				}
+
+				const agent = await getOrCreateAgent(
+					currentSessionId,
+					selectedModel,
+					provider,
+					selectedAgent,
+					customProviders,
+					thinkingEffort,
+				);
+				if (agent?.isStreaming) {
+					const userContent: Message['content'] = attachments.length > 0
+						? [
+							...(trimmed ? [{ type: 'text' as const, text: trimmed } satisfies TextContent] : []),
+							...attachments.map((att): FileContent => ({
+								type: 'file' as const,
+								mime: att.mime,
+								filename: att.filename,
+								url: att.url,
+								source: att.source,
+								metadata: att.metadata,
+							})),
+						]
+						: trimmed;
+					const userMsg: Message = {
+						role: 'user',
+						content: userContent,
+						timestamp: Date.now(),
+						metadata: { steeringStatus: 'queued' },
+					};
+					const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
+					const uid = genId();
+					steeringMessagesRef.current.add(userMsg);
+					steeringMessageIdsRef.current.set(userMsg, uid);
+					persistMessage(currentSessionId, userMsg);
+					sessionState.addMessageTo(currentSessionId, {
+						id: uid,
+						role: 'user',
+						content: displayContent,
+						attachments,
+						model: selectedModel,
+						steeringStatus: 'queued',
+					});
+					agent.steer(userMsg);
+					if (trimmed) promptHistoryService.current.append(trimmed);
+					setDraftText('');
+					setSlashSelected(0);
+					setSubmitKey((k) => k + 1);
+					sessionState.setStatusIn(currentSessionId, 'Steering queued for current response');
+					return;
+				}
+
+				streamingSessionsRef.current.delete(currentSessionId);
+				isStreamingRef.current = streamingSessionsRef.current.size > 0;
 			}
 
 			if (!selectedModel || !provider) {
@@ -337,6 +415,16 @@ Return ONLY the title text, nothing else.`;
 				}
 
 				for await (const ev of agent.run(attachments.length > 0 ? { ...userMsg, content: userContent } : promptInputText)) {
+					if (ev.type === 'message_end' && ev.message.role === 'user' && steeringMessagesRef.current.has(ev.message)) {
+						steeringMessagesRef.current.delete(ev.message);
+						updatePersistedMessageMetadata(runSessionId, ev.message, { steeringStatus: 'sent' });
+						const queuedId = steeringMessageIdsRef.current.get(ev.message);
+						if (queuedId) {
+							steeringMessageIdsRef.current.delete(ev.message);
+							sessionState.updateMessageIn(runSessionId, queuedId, { steeringStatus: 'sent' });
+						}
+						sessionState.setStatusIn(runSessionId, 'Steering sent to model');
+					}
 					if (ev.type === 'message_start' && ev.message.role === 'assistant') {
 						const newId = genId();
 						currentAssistantId = newId;
@@ -602,11 +690,6 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 				currentTurnStartRef.current = null;
 				currentTurnMsgIdRef.current = null;
 
-				const queued = queuedMessageRef.current;
-				if (queued) {
-					queuedMessageRef.current = null;
-					await handleSubmit(queued);
-				}
 			}
 		},
 		[
@@ -643,7 +726,6 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 		toolMsgMap,
 		toolArgsMap,
 		streamingIdRef,
-		queuedMessageRef,
 		handleSubmit,
 		persistMessage,
 		updateLastAssistantMeta,

@@ -44,6 +44,7 @@ export interface PromptBarProps {
 	width?: number | 'auto';
 	elapsedMs?: number | null;
 	tokenUsage?: { input: number; output: number };
+	status?: string;
 	focused?: boolean;
 	onTextChange?: (text: string) => void;
 	onGetTextarea?: (ref: unknown) => void;
@@ -147,7 +148,7 @@ export function PromptBar(props: PromptBarProps) {
 	const {
 		isLoading, spinnerFrame, inputKey, placeholder, onSubmit, hasModel,
 		agent, model, provider, thinkingEffort, initialValue, width,
-		elapsedMs, tokenUsage, focused = true,
+		elapsedMs, tokenUsage, status, focused = true,
 		onTextChange, onGetTextarea, onPositionChange, onGetPromptBar,
 	} = props;
 
@@ -302,11 +303,13 @@ export function PromptBar(props: PromptBarProps) {
 		}
 	}, [addAttachment]);
 
+	const bodyWidth = typeof width === 'number' ? Math.max(0, width - 1) : width ?? 'auto';
+
 	if (!hasModel && !isLoading) {
 		return (
 			<box flexDirection="row">
 				<box width={1} backgroundColor={c.accent} height={'auto'} />
-				<box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} width={width ?? 'auto'}>
+				<box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} width={bodyWidth}>
 					<text fg={c.warn}>●</text>
 					<text fg={c.dim}> Connect a provider to get started — </text>
 					<text fg={c.accent}>Ctrl+P</text>
@@ -320,7 +323,7 @@ export function PromptBar(props: PromptBarProps) {
 		<box flexDirection="column" ref={(r: unknown) => { boxRef.current = r; }}>
 			<box flexDirection="row">
 				<box width={1} backgroundColor={c.accent} height={'auto'} />
-				<box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} width={width ?? 'auto'}>
+				<box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} width={bodyWidth}>
 					<box flexDirection="column" flexGrow={1} paddingLeft={2}>
 						{showHint && (
 							<box height={1}><text fg={c.warn}>{charCount.toLocaleString()} chars</text></box>
@@ -357,6 +360,11 @@ export function PromptBar(props: PromptBarProps) {
 								<text fg={c.subtext}>{provider}</text>
 								{thinkingEffort && thinkingEffort !== 'none' && <text fg={c.warn}>{thinkingEffort}</text>}
 							</box>
+							{status && status !== 'Ready' && (
+								<text fg={c.dim} overflow="hidden" wrapMode="none" flexGrow={1}>
+									{status}
+								</text>
+							)}
 							{tokenUsage && (
 								<box flexDirection="row" gap={1} height={1}>
 									{elapsedMs != null && <text fg={c.dim}>{(elapsedMs / 1000).toFixed(1)}s</text>}
