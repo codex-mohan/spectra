@@ -36,59 +36,138 @@ Defensive mechanisms in the agent loop to prevent common failure modes. Based on
 - [ ] Convergence state machine: track whether agent is making forward progress or cycling between states
 - [ ] Surface safety events (interrupt, warning, hard-stop) through the agent event stream so TUI can render them
 
-## 5. Expanded slash commands
+## 5. Command system: slash invocation, templates, and plugin commands
 
-Broaden the slash command surface to cover observability, session management, git workflows, and configuration — matching capabilities found in OwlCoda (70+ commands).
+Spectra needs one command pipeline with multiple command sources. `/` is only the invocation surface in the TUI; it must not imply that every command is hardcoded in `commands.ts` or that templates/plugins are separate execution paths.
 
-**Session:**
-- [ ] `/save` — explicitly save current session
-- [ ] `/export` — export session to JSON/Markdown
-- [ ] `/history` — show conversation turn history
+**Core distinction:**
+- **Slash invocation**: user-facing command syntax and autocomplete (`/agent`, `/review`, `/memory save`). It resolves a command name plus raw argument string.
+- **Built-in command**: TypeScript command registered by Spectra core. It may open a dialog, mutate UI/session state, submit a prompt, or delegate to a template.
+- **Template command**: file-backed command whose primary behavior is rendering a prompt template into a `PromptSubmitPayload` and optionally choosing agent/model/subtask execution.
+- **Plugin command**: plugin-registered command whose handler may return command effects, including prompt injection, UI effects, tool/script execution requests, or a template-render request.
+- **Template renderer**: shared prompt-rendering service used by template commands, built-in commands, and plugin commands. It is not itself a command type and should not own command dispatch.
 
-**Git:**
-- [ ] `/commit` — stage and commit changes with AI-generated message (requires template prompt system)
-- [ ] `/review` — review uncommitted changes or current branch (requires template prompt + subagent spawning)
+**Unified command contract:**
+```typescript
+type CommandSource = 'builtin' | 'template' | 'plugin' | 'skill' | 'mcp';
 
-**Config:**
-- [ ] `/theme` — switch color theme (command registered but no dialog renders — broken)
-- [ ] `/permissions` — view/edit tool permission settings (command registered but no dialog renders — broken)
-- [ ] `/settings` — open settings panel (command registered but no dialog renders — broken)
+interface CommandDefinition {
+  id: string;
+  name: string;
+  aliases?: string[];
+  description: string;
+  category?: string;
+  source: CommandSource;
+  sourceInfo?: SourceInfo;
+  argCompleter?: (args: string, ctx: ArgCompletionContext) => MaybePromise<ArgCompletion[]>;
+  execute: (ctx: CommandRunContext) => MaybePromise<CommandEffect[] | void>;
+}
+
+type CommandEffect =
+  | { type: 'submit_prompt'; payload: PromptSubmitPayload }
+  | { type: 'spawn_subagent'; payload: PromptSubmitPayload; mode: 'read-only' | 'full' }
+  | { type: 'open_dialog'; dialog: DialogStep }
+  | { type: 'set_draft'; text: string; cursor?: number }
+  | { type: 'toast'; message: string; variant?: ToastVariant }
+  | { type: 'run_script'; script: ScriptRequest };
+```
+
+**Dispatch order:**
+1. Parse slash input into `{ name, args }`.
+2. Resolve against one registry containing built-ins, templates, plugins, skills, and MCP prompts.
+3. If names collide, keep all commands and assign stable invocation suffixes (`/review`, `/review:2`) while showing provenance in autocomplete.
+4. Run `command.before` plugin hooks.
+5. Execute the selected command.
+6. Apply returned command effects through centralized, permission-aware handlers.
+7. Run `command.after` plugin hooks.
+
+**Prompt-producing commands:**
+- `/commit` and `/review` should be template-backed built-in commands at first: registered by core, implemented by rendering bundled templates.
+- User/project templates can override or add commands without editing `commands.ts`.
+- Plugin commands can inject prompts by returning `submit_prompt` / `spawn_subagent` effects or by asking the template renderer to render a named template.
+- Prompt injection must pass through the same submit path used by manual chat input so message storage, attachments, model selection, permissions, compaction, and plugin hooks stay consistent.
+
+**Script execution from commands:**
+- Template files may declare required context providers (for example `git.diff`, `git.status`, `files.read`) but should not run shell directly in v1.
+- Plugin commands may request scripts through `run_script`, but the effect handler must route through the same permission system and shell/tool execution telemetry as normal tool calls.
+- Shell interpolation syntax such as OpenCode's `` !`cmd` `` is deferred until it can be permission-gated, audited, and displayed before execution.
+
+**Implementation tasks:**
+- [ ] Move command types from TUI-only code into a command-domain module with `CommandDefinition`, `CommandEffect`, `CommandRunContext`, and `SourceInfo`
+- [ ] Replace ad hoc `CmdItem.action()` execution with centralized `executeCommand(def, ctx)` and effect application
+- [ ] Add command provenance to autocomplete rows: source, source path/package, and collision suffix
+- [ ] Add nested argument completion support for subcommands (`/memory save`, `/skills browse`, `/agent plan`)
+- [ ] Ensure slash submit, palette submit, and plugin-triggered submit all call the same command executor
+- [ ] Keep prompt autocomplete menus separate from centered modal/select dialogs; they can share list-window utilities but not command dispatch state
 
 ## 6. Plugin system
 
-Dynamic, hook-based plugin system. Plugins extend behavior without modifying core code.
+Dynamic, hook-based plugin system. Plugins extend behavior without modifying core code and must support message-level behavior, not only request/tool hooks.
 
 **Plugin loading order (cascading precedence):**
 1. Project-level: `.spectra/plugins/` (project root, highest priority)
-2. User-level: `~/.spectra/plugins/` (global config)
+2. User-level: `~/.spectra/plugins/` or platform config dir plugins
 3. Config-defined: plugins listed in config file
+4. Package plugins: npm-style plugin packages declared in config
 
-**Hook points:**
-- [ ] `onRequest(ctx)` — intercept/modify LLM requests before sending
-- [ ] `onResponse(ctx)` — intercept/modify LLM responses after receiving
-- [ ] `onToolCall(ctx)` — intercept/modify tool calls before execution
-- [ ] `onError(ctx)` — handle errors from any stage
-- [ ] `onLoad()` / `onUnload()` — lifecycle hooks for setup/teardown
-
-**Plugin interface:**
+**Plugin shape:**
 ```typescript
-interface SpectraPlugin {
-  metadata: { name: string; version: string; description?: string }
-  onLoad?: () => Promise<void> | void
-  onUnload?: () => Promise<void> | void
-  onRequest?: (ctx: RequestHookContext) => Promise<void> | void
-  onResponse?: (ctx: ResponseHookContext) => Promise<void> | void
-  onToolCall?: (ctx: ToolCallHookContext) => Promise<void> | void
-  onError?: (ctx: ErrorHookContext) => Promise<void> | void
+export default function activate(api: SpectraPluginAPI): void | Promise<void> {
+  api.registerCommand('name', command);
+  api.registerTool(tool);
+  api.on('message.beforeAppend', handler);
+}
+
+interface SpectraPluginAPI {
+  on<E extends PluginEventName>(event: E, handler: PluginHandler<E>): Disposable;
+  registerCommand(name: string, command: PluginCommand): Disposable;
+  registerTool(tool: PluginTool): Disposable;
+  registerMessageRenderer(type: string, renderer: MessageRenderer): Disposable;
+  renderTemplate(nameOrPath: string, args: TemplateRenderArgs): Promise<RenderedTemplate>;
+  storage: PluginStorage;
+  ui: PluginUi;
 }
 ```
 
+**Message-level support (required):**
+- [ ] `message.beforeAppend` — inspect/modify/veto a user, assistant, tool, error, or custom message before it is persisted
+- [ ] `message.afterAppend` — observe persisted messages for indexing, memory, telemetry, side effects, or plugin state
+- [ ] `message.beforeProvider` — transform the message list before provider serialization without mutating stored history
+- [ ] `message.afterProvider` — observe provider-normalized messages and token/media metadata after serialization
+- [ ] `message.render` — allow custom renderers for plugin-defined message/content block types in the TUI
+- [ ] `message.compact` — let plugins summarize or protect their own custom message blocks during compaction
+- [ ] Message hook contexts must include stable message id, session id, parent/child session id, role, content blocks, attachments, metadata, source command/plugin, and abort signal
+- [ ] Message hooks must clearly separate persistent mutations from transient provider-context mutations
+- [ ] Message hooks must be ordered, timeout-bounded, and isolated so one plugin cannot corrupt history or block rendering indefinitely
+
+**Hook points:**
+- [ ] `plugin.load` / `plugin.unload` — lifecycle setup/teardown
+- [ ] `command.before` / `command.after` — command execution lifecycle
+- [ ] `input.beforeSubmit` — inspect/transform prompt text and attachments before command parsing or chat submit
+- [ ] `agent.beforeStart` / `agent.afterEnd` — agent turn lifecycle
+- [ ] `tool.beforeExecute` / `tool.afterExecute` — block/modify tool calls and observe tool results
+- [ ] `provider.beforeRequest` / `provider.afterResponse` — provider transport inspection/mutation after message normalization
+- [ ] `session.created` / `session.loaded` / `session.updated` — session lifecycle
+- [ ] `ui.toast` / `ui.status` — UI notifications and status contributions
+- [ ] `error` — plugin-aware error reporting and recovery
+
+**Safety and isolation:**
+- [ ] Validate plugin metadata and capabilities before activation
+- [ ] Require explicit capabilities for filesystem, shell/script, network, message mutation, provider mutation, and custom rendering
+- [ ] Route plugin script execution through the same permission/security layer as tools
+- [ ] Persist plugin diagnostics with source path/package and hook name
+- [ ] Add plugin timeouts and per-hook failure isolation
+- [ ] Add reload support that disposes commands/tools/hooks/renderers cleanly
+
 **Implementation:**
-- [ ] Define plugin types and hook contexts in `packages/agent`
-- [ ] Plugin loader: scan directories, dynamically import, validate metadata
-- [ ] Hook runner: iterate plugins per hook point with try/catch isolation
-- [ ] Plugin discovery CLI: `spectra plugin list`, `spectra plugin install`
-- [ ] Integrate with existing Extension trait in Rust SDK (parallel implementation)
+- [ ] Define plugin types and hook contexts in `packages/code/src/plugins`
+- [ ] Plugin loader: scan directories/packages, dynamically import, validate metadata/capabilities
+- [ ] Hook runner: deterministic ordering, try/catch isolation, timeout handling, diagnostics
+- [ ] Command registry integration: plugin commands appear in slash autocomplete with provenance and descriptions
+- [ ] Tool registry integration: plugin tools use existing `defineTool` validation and security wrappers
+- [ ] Message pipeline integration: storage, provider serialization, compaction, and TUI rendering all expose message hooks
+- [ ] Plugin discovery CLI: `spectra plugin list`, `spectra plugin install`, `spectra plugin remove`, `spectra plugin doctor`
+- [ ] Rust SDK gets a parallel native extension design later; do not bind TS plugins into Rust
 
 ## 7. Observability middleware
 
@@ -275,42 +354,104 @@ skill-name/
 *Meta / Using Skills (1):*
 - `using-skills` — mandatory workflows for how to find, read, and use skills
 
-## 10. Template prompt system
+## 10. Template command renderer and prompt effects
 
-Commands like `/commit` and `/review` need structured prompts that are loaded from files, not hardcoded in JS. This enables maintainable, user-overridable command behavior.
+Template commands are file-backed prompt programs. They are not a separate slash-command system; they are one command source inside the unified command registry. The same renderer must also be callable from built-in commands and plugin commands, because a custom slash command may need to inject a prompt, spawn a subagent, run a permission-gated script, or combine those effects.
+
+**Exact approach:**
+1. `/` parsing only identifies command name and raw args.
+2. Command resolution selects a `CommandDefinition` from the shared registry.
+3. If the command is template-backed, its `execute(ctx)` calls `renderTemplate(template, ctx)`.
+4. The renderer returns a `RenderedTemplate` plus requested execution metadata.
+5. The command returns `submit_prompt` or `spawn_subagent` effects.
+6. The central effect runner submits that payload through the same path as manual user input.
+
+**Template source locations:**
+1. Project Spectra commands: `.spectra/commands/**/*.md`
+2. OpenCode compatibility commands: `.opencode/commands/**/*.md`
+3. User/global Spectra commands: config dir `commands/**/*.md`
+4. Config-defined commands: `commands` object in `spectra.json`
+5. Bundled templates: `packages/code/src/commands/templates/**/*.md`
+
+**Template command file format:**
+```markdown
+---
+description: Review uncommitted changes
+agent: review
+model: anthropic/claude-sonnet-4-20250514
+subtask: true
+mode: read-only
+capabilities:
+  shell: false
+  files: read
+arguments:
+  - name: scope
+    description: Files, branch, or review focus
+---
+Review the current changes.
+
+User scope:
+$ARGUMENTS
+```
+
+**Renderer responsibilities:**
+- [ ] Parse YAML frontmatter and markdown body with diagnostics that include source path and line number
+- [ ] Support `$ARGUMENTS`, `$1`, `$2`, `$3`, and last-positional-rest substitution
+- [ ] Append raw args to the end of the prompt only when the template declares no placeholders
+- [ ] Resolve `@file` references through the same attachment/path-safety pipeline as prompt input
+- [ ] Support typed context providers such as `{{git.status}}`, `{{git.diff}}`, `{{session.summary}}`, and `{{selection.text}}`
+- [ ] Context providers must be explicit, permission-aware, cached per render, and visible in diagnostics
+- [ ] Return `RenderedTemplate` with prompt text, attachments, metadata, sourceInfo, requested model/agent/subtask mode, and provenance
+- [ ] Never mutate session state from the renderer; only command/effect execution may persist messages or open UI
+
+**Script and shell policy:**
+- [ ] Do not implement OpenCode-style inline shell expansion (`` !`cmd` ``) until permission prompts, audit output, and cancellation are wired
+- [ ] Template commands may request context providers; providers can internally use safe services or permission-gated tools
+- [ ] Plugin commands that need scripts must return a `run_script` effect; the central effect runner asks permissions and records output
+- [ ] Script output intended for the model must become a visible message/content block or template context block, not hidden ambient state
+
+**Built-in templates to create:**
+- [ ] `commit.md` — inspect status/diff/log, detect secrets, stage only intended files, draft matching commit message, and commit with safety rules
+- [ ] `review.md` — determine review target, collect relevant diff/context, inspect correctness/security/performance, and report actionable findings
+- [ ] `explain.md` — explain selected code or current error with file/context references
+- [ ] `test.md` — plan and run focused verification for the current change
+
+## 11. Command-spawned subagents
+
+Commands may start child sessions when the command's result is better isolated from the main conversation. `/review` should default to a read-only subagent; `/commit` can run inline or in a full-access subagent depending on user intent and permissions.
 
 **Design:**
-- [ ] Template store: load `.txt` or `.md` files from `packages/code/src/commands/templates/` (bundled) + `.spectra/commands/` (user override)
-- [ ] Variable substitution: `${path}` (worktree), `${ARGUMENTS}` (user input), `${diff}` (git diff), etc.
-- [ ] Register templates with commands: `commands.ts` loads template text, passes as `template` property
-- [ ] User override: if `.spectra/commands/review.txt` exists, use it instead of bundled version
-
-**Templates to create:**
-- [ ] `commit.txt` — git commit protocol (run git status/diff/log, analyze staged changes, draft message, commit)
-- [ ] `review.txt` — code review template (determine review type, gather context, check bugs/structure/performance)
-
-## 11. Subagent spawning from commands
-
-Commands like `/review` need to spawn a child agent session with restricted tools (read-only for review, full access for commit).
-
-**Design:**
-- [ ] Child session inherits permission rules from parent (external_directory, deny rules)
-- [ ] Child session title: `"${description} (@${agent} subagent)"`
+- [ ] `spawn_subagent` effect accepts rendered prompt, agent id, model override, permission profile, parent session id, and source command metadata
+- [ ] Child session inherits deny rules, external path restrictions, model/provider defaults, attachments, and relevant session context from parent
+- [ ] Child session title format: `"${command description} (@${agent} subagent)"`
+- [ ] Parent session records a visible message linking to child session id and result summary
+- [ ] Read-only mode disables write/edit/shell mutating tools even if the parent has them enabled
+- [ ] Full-access mode still requires normal permission gates and cannot bypass user approvals
 
 **Commands that need this:**
-- [ ] `/review` — spawns read-only subagent with review template
-- [ ] `/commit` — can run inline (main agent) or spawn subagent with commit template
+- [ ] `/review` — render review template, spawn read-only review subagent, return findings to parent
+- [ ] `/commit` — render commit template; run inline for direct user command or spawn full-access subagent when requested
+- [ ] Plugin commands — may request subagents through the same `spawn_subagent` effect, never through private session APIs
 
-## 12. Commit protocol in bash tool
+## 12. Commit and review command protocols
 
-Embed git commit instructions directly in the bash tool's system prompt, so the agent knows the correct commit workflow without needing a dedicated command.
+Commit/review behavior belongs in template-backed commands, not hardcoded into the shell tool. The shell tool may expose wall time, timeout, exit code, and safety hints, but command policy should live in templates plus command effects so users and plugins can override it.
 
-**Design (based on OpenCode's shell.txt):**
-- [ ] Embed commit protocol in bash tool description or system prompt
-- [ ] Steps: run `git status` + `git diff` + `git log` → analyze staged changes → draft message → `git add` + `git commit`
-- [ ] Safety rules: never amend unless HEAD is our commit + not pushed, never force push to main, never skip hooks
-- [ ] Secret detection: refuse to commit files likely containing secrets (.env, credentials.json)
-- [ ] Style matching: read recent commit messages to match tone/format
+**Commit protocol:**
+- [ ] Inspect `git status --short`, staged diff, unstaged diff, and recent commit style
+- [ ] Refuse obvious secrets or credential files unless the user explicitly overrides after warning
+- [ ] Stage only files relevant to the requested change; never include unrelated local work by default
+- [ ] Draft a concise message matching repository style
+- [ ] Run the project-specific verification required by the template before committing
+- [ ] Commit only after verification and final staged-file check
+- [ ] Never amend, force push, hard reset, or skip hooks unless explicitly requested
+
+**Review protocol:**
+- [ ] Detect target: unstaged changes, staged changes, current branch, PR, selected files, or user-specified scope
+- [ ] Gather only relevant files/diffs and avoid reading unrelated large artifacts
+- [ ] Report correctness, regressions, security, performance, maintainability, and missing verification
+- [ ] Return findings with file/line references and severity
+- [ ] Avoid style-only noise unless it hides a real maintainability risk
 
 ## 13. Coding plan provider integrations
 
@@ -380,15 +521,8 @@ Enable users to attach files (images, audio, video, text, PDFs, etc.) directly i
 - [ ] Gemini: `{ inlineData: { mimeType, data } }` — supports all media types natively
 - [ ] Capabilities per provider: track which providers support which media types, gracefully degrade (e.g., skip audio/video for providers that don't handle it, show a warning badge)
 
-**Implementation:**
-- [x] `FilePart` type: `{ type: "file", mime, filename, url: dataUrl, source? }` — unified attachment model
-- [x] MIME detection from file extension (local-attachment map) — extend existing map with audio/video extensions
-- [x] Size limits per media type (images: 20MB, audio: 25MB, video: 50MB, documents: 10MB) — warn user if exceeded
-- [x] Badge rendering in prompt input: extmark-based styled virtual text spans (two-segment pill: colored label + muted filename)
-- [x] Badge rendering in message display: inline two-segment pills with flexWrap, matching MIME_BADGE map pattern
+**Remaining implementation:**
 - [ ] Attachment preview: optional thumbnail for images, duration/size metadata for audio/video in badge tooltip
-- [x] `store.prompt.parts[]` tracking: maintain ordered list of file parts synced with extmark positions
-- [x] Provider registry: expose `supportedMediaTypes` per provider so the UI can show which attachments will work
 
 **OpenCode reference files:**
 - `packages/tui/src/component/prompt/index.tsx` — extmark creation, paste handling, submission
@@ -399,13 +533,7 @@ Enable users to attach files (images, audio, video, text, PDFs, etc.) directly i
 - `packages/llm/src/schema/messages.ts` — `MediaPart` schema
 - `packages/llm/src/protocols/shared.ts` — `IMAGE_MIMES`, `validateMedia()`
 
-## 15. TUI / UX fixes
-
-- [x] Fix scroll issue in the slash (`/`) command menu in prompt input
-- [x] Double Esc press to interrupt an active stream
-- [x] Clearer status reporting for subagents and other areas when they encounter an error
-
-### Future (deferred)
+## 15. Future deferred
 
 The following are deferred until the core system is stable and functional:
 
