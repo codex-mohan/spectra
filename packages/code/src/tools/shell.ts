@@ -144,13 +144,35 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 			let forceKillTimer: ReturnType<typeof setTimeout> | undefined;
 			let lastUpdate = 0;
 
+
+			const withShellMetadata = (result: ToolResult<ShellDetails>, wallTimeMs: number): ToolResult<ShellDetails> => {
+				const details = result.details;
+				const first = result.content[0];
+				if (!details || first?.type !== 'text') return result;
+				return {
+					...result,
+					content: [
+						{
+							...first,
+							text:
+								first.text +
+								`\n\n<shell_metadata>\nexit_code: ${details.exitCode}\nwall_time_ms: ${wallTimeMs}\ntimeout_ms: ${details.timeoutMs ?? effectiveTimeout}\n</shell_metadata>`,
+						},
+						...result.content.slice(1),
+					],
+				};
+			};
+
 			const finalize = (result: ToolResult<ShellDetails>) => {
 				if (resolved) return;
 				resolved = true;
 				if (forceKillTimer) clearTimeout(forceKillTimer);
 				if (result.details) {
-					result.details.wallTimeMs = Date.now() - startTime;
+					const wallTimeMs = Date.now() - startTime;
+					result.details.wallTimeMs = wallTimeMs;
 					result.details.timeoutMs = effectiveTimeout;
+					resolve(withShellMetadata(result, wallTimeMs));
+					return;
 				}
 				resolve(result);
 			};
