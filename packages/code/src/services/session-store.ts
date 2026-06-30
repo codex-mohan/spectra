@@ -155,6 +155,10 @@ export class SessionStore {
 		});
 	}
 
+	listTopLevel(dir?: string): SessionInfo[] {
+		return this.list(dir).filter((session) => !session.parentId);
+	}
+
 	get(id: string): SessionData | null {
 		const row = this.db.prepare('SELECT * FROM sessions WHERE id = ?').get(id) as any;
 		if (!row) return null;

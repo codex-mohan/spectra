@@ -87,6 +87,16 @@ describe('Session Store (SQLite)', () => {
 		expect(children[0].id).toBe(child.id);
 	});
 
+	it('lists top-level sessions without child sessions', () => {
+		const parent = store.create({ title: 'Parent' });
+		const child = store.createChild(parent.id, { title: 'Child' });
+
+		const sessions = store.listTopLevel();
+
+		expect(sessions.map((session) => session.id)).toContain(parent.id);
+		expect(sessions.map((session) => session.id)).not.toContain(child.id);
+	});
+
 	it('sets and clears revert state', () => {
 		const session = store.create({ title: 'Revert Test' });
 		store.addMessage(session.id, { role: 'user', content: 'msg1', timestamp: Date.now() } as any);

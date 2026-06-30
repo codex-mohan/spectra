@@ -39,7 +39,7 @@ export function SessionList(props: SessionListProps) {
 	const scrollRef = useRef<any>(null);
 
 	const sessions = useMemo(() => {
-		const list = store.list(process.cwd());
+		const list = store.listTopLevel(process.cwd());
 		const q = filter.toLowerCase();
 		if (!q) return list;
 		return list.filter(
@@ -121,6 +121,10 @@ export function SessionList(props: SessionListProps) {
 					setRenameInput((p) => p.slice(0, -1));
 					return;
 				}
+				if (key.name === 'space' && !key.ctrl && !key.meta) {
+					setRenameInput((p) => p + ' ');
+					return;
+				}
 				if (key.name.length === 1 && !key.ctrl && !key.meta) {
 					setRenameInput((p) => p + key.name);
 					return;
@@ -137,6 +141,11 @@ export function SessionList(props: SessionListProps) {
 			}
 			if (key.name === 'backspace') {
 				setFilter((p) => p.slice(0, -1));
+				setSel(0);
+				return;
+			}
+			if (key.name === 'space' && !key.ctrl && !key.meta) {
+				setFilter((p) => p + ' ');
 				setSel(0);
 				return;
 			}
