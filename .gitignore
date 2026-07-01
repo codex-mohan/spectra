@@ -44,6 +44,9 @@ coverage/
 .env*
 !.env.example
 
+# Local OpenCode config may contain credentials
+.opencode/
+
 # Temporary
 *.tmp
 *.temp
