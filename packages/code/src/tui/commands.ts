@@ -930,15 +930,13 @@ export function buildCmdItems(opts: {
 				const output = tokenUsage?.output ?? 0;
 				const total = input + output;
 				if (total === 0) {
-					setStatus('No token usage yet');
-					setTimeout(() => setStatus('Ready'), 3000);
+					showToast('No token usage yet', 'info');
 					return;
 				}
 				const ctxMax = selectedModel ? lookupContextWindow(selectedModel, provider) : null;
 				const pct = ctxMax ? Math.round((total / ctxMax) * 100) : null;
 				const ctxStr = pct != null ? ` · ${pct}% of ${formatTokens(ctxMax!)} ctx` : '';
-				setStatus(`↑${formatTokens(input)} input · ↓${formatTokens(output)} output${ctxStr}`);
-				setTimeout(() => setStatus('Ready'), 5000);
+				showToast(`↑${formatTokens(input)} input · ↓${formatTokens(output)} output${ctxStr}`, 'info');
 			},
 		},
 		{
@@ -964,8 +962,7 @@ export function buildCmdItems(opts: {
 				} else {
 					parts.push('Cost: n/a');
 				}
-				setStatus(`Session stats · ${parts.join(' · ')}`);
-				setTimeout(() => setStatus('Ready'), 5000);
+				showToast(parts.join(' · '), 'info');
 			},
 		},
 		{
@@ -979,26 +976,22 @@ export function buildCmdItems(opts: {
 				const output = tokenUsage?.output ?? 0;
 				const total = input + output;
 				if (total === 0) {
-					setStatus('No token usage yet');
-					setTimeout(() => setStatus('Ready'), 3000);
+					showToast('No token usage yet', 'info');
 					return;
 				}
 				if (!selectedModel) {
-					setStatus(`Tokens used: ${formatTokens(total)}`);
-					setTimeout(() => setStatus('Ready'), 3000);
+					showToast(`Tokens used: ${formatTokens(total)}`, 'info');
 					return;
 				}
 				const ctxMax = lookupContextWindow(selectedModel, provider);
 				if (!ctxMax) {
-					setStatus(`Tokens used: ${formatTokens(total)} (context window unknown for ${selectedModel})`);
-					setTimeout(() => setStatus('Ready'), 3000);
+					showToast(`Tokens used: ${formatTokens(total)} (context window unknown for ${selectedModel})`, 'info');
 					return;
 				}
 				const remaining = Math.max(0, ctxMax - total);
 				const pct = Math.round((total / ctxMax) * 100);
 				const bar = pct > 90 ? '█'.repeat(Math.round(pct / 10)) + '░'.repeat(10 - Math.round(pct / 10)) : '';
-				setStatus(`${formatTokens(total)} / ${formatTokens(ctxMax)} (${pct}%) · ${formatTokens(remaining)} remaining${bar ? ' ' + bar : ''}`);
-				setTimeout(() => setStatus('Ready'), 5000);
+				showToast(`${formatTokens(total)} / ${formatTokens(ctxMax)} (${pct}%) · ${formatTokens(remaining)} remaining${bar ? ' ' + bar : ''}`, 'info');
 			},
 		},
 		{
@@ -1019,8 +1012,7 @@ export function buildCmdItems(opts: {
 					`Display: thinking ${showThinking ? 'on' : 'off'}, tools ${showToolCalls ? 'on' : 'off'}`,
 				];
 				if (!hasModel) parts.push('Model not configured');
-				setStatus(`System status · ${parts.join(' · ')}`);
-				setTimeout(() => setStatus('Ready'), 5000);
+				showToast(parts.join(' · '), 'info');
 			},
 		},
 		// Git
