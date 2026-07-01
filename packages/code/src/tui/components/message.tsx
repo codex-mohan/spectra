@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { c, mdStyle, mdStyleMuted } from '../theme.js';
-import type { ChatMessage, ContentBlock } from '../types.js';
+import type { ChatMessage, ContentBlock, TodoPhase, TodoState, TodoStatus } from '../types.js';
 import type { PromptAttachment } from '../prompt-bar.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
@@ -113,6 +113,157 @@ function TruncatedContent(props: { text: string; maxLines: number; color?: strin
 		<box flexDirection="column" onMouseDown={overflow ? () => setExpanded(!expanded) : undefined}>
 			<text fg={props.color || c.text}>{display}</text>
 			{overflow ? <text fg={c.dim}>{expanded ? 'click to collapse' : 'click to expand'}</text> : null}
+		</box>
+	);
+}
+
+function formatValidationError(output: string): string[] | null {
+	if (!output.startsWith('Argument validation failed:') && !output.includes('Invalid arguments for tool')) return null;
+	const issuesStart = output.indexOf('[');
+	if (issuesStart < 0) return [output.split('\n')[0]];
+	try {
+		const issues = JSON.parse(output.slice(issuesStart)) as Array<{ path?: unknown[]; message?: string; expected?: string; received?: string }>;
+		return issues.map((issue) => {
+			const path = issue.path?.length ? issue.path.join('.') : 'arguments';
+			if (issue.expected && issue.received) return `${path}: expected ${issue.expected}, got ${issue.received}`;
+			return `${path}: ${issue.message || 'invalid value'}`;
+		});
+	} catch {
+		return [output.split('\n')[0]];
+	}
+}
+
+function ValidationErrorTool({ toolName, output, marginTop }: { toolName: string; output: string; marginTop: number }) {
+	const lines = formatValidationError(output) || ['Invalid arguments'];
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={c.error}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={c.error}>{toolName}</text>
+				<text fg={c.error}>invalid arguments ✕</text>
+			</box>
+			<box flexDirection="column" paddingLeft={2}>
+				{lines.map((line, i) => <text key={`validation-${i}`} fg={c.error}>{line}</text>)}
+				{toolName === 'todo' ? (
+					<text fg={c.dim}>Example: {"{\"op\":\"add_phase\",\"phase\":{\"id\":\"phase-2\",\"title\":\"Advanced Operations\",\"tasks\":[]}}"}</text>
+				) : null}
+			</box>
+		</box>
+	);
+}
+
+function displayTodoTitle(title: string): string {
+	const trimmed = title.trim();
+	if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return title;
+	try {
+		const parsed = JSON.parse(trimmed) as unknown;
+		if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && typeof (parsed as { title?: unknown }).title === 'string') {
+			return (parsed as { title: string }).title;
+		}
+	} catch {}
+	return title;
+}
+
+
+function statusMark(status: TodoStatus): string {
+	if (status === 'done') return '✓';
+	if (status === 'in_progress') return '•';
+	if (status === 'dropped') return '✕';
+	return '□';
+}
+
+function statusColor(status: TodoStatus): string {
+	if (status === 'done') return c.success;
+	if (status === 'in_progress') return c.warn;
+	if (status === 'dropped') return c.error;
+	return c.dim;
+}
+
+function roman(n: number): string {
+	const numerals: Array<[number, string]> = [
+		[10, 'X'],
+		[9, 'IX'],
+		[5, 'V'],
+		[4, 'IV'],
+		[1, 'I'],
+	];
+	let value = n;
+	let out = '';
+	for (const [amount, label] of numerals) {
+		while (value >= amount) {
+			out += label;
+			value -= amount;
+		}
+	}
+	return out || String(n);
+}
+
+function countTasks(state: TodoState): { total: number; done: number } {
+	const tasks = state.phases.flatMap((phase) => phase.tasks);
+	return { total: tasks.length, done: tasks.filter((task) => task.status === 'done').length };
+}
+
+function TodoPhaseView({ phase, index }: { phase: TodoPhase; index: number }) {
+	return (
+		<box flexDirection="column">
+			<box flexDirection="row" gap={1}>
+				<text fg={c.accent} attributes={1}>{roman(index + 1)}.</text>
+				<text fg={c.accent} attributes={1}>{displayTodoTitle(phase.title)}</text>
+			</box>
+			{phase.tasks.map((task, taskIndex) => {
+				const last = taskIndex === phase.tasks.length - 1;
+				const color = statusColor(task.status);
+				return (
+					<box key={task.id} flexDirection="row" paddingLeft={2} gap={0}>
+						<text fg={c.dim}>{last ? '└─ ' : '├─ '}</text>
+						<text fg={color}>{statusMark(task.status)}</text>
+						<text fg={task.status === 'done' || task.status === 'dropped' ? c.dim : c.text}> {displayTodoTitle(task.title)}</text>
+						<text fg={c.dim}> </text>
+						<text fg={c.subtext}>#{task.id}</text>
+					</box>
+				);
+			})}
+		</box>
+	);
+}
+
+function TodoToolView({ state, marginTop }: { state: TodoState; marginTop: number }) {
+	const counts = countTasks(state);
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={c.accent}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={c.accent}>☑</text>
+				<text fg={c.accent} attributes={1}>Todo</text>
+				<text fg={c.dim}>{counts.done}/{counts.total} tasks</text>
+			</box>
+			<box flexDirection="column" paddingLeft={2}>
+				{state.phases.length === 0 ? (
+					<text fg={c.dim}>No todos</text>
+				) : (
+					state.phases.map((phase, index) => <TodoPhaseView key={phase.id} phase={phase} index={index} />)
+				)}
+			</box>
 		</box>
 	);
 }
@@ -296,6 +447,14 @@ export function MessageView({
 		const output = stripAnsi(msg.content || '');
 		const isReadingTool = ['read', 'glob', 'grep'].includes(tName);
 		const toolError = msg.toolError === true;
+
+		if (toolError && formatValidationError(output)) {
+			return <ValidationErrorTool toolName={tName || 'tool'} output={output} marginTop={mt} />;
+		}
+
+		if (tName === 'todo' && msg.todoState) {
+			return <TodoToolView state={msg.todoState} marginTop={mt} />;
+		}
 
 		// Reading tools: inline indicator only
 		if (isReadingTool) {
