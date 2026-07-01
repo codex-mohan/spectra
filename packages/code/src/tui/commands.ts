@@ -2,11 +2,209 @@ import type { CmdItem } from './command-types.js';
 import type { SessionStore } from '../services/session-store.js';
 import { getEffortLabel } from './variant-cycle.js';
 import { titlecase } from './utils.js';
-import { calculateCost, formatCost, formatTokens, isFreeModel } from '@mohanscodex/spectra-ai';
+import { calculateCost, formatCost, formatTokens, isFreeModel, type Message } from '@mohanscodex/spectra-ai';
 import { lookupContextWindow } from './utils/model-config.js';
 import { showToast } from './components/toast.js';
 import { backgroundTasks } from '../services/background-tasks.js';
 import { AGENT_DEFINITIONS, PRIMARY_AGENTS } from '../agents/index.js';
+import type { TodoPhase, TodoState, TodoStatus, TodoTask } from './types.js';
+import { genId } from './utils.js';
+
+const TODO_SUBCOMMANDS = [
+	{ value: 'edit', desc: 'Open todos in $EDITOR (Markdown round-trip)' },
+	{ value: 'copy', desc: 'Copy todos as Markdown to clipboard' },
+	{ value: 'export', desc: 'Write todos as Markdown to a file (default: TODO.md)' },
+	{ value: 'import', desc: 'Replace todos from a Markdown file (default: TODO.md)' },
+	{ value: 'append', desc: 'Append a task; phase fuzzy-matched or auto-created' },
+	{ value: 'start', desc: 'Mark task in_progress (fuzzy-matched)' },
+	{ value: 'done', desc: 'Mark task/phase/all completed (fuzzy-matched)' },
+	{ value: 'drop', desc: 'Mark task/phase/all abandoned (fuzzy-matched)' },
+	{ value: 'rm', desc: 'Remove task/phase/all (fuzzy-matched)' },
+];
+
+const TODO_STATUS_MARK: Record<TodoStatus, string> = {
+	pending: ' ',
+	in_progress: '>',
+	done: 'x',
+	dropped: '-',
+};
+
+function emptyTodoState(): TodoState {
+	return { phases: [] };
+}
+
+function cloneTodoState(state: TodoState): TodoState {
+	return { phases: state.phases.map((phase) => ({ ...phase, tasks: phase.tasks.map((task) => ({ ...task })) })) };
+}
+
+function loadTodoStateFromSession(store: SessionStore, sessionId: string | null): TodoState {
+	if (!sessionId) return emptyTodoState();
+	const session = store.get(sessionId);
+	if (!session) return emptyTodoState();
+	let state = emptyTodoState();
+	for (const message of session.messages) {
+		if (message.role !== 'toolResult' || message.toolName !== 'todo') continue;
+		const details = message.details as { todoState?: TodoState } | undefined;
+		if (details?.todoState) state = cloneTodoState(details.todoState);
+	}
+	return state;
+}
+
+function todoCounts(state: TodoState): { done: number; total: number } {
+	const tasks = state.phases.flatMap((phase) => phase.tasks);
+	return { done: tasks.filter((task) => task.status === 'done').length, total: tasks.length };
+}
+
+function todoSummary(state: TodoState): string {
+	const counts = todoCounts(state);
+	return `Todo updated: ${counts.done}/${counts.total} done`;
+}
+
+function nextTodoId(state: TodoState, prefix: 'p' | 't'): string {
+	const ids = prefix === 'p'
+		? state.phases.map((phase) => phase.id)
+		: state.phases.flatMap((phase) => phase.tasks.map((task) => task.id));
+	let max = 0;
+	for (const id of ids) {
+		if (!id.startsWith(prefix)) continue;
+		const n = Number(id.slice(prefix.length));
+		if (Number.isInteger(n) && n > max) max = n;
+	}
+	return `${prefix}${max + 1}`;
+}
+
+function parseTodoObjectString(value: string): Record<string, unknown> | undefined {
+	const trimmed = value.trim();
+	if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return undefined;
+	try {
+		const parsed = JSON.parse(trimmed);
+		return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed as Record<string, unknown> : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+function cleanTodoTitle(title: string): string {
+	const parsed = parseTodoObjectString(title);
+	if (typeof parsed?.title === 'string') return parsed.title.trim();
+	return title.trim();
+}
+
+function normalizeQuery(input: string): string {
+	return input.trim().toLowerCase();
+}
+
+function scoreMatch(query: string, value: string): number {
+	const q = normalizeQuery(query);
+	const v = normalizeQuery(value);
+	if (!q) return 0;
+	if (v === q) return 100;
+	if (v.startsWith(q)) return 80;
+	if (v.includes(q)) return 60;
+	let pos = 0;
+	for (const ch of q) {
+		pos = v.indexOf(ch, pos);
+		if (pos < 0) return 0;
+		pos++;
+	}
+	return 30;
+}
+
+function findTodoTask(state: TodoState, query: string): { phase: TodoPhase; task: TodoTask; index: number } | undefined {
+	let best: { phase: TodoPhase; task: TodoTask; index: number; score: number } | undefined;
+	for (const phase of state.phases) {
+		for (let index = 0; index < phase.tasks.length; index++) {
+			const task = phase.tasks[index];
+			const score = Math.max(scoreMatch(query, task.id), scoreMatch(query, task.title));
+			if (score > (best?.score ?? 0)) best = { phase, task, index, score };
+		}
+	}
+	return best && best.score > 0 ? best : undefined;
+}
+
+function findTodoPhase(state: TodoState, query: string): { phase: TodoPhase; index: number } | undefined {
+	let best: { phase: TodoPhase; index: number; score: number } | undefined;
+	for (let index = 0; index < state.phases.length; index++) {
+		const phase = state.phases[index];
+		const score = Math.max(scoreMatch(query, phase.id), scoreMatch(query, phase.title));
+		if (score > (best?.score ?? 0)) best = { phase, index, score };
+	}
+	return best && best.score > 0 ? best : undefined;
+}
+
+function markdownFromTodos(state: TodoState): string {
+	if (state.phases.length === 0) return '# Tasks\n\n';
+	return state.phases.map((phase) => {
+		const lines = [`# ${cleanTodoTitle(phase.title)} <!-- id:${phase.id} -->`, ''];
+		for (const task of phase.tasks) {
+			lines.push(`- [${TODO_STATUS_MARK[task.status]}] ${cleanTodoTitle(task.title)} <!-- id:${task.id} status:${task.status}${task.priority ? ` priority:${task.priority}` : ''} -->`);
+		}
+		return lines.join('\n');
+	}).join('\n\n');
+}
+
+function todosFromMarkdown(markdown: string): TodoState {
+	const state = emptyTodoState();
+	let current: TodoPhase | undefined;
+	for (const rawLine of markdown.split(/\r?\n/)) {
+		const heading = rawLine.match(/^#{1,6}\s+(.+?)(?:\s+<!--\s*id:([^-\s]+)\s*-->)?\s*$/);
+		if (heading) {
+			const title = cleanTodoTitle(heading[1].replace(/<!--.*-->/, '').trim());
+			current = { id: heading[2] || nextTodoId(state, 'p'), title, tasks: [] };
+			state.phases.push(current);
+			continue;
+		}
+		const item = rawLine.match(/^\s*[-*]\s+\[([ xX>\-])\]\s+(.+?)(?:\s+<!--\s*(.*?)\s*-->)?\s*$/);
+		if (!item) continue;
+		if (!current) {
+			current = { id: nextTodoId(state, 'p'), title: 'Tasks', tasks: [] };
+			state.phases.push(current);
+		}
+		const meta = item[3] || '';
+		const id = meta.match(/\bid:([^\s]+)/)?.[1] || nextTodoId(state, 't');
+		const statusMeta = meta.match(/\bstatus:([^\s]+)/)?.[1] as TodoStatus | undefined;
+		const priority = meta.match(/\bpriority:([^\s]+)/)?.[1] as TodoTask['priority'] | undefined;
+		const mark = item[1].toLowerCase();
+		const status: TodoStatus = statusMeta || (mark === 'x' ? 'done' : mark === '>' ? 'in_progress' : mark === '-' ? 'dropped' : 'pending');
+		current.tasks.push({ id, title: cleanTodoTitle(item[2].replace(/<!--.*-->/, '').trim()), status, priority });
+	}
+	return state;
+}
+
+function addTodoToolMessage(opts: {
+	store: SessionStore;
+	sessionId: string | null;
+	setMessages: (fn: (prev: any[]) => any[]) => void;
+	action: string;
+	state: TodoState;
+}) {
+	const summary = todoSummary(opts.state);
+	const details = { args: { op: opts.action }, action: opts.action, todoState: cloneTodoState(opts.state), summary };
+	if (opts.sessionId) {
+		const message: Message = {
+			role: 'toolResult',
+			toolCallId: `todo-${Date.now()}`,
+			toolName: 'todo',
+			content: [{ type: 'text', text: summary }],
+			details,
+			isError: false,
+			timestamp: Date.now(),
+		};
+		opts.store.addMessage(opts.sessionId, message);
+	}
+	opts.setMessages((prev) => [...prev, {
+		id: genId(),
+		role: 'tool',
+		content: summary,
+		meta: `todo(${JSON.stringify({ op: opts.action })})`,
+		todoState: cloneTodoState(opts.state),
+	}]);
+}
+
+async function writeClipboardText(text: string): Promise<void> {
+	const clipboard = await import('clipboardy');
+	await clipboard.default.write(text);
+}
 
 export function buildCmdItems(opts: {
 	renderer: { destroy: () => void };
@@ -92,6 +290,180 @@ export function buildCmdItems(opts: {
 		tokPerSec,
 		turnCount,
 	} = opts;
+
+	const commitTodoState = (action: string, state: TodoState) => {
+		addTodoToolMessage({ store: s, sessionId: sessionIdRef.current, setMessages, action, state });
+		setRoute('chat');
+		const counts = todoCounts(state);
+		showToast(`Todo ${counts.done}/${counts.total} done`, 'success');
+	};
+
+	const runTodoCommand = async (rawArgs: string) => {
+		const args = rawArgs.trim();
+		const [op = 'view', ...restParts] = args.split(/\s+/);
+		const rest = restParts.join(' ').trim();
+		let state = loadTodoStateFromSession(s, sessionIdRef.current);
+
+		if (op === 'view') {
+			commitTodoState('view', state);
+			return;
+		}
+		if (op === 'copy') {
+			await writeClipboardText(markdownFromTodos(state));
+			showToast('Todos copied to clipboard', 'success');
+			return;
+		}
+		if (op === 'export') {
+			const { writeFileSync } = await import('node:fs');
+			const { resolve } = await import('node:path');
+			const file = resolve(rest || 'TODO.md');
+			writeFileSync(file, markdownFromTodos(state), 'utf8');
+			showToast(`Todos exported to ${file}`, 'success');
+			return;
+		}
+		if (op === 'import') {
+			const { readFileSync } = await import('node:fs');
+			const { resolve } = await import('node:path');
+			const file = resolve(rest || 'TODO.md');
+			state = todosFromMarkdown(readFileSync(file, 'utf8'));
+			commitTodoState('import', state);
+			return;
+		}
+		if (op === 'edit') {
+			const { mkdtempSync, readFileSync, writeFileSync, rmSync } = await import('node:fs');
+			const { tmpdir } = await import('node:os');
+			const { join } = await import('node:path');
+			const { spawnSync } = await import('node:child_process');
+			const dir = mkdtempSync(join(tmpdir(), 'spectra-todos-'));
+			const file = join(dir, 'TODO.md');
+			writeFileSync(file, markdownFromTodos(state), 'utf8');
+			const editor = process.env.EDITOR || process.env.VISUAL || (process.platform === 'win32' ? 'notepad' : 'vi');
+			const result = spawnSync(editor, [file], { stdio: 'inherit', shell: true });
+			if (result.error || result.status !== 0) {
+				showToast(`Editor failed: ${result.error?.message || result.status}`, 'error');
+				rmSync(dir, { recursive: true, force: true });
+				return;
+			}
+			state = todosFromMarkdown(readFileSync(file, 'utf8'));
+			rmSync(dir, { recursive: true, force: true });
+			commitTodoState('edit', state);
+			return;
+		}
+
+		if (op === 'append') {
+			if (!rest) {
+				showToast('Usage: /todo append [phase:] task', 'warn');
+				return;
+			}
+			const split = rest.match(/^([^:|]+)[:|]\s*(.+)$/);
+			const phaseQuery = split?.[1]?.trim();
+			const rawTitle = (split?.[2] || rest).trim();
+			const taskObject = parseTodoObjectString(rawTitle);
+			const title = typeof taskObject?.title === 'string' ? taskObject.title : cleanTodoTitle(rawTitle);
+			let phase = phaseQuery ? findTodoPhase(state, phaseQuery)?.phase : state.phases[state.phases.length - 1];
+			if (!phase) {
+				phase = { id: nextTodoId(state, 'p'), title: phaseQuery ? cleanTodoTitle(phaseQuery) : 'Tasks', tasks: [] };
+				state.phases.push(phase);
+			}
+			phase.tasks.push({
+				id: typeof taskObject?.id === 'string' ? taskObject.id : nextTodoId(state, 't'),
+				title,
+				status: typeof taskObject?.status === 'string' ? taskObject.status as TodoStatus : 'pending',
+				priority: typeof taskObject?.priority === 'string' ? taskObject.priority as TodoTask['priority'] : undefined,
+			});
+			commitTodoState('append', state);
+			return;
+		}
+
+		if (op === 'start') {
+			const found = findTodoTask(state, rest);
+			if (!found) {
+				showToast(`No matching todo task: ${rest}`, 'warn');
+				return;
+			}
+			for (const phase of state.phases) for (const task of phase.tasks) if (task.status === 'in_progress') task.status = 'pending';
+			found.task.status = 'in_progress';
+			commitTodoState('start', state);
+			return;
+		}
+
+		if (op === 'done' || op === 'drop') {
+			if (rest === 'all') {
+				for (const phase of state.phases) for (const task of phase.tasks) task.status = op === 'done' ? 'done' : 'dropped';
+				commitTodoState(op, state);
+				return;
+			}
+			const taskMatch = findTodoTask(state, rest);
+			if (taskMatch) {
+				taskMatch.task.status = op === 'done' ? 'done' : 'dropped';
+				commitTodoState(op, state);
+				return;
+			}
+			const phaseMatch = findTodoPhase(state, rest);
+			if (phaseMatch) {
+				for (const task of phaseMatch.phase.tasks) task.status = op === 'done' ? 'done' : 'dropped';
+				commitTodoState(op, state);
+				return;
+			}
+			showToast(`No matching todo task or phase: ${rest}`, 'warn');
+			return;
+		}
+
+		if (op === 'rm') {
+			if (rest === 'all') {
+				state = emptyTodoState();
+				commitTodoState('rm', state);
+				return;
+			}
+			const taskMatch = findTodoTask(state, rest);
+			if (taskMatch) {
+				taskMatch.phase.tasks.splice(taskMatch.index, 1);
+				commitTodoState('rm', state);
+				return;
+			}
+			const phaseMatch = findTodoPhase(state, rest);
+			if (phaseMatch) {
+				state.phases.splice(phaseMatch.index, 1);
+				commitTodoState('rm', state);
+				return;
+			}
+			showToast(`No matching todo task or phase: ${rest}`, 'warn');
+			return;
+		}
+
+		showToast(`Unknown /todo command: ${op}`, 'warn');
+	};
+
+	const completeTodoArgs = (rawArgs: string) => {
+		const args = rawArgs.trimStart();
+		const parts = args.split(/\s+/);
+		const op = parts[0] || '';
+		const state = loadTodoStateFromSession(s, sessionIdRef.current);
+		if (!op || parts.length === 1) {
+			const q = op.toLowerCase();
+			return TODO_SUBCOMMANDS
+				.filter((item) => item.value.includes(q) || item.desc.toLowerCase().includes(q))
+				.map((item) => ({ value: item.value, desc: item.desc }));
+		}
+		const query = parts.slice(1).join(' ');
+		if (op === 'start' || op === 'done' || op === 'drop' || op === 'rm') {
+			const phaseItems = state.phases
+				.filter((phase) => scoreMatch(query, phase.id) || scoreMatch(query, phase.title))
+				.map((phase) => ({ value: `${op} ${phase.id}`, desc: `phase · ${phase.title}` }));
+			const taskItems = state.phases.flatMap((phase) => phase.tasks
+				.filter((task) => scoreMatch(query, task.id) || scoreMatch(query, task.title))
+				.map((task) => ({ value: `${op} ${task.id}`, desc: `${task.status} · ${task.title}` })));
+			const allItem = op === 'start' ? [] : [{ value: `${op} all`, desc: 'all tasks' }];
+			return [...allItem, ...taskItems, ...phaseItems];
+		}
+		if (op === 'append') {
+			return state.phases
+				.filter((phase) => scoreMatch(query, phase.id) || scoreMatch(query, phase.title))
+				.map((phase) => ({ value: `append ${phase.title}: `, desc: 'append to phase' }));
+		}
+		return [];
+	};
+
 	return [
 		// Session
 		{
@@ -184,38 +556,142 @@ export function buildCmdItems(opts: {
 				setStatus('Session archived');
 			},
 		},
+		// Conversation
 		{
 			id: 'clear',
 			label: 'Clear',
 			desc: 'Clear conversation',
-			cat: 'Session',
+			cat: 'Conversation',
 			slashName: 'clear',
 			action: () => {
 				setMessages(() => []);
 				setStatus('Cleared');
 			},
 		},
-		// Display
 		{
-			id: 'toggle-thinking',
-			label: `${showThinking ? 'Hide' : 'Show'} Thinking`,
-			desc: showThinking ? 'Hide thinking blocks' : 'Show thinking blocks',
-			cat: 'Display',
-			slashName: 'thinking',
-			slashAliases: ['toggle-thinking'],
+			id: 'todo',
+			label: 'Todo',
+			desc: 'Manage phased session todos',
+			cat: 'Conversation',
+			slashName: 'todo',
+			argCompleter: completeTodoArgs,
+			action: ({ args }) => runTodoCommand(args),
+		},
+		{
+			id: 'save',
+			label: 'Save Session',
+			desc: 'Explicitly save current session',
+			cat: 'Conversation',
+			slashName: 'save',
 			action: () => {
-				setShowThinking((v) => !v);
+				const sid = sessionIdRef.current;
+				if (!sid) {
+					showToast('No active session to save', 'warn');
+					return;
+				}
+				showToast('Session saved', 'success');
 			},
 		},
 		{
-			id: 'toggle-tools',
-			label: `${showToolCalls ? 'Hide' : 'Show'} Tool Calls`,
-			desc: showToolCalls ? 'Hide tool call indicators' : 'Show tool call indicators',
-			cat: 'Display',
-			slashName: 'tools',
-			slashAliases: ['toggle-tools'],
+			id: 'search',
+			label: 'Search Sessions',
+			desc: 'Search sessions by query',
+			cat: 'Conversation',
+			slashName: 'search',
 			action: () => {
-				setShowToolCalls((v) => !v);
+				setDialogStep({ type: 'session-list' });
+			},
+		},
+		{
+			id: 'export',
+			label: 'Export Session',
+			desc: 'Export session to JSON/Markdown',
+			cat: 'Conversation',
+			slashName: 'export',
+			action: () => {
+				const sid = sessionIdRef.current;
+				if (!sid) {
+					showToast('No active session to export', 'warn');
+					return;
+				}
+				showToast('Export feature coming soon', 'info');
+			},
+		},
+		{
+			id: 'history',
+			label: 'Show History',
+			desc: 'Conversation turn history',
+			cat: 'Conversation',
+			slashName: 'history',
+			action: () => {
+				if (messagesLength === 0) {
+					showToast('No conversation history', 'warn');
+					return;
+				}
+				showToast(`${messagesLength} messages in conversation`, 'info');
+			},
+		},
+		{
+			id: 'compress',
+			label: 'Compress Context',
+			desc: 'Manually trigger context compaction',
+			cat: 'Conversation',
+			slashName: 'compress',
+			action: async () => {
+				if (!opts.sessionIdRef.current) {
+					showToast('No active session', 'warn');
+					return;
+				}
+				const sess = opts.sessionStore.get(opts.sessionIdRef.current);
+				if (!sess) {
+					showToast('Session not found', 'warn');
+					return;
+				}
+				if (sess.messages.length < 4) {
+					showToast('Not enough messages to compact', 'info');
+					return;
+				}
+				showToast('Compacting context...', 'info');
+				try {
+					const { needsCompaction, buildCompactionPrompt, compactMessages } = await import('../services/compaction.js');
+					const { stream, initProviders } = await import('@mohanscodex/spectra-ai');
+					const { getAuthKey } = await import('./utils/model-config.js');
+					initProviders();
+
+					if (!opts.selectedModel || !opts.provider) {
+						showToast('No model configured', 'warn');
+						return;
+					}
+					const apiKey = getAuthKey(opts.provider);
+					if (!apiKey) {
+						showToast('No API key for provider', 'warn');
+						return;
+					}
+
+					const prompt = buildCompactionPrompt(sess.messages);
+					const modelObj = { id: opts.selectedModel, name: opts.selectedModel, provider: opts.provider, api: opts.provider };
+					const ctx = { messages: [{ role: 'user' as const, content: prompt, timestamp: Date.now() }] };
+					const events = stream(modelObj as any, ctx, { apiKey });
+
+					let summary = '';
+					for await (const event of events) {
+						if (event.type === 'text_delta' && event.delta) {
+							summary += event.delta;
+						}
+					}
+					summary = summary.trim();
+					if (!summary || summary.length < 50) {
+						showToast('Compaction produced no useful summary', 'warn');
+						return;
+					}
+
+					const compacted = compactMessages(sess.messages, summary);
+					sess.messages = compacted;
+					opts.sessionStore.save(sess);
+					showToast(`Context compacted (${sess.messages.length} messages)`, 'success');
+				} catch (err) {
+					showToast(`Compaction failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
+				}
 			},
 		},
 		// Provider
@@ -398,6 +874,29 @@ export function buildCmdItems(opts: {
 				setDialogStep({ type: 'skills' });
 			},
 		},
+		// Display
+		{
+			id: 'toggle-thinking',
+			label: `${showThinking ? 'Hide' : 'Show'} Thinking`,
+			desc: showThinking ? 'Hide thinking blocks' : 'Show thinking blocks',
+			cat: 'Display',
+			slashName: 'thinking',
+			slashAliases: ['toggle-thinking'],
+			action: () => {
+				setShowThinking((v) => !v);
+			},
+		},
+		{
+			id: 'toggle-tools',
+			label: `${showToolCalls ? 'Hide' : 'Show'} Tool Calls`,
+			desc: showToolCalls ? 'Hide tool call indicators' : 'Show tool call indicators',
+			cat: 'Display',
+			slashName: 'tools',
+			slashAliases: ['toggle-tools'],
+			action: () => {
+				setShowToolCalls((v) => !v);
+			},
+		},
 		// Navigation
 		{
 			id: 'home',
@@ -408,62 +907,6 @@ export function buildCmdItems(opts: {
 			action: () => {
 				setRoute('home');
 			},
-		},
-		// System
-		{
-			id: 'doctor',
-			label: 'Doctor',
-			desc: 'Run health check',
-			cat: 'System',
-			slashName: 'doctor',
-			action: () => {
-				setDialogStep({ type: 'doctor', result: null } as any);
-				import('../commands/doctor.js').then((m) =>
-					m.runDoctor().then((result: any) => {
-						setDialogStep({ type: 'doctor', result } as any);
-					}),
-				);
-			},
-		},
-		{
-			id: 'debug',
-			label: 'Debug',
-			desc: 'System information',
-			cat: 'System',
-			slashName: 'debug',
-			action: () => {
-				setDialogStep({ type: 'debug' });
-			},
-		},
-		{
-			id: 'about',
-			label: 'About',
-			desc: 'Version info',
-			cat: 'System',
-			slashName: 'about',
-			action: () => {
-				setDialogStep({ type: 'about' });
-			},
-		},
-		{
-			id: 'help',
-			label: 'Help',
-			desc: 'Keyboard shortcuts',
-			cat: 'System',
-			slashName: 'help',
-			action: () => {
-				setStatus('Esc quit · Tab agents · Ctrl+P palette · Ctrl+L clear');
-				setTimeout(() => setStatus('Ready'), 4000);
-			},
-		},
-		{
-			id: 'quit',
-			label: 'Quit',
-			desc: 'Exit',
-			cat: 'System',
-			slashName: 'exit',
-			slashAliases: ['quit', 'q'],
-			action: () => renderer.destroy(),
 		},
 		// Observability
 		{
@@ -580,124 +1023,6 @@ export function buildCmdItems(opts: {
 				setTimeout(() => setStatus('Ready'), 5000);
 			},
 		},
-		// Session
-		{
-			id: 'save',
-			label: 'Save Session',
-			desc: 'Explicitly save current session',
-			cat: 'Session',
-			slashName: 'save',
-			action: () => {
-				const sid = sessionIdRef.current;
-				if (!sid) {
-					showToast('No active session to save', 'warn');
-					return;
-				}
-				showToast('Session saved', 'success');
-			},
-		},
-		{
-			id: 'search',
-			label: 'Search Sessions',
-			desc: 'Search sessions by query',
-			cat: 'Session',
-			slashName: 'search',
-			action: () => {
-				setDialogStep({ type: 'session-list' });
-			},
-		},
-		{
-			id: 'export',
-			label: 'Export Session',
-			desc: 'Export session to JSON/Markdown',
-			cat: 'Session',
-			slashName: 'export',
-			action: () => {
-				const sid = sessionIdRef.current;
-				if (!sid) {
-					showToast('No active session to export', 'warn');
-					return;
-				}
-				showToast('Export feature coming soon', 'info');
-			},
-		},
-		{
-			id: 'history',
-			label: 'Show History',
-			desc: 'Conversation turn history',
-			cat: 'Session',
-			slashName: 'history',
-			action: () => {
-				if (messagesLength === 0) {
-					showToast('No conversation history', 'warn');
-					return;
-				}
-				showToast(`${messagesLength} messages in conversation`, 'info');
-			},
-		},
-		{
-			id: 'compress',
-			label: 'Compress Context',
-			desc: 'Manually trigger context compaction',
-			cat: 'Session',
-			slashName: 'compress',
-			action: async () => {
-				if (!opts.sessionIdRef.current) {
-					showToast('No active session', 'warn');
-					return;
-				}
-				const sess = opts.sessionStore.get(opts.sessionIdRef.current);
-				if (!sess) {
-					showToast('Session not found', 'warn');
-					return;
-				}
-				if (sess.messages.length < 4) {
-					showToast('Not enough messages to compact', 'info');
-					return;
-				}
-				showToast('Compacting context...', 'info');
-				try {
-					const { needsCompaction, buildCompactionPrompt, compactMessages } = await import('../services/compaction.js');
-					const { stream, initProviders } = await import('@mohanscodex/spectra-ai');
-					const { getAuthKey } = await import('./utils/model-config.js');
-					initProviders();
-
-					if (!opts.selectedModel || !opts.provider) {
-						showToast('No model configured', 'warn');
-						return;
-					}
-					const apiKey = getAuthKey(opts.provider);
-					if (!apiKey) {
-						showToast('No API key for provider', 'warn');
-						return;
-					}
-
-					const prompt = buildCompactionPrompt(sess.messages);
-					const modelObj = { id: opts.selectedModel, name: opts.selectedModel, provider: opts.provider, api: opts.provider };
-					const ctx = { messages: [{ role: 'user' as const, content: prompt, timestamp: Date.now() }] };
-					const events = stream(modelObj as any, ctx, { apiKey });
-
-					let summary = '';
-					for await (const event of events) {
-						if (event.type === 'text_delta' && event.delta) {
-							summary += event.delta;
-						}
-					}
-					summary = summary.trim();
-					if (!summary || summary.length < 50) {
-						showToast('Compaction produced no useful summary', 'warn');
-						return;
-					}
-
-					const compacted = compactMessages(sess.messages, summary);
-					sess.messages = compacted;
-					opts.sessionStore.save(sess);
-					showToast(`Context compacted (${sess.messages.length} messages)`, 'success');
-				} catch (err) {
-					showToast(`Compaction failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
-				}
-			},
-		},
 		// Git
 		{
 			id: 'commit',
@@ -749,6 +1074,62 @@ export function buildCmdItems(opts: {
 			action: () => {
 				setDialogStep({ type: 'settings' });
 			},
+		},
+		// System
+		{
+			id: 'doctor',
+			label: 'Doctor',
+			desc: 'Run health check',
+			cat: 'System',
+			slashName: 'doctor',
+			action: () => {
+				setDialogStep({ type: 'doctor', result: null } as any);
+				import('../commands/doctor.js').then((m) =>
+					m.runDoctor().then((result: any) => {
+						setDialogStep({ type: 'doctor', result } as any);
+					}),
+				);
+			},
+		},
+		{
+			id: 'debug',
+			label: 'Debug',
+			desc: 'System information',
+			cat: 'System',
+			slashName: 'debug',
+			action: () => {
+				setDialogStep({ type: 'debug' });
+			},
+		},
+		{
+			id: 'about',
+			label: 'About',
+			desc: 'Version info',
+			cat: 'System',
+			slashName: 'about',
+			action: () => {
+				setDialogStep({ type: 'about' });
+			},
+		},
+		{
+			id: 'help',
+			label: 'Help',
+			desc: 'Keyboard shortcuts',
+			cat: 'System',
+			slashName: 'help',
+			action: () => {
+				setStatus('Esc quit · Tab agents · Ctrl+P palette · Ctrl+L clear');
+				setTimeout(() => setStatus('Ready'), 4000);
+			},
+		},
+		{
+			id: 'quit',
+			label: 'Quit',
+			desc: 'Exit',
+			cat: 'System',
+			slashName: 'exit',
+			slashAliases: ['quit', 'q'],
+			action: () => renderer.destroy(),
 		},
 	];
 }
