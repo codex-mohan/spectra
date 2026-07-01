@@ -102,6 +102,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const messages = sessionState.activeState.messages;
 	const isLoading = sessionState.activeState.isLoading;
 	const status = sessionState.activeState.status;
+	const visibleStatus = status !== 'Ready' && status !== 'Streaming...' ? status : null;
 	const tokenUsage = sessionState.activeState.tokenUsage;
 	const elapsedMs = sessionState.activeState.elapsedMs;
 	const tokPerSec = sessionState.activeState.tokPerSec;
@@ -693,7 +694,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						<box height={1} />
 						<PromptBar
 							isLoading={isLoading}
-							spinnerFrame={spinnerFrame}
 							inputKey={`h-${submitKey}-${navKey}`}
 							placeholder={`Ask anything... "${PLACEHOLDERS[placeholderIdx]}"`}
 							onSubmit={handleSubmit}
@@ -703,7 +703,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							provider={provider || ''}
 							thinkingEffort={thinkingEffort}
 							initialValue={revertDraftRef.current || ''}
-							status={status}
 							width={Math.min(68, termWidth - 8)}
 							focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
 							onTextChange={(t) => setDraftText(t)}
@@ -713,6 +712,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							onPositionChange={setPromptPosition}
 							onGetPromptBar={(r) => { promptBarRef.current = r; }}
 						/>
+						{visibleStatus && (
+							<box width={Math.min(68, termWidth - 8)} paddingLeft={3}>
+								<text fg={c.dim} overflow="hidden" wrapMode="none">
+									{visibleStatus}
+								</text>
+							</box>
+						)}
 						<box height={1} />
 						<box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
 							<box flexDirection="row" gap={2}>
@@ -794,9 +800,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							onTaskClick={handleViewChildSession}
 						/>
 					</box>
-					<box flexShrink={0}>
-						{viewingChildSession ? (
-							<box
+						<box flexShrink={0}>
+							{viewingChildSession ? (
+								<box
 								flexDirection="row"
 								gap={1}
 								alignItems="center"
@@ -812,11 +818,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								<text fg={c.accent}>esc</text>
 								<text fg={c.subtext}> to return</text>
 							</box>
-						) : (
-							
+							) : (
+								
 							<PromptBar
 								isLoading={isLoading}
-								spinnerFrame={spinnerFrame}
 								inputKey={`c-${submitKey}-${navKey}`}
 								placeholder={'Reply...'}
 								onSubmit={handleSubmit}
@@ -828,7 +833,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								initialValue={revertDraftRef.current || ''}
 								elapsedMs={elapsedMs}
 								tokenUsage={tokenUsage}
-								status={status}
 								width={termWidth - 4}
 								focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
 								onTextChange={(t) => setDraftText(t)}
@@ -863,6 +867,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 									</box>
 								) : (
 									<text fg={c.dim}>Ready</text>
+								)}
+								{visibleStatus && (
+									<text fg={c.dim} overflow="hidden" wrapMode="none">
+										{visibleStatus}
+									</text>
 								)}
 								{tokenUsage.input + tokenUsage.output > 0 &&
 									(() => {
