@@ -195,12 +195,16 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		const cfg = loadConfig();
 		return { permission: cfg.permission, security: cfg.security };
 	});
+	const [agentsConfig] = useState(() => {
+		const cfg = loadConfig();
+		return cfg.agents ?? {};
+	});
 
 	const sessionManager = useRef<SessionManager>(
 		new SessionManager(
 			sessionStore.current,
-			createSessionFactory(securityConfig, () => {}),
-			() => createSessionSecurityManager(securityConfig, () => {}),
+			createSessionFactory(securityConfig, agentsConfig, () => {}),
+			() => createSessionSecurityManager(securityConfig, agentsConfig, () => {}),
 		),
 	);
 
@@ -296,6 +300,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const { agentsMapRef, lastAgentRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent, resetAgentForModelSwitch } = useAgent({
 		securityRef,
 		securityConfig,
+		agentsConfig,
 		enqueuePermission,
 		sessionStore,
 		sessionId,

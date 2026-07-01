@@ -177,6 +177,7 @@ interface PermissionManagerOptions {
 	restoredApprovals?: Ruleset;
 	cwd?: string;
 	onPersist?: (approvedRules: Ruleset) => void;
+	onWarning?: (message: string) => void;
 }
 
 export function createSecurityManager(options: PermissionManagerOptions = {}) {
@@ -201,6 +202,15 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 	const pendingRequests = new Map<string, PendingRequest>();
 	let listener: PermissionListener | null = null;
 	const onPersist = options.onPersist;
+	let warningListener: ((message: string) => void) | null = options.onWarning ?? null;
+
+	function warn(message: string): void {
+		warningListener?.(message);
+	}
+
+	function setWarningListener(fn: ((message: string) => void) | null): void {
+		warningListener = fn;
+	}
 
 	function getRuleset(): Ruleset {
 		return [...configRuleset, ...approvedRuleset, ...sessionRuleset];
@@ -486,6 +496,8 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 		checkPermission,
 		extractToolPatterns,
 		setListener,
+		setWarningListener,
+		warn,
 		addApproval,
 		respondToRequest,
 		getRuleset,

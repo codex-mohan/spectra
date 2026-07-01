@@ -264,6 +264,7 @@ export class Agent {
 		while (!this.abortController?.signal.aborted) {
 			// Check maxTurns limit only if configured
 			if (this.maxTurns !== undefined && turns >= this.maxTurns) {
+				this._errorMessage = `Reached turn limit (${this.maxTurns}). Continue the conversation to keep going.`;
 				break;
 			}
 			if (turns > 0) {

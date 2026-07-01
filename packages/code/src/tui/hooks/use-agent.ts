@@ -1,12 +1,13 @@
 import { useRef, useCallback } from 'react';
 import type { SecurityManager } from '../../security/index.js';
-import type { CustomProviderConfig } from '../../services/config.js';
+import type { CustomProviderConfig, AgentConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
 import { getAuthKey } from '../utils/model-config.js';
+import { showToast } from '../components/toast.js';
 import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import type { AgentRegistryConfig } from '../../agents/registry.js';
 import { createSecurityManager } from '../../security/index.js';
-import type { PermissionRequest } from '../../security/types.js';
+import type { PermissionRequest, PermissionConfig, SecurityConfig } from '../../security/types.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SessionStore } from '../../services/session-store.js';
 import type { Message } from '@mohanscodex/spectra-ai';
@@ -36,14 +37,14 @@ const RUNTIME_KNOWLEDGE_POLICY = `## Runtime knowledge policy
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
-	securityConfig: { permission: any; security: any };
+	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig };
+	agentsConfig?: Record<string, AgentConfig>;
 	enqueuePermission: (req: PermissionRequest) => void;
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionId: React.MutableRefObject<string | null>;
 }
-
 export function useAgent(deps: UseAgentDeps) {
-	const { securityRef, securityConfig, enqueuePermission, sessionStore, sessionId } = deps;
+	const { securityRef, securityConfig, agentsConfig, enqueuePermission, sessionStore, sessionId } = deps;
 
 	// Per-session agent Map — like opencode's Map<SessionID, Runner>
 	const agentsMapRef = useRef(new Map<string, any>());
@@ -57,6 +58,7 @@ export function useAgent(deps: UseAgentDeps) {
 				config: securityConfig.permission,
 				security: securityConfig.security,
 				cwd,
+				onWarning: (message) => showToast(message, 'warn'),
 				onPersist: (rules) => {
 					try {
 						const existing = loadConfig();
@@ -179,7 +181,7 @@ export function useAgent(deps: UseAgentDeps) {
 				systemPrompt,
 				getApiKey: (p: string) => getAuthKey(p),
 				tools: agentTools,
-				maxTurns: def?.maxTurns ?? 10,
+				maxTurns: agentsConfig?.[selectedAgent]?.maxTurns ?? def?.maxTurns,
 				streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 				transformContext,
 			});
@@ -267,13 +269,15 @@ export function useAgent(deps: UseAgentDeps) {
 }
 
 export function createSessionSecurityManager(
-	securityConfig: { permission: any; security: any },
+	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
+	agentsConfig: Record<string, AgentConfig> | undefined,
 	enqueuePermission: (req: PermissionRequest) => void,
 ): SecurityManager {
 	const manager = createSecurityManager({
 		config: securityConfig.permission,
 		security: securityConfig.security,
 		cwd: process.cwd(),
+		onWarning: (message) => showToast(message, 'warn'),
 		onPersist: (rules) => {
 			try {
 				const existing = loadConfig();
@@ -300,7 +304,11 @@ export function createSessionSecurityManager(
 	return manager;
 }
 
-export function createSessionFactory(securityConfig: { permission: any; security: any }, enqueuePermission: (req: PermissionRequest) => void) {
+export function createSessionFactory(
+	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
+	agentsConfig: Record<string, AgentConfig> | undefined,
+	enqueuePermission: (req: PermissionRequest) => void,
+) {
 	return async (
 		model: string,
 		provider: string,
@@ -366,8 +374,7 @@ export function createSessionFactory(securityConfig: { permission: any; security
 			},
 			systemPrompt,
 			getApiKey: (p: string) => getAuthKey(p),
-			tools: agentTools,
-			maxTurns: def?.maxTurns ?? 10,
+			maxTurns: agentsConfig?.[agentName]?.maxTurns ?? def?.maxTurns,
 			streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 		});
 

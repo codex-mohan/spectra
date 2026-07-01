@@ -71,10 +71,12 @@ export class DoomLoopDetector {
 		}
 
 		if (this.consecutiveReads >= this.readOnlyThreshold) {
+			const message = `Read-only loop detected: ${this.consecutiveReads} consecutive reads with no writes. Consider switching agents or stopping.`;
+			this.consecutiveReads = 0;
 			return {
 				ok: false,
 				action: 'warn',
-				message: `Read-only loop detected: ${this.consecutiveReads} consecutive reads with no writes. Consider switching agents or stopping.`,
+				message,
 			};
 		}
 
@@ -84,12 +86,13 @@ export class DoomLoopDetector {
 	recordPatchFailure(filePath: string): DoomLoopResult {
 		const failures = (this.patchFailures.get(filePath) ?? 0) + 1;
 		this.patchFailures.set(filePath, failures);
-
 		if (failures >= this.patchThreshold) {
+			const message = `Patch spiral on '${filePath}': ${failures} consecutive failures. Consider using write instead of edit.`;
+			this.patchFailures.delete(filePath);
 			return {
 				ok: false,
 				action: 'warn',
-				message: `Patch spiral on '${filePath}': ${failures} consecutive failures. Consider using write instead of edit.`,
+				message,
 			};
 		}
 

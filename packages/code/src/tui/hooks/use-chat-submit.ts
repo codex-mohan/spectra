@@ -663,7 +663,15 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						});
 					}
 				}
-					if (ev.type === 'agent_end') {
+				if (ev.type === 'agent_end') {
+					const errMsg = agent.errorMessage;
+					if (errMsg) {
+						sessionState.setStatusIn(runSessionId, errMsg);
+						if (currentTurnMsgIdRef.current) {
+							sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error' });
+						}
+						updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
+					} else {
 						sessionState.setStatusIn(runSessionId, 'Ready');
 						if (currentTurnMsgIdRef.current) {
 							sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'completed' });
@@ -671,6 +679,7 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						updateLastAssistantMeta(runSessionId, { turnStatus: 'completed' });
 					}
 				}
+			}
 			} catch (err) {
 				const errId = currentAssistantId || genId();
 				sessionState.updateMessageIn(runSessionId, errId, {
