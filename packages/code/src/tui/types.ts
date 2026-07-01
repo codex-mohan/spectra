@@ -5,6 +5,25 @@ export type ContentBlock =
 	| { type: 'thinking'; content: string }
 	| { type: 'toolCall'; name: string; args: string };
 
+export type TodoStatus = 'pending' | 'in_progress' | 'done' | 'dropped';
+
+export interface TodoTask {
+	id: string;
+	title: string;
+	status: TodoStatus;
+	priority?: 'high' | 'medium' | 'low';
+}
+
+export interface TodoPhase {
+	id: string;
+	title: string;
+	tasks: TodoTask[];
+}
+
+export interface TodoState {
+	phases: TodoPhase[];
+}
+
 /** Patch: records which files changed during an agent turn and the pre-edit tree hash. */
 export interface Patch {
 	hash: string;
@@ -49,4 +68,6 @@ export interface ChatMessage {
 	childSessionId?: string;
 	/** True when the task was spawned in the background (returns immediately) */
 	background?: boolean;
+	/** Hierarchical todo state rendered inline for todo tool results */
+	todoState?: TodoState;
 }

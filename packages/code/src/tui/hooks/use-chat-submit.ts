@@ -648,6 +648,9 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						const timeoutMs = typeof resultDetails.timeoutMs === 'number' ? resultDetails.timeoutMs : undefined;
 						const childSessionId = typeof resultDetails.childSessionId === 'string' ? resultDetails.childSessionId : undefined;
 						const isBackground = resultDetails.background === true ? true : undefined;
+						const todoState = ev.toolName === 'todo' && resultDetails.todoState && typeof resultDetails.todoState === 'object'
+							? resultDetails.todoState as any
+							: undefined;
 						sessionState.updateMessageIn(runSessionId, tuiId, {
 							content: toolOutput,
 							exitCode,
@@ -656,6 +659,7 @@ const tuiId = toolMsgMap.current.get(ev.toolCallId);
 							timeoutMs,
 							childSessionId,
 							background: isBackground,
+							todoState,
 						});
 					}
 				}

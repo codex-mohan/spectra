@@ -8,6 +8,7 @@ import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
 import { memoryTool } from './memory.js';
 import { createTaskTool } from './task.js';
+import { createTodoTool } from './todo.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
 import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
 import type { Skill } from '@mohanscodex/spectra-agent';
@@ -37,6 +38,7 @@ export const builtinTools: SpectraTool[] = [
 ];
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
+const SKIP_PERMISSION_CHECK = new Set(['todo']);
 
 function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool['execute'] {
 	const tracker = security.getReadTracker();
@@ -50,7 +52,9 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 
 		const patterns = security.extractToolPatterns(tool.name, args);
 
-		if (FILE_TOOL_NAMES.has(tool.name)) {
+		if (SKIP_PERMISSION_CHECK.has(tool.name)) {
+			// Session-local state tools do not touch the filesystem, shell, network, or external resources.
+		} else if (FILE_TOOL_NAMES.has(tool.name)) {
 			for (const extPath of patterns.externalPaths) {
 				try {
 					await security.checkPermission('external_directory', [extPath], tool.name, extPath);
@@ -110,16 +114,11 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 
 		const toolOk = result.isError !== true;
 		const loopCheck = doomLoop.recordToolResult(tool.name, toolOk);
-		if (!loopCheck.ok) {
-			const firstContent = result.content?.[0];
-			const existingContent = firstContent?.type === 'text' ? firstContent.text : '';
-			return {
-				content: [
-					{ type: 'text', text: `${existingContent}\n\n<system-reminder>${loopCheck.message}</system-reminder>` },
-				],
-				isError: result.isError,
-				details: result.details,
-			};
+		if (!loopCheck.ok && loopCheck.action === 'warn') {
+			security.warn(loopCheck.message);
+		}
+		if (!loopCheck.ok && loopCheck.action === 'stop') {
+			return { content: [{ type: 'text', text: loopCheck.message }], isError: true };
 		}
 
 		if (tool.name === 'edit' || tool.name === 'patch') {
@@ -130,21 +129,11 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 			} else {
 				for (const pathPattern of patterns.pathPatterns) {
 					const spiralResult = doomLoop.recordPatchFailure(pathPattern);
-					if (!spiralResult.ok) {
-						const firstContent = result.content?.[0];
-						const text = firstContent?.type === 'text' ? firstContent.text : '';
-						if (text) {
-							return {
-								content: [
-									{
-										type: 'text',
-										text: `${text}\n\n<system-reminder>${spiralResult.message}</system-reminder>`,
-									},
-								],
-								isError: result.isError,
-								details: result.details,
-							};
-						}
+					if (!spiralResult.ok && spiralResult.action === 'warn') {
+						security.warn(spiralResult.message);
+					}
+					if (!spiralResult.ok && spiralResult.action === 'stop') {
+						return { content: [{ type: 'text', text: spiralResult.message }], isError: true };
 					}
 				}
 			}
@@ -246,7 +235,7 @@ export function createAllToolsWithSecurity(
 	sessionStore?: SessionStore,
 	parentSessionId?: string,
 ): AgentTool[] {
-	const tools = builtinTools.map((t) => spectraToolToAgentTool(t, security));
+	const tools = [...builtinTools, createTodoTool(sessionStore, parentSessionId)].map((t) => spectraToolToAgentTool(t, security));
 	if (config) {
 		tools.push(spectraToolToAgentTool(createTaskTool(config, security, sessionStore, parentSessionId), security));
 	}

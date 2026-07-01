@@ -132,6 +132,9 @@ export function sdkMessagesToChatMessages(data: {
 				wallTimeMs: typeof details?.wallTimeMs === 'number' ? details.wallTimeMs : undefined,
 				timeoutMs: typeof details?.timeoutMs === 'number' ? details.timeoutMs : undefined,
 				childSessionId: typeof details?.childSessionId === 'string' ? details.childSessionId : undefined,
+				todoState: m.toolName === 'todo' && details?.todoState && typeof details.todoState === 'object'
+					? details.todoState as any
+					: undefined,
 			};
 		}
 		return { id, role: 'user' as const, content: '', model: data.model };
