@@ -1,4 +1,3 @@
-<!-- GSD:project-start source=PROJECT.md -->
 ## Project
 
 **Spectra**
@@ -35,9 +34,7 @@ Minimal, ultra-fast, multi-language AI agent framework. Each SDK (Rust, TypeScri
 - **Rust performance**: opt-level 3, thin LTO, codegen-units 1, strip symbols, panic=abort in release
 - **Dependencies**: No OpenSSL (rustls only), minimal deps, cargo audit required
 - **Python SDK**: Not yet implemented — TODO
-<!-- GSD:project-end -->
 
-<!-- GSD:stack-start source=research/STACK.md -->
 ## Technology Stack
 
 ### Rust SDK (`crates/spectra-rs` + `crates/spectra-http`)
@@ -96,9 +93,7 @@ Dev: typescript ^5.7, vitest ^3.2, tsx ^4.19
 |---------|-----------------|-------|
 | tokio 1.x | tokio-util 0.7.x, tokio-stream 0.1.x | Compatible, uses semver |
 | Node 18+ | TypeScript 5.x | For TS SDK development |
-<!-- GSD:stack-end -->
 
-<!-- GSD:folder-start -->
 ## Project Structure
 
 ```
@@ -161,9 +156,7 @@ spectra/
 ├── turbo.json                      # Turborepo task config
 └── .github/workflows/              # CI/CD
 ```
-<!-- GSD:folder-end -->
 
-<!-- GSD:conventions-start source=CONVENTIONS.md -->
 ## Conventions
 
 ### Architecture Pattern
@@ -339,9 +332,7 @@ Current cached reference projects:
 - `pi-mono-ref` — pi-mono reference implementation
 - `smallcode` — smallcode reference
 - `terax-ai` — terax-ai TUI framework
-<!-- GSD:conventions-end -->
 
-<!-- GSD:architecture-start source=ARCHITECTURE.md -->
 ## Architecture
 
 ### Rust SDK Data Flow
@@ -382,13 +373,10 @@ User → agent.run(input)
 | Streaming deltas | `ContentDelta` enum | `AssistantMessageEvent` discriminated union |
 | Hooks | `Extension` trait | `beforeToolCall` / `afterToolCall` callbacks |
 | Tool registry | `ToolRegistry` (DashMap) | `Map<string, AgentTool>` on Agent |
-<!-- GSD:architecture-end -->
 
-<!-- GSD:skills-start source=skills/ -->
 ## Project Skills
 
 No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
-<!-- GSD:skills-end -->
 
 ## Version Management & Release Workflow
 
@@ -419,25 +407,10 @@ No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills
 - **Rust crates**: No automated release yet. When ready, use [release-plz](https://release-plz.ieni.dev/) in a separate workflow. Do **not** try to keep Rust and TS versions in lockstep — they will diverge independently
 - **`commit: false`** in changeset config — the GitHub Action handles the version commit via its own PR
 
-<!-- GSD:workflow-start source=GSD defaults -->
-## GSD Workflow Enforcement
-
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
-
-Use these entry points:
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
-
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks you to bypass it.
-<!-- GSD:workflow-end -->
-
-<!-- GSD:profile-start -->
 ## Developer Profile
 
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
+> Profile not yet configured.
 > This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
 
 ## For Coding Agents (Cursor, Claude Code, Windsurf, Copilot)
 
