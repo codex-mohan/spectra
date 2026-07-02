@@ -76,8 +76,9 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler }
 			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
 				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
 					<text fg={c.accent} attributes={1}>Pending Skills</text>
-					<text fg={c.dim}>esc close</text>
+					<text fg={c.dim}>esc</text>
 				</box>
+				<box height={1} />
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>
@@ -86,7 +87,7 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler }
 				</box>
 				<box flexDirection="column" paddingX={2} gap={0} flexGrow={1}>
 					{pending.length === 0 && (
-						<text fg={c.dim}> No pending skills.</text>
+						<text fg={c.dim}>No pending skills.</text>
 					)}
 					{pending.map((skill, i) => (
 						<box key={skill.id} flexDirection="column">
@@ -99,10 +100,11 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler }
 						</box>
 					))}
 				</box>
-				<box height={1} paddingX={2} paddingBottom={1} flexDirection="row" gap={2}>
+				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center" gap={2}>
 					<text fg={c.dim}>↑↓ navigate</text>
 					<text fg={c.success}>a/y approve</text>
 					<text fg={c.error}>r/d reject</text>
+					<text fg={c.dim}>esc close</text>
 				</box>
 			</box>
 		</box>

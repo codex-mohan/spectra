@@ -58,8 +58,9 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
 				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
 					<text fg={c.accent} attributes={1}>Settings</text>
-					<text fg={c.dim}>esc close</text>
+					<text fg={c.dim}>esc</text>
 				</box>
+				<box height={1} />
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>
@@ -78,7 +79,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 						<text fg={confirmSave ? c.success : c.dim}>{confirmSave ? ' [ON]' : ' [OFF]'}</text>
 					</box>
 				</box>
-				<box height={1} paddingX={2} paddingBottom={1} flexDirection="row" gap={2}>
+				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center" gap={2}>
 					<text fg={c.dim}>↑↓ navigate</text>
 					<text fg={c.dim}>enter/space toggle</text>
 					<text fg={c.dim}>esc close</text>

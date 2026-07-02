@@ -15,6 +15,22 @@ const TABS: { key: MemoryTarget; label: string }[] = [
 	{ key: 'project', label: 'Project' },
 ];
 
+function isReturnKey(key: any) {
+	return key.name === 'return' || key.name === 'enter' || key.sequence === '\r' || key.sequence === '\n';
+}
+
+function isBackspaceKey(key: any) {
+	return key.name === 'backspace' || key.sequence === '\b' || key.sequence === '\x7f';
+}
+
+function printableKey(key: any): string | null {
+	if (key.ctrl || key.meta) return null;
+	if (key.name === 'space') return ' ';
+	if (typeof key.name === 'string' && key.name.length === 1) return key.name;
+	if (typeof key.sequence === 'string' && [...key.sequence].length === 1 && key.sequence >= ' ') return key.sequence;
+	return null;
+}
+
 export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }: MemoryDialogProps) {
 	const [tab, setTab] = useState<MemoryTarget>('user');
 	const [entries, setEntries] = useState<string[]>([]);
@@ -28,6 +44,18 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 		setEntries(readEntries(target));
 		setUsage(getMemoryUsage(target));
 		setSelectedIdx(0);
+	};
+
+	const submitAdd = () => {
+		const entry = input.trim();
+		if (!entry) { setStatusMsg('Entry cannot be empty'); return; }
+		const result = addEntry(tab, entry);
+		setStatusMsg(result.message);
+		if (result.success) {
+			setInput('');
+			setMode('view');
+			refresh(tab);
+		}
 	};
 
 	useEffect(() => { refresh(tab); }, [tab]);
@@ -56,14 +84,11 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 				if (key.name === 'down' && selectedIdx < entries.length - 1) { setSelectedIdx(selectedIdx + 1); return; }
 			}
 			if (mode === 'add') {
-				if (key.name === 'return' || key.name === 'enter') {
-					if (!input.trim()) { setStatusMsg('Entry cannot be empty'); return; }
-					const result = addEntry(tab, input.trim());
-					setStatusMsg(result.message);
-					if (result.success) { setInput(''); refresh(tab); }
-					return;
-				}
-				if (key.sequence) { setInput((prev) => prev + key.sequence); return; }
+				if (isReturnKey(key)) { submitAdd(); return; }
+				if (isBackspaceKey(key) || key.name === 'delete') { setInput((prev) => prev.slice(0, -1)); return; }
+				const text = printableKey(key);
+				if (text !== null) { setInput((prev) => prev + text); setStatusMsg(''); return; }
+				return;
 			}
 			if (mode === 'remove') {
 				if (key.name === 'return' || key.name === 'enter') {
@@ -91,25 +116,25 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
 			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
 				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
-					<text fg={c.accent} attributes={1}>Memory</text>
-					<text fg={c.dim}>esc close</text>
+					<box height={1} flexDirection="row" gap={2}>
+						{TABS.map((t) => (
+							<text key={t.key} fg={tab === t.key ? c.accent : c.dim} attributes={tab === t.key ? 1 : 0}>
+								{t.label}
+							</text>
+						))}
+					</box>
+					<text fg={c.dim}>esc</text>
 				</box>
-				<box height={1} paddingX={2} flexDirection="row" gap={2}>
-					{TABS.map((t) => (
-						<text key={t.key} fg={tab === t.key ? c.accent : c.dim} attributes={tab === t.key ? 1 : 0}>
-							{t.label}
-						</text>
-					))}
-				</box>
+				<box height={1} />
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>
 				<box height={1} paddingX={2}>
-					<text fg={c.dim}>{usage.entries} entries · {usage.used}/{usage.limit} chars</text>
+					<text fg={c.dim}>{usage.entries} entries · {usage.used} of {usage.limit} chars used</text>
 				</box>
 				<box flexDirection="column" paddingX={2} gap={0} flexGrow={1}>
 					{entries.length === 0 && (
-						<text fg={c.dim}> No entries. Press 'a' to add.</text>
+						<text fg={c.dim}>No entries. Press 'a' to add.</text>
 					)}
 					{entries.map((entry, i) => (
 						<text key={i} fg={i === selectedIdx && mode === 'remove' ? c.error : i === selectedIdx ? c.accent : c.text}>
@@ -120,7 +145,10 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 				{mode === 'add' && (
 					<box height={2} paddingX={2} flexDirection="column">
 						<text fg={c.accent}>New entry:</text>
-						<text fg={c.text}>{input}<text fg={c.accent}>█</text></text>
+						<box height={1} flexDirection="row">
+							<text fg={c.text}>{input}</text>
+							<text fg={c.accent}>█</text>
+						</box>
 					</box>
 				)}
 				{statusMsg && (
@@ -128,10 +156,8 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 						<text fg={mode === 'remove' ? c.error : c.dim}>{statusMsg}</text>
 					</box>
 				)}
-				<box height={1} paddingX={2} paddingBottom={1} flexDirection="row" gap={2}>
-					<text fg={c.dim}>a add</text>
-					<text fg={c.dim}>r remove</text>
-					<text fg={c.dim}>tab switch scope</text>
+				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
+					<text fg={c.dim}>a add · r remove · tab switch scope</text>
 				</box>
 			</box>
 		</box>
