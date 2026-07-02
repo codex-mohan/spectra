@@ -194,7 +194,7 @@ export function PromptBar(props: PromptBarProps) {
 		const end = textarea.cursorOffset ?? start + insertText.length;
 		textarea.extmarks?.create({
 			start,
-			end: Math.max(start, end - 1),
+			end: Math.max(start, end),
 			virtual: true,
 			typeId,
 			styleId: getAttachmentStyleId(textarea, attachment),
