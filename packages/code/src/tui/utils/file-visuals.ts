@@ -47,6 +47,7 @@ const NF = {
 	directory: '󰉋',
 	typescript: '󰛦',
 	javascript: '󰌞',
+	react: '',
 	rust: '󱘗',
 	python: '󰌠',
 	go: '󰟓',
@@ -90,11 +91,11 @@ const MIME_PREFIX_BADGES: Record<string, FileVisual> = {
 
 const EXTENSION_VISUALS: Record<string, FileVisual> = {
 	'.ts': { icon: NF.typescript, label: 'TS', color: c.langTypeScript },
-	'.tsx': { icon: NF.typescript, label: 'TSX', color: c.langTypeScript },
+	'.tsx': { icon: NF.react, label: 'TSX', color: c.langTypeScript },
 	'.mts': { icon: NF.typescript, label: 'MTS', color: c.langTypeScript },
 	'.cts': { icon: NF.typescript, label: 'CTS', color: c.langTypeScript },
 	'.js': { icon: NF.javascript, label: 'JS', color: c.langJavaScript },
-	'.jsx': { icon: NF.javascript, label: 'JSX', color: c.langJavaScript },
+	'.jsx': { icon: NF.react, label: 'JSX', color: c.langJavaScript },
 	'.mjs': { icon: NF.javascript, label: 'MJS', color: c.langJavaScript },
 	'.cjs': { icon: NF.javascript, label: 'CJS', color: c.langJavaScript },
 	'.rs': { icon: NF.rust, label: 'RS', color: c.langRust },
