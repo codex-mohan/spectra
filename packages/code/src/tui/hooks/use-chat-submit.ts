@@ -636,7 +636,7 @@ Return ONLY the title text, nothing else.`;
 					if (ev.type === 'tool_execution_end') {
 						const args = toolArgsMap.current.get(ev.toolCallId) || {};
 						const resultDetails = (ev.result?.details as Record<string, unknown> | undefined) ?? {};
-						const toolOutput = ev.result?.content?.[0]?.text || '';
+						const toolOutput = (ev.result?.content?.[0]?.text || '').replace(/\n\n<shell_metadata>[\s\S]*?<\/shell_metadata>/, '').trim();
 						if (ev.isError) {
 							const firstLine =
 								toolOutput.split('\n').find((line: string) => line.trim().length > 0)?.trim() || 'Unknown error';
