@@ -268,6 +268,81 @@ function TodoToolView({ state, marginTop }: { state: TodoState; marginTop: numbe
 	);
 }
 
+const MEMORY_SCOPES: Record<string, { icon: string; label: string; color: string }> = {
+	memory: { icon: '🧠', label: 'Memory', color: c.accent },
+	user: { icon: '👤', label: 'User', color: c.info },
+	project: { icon: '📁', label: 'Project', color: c.success },
+};
+
+function parseMemoryOutput(output: string): { entries: string[]; used: number; limit: number } | null {
+	const usageMatch = output.match(/(\d+)\/(\d+)\s*chars/);
+	if (!usageMatch) return null;
+	const used = parseInt(usageMatch[1], 10);
+	const limit = parseInt(usageMatch[2], 10);
+	const colonIdx = output.indexOf(':\n\n');
+	if (colonIdx !== -1) {
+		const entries = output.slice(colonIdx + 3).split('\n\n').map((e) => e.trim()).filter(Boolean);
+		return { entries, used, limit };
+	}
+	return { entries: [], used, limit };
+}
+
+function MemoryToolView({ args, output, isError, marginTop }: { args: Record<string, unknown>; output: string; isError: boolean; marginTop: number }) {
+	const target = String(args.target || 'memory');
+	const action = String(args.action || 'read');
+	const scope = MEMORY_SCOPES[target] || MEMORY_SCOPES.memory;
+	const borderColor = isError ? c.error : scope.color;
+	const statusIcon = isError ? '✗' : '✓';
+	const parsed = parseMemoryOutput(output);
+
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={borderColor}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={borderColor}>{scope.icon}</text>
+				<text fg={borderColor} attributes={1}>{scope.label}</text>
+				<text fg={c.dim}>· {action}</text>
+				<text fg={isError ? c.error : scope.color}> {statusIcon}</text>
+			</box>
+			<box flexDirection="column" paddingLeft={2} gap={0}>
+				{action === 'read' && parsed && parsed.entries.length > 0 ? (
+					parsed.entries.slice(0, 8).map((entry, i) => (
+						<box key={i} flexDirection="row" gap={1}>
+							<text fg={c.dim}>▸</text>
+							<text fg={c.text}>{entry.length > 80 ? entry.slice(0, 77) + '...' : entry}</text>
+						</box>
+					))
+				) : action === 'list' && parsed ? (
+					<text fg={c.dim}>{parsed.entries.length > 0 ? `${parsed.entries.length} entries` : output}</text>
+				) : isError ? (
+					<text fg={c.error}>{output}</text>
+				) : action === 'add' ? (
+					<text fg={c.text}>{args.entry ? String(args.entry).slice(0, 80) : output}</text>
+				) : action === 'replace' ? (
+					<text fg={c.text}>{args.entry ? String(args.entry).slice(0, 60) : '...'}</text>
+				) : action === 'remove' ? (
+					<text fg={c.dim}>{args.entry ? String(args.entry).slice(0, 60) : ''}</text>
+				) : null}
+			</box>
+			{parsed && (
+				<box flexDirection="row" paddingLeft={1} gap={1}>
+					<text fg={c.dim}>{parsed.entries.length} entries · {parsed.used}/{parsed.limit} chars</text>
+				</box>
+			)}
+		</box>
+	);
+}
+
 export function MessageView({
 	msg,
 	showThinking = true,
@@ -454,6 +529,9 @@ export function MessageView({
 
 		if (tName === 'todo' && msg.todoState) {
 			return <TodoToolView state={msg.todoState} marginTop={mt} />;
+		}
+		if (tName === 'memory') {
+			return <MemoryToolView args={argsObj} output={output} isError={toolError} marginTop={mt} />;
 		}
 
 		// Reading tools: inline indicator only
