@@ -33,7 +33,7 @@ import { SettingsDialog } from './ui/settings-dialog.js';
 import { SkillsDialog } from './ui/skills-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { ToastContainer, showToast } from './components/toast.js';
-import { SubagentFooter } from './components/subagent-footer.js';
+import { SubagentNav } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
 import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
 import { buildCmdItems, collectSlashNames } from './commands.js';
@@ -788,14 +788,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							</box>
 						</box>
 					)}
-					{viewingChildSession && (
-						<SubagentFooter
-							childSessionId={viewingChildSession}
-							sessionStore={sessionStore.current}
-							onBack={exitChildView}
-							onNavigate={switchToChildSession}
-						/>
-					)}
 					<box flexDirection="column" flexGrow={1} paddingBottom={1}>
 						<ChatArea
 							messages={messages}
@@ -808,22 +800,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					</box>
 						<box flexShrink={0}>
 							{viewingChildSession ? (
-								<box
-								flexDirection="row"
-								gap={1}
-								alignItems="center"
-								height={3}
-								backgroundColor={c.bgInput}
-								border={['top', 'bottom']}
-								borderColor={c.border}
-								paddingLeft={3}
-								paddingRight={2}
-							>
-								<text fg={c.dim}>◆</text>
-								<text fg={c.subtext}>Read-only — press </text>
-								<text fg={c.accent}>esc</text>
-								<text fg={c.subtext}> to return</text>
-							</box>
+								<SubagentNav
+									childSessionId={viewingChildSession}
+									sessionStore={sessionStore.current}
+								/>
 							) : (
 								
 							<PromptBar
@@ -894,9 +874,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 									})()}
 							</box>
 							<box flexDirection="row" gap={2} alignItems="center">
-								{viewingChildSession && (
-									<text fg={c.accent}>◆ read-only</text>
-								)}
 								<box flexDirection="row">
 									<text fg={c.text}>tab</text>
 									<text fg={c.dim}> agent</text>
