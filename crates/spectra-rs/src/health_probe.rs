@@ -109,7 +109,10 @@ mod tests {
         let report = probe.health();
         assert_eq!(report.status, HealthStatus::Healthy);
         assert_eq!(report.checks.len(), 2);
-        assert_eq!(report.checks.get("check_db").unwrap().status, HealthStatus::Healthy);
+        assert_eq!(
+            report.checks.get("check_db").unwrap().status,
+            HealthStatus::Healthy
+        );
     }
 
     #[test]

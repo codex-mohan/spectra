@@ -98,12 +98,15 @@ export class SQLiteSessionStore implements SessionStore {
 	async list(filter?: SessionFilter): Promise<Session[]> {
 		let sql = `SELECT * FROM sessions`;
 		const conditions: string[] = [];
+		const params: unknown[] = [];
 
 		if (filter?.userId) {
-			conditions.push(`json_extract(metadata, '$.userId') = '${filter.userId}'`);
+			conditions.push(`json_extract(metadata, '$.userId') = ?`);
+			params.push(filter.userId);
 		}
 		if (filter?.tenantId) {
-			conditions.push(`json_extract(metadata, '$.tenantId') = '${filter.tenantId}'`);
+			conditions.push(`json_extract(metadata, '$.tenantId') = ?`);
+			params.push(filter.tenantId);
 		}
 
 		if (conditions.length > 0) {
@@ -113,14 +116,16 @@ export class SQLiteSessionStore implements SessionStore {
 		sql += ` ORDER BY updated_at DESC`;
 
 		if (filter?.limit) {
-			sql += ` LIMIT ${filter.limit}`;
+			sql += ` LIMIT ?`;
+			params.push(filter.limit);
 			if (filter?.offset) {
-				sql += ` OFFSET ${filter.offset}`;
+				sql += ` OFFSET ?`;
+				params.push(filter.offset);
 			}
 		}
 
 		const stmt = this.db.prepare(sql);
-		const rows = stmt.all() as Array<{
+		const rows = stmt.all(...params) as Array<{
 			id: string;
 			model: string;
 			config: string;

@@ -865,6 +865,145 @@ describe('Agent E2E - Advanced Features', () => {
 	});
 });
 
+describe('Agent E2E - Provenance', () => {
+	it('should populate provenance when beforeToolCall blocks', async () => {
+		const tool = defineTool({
+			name: 'dangerous',
+			description: 'A dangerous tool',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text', text: 'Executed' }] }),
+		});
+
+		const mockProvider = createMockProvider('prov-block', [
+			[createToolCallMessage([{ type: 'toolCall', id: 'call_b1', name: 'dangerous', arguments: {} }])],
+			[createTextMessage('Done')],
+		]);
+		registerProvider(mockProvider);
+
+		const agent = new Agent({
+			model: { id: 'm', name: 'M', provider: 'prov-block', api: 'prov-block' },
+			tools: [tool],
+			beforeToolCall: async () => ({ block: true, reason: 'Policy violation' }),
+		});
+
+		for await (const _ of agent.run('Do it')) { /* consume */ }
+
+		const toolResult = agent.messages.find(
+			(m: Message) => m.role === 'toolResult' && m.toolName === 'dangerous',
+		);
+		expect(toolResult).toBeDefined();
+		if (toolResult?.role === 'toolResult') {
+			expect(toolResult.isError).toBe(true);
+			expect(toolResult.provenance).toBeDefined();
+			expect(toolResult.provenance?.blockedBy).toBe('beforeToolCall');
+			expect(toolResult.provenance?.blockReason).toBe('Policy violation');
+		}
+	});
+
+	it('should populate provenance when afterToolCall replaces result', async () => {
+		const tool = defineTool({
+			name: 'data_tool',
+			description: 'Get data',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text', text: 'Raw data' }] }),
+		});
+
+		const mockProvider = createMockProvider('prov-replace', [
+			[createToolCallMessage([{ type: 'toolCall', id: 'call_r1', name: 'data_tool', arguments: {} }])],
+			[createTextMessage('Processed')],
+		]);
+		registerProvider(mockProvider);
+
+		const agent = new Agent({
+			model: { id: 'm', name: 'M', provider: 'prov-replace', api: 'prov-replace' },
+			tools: [tool],
+			afterToolCall: async () => ({
+				content: [{ type: 'text', text: 'Modified data' }],
+			}),
+		});
+
+		for await (const _ of agent.run('Get data')) { /* consume */ }
+
+		const toolResult = agent.messages.find(
+			(m: Message) => m.role === 'toolResult' && m.toolName === 'data_tool',
+		);
+		expect(toolResult).toBeDefined();
+		if (toolResult?.role === 'toolResult') {
+			expect(toolResult.provenance).toBeDefined();
+			expect(toolResult.provenance?.transformedBy).toBe('afterToolCall');
+			expect(toolResult.provenance?.hookDetails).toEqual({ replaced: true });
+			expect(toolResult.content).toEqual([{ type: 'text', text: 'Modified data' }]);
+		}
+	});
+
+	it('should preserve block provenance when afterToolCall also replaces result', async () => {
+		const tool = defineTool({
+			name: 'blocked_then_replaced',
+			description: 'Blocked then replaced',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text', text: 'Executed' }] }),
+		});
+
+		const mockProvider = createMockProvider('prov-block-replace', [
+			[createToolCallMessage([{ type: 'toolCall', id: 'call_br1', name: 'blocked_then_replaced', arguments: {} }])],
+			[createTextMessage('Done')],
+		]);
+		registerProvider(mockProvider);
+
+		const agent = new Agent({
+			model: { id: 'm', name: 'M', provider: 'prov-block-replace', api: 'prov-block-replace' },
+			tools: [tool],
+			beforeToolCall: async () => ({ block: true, reason: 'Blocked' }),
+			afterToolCall: async () => ({ content: [{ type: 'text', text: 'Redacted' }] }),
+		});
+
+		for await (const _ of agent.run('Do it')) { /* consume */ }
+
+		const toolResult = agent.messages.find(
+			(m: Message) => m.role === 'toolResult' && m.toolName === 'blocked_then_replaced',
+		);
+		expect(toolResult).toBeDefined();
+		if (toolResult?.role === 'toolResult') {
+			expect(toolResult.provenance?.blockedBy).toBe('beforeToolCall');
+			expect(toolResult.provenance?.blockReason).toBe('Blocked');
+			expect(toolResult.provenance?.transformedBy).toBe('afterToolCall');
+			expect(toolResult.provenance?.hookDetails).toEqual({ replaced: true });
+			expect(toolResult.content).toEqual([{ type: 'text', text: 'Redacted' }]);
+		}
+	});
+
+	it('should not set provenance for normal tool execution', async () => {
+		const tool = defineTool({
+			name: 'normal_tool',
+			description: 'Normal',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text', text: 'Ok' }] }),
+		});
+
+		const mockProvider = createMockProvider('prov-normal', [
+			[createToolCallMessage([{ type: 'toolCall', id: 'call_n1', name: 'normal_tool', arguments: {} }])],
+			[createTextMessage('Done')],
+		]);
+		registerProvider(mockProvider);
+
+		const agent = new Agent({
+			model: { id: 'm', name: 'M', provider: 'prov-normal', api: 'prov-normal' },
+			tools: [tool],
+		});
+
+		for await (const _ of agent.run('Run normal')) { /* consume */ }
+
+		const toolResult = agent.messages.find(
+			(m: Message) => m.role === 'toolResult' && m.toolName === 'normal_tool',
+		);
+		expect(toolResult).toBeDefined();
+		if (toolResult?.role === 'toolResult') {
+			expect(toolResult.isError).toBe(false);
+			expect(toolResult.provenance).toBeUndefined();
+		}
+	});
+});
+
 describe('Agent E2E - Complex Scenarios', () => {
 	it('should handle multi-turn conversation with tools', async () => {
 		const calculator = defineTool({

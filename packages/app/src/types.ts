@@ -85,12 +85,12 @@ export interface SessionStore {
 }
 
 export interface SessionManager {
-	create(config: SessionConfig, userId?: string): Promise<Session>;
+	create(config: SessionConfig, userId?: string, tenantId?: string): Promise<Session>;
 	load(id: string): Promise<Session | null>;
 	save(session: Session): Promise<void>;
 	delete(id: string): Promise<void>;
 	list(filter?: SessionFilter): Promise<Session[]>;
-	fork(sourceId: string, branchFromIndex?: number): Promise<Session>;
+	fork(sourceId: string, branchFromEntryId?: string): Promise<Session>;
 	appendMessage(session: Session, message: Message): MessageEntry;
 	appendAudit(session: Session, eventType: string, details: Record<string, unknown>): AuditEntry;
 	appendCustom(session: Session, customType: string, data: unknown): CustomEntry;

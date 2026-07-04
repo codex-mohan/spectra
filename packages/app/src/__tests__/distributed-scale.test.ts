@@ -569,10 +569,10 @@ describe('SessionEngine streaming with persistence', () => {
 		const runPromise = engine.run('user-1', 'test input', session.id);
 		const result = await runPromise;
 
-		// After run, session should have persisted messages
+		// After run, session should have persisted user and assistant messages
 		const reloaded = await sessionManager.load(result.sessionId);
-		expect(reloaded).not.toBeNull();
-		expect((reloaded?.entries ?? []).length).toBeGreaterThanOrEqual(0);
+		const messageEntries = reloaded?.entries.filter((entry) => entry.type === 'message') ?? [];
+		expect(messageEntries.map((entry) => entry.type === 'message' ? entry.message.role : null)).toEqual(['user', 'assistant']);
 	});
 
 	it('should create new session when no sessionId given', async () => {
@@ -589,6 +589,137 @@ describe('SessionEngine streaming with persistence', () => {
 		const loaded = await sessionManager.load(result.sessionId);
 		expect(loaded).not.toBeNull();
 		expect(loaded?.metadata.userId).toBe('user-new');
+
+		const tenantResult = await engine.run('user-new', 'hello tenant', undefined, {
+			model: testModel,
+			tenantId: 'tenant-new',
+		});
+		const tenantLoaded = await sessionManager.load(tenantResult.sessionId);
+		expect(tenantLoaded?.metadata.tenantId).toBe('tenant-new');
+	});
+
+	it('should not duplicate existing messages when resuming a session', async () => {
+		const store = new InMemorySessionStore();
+		const sessionManager = new SessionManager(store);
+		const engine = new SessionEngine({ sessionManager });
+
+		engine.start();
+		const session = await sessionManager.create({ model: testModel });
+		sessionManager.appendMessage(session, { role: 'user', content: 'existing user', timestamp: Date.now() });
+		sessionManager.appendMessage(session, {
+			role: 'assistant',
+			content: [{ type: 'text', text: 'existing assistant' }],
+			provider: 'test',
+			model: 'test-model',
+			usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+			stopReason: 'stop',
+			timestamp: Date.now(),
+		});
+		await sessionManager.save(session);
+
+		await engine.run('user-1', 'next user', session.id);
+
+		const loaded = await sessionManager.load(session.id);
+		const messageEntries = loaded?.entries.filter((entry) => entry.type === 'message') ?? [];
+		expect(messageEntries).toHaveLength(4);
+		expect(messageEntries.filter((entry) => entry.type === 'message' && entry.message.role === 'user' && entry.message.content === 'existing user')).toHaveLength(1);
+		expect(messageEntries.filter((entry) => entry.type === 'message' && entry.message.role === 'assistant' && entry.message.content[0]?.type === 'text' && entry.message.content[0].text === 'existing assistant')).toHaveLength(1);
+		expect(messageEntries.filter((entry) => entry.type === 'message' && entry.message.role === 'user' && entry.message.content === 'next user')).toHaveLength(1);
+	});
+
+	it('should not duplicate existing messages during streaming resume', async () => {
+		const store = new InMemorySessionStore();
+		const sessionManager = new SessionManager(store);
+		const engine = new SessionEngine({ sessionManager });
+
+		engine.start();
+		const session = await sessionManager.create({ model: testModel });
+		sessionManager.appendMessage(session, { role: 'user', content: 'old question', timestamp: Date.now() });
+		sessionManager.appendMessage(session, {
+			role: 'assistant',
+			content: [{ type: 'text', text: 'old answer' }],
+			provider: 'test',
+			model: 'test-model',
+			usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+			stopReason: 'stop',
+			timestamp: Date.now(),
+		});
+		await sessionManager.save(session);
+
+		const stream = await engine.runStreaming('user-1', 'new question', session.id);
+		for await (const _event of stream) {
+			// drain stream
+		}
+
+		const loaded = await sessionManager.load(session.id);
+		const messageEntries = loaded?.entries.filter((entry) => entry.type === 'message') ?? [];
+		expect(messageEntries).toHaveLength(4);
+		expect(messageEntries.filter((entry) => entry.type === 'message' && entry.message.role === 'user' && entry.message.content === 'old question')).toHaveLength(1);
+		expect(messageEntries.filter((entry) => entry.type === 'message' && entry.message.role === 'user' && entry.message.content === 'new question')).toHaveLength(1);
+	});
+
+	it('should persist each message on message_end not turn_end', async () => {
+		const providerName = `per-event-${Date.now()}`;
+		let callIndex = 0;
+		registerProvider({
+			name: providerName,
+			stream(model: Model) {
+				const stream = new AssistantMessageEventStream();
+				const message =
+					callIndex++ === 0
+						? {
+								role: 'assistant' as const,
+								content: [{ type: 'toolCall' as const, id: 'call_1', name: 'lookup', arguments: {} }],
+								provider: model.provider,
+								model: model.id,
+								usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+								stopReason: 'toolUse' as const,
+								timestamp: Date.now(),
+							}
+						: {
+								role: 'assistant' as const,
+								content: [{ type: 'text' as const, text: 'done' }],
+								provider: model.provider,
+								model: model.id,
+								usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+								stopReason: 'stop' as const,
+								timestamp: Date.now(),
+							};
+				stream.push({ type: 'start', partial: message });
+				stream.push({ type: 'done', reason: message.stopReason, message });
+				return stream;
+			},
+		});
+
+		const store = new InMemorySessionStore();
+		const sessionManager = new SessionManager(store);
+		const engine = new SessionEngine({ sessionManager });
+		engine.start();
+		const session = await sessionManager.create({
+			model: { id: 'pe-model', name: 'PE', provider: providerName, api: 'test' },
+		});
+
+		await engine.run('user-1', 'do thing', session.id, {
+			tools: [{
+				name: 'lookup',
+				description: 'Lookup',
+				parameters: { type: 'object', properties: {} },
+				execute: async () => ({ content: [{ type: 'text' as const, text: 'result' }] }),
+			}],
+		});
+
+		const loaded = await sessionManager.load(session.id);
+		const entries = loaded?.entries ?? [];
+		// Each message_end persisted individually: user, assistant(toolCall), toolResult, assistant(text)
+		expect(entries).toHaveLength(4);
+		expect(entries[0].type).toBe('message');
+		expect(entries[0].message.role).toBe('user');
+		expect(entries[1].type).toBe('message');
+		expect(entries[1].message.role).toBe('assistant');
+		expect(entries[2].type).toBe('message');
+		expect(entries[2].message.role).toBe('toolResult');
+		expect(entries[3].type).toBe('message');
+		expect(entries[3].message.role).toBe('assistant');
 	});
 
 	it('should reject missing sessionId', async () => {

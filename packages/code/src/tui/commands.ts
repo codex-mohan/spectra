@@ -1055,7 +1055,7 @@ export function buildCmdItems(opts: {
 			cat: 'Config',
 			slashName: 'theme',
 			action: () => {
-				setDialogStep({ type: 'theme' });
+				showToast('Theme switching is not implemented yet', 'info');
 			},
 		},
 		{
@@ -1065,7 +1065,7 @@ export function buildCmdItems(opts: {
 			cat: 'Config',
 			slashName: 'permissions',
 			action: () => {
-				setDialogStep({ type: 'permissions' });
+				showToast('Permissions UI is not implemented yet', 'info');
 			},
 		},
 		{

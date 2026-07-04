@@ -2,12 +2,14 @@ use async_trait::async_trait;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::Deserialize;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
 use spectra_rs::error::{Result, SpectraError};
 use spectra_rs::event::ContentDelta;
-use spectra_rs::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmResponse, Provider, ToolChoice};
+use spectra_rs::llm::{
+    LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Provider, ToolChoice,
+};
 use spectra_rs::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
 
 const GROQ_API_URL: &str = "https://api.groq.com/openai/v1/chat/completions";
 const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
@@ -32,7 +34,11 @@ impl GroqClient {
                 message: format!("Failed to create HTTP client: {}", e),
                 source: Some(Box::new(e)),
             })?;
-        Ok(Self { client, api_key, base_url: None })
+        Ok(Self {
+            client,
+            api_key,
+            base_url: None,
+        })
     }
 
     pub fn with_api_key(api_key: impl Into<String>) -> Result<Self> {
@@ -72,7 +78,10 @@ impl GroqClient {
 
     fn build_request_body(&self, request: &LlmRequest) -> Result<String> {
         let mut body = serde_json::Map::new();
-        body.insert("model".into(), serde_json::Value::String(request.model.id.clone()));
+        body.insert(
+            "model".into(),
+            serde_json::Value::String(request.model.id.clone()),
+        );
         body.insert("stream".into(), serde_json::Value::Bool(true));
 
         if let Some(temp) = request.model.config.temperature {
@@ -88,30 +97,50 @@ impl GroqClient {
         for msg in &request.messages {
             match msg {
                 Message::User(u) => {
-                    let text = u.content.iter()
-                        .filter_map(|c| if let Content::Text { text } = c { Some(text.as_str()) } else { None })
+                    let text = u
+                        .content
+                        .iter()
+                        .filter_map(|c| {
+                            if let Content::Text { text } = c {
+                                Some(text.as_str())
+                            } else {
+                                None
+                            }
+                        })
                         .collect::<Vec<_>>()
                         .join("");
                     messages.push(serde_json::json!({"role": "user", "content": text}));
                 }
                 Message::Assistant(a) => {
                     if a.tool_calls.is_empty() {
-                        let text = a.content.iter()
-                            .filter_map(|c| if let Content::Text { text } = c { Some(text.as_str()) } else { None })
+                        let text = a
+                            .content
+                            .iter()
+                            .filter_map(|c| {
+                                if let Content::Text { text } = c {
+                                    Some(text.as_str())
+                                } else {
+                                    None
+                                }
+                            })
                             .collect::<Vec<_>>()
                             .join("");
                         messages.push(serde_json::json!({"role": "assistant", "content": text}));
                     } else {
-                        let tool_calls: Vec<serde_json::Value> = a.tool_calls.iter().map(|tc| {
-                            serde_json::json!({
-                                "id": tc.id,
-                                "type": "function",
-                                "function": {
-                                    "name": tc.name,
-                                    "arguments": tc.arguments.to_string()
-                                }
+                        let tool_calls: Vec<serde_json::Value> = a
+                            .tool_calls
+                            .iter()
+                            .map(|tc| {
+                                serde_json::json!({
+                                    "id": tc.id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": tc.name,
+                                        "arguments": tc.arguments.to_string()
+                                    }
+                                })
                             })
-                        }).collect();
+                            .collect();
                         messages.push(serde_json::json!({
                             "role": "assistant",
                             "content": null,
@@ -137,16 +166,20 @@ impl GroqClient {
         body.insert("messages".into(), serde_json::Value::Array(messages));
 
         if !request.tools.is_empty() {
-            let tools: Vec<serde_json::Value> = request.tools.iter().map(|t| {
-                serde_json::json!({
-                    "type": "function",
-                    "function": {
-                        "name": t.name,
-                        "description": t.description,
-                        "parameters": t.parameters,
-                    }
+            let tools: Vec<serde_json::Value> = request
+                .tools
+                .iter()
+                .map(|t| {
+                    serde_json::json!({
+                        "type": "function",
+                        "function": {
+                            "name": t.name,
+                            "description": t.description,
+                            "parameters": t.parameters,
+                        }
+                    })
                 })
-            }).collect();
+                .collect();
             body.insert("tools".into(), serde_json::Value::Array(tools));
         }
 
@@ -163,10 +196,13 @@ impl GroqClient {
                     body.insert("tool_choice".into(), serde_json::json!("required"));
                 }
                 ToolChoice::Specific { name } => {
-                    body.insert("tool_choice".into(), serde_json::json!({
-                        "type": "function",
-                        "function": { "name": name }
-                    }));
+                    body.insert(
+                        "tool_choice".into(),
+                        serde_json::json!({
+                            "type": "function",
+                            "function": { "name": name }
+                        }),
+                    );
                 }
             }
         }
@@ -176,7 +212,10 @@ impl GroqClient {
 
     pub async fn stream_request(&self, request: LlmRequest) -> Result<LlmStream> {
         let api_key = self.get_api_key()?;
-        let url = self.base_url.clone().unwrap_or_else(|| GROQ_API_URL.to_string());
+        let url = self
+            .base_url
+            .clone()
+            .unwrap_or_else(|| GROQ_API_URL.to_string());
         let body = self.build_request_body(&request)?;
         let (tx, rx) = mpsc::channel(256);
 
@@ -185,14 +224,19 @@ impl GroqClient {
         let client = self.client.clone();
 
         tokio::spawn(async move {
-            let mut assistant_msg = AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
+            let mut assistant_msg =
+                AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
             assistant_msg.provider = provider_name;
             assistant_msg.model = model_id;
             let mut current_tool_calls: Vec<ToolCall> = Vec::new();
             let mut tool_call_args: Vec<String> = Vec::new();
             let mut response_id: Option<String> = None;
 
-            let _ = tx.send(Ok(LlmStreamEvent::Start { partial: assistant_msg.clone() })).await;
+            let _ = tx
+                .send(Ok(LlmStreamEvent::Start {
+                    partial: assistant_msg.clone(),
+                }))
+                .await;
 
             let response = match client
                 .post(&url)
@@ -204,9 +248,11 @@ impl GroqClient {
             {
                 Ok(r) => r,
                 Err(e) => {
-                    let _ = tx.send(Err(SpectraError::StreamError {
-                        reason: format!("Request failed: {}", e),
-                    })).await;
+                    let _ = tx
+                        .send(Err(SpectraError::StreamError {
+                            reason: format!("Request failed: {}", e),
+                        }))
+                        .await;
                     return;
                 }
             };
@@ -214,11 +260,13 @@ impl GroqClient {
             if !response.status().is_success() {
                 let status = response.status().as_u16();
                 let error_text = response.text().await.unwrap_or_default();
-                let _ = tx.send(Err(SpectraError::LlmError {
-                    provider: "groq".into(),
-                    message: format!("API error {}: {}", status, error_text),
-                    source: None,
-                })).await;
+                let _ = tx
+                    .send(Err(SpectraError::LlmError {
+                        provider: "groq".into(),
+                        message: format!("API error {}: {}", status, error_text),
+                        source: None,
+                    }))
+                    .await;
                 return;
             }
 
@@ -244,12 +292,20 @@ impl GroqClient {
                                         response_id = chunk.id.clone();
                                     }
 
-                                    if let Some(delta) = chunk.choices.first().and_then(|c| c.delta.as_ref()) {
+                                    if let Some(delta) =
+                                        chunk.choices.first().and_then(|c| c.delta.as_ref())
+                                    {
                                         if let Some(content) = &delta.content {
-                                            assistant_msg.content.push(Content::Text { text: content.clone() });
-                                            let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                                                delta: ContentDelta::Text { delta: content.clone() },
-                                            })).await;
+                                            assistant_msg.content.push(Content::Text {
+                                                text: content.clone(),
+                                            });
+                                            let _ = tx
+                                                .send(Ok(LlmStreamEvent::ContentDelta {
+                                                    delta: ContentDelta::Text {
+                                                        delta: content.clone(),
+                                                    },
+                                                }))
+                                                .await;
                                         }
 
                                         if let Some(tcs) = &delta.tool_calls {
@@ -258,7 +314,11 @@ impl GroqClient {
                                                 if idx >= current_tool_calls.len() {
                                                     current_tool_calls.push(ToolCall {
                                                         id: tc.id.clone().unwrap_or_default(),
-                                                        name: tc.function.as_ref().and_then(|f| f.name.clone()).unwrap_or_default(),
+                                                        name: tc
+                                                            .function
+                                                            .as_ref()
+                                                            .and_then(|f| f.name.clone())
+                                                            .unwrap_or_default(),
                                                         arguments: serde_json::Value::Null,
                                                         thinking_signature: None,
                                                     });
@@ -279,15 +339,20 @@ impl GroqClient {
                                         }
                                     }
 
-                                    if let Some(finish_reason) = chunk.choices.first().and_then(|c| c.finish_reason.as_ref())
+                                    if let Some(finish_reason) =
+                                        chunk.choices.first().and_then(|c| c.finish_reason.as_ref())
                                         && finish_reason == "tool_calls"
                                     {
                                         assistant_msg.stop_reason = StopReason::ToolCalls;
                                         for (i, tc) in current_tool_calls.iter_mut().enumerate() {
-                                            if let Ok(args) = serde_json::from_str(&tool_call_args[i]) {
+                                            if let Ok(args) =
+                                                serde_json::from_str(&tool_call_args[i])
+                                            {
                                                 tc.arguments = args;
                                             } else {
-                                                tc.arguments = serde_json::Value::String(tool_call_args[i].clone());
+                                                tc.arguments = serde_json::Value::String(
+                                                    tool_call_args[i].clone(),
+                                                );
                                             }
                                         }
                                         assistant_msg.tool_calls = current_tool_calls.clone();
@@ -297,9 +362,11 @@ impl GroqClient {
                         }
                     }
                     Err(e) => {
-                        let _ = tx.send(Err(SpectraError::StreamError {
-                            reason: format!("Stream error: {}", e),
-                        })).await;
+                        let _ = tx
+                            .send(Err(SpectraError::StreamError {
+                                reason: format!("Stream error: {}", e),
+                            }))
+                            .await;
                         break;
                     }
                 }
@@ -309,7 +376,11 @@ impl GroqClient {
                 assistant_msg.response_id = Some(id);
             }
 
-            let _ = tx.send(Ok(LlmStreamEvent::Done { message: assistant_msg })).await;
+            let _ = tx
+                .send(Ok(LlmStreamEvent::Done {
+                    message: assistant_msg,
+                }))
+                .await;
         });
 
         Ok(Box::pin(ReceiverStream::new(rx)))
@@ -317,10 +388,14 @@ impl GroqClient {
 
     pub async fn complete_request(&self, request: LlmRequest) -> Result<LlmResponse> {
         let api_key = self.get_api_key()?;
-        let url = self.base_url.clone().unwrap_or_else(|| GROQ_API_URL.to_string());
+        let url = self
+            .base_url
+            .clone()
+            .unwrap_or_else(|| GROQ_API_URL.to_string());
         let body = self.build_request_body(&request)?;
 
-        let response = self.client
+        let response = self
+            .client
             .post(&url)
             .header("content-type", "application/json")
             .header("authorization", format!("Bearer {}", api_key))
@@ -342,10 +417,13 @@ impl GroqClient {
             });
         }
 
-        let response_text = response.text().await.map_err(|_e| SpectraError::HttpError {
-            status: 0,
-            url: url.clone(),
-        })?;
+        let response_text = response
+            .text()
+            .await
+            .map_err(|_e| SpectraError::HttpError {
+                status: 0,
+                url: url.clone(),
+            })?;
 
         #[derive(Deserialize)]
         struct GroqResponse {
@@ -386,15 +464,19 @@ impl GroqClient {
             completion_tokens: u32,
         }
 
-        let groq_response: GroqResponse = serde_json::from_str(&response_text)
-            .map_err(SpectraError::Serialization)?;
+        let groq_response: GroqResponse =
+            serde_json::from_str(&response_text).map_err(SpectraError::Serialization)?;
 
-        let choice = groq_response.choices.into_iter().next()
-            .ok_or_else(|| SpectraError::LlmError {
-                provider: "groq".into(),
-                message: "No choices in response".into(),
-                source: None,
-            })?;
+        let choice =
+            groq_response
+                .choices
+                .into_iter()
+                .next()
+                .ok_or_else(|| SpectraError::LlmError {
+                    provider: "groq".into(),
+                    message: "No choices in response".into(),
+                    source: None,
+                })?;
 
         let mut content = Vec::new();
         let mut tool_calls = Vec::new();
@@ -405,7 +487,8 @@ impl GroqClient {
 
         if let Some(tcs) = choice.message.tool_calls {
             for tc in tcs {
-                let args = serde_json::from_str(&tc.function.arguments).unwrap_or(serde_json::Value::String(tc.function.arguments));
+                let args = serde_json::from_str(&tc.function.arguments)
+                    .unwrap_or(serde_json::Value::String(tc.function.arguments));
                 tool_calls.push(ToolCall {
                     id: tc.id,
                     name: tc.function.name,

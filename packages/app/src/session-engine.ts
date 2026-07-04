@@ -109,7 +109,7 @@ export class SessionEngine {
 			session = loaded;
 		} else {
 			const model = options?.model ?? { id: '', name: '', provider: '', api: '' };
-			session = await this.config.sessionManager.create({ model }, userId);
+			session = await this.config.sessionManager.create({ model }, userId, options?.tenantId);
 		}
 
 		const abortController = new AbortController();
@@ -155,15 +155,17 @@ export class SessionEngine {
 					});
 				}
 
+				// Per-event persistence: save each message as it completes
+				if (event.type === 'message_end') {
+					this.config.sessionManager.appendMessage(session, event.message);
+					await this.config.sessionManager.save(session);
+				}
+
 				if (event.type === 'turn_end') {
 					const content = event.message.content[0];
 					if (content && 'text' in content) {
 						finalMessage = (content as { text: string }).text;
 					}
-					for (const msg of agent.messages) {
-						this.config.sessionManager.appendMessage(session, msg);
-					}
-					await this.config.sessionManager.save(session);
 				}
 			}
 		} catch (err) {
@@ -234,7 +236,7 @@ export class SessionEngine {
 			session = loaded;
 		} else {
 			const model = options?.model ?? { id: '', name: '', provider: '', api: '' };
-			session = await this.config.sessionManager.create({ model }, userId);
+			session = await this.config.sessionManager.create({ model }, userId, options?.tenantId);
 		}
 
 		const abortController = new AbortController();
@@ -278,10 +280,9 @@ export class SessionEngine {
 						});
 					}
 
-					if (event.type === 'turn_end') {
-						for (const msg of ag.messages) {
-							engine.config.sessionManager.appendMessage(sess, msg);
-						}
+					// Per-event persistence: save each message as it completes
+					if (event.type === 'message_end') {
+						engine.config.sessionManager.appendMessage(sess, event.message);
 						await engine.config.sessionManager.save(sess);
 					}
 				}

@@ -1,12 +1,12 @@
-use std::sync::Arc;
+use async_trait::async_trait;
 use spectra_rs::{
     agent::AgentBuilder,
+    event::{ContentDelta, StreamEvent},
     llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, Provider},
     messages::{AssistantMessage, Content, StopReason, ToolCall},
     tool::{ToolBuilder, ToolContext, ToolRegistry, ToolResult},
-    event::{ContentDelta, StreamEvent},
 };
-use async_trait::async_trait;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 // Mock LLM Client for testing
@@ -85,16 +85,16 @@ impl LlmClient for MockLlmClient {
                 if let Content::Text { text } = content {
                     let _ = tx
                         .send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: ContentDelta::Text { delta: text.clone() },
+                            delta: ContentDelta::Text {
+                                delta: text.clone(),
+                            },
                         }))
                         .await;
                 }
             }
 
             let _ = tx
-                .send(Ok(LlmStreamEvent::Done {
-                    message: msg_clone,
-                }))
+                .send(Ok(LlmStreamEvent::Done { message: msg_clone }))
                 .await;
         });
 
@@ -131,7 +131,9 @@ async fn test_agent_simple_conversation() {
     assert!(!events.is_empty(), "Should receive events");
 
     let has_agent_start = events.iter().any(|e| matches!(e, StreamEvent::AgentStart));
-    let has_agent_end = events.iter().any(|e| matches!(e, StreamEvent::AgentEnd { .. }));
+    let has_agent_end = events
+        .iter()
+        .any(|e| matches!(e, StreamEvent::AgentEnd { .. }));
 
     assert!(has_agent_start, "Should have AgentStart event");
     assert!(has_agent_end, "Should have AgentEnd event");
@@ -184,9 +186,7 @@ async fn test_agent_with_tool_call() {
     ]));
 
     let model = Model::new(Provider::Custom, "test-model");
-    let agent = AgentBuilder::new(model)
-        .tools(tool_registry)
-        .build(client);
+    let agent = AgentBuilder::new(model).tools(tool_registry).build(client);
 
     let (mut rx, _channel, _handle) = agent.run("What is 2+2?").await.unwrap();
 
@@ -319,9 +319,7 @@ async fn test_agent_multiple_turns() {
     tool_registry.register(search_tool);
 
     let model = Model::new(Provider::Custom, "test-model");
-    let agent = AgentBuilder::new(model)
-        .tools(tool_registry)
-        .build(client);
+    let agent = AgentBuilder::new(model).tools(tool_registry).build(client);
 
     let (mut rx, _channel, _handle) = agent.run("Do multiple searches").await.unwrap();
 
@@ -382,9 +380,7 @@ async fn test_agent_tool_error_handling() {
     ]));
 
     let model = Model::new(Provider::Custom, "test-model");
-    let agent = AgentBuilder::new(model)
-        .tools(tool_registry)
-        .build(client);
+    let agent = AgentBuilder::new(model).tools(tool_registry).build(client);
 
     let (mut rx, _channel, _handle) = agent.run("Use failing tool").await.unwrap();
 
@@ -428,9 +424,7 @@ async fn test_agent_max_turns_limit() {
     let loop_tool = ToolBuilder::new("loop_tool")
         .description("Tool that causes loops")
         .parameters(serde_json::json!({ "type": "object", "properties": {} }))
-        .execute(|_ctx: ToolContext| async move {
-            Ok(ToolResult::success(serde_json::json!({})))
-        })
+        .execute(|_ctx: ToolContext| async move { Ok(ToolResult::success(serde_json::json!({}))) })
         .build();
 
     tool_registry.register(loop_tool);
@@ -492,15 +486,13 @@ async fn test_agent_message_history() {
 
 #[tokio::test]
 async fn test_agent_restore_history() {
-    let client = Arc::new(MockLlmClient::new(vec![
-        AssistantMessage::new(
-            vec![Content::Text {
-                text: "Restored response".to_string(),
-            }],
-            vec![],
-            StopReason::EndOfTurn,
-        ),
-    ]));
+    let client = Arc::new(MockLlmClient::new(vec![AssistantMessage::new(
+        vec![Content::Text {
+            text: "Restored response".to_string(),
+        }],
+        vec![],
+        StopReason::EndOfTurn,
+    )]));
 
     let model = Model::new(Provider::Custom, "test-model");
     let agent = AgentBuilder::new(model).build(client);
@@ -531,15 +523,13 @@ async fn test_agent_restore_history() {
 
 #[tokio::test]
 async fn test_agent_reset() {
-    let client = Arc::new(MockLlmClient::new(vec![
-        AssistantMessage::new(
-            vec![Content::Text {
-                text: "Response after reset".to_string(),
-            }],
-            vec![],
-            StopReason::EndOfTurn,
-        ),
-    ]));
+    let client = Arc::new(MockLlmClient::new(vec![AssistantMessage::new(
+        vec![Content::Text {
+            text: "Response after reset".to_string(),
+        }],
+        vec![],
+        StopReason::EndOfTurn,
+    )]));
 
     let model = Model::new(Provider::Custom, "test-model");
     let agent = AgentBuilder::new(model).build(client);
@@ -566,7 +556,10 @@ async fn test_agent_reset() {
         }
     });
 
-    assert!(agent_end.unwrap_or(0) >= 1, "Should have messages after reset");
+    assert!(
+        agent_end.unwrap_or(0) >= 1,
+        "Should have messages after reset"
+    );
 }
 
 #[tokio::test]

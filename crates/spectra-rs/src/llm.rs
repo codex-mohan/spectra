@@ -231,9 +231,10 @@ impl ModelRegistry {
         let raw: RawModelRegistry = match toml::from_str(toml_str) {
             Ok(r) => r,
             Err(e) => {
-                return Err(crate::error::SpectraError::Io(
-                    std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
-                ))
+                return Err(crate::error::SpectraError::Io(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    e.to_string(),
+                )));
             }
         };
 
@@ -260,10 +261,7 @@ impl ModelRegistry {
     pub fn load_from_file(path: &std::path::Path) -> Result<Self> {
         let content = std::fs::read_to_string(path)?;
 
-        let ext = path
-            .extension()
-            .and_then(|e| e.to_str())
-            .unwrap_or("json");
+        let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("json");
 
         match ext.to_lowercase().as_str() {
             "toml" => Self::from_toml(&content),

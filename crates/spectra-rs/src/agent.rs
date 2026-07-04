@@ -1,23 +1,27 @@
 use crate::error::{Result, SpectraError};
 use crate::event::{ContentDelta, EventChannel, StreamEvent};
 use crate::extension::{AfterToolCallAction, BeforeToolCallAction, ExtensionManager};
-use crate::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model, Provider, ReasoningEffort, ToolChoice, ToolDef as LlmToolDef};
-use crate::messages::{AssistantMessage, Content, Message, StopReason, ToolCall, ToolResultMessage, UserMessage};
+use crate::llm::{
+    LlmClient, LlmRequest, LlmStreamEvent, Model, Provider, ReasoningEffort, ToolChoice,
+    ToolDef as LlmToolDef,
+};
+use crate::messages::{
+    AssistantMessage, Content, Message, Provenance, StopReason, ToolCall, ToolResultMessage,
+    UserMessage,
+};
 use crate::tool::{Tool, ToolContext, ToolRegistry, ToolResult};
 use futures_util::StreamExt;
 use std::collections::VecDeque;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
-use tokio::sync::{mpsc, watch, Mutex};
+use tokio::sync::{Mutex, mpsc, watch};
 
-pub type TransformFn = Arc<
-    dyn Fn(Vec<Message>) -> Pin<Box<dyn Future<Output = Vec<Message>> + Send>> + Send + Sync,
->;
+pub type TransformFn =
+    Arc<dyn Fn(Vec<Message>) -> Pin<Box<dyn Future<Output = Vec<Message>> + Send>> + Send + Sync>;
 
-pub type ConvertToLlmFn = Arc<
-    dyn Fn(Vec<Message>) -> Pin<Box<dyn Future<Output = Vec<Message>> + Send>> + Send + Sync,
->;
+pub type ConvertToLlmFn =
+    Arc<dyn Fn(Vec<Message>) -> Pin<Box<dyn Future<Output = Vec<Message>> + Send>> + Send + Sync>;
 
 pub type ApiKeyFn = Arc<dyn Fn(&str) -> Option<String> + Send + Sync>;
 
@@ -204,7 +208,11 @@ impl Agent {
     pub async fn run(
         &self,
         user_input: impl Into<String>,
-    ) -> Result<(mpsc::Receiver<Result<StreamEvent>>, EventChannel, AgentHandle)> {
+    ) -> Result<(
+        mpsc::Receiver<Result<StreamEvent>>,
+        EventChannel,
+        AgentHandle,
+    )> {
         let (tx, rx) = mpsc::channel(256);
         let channel = EventChannel::new();
         let channel_clone = channel.clone();
@@ -301,9 +309,10 @@ fn emit(
     event: StreamEvent,
 ) -> Result<()> {
     let _ = channel.emit(event.clone());
-    tx.try_send(Ok(event)).map_err(|_| SpectraError::StreamError {
-        reason: "Receiver dropped".to_string(),
-    })?;
+    tx.try_send(Ok(event))
+        .map_err(|_| SpectraError::StreamError {
+            reason: "Receiver dropped".to_string(),
+        })?;
     Ok(())
 }
 
@@ -340,9 +349,13 @@ async fn run_agent_loop(
     loop {
         // Check abort
         if *abort_rx.borrow() {
-            emit(tx, channel, StreamEvent::Error {
-                message: "Agent aborted by user".to_string(),
-            })?;
+            emit(
+                tx,
+                channel,
+                StreamEvent::Error {
+                    message: "Agent aborted by user".to_string(),
+                },
+            )?;
             break;
         }
 
@@ -363,8 +376,20 @@ async fn run_agent_loop(
         };
 
         for msg in &steering_msgs {
-            emit(tx, channel, StreamEvent::MessageStart { message: msg.clone() })?;
-            emit(tx, channel, StreamEvent::MessageEnd { message: msg.clone() })?;
+            emit(
+                tx,
+                channel,
+                StreamEvent::MessageStart {
+                    message: msg.clone(),
+                },
+            )?;
+            emit(
+                tx,
+                channel,
+                StreamEvent::MessageEnd {
+                    message: msg.clone(),
+                },
+            )?;
         }
         all_messages.extend(steering_msgs);
 
@@ -419,9 +444,13 @@ async fn run_agent_loop(
         {
             Ok(msg) => msg,
             Err(e) => {
-                emit(tx, channel, StreamEvent::Error {
-                    message: e.to_string(),
-                })?;
+                emit(
+                    tx,
+                    channel,
+                    StreamEvent::Error {
+                        message: e.to_string(),
+                    },
+                )?;
                 break;
             }
         };
@@ -453,9 +482,13 @@ async fn run_agent_loop(
                                 all_messages.push(Message::ToolResult(tr));
                             }
                             Err(e) => {
-                                emit(tx, channel, StreamEvent::Error {
-                                    message: e.to_string(),
-                                })?;
+                                emit(
+                                    tx,
+                                    channel,
+                                    StreamEvent::Error {
+                                        message: e.to_string(),
+                                    },
+                                )?;
                             }
                         }
                     }
@@ -476,9 +509,13 @@ async fn run_agent_loop(
                                 all_messages.push(Message::ToolResult(tr));
                             }
                             Err(e) => {
-                                emit(tx, channel, StreamEvent::Error {
-                                    message: e.to_string(),
-                                })?;
+                                emit(
+                                    tx,
+                                    channel,
+                                    StreamEvent::Error {
+                                        message: e.to_string(),
+                                    },
+                                )?;
                             }
                         }
                     }
@@ -505,8 +542,20 @@ async fn run_agent_loop(
 
                 if !follow_up_msgs.is_empty() {
                     for msg in &follow_up_msgs {
-                        emit(tx, channel, StreamEvent::MessageStart { message: msg.clone() })?;
-                        emit(tx, channel, StreamEvent::MessageEnd { message: msg.clone() })?;
+                        emit(
+                            tx,
+                            channel,
+                            StreamEvent::MessageStart {
+                                message: msg.clone(),
+                            },
+                        )?;
+                        emit(
+                            tx,
+                            channel,
+                            StreamEvent::MessageEnd {
+                                message: msg.clone(),
+                            },
+                        )?;
                     }
                     all_messages.extend(follow_up_msgs);
                     turn_count = 0;
@@ -532,18 +581,22 @@ async fn run_agent_loop(
     }
 
     let final_messages = all_messages.clone();
-    emit(tx, channel, StreamEvent::AgentEnd {
-        messages: all_messages
-            .iter()
-            .filter_map(|m| {
-                if let Message::Assistant(a) = m {
-                    Some(a.clone())
-                } else {
-                    None
-                }
-            })
-            .collect(),
-    })?;
+    emit(
+        tx,
+        channel,
+        StreamEvent::AgentEnd {
+            messages: all_messages
+                .iter()
+                .filter_map(|m| {
+                    if let Message::Assistant(a) = m {
+                        Some(a.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+        },
+    )?;
     config.extensions.on_agent_end();
 
     Ok(final_messages)
@@ -602,8 +655,7 @@ async fn do_stream(
 ) -> Result<AssistantMessage> {
     let stream = client.stream(request).await?;
 
-    let mut assistant_msg =
-        AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
+    let mut assistant_msg = AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
 
     emit(
         tx,
@@ -634,9 +686,13 @@ async fn do_stream(
                     break;
                 }
                 LlmStreamEvent::Error { message } => {
-                    emit(tx, channel, StreamEvent::Error {
-                        message: message.clone(),
-                    })?;
+                    emit(
+                        tx,
+                        channel,
+                        StreamEvent::Error {
+                            message: message.clone(),
+                        },
+                    )?;
                     emit(
                         tx,
                         channel,
@@ -652,9 +708,13 @@ async fn do_stream(
                 }
             },
             Err(e) => {
-                emit(tx, channel, StreamEvent::Error {
-                    message: e.to_string(),
-                })?;
+                emit(
+                    tx,
+                    channel,
+                    StreamEvent::Error {
+                        message: e.to_string(),
+                    },
+                )?;
                 emit(
                     tx,
                     channel,
@@ -723,11 +783,13 @@ async fn dispatch_tool_with_events(
     });
 
     if let Some(reason) = block_action {
-        let err_msg = ToolResultMessage::error(
-            tool_call.id.clone(),
-            tool_call.name.clone(),
-            reason,
-        );
+        let err_msg =
+            ToolResultMessage::error(tool_call.id.clone(), tool_call.name.clone(), reason.clone())
+                .with_provenance(Provenance {
+                    blocked_by: Some("beforeToolCall".to_string()),
+                    block_reason: Some(reason),
+                    ..Default::default()
+                });
         emit(
             tx,
             channel,
@@ -747,6 +809,8 @@ async fn dispatch_tool_with_events(
             None
         }
     });
+
+    let args_were_transformed = modified_args.is_some();
 
     let tool_ctx = ToolContext {
         tool_call_id: tool_call.id.clone(),
@@ -770,9 +834,7 @@ async fn dispatch_tool_with_events(
         }
     });
 
-    let result = registry
-        .dispatch(&tool_call.name, tool_ctx)
-        .await;
+    let result = registry.dispatch(&tool_call.name, tool_ctx).await;
 
     let after_ctx = ToolContext {
         tool_call_id: tool_call.id.clone(),
@@ -785,13 +847,29 @@ async fn dispatch_tool_with_events(
         Ok(r) => {
             let after_actions = extensions.on_after_tool_call(tool_call, &after_ctx, r);
 
-            let (content, is_error) = after_actions
-                .iter()
-                .find_map(|a| match a {
-                    AfterToolCallAction::Replace { result: r } => Some((r.content.clone(), r.is_error)),
-                    _ => None,
-                })
-                .unwrap_or_else(|| (r.content.clone(), r.is_error));
+            let replacement = after_actions.iter().find_map(|a| match a {
+                AfterToolCallAction::Replace { result: r } => Some((r.content.clone(), r.is_error)),
+                _ => None,
+            });
+            let was_replaced = replacement.is_some();
+            let (content, is_error) =
+                replacement.unwrap_or_else(|| (r.content.clone(), r.is_error));
+
+            let provenance = if args_were_transformed || was_replaced {
+                let mut provenance = Provenance::default();
+                if args_were_transformed {
+                    provenance.transformed_by = Some("beforeToolCall".to_string());
+                }
+                if was_replaced {
+                    provenance.transformed_by = Some("afterToolCall".to_string());
+                    let mut hook_details = std::collections::HashMap::new();
+                    hook_details.insert("replaced".to_string(), serde_json::Value::Bool(true));
+                    provenance.hook_details = Some(hook_details);
+                }
+                Some(provenance)
+            } else {
+                None
+            };
 
             ToolResultMessage {
                 tool_call_id: tool_call.id.clone(),
@@ -799,16 +877,14 @@ async fn dispatch_tool_with_events(
                 content,
                 is_error,
                 timestamp: chrono::Utc::now(),
-                details: None,
+                details: r.details.clone(),
                 metadata: None,
-                provenance: None,
+                provenance,
             }
         }
-        Err(e) => ToolResultMessage::error(
-            tool_call.id.clone(),
-            tool_call.name.clone(),
-            e.to_string(),
-        ),
+        Err(e) => {
+            ToolResultMessage::error(tool_call.id.clone(), tool_call.name.clone(), e.to_string())
+        }
     };
 
     let is_error = tool_result_msg.is_error;
@@ -831,9 +907,7 @@ fn apply_delta(msg: &mut AssistantMessage, delta: &ContentDelta) {
             if let Some(Content::Text { text: last }) = msg.content.last_mut() {
                 last.push_str(text);
             } else {
-                msg.content.push(Content::Text {
-                    text: text.clone(),
-                });
+                msg.content.push(Content::Text { text: text.clone() });
             }
         }
         ContentDelta::Thinking {
@@ -880,5 +954,257 @@ fn apply_delta(msg: &mut AssistantMessage, delta: &ContentDelta) {
             }
         }
         ContentDelta::ToolCallEnd { id: _ } => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::extension::{
+        AfterToolCallAction, BeforeToolCallAction, Extension, ExtensionManager,
+    };
+    use crate::llm::{
+        LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, Provider,
+    };
+    use crate::messages::{Content, Provenance};
+    use crate::tool::{ToolBuilder, ToolContext, ToolResult};
+    use async_trait::async_trait;
+    use serde_json::json;
+
+    struct MockLlmClient {
+        respond_with_tool_call: bool,
+    }
+
+    #[async_trait]
+    impl LlmClient for MockLlmClient {
+        fn provider(&self) -> Provider {
+            Provider::Custom
+        }
+
+        async fn complete(&self, _request: LlmRequest) -> crate::error::Result<LlmResponse> {
+            Ok(LlmResponse {
+                message: AssistantMessage::new(vec![], vec![], StopReason::EndOfTurn),
+                usage: Default::default(),
+                stop_reason: StopReason::EndOfTurn,
+            })
+        }
+
+        async fn stream(&self, _request: LlmRequest) -> crate::error::Result<LlmStream> {
+            let (tx, rx) = tokio::sync::mpsc::channel(8);
+            if self.respond_with_tool_call {
+                let msg = AssistantMessage::new(
+                    vec![Content::Text {
+                        text: "calling tool".into(),
+                    }],
+                    vec![ToolCall {
+                        id: "tc-1".into(),
+                        name: "test_tool".into(),
+                        arguments: json!({"query": "original"}),
+                        thinking_signature: None,
+                    }],
+                    StopReason::ToolCalls,
+                );
+                let _ = tx.send(Ok(LlmStreamEvent::Done { message: msg })).await;
+            } else {
+                let msg = AssistantMessage::new(
+                    vec![Content::Text {
+                        text: "done".into(),
+                    }],
+                    vec![],
+                    StopReason::EndOfTurn,
+                );
+                let _ = tx.send(Ok(LlmStreamEvent::Done { message: msg })).await;
+            }
+            Ok(Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)))
+        }
+    }
+
+    struct BlockExtension;
+    impl Extension for BlockExtension {
+        fn on_before_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
+            BeforeToolCallAction::Block {
+                reason: "blocked by policy".into(),
+            }
+        }
+    }
+
+    struct TransformExtension;
+    impl Extension for TransformExtension {
+        fn on_before_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
+            BeforeToolCallAction::Transform {
+                modified_args: json!({"query": "modified"}),
+            }
+        }
+    }
+
+    struct ReplaceExtension;
+    impl Extension for ReplaceExtension {
+        fn on_after_tool_call(
+            &self,
+            _tc: &ToolCall,
+            _ctx: &ToolContext,
+            _result: &ToolResult,
+        ) -> AfterToolCallAction {
+            AfterToolCallAction::Replace {
+                result: ToolResult::success(json!({"replaced": true})),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_block_provenance() {
+        let mut ext = ExtensionManager::new();
+        ext.add(BlockExtension);
+
+        let client = Arc::new(MockLlmClient {
+            respond_with_tool_call: true,
+        });
+        let tool = ToolBuilder::new("test_tool")
+            .description("test")
+            .parameters(json!({}))
+            .execute(|_ctx| async { Ok(ToolResult::success(json!("should not run"))) })
+            .build();
+
+        let tool_registry = ToolRegistry::new();
+        tool_registry.register(tool);
+
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "test-model"))
+            .tools(Arc::new(tool_registry))
+            .extensions(ext)
+            .max_turns(1);
+
+        let agent = builder.build(client);
+        let (mut rx, _channel, _handle) = agent.run("test".to_string()).await.unwrap();
+
+        let mut found_provenance: Option<Provenance> = None;
+        while let Some(event) = rx.recv().await {
+            if let Ok(StreamEvent::ToolExecutionEnd { result, .. }) = event {
+                found_provenance = result.provenance;
+            }
+        }
+
+        let prov = found_provenance.expect("expected provenance on blocked tool result");
+        assert_eq!(prov.blocked_by, Some("beforeToolCall".to_string()));
+        assert_eq!(prov.block_reason, Some("blocked by policy".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_transform_provenance() {
+        let mut ext = ExtensionManager::new();
+        ext.add(TransformExtension);
+
+        let client = Arc::new(MockLlmClient {
+            respond_with_tool_call: true,
+        });
+        let tool = ToolBuilder::new("test_tool")
+            .description("test")
+            .parameters(json!({}))
+            .execute(|ctx| async move {
+                // Tool should see modified args
+                let q = ctx.params["query"].as_str().unwrap_or("");
+                Ok(ToolResult::success(json!({"seen": q})))
+            })
+            .build();
+
+        let tool_registry = ToolRegistry::new();
+        tool_registry.register(tool);
+
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "test-model"))
+            .tools(Arc::new(tool_registry))
+            .extensions(ext)
+            .max_turns(1);
+
+        let agent = builder.build(client);
+        let (mut rx, _channel, _handle) = agent.run("test".to_string()).await.unwrap();
+
+        let mut found_provenance: Option<Provenance> = None;
+        while let Some(event) = rx.recv().await {
+            if let Ok(StreamEvent::ToolExecutionEnd { result, .. }) = event {
+                found_provenance = result.provenance;
+            }
+        }
+
+        let prov = found_provenance.expect("expected provenance on transformed tool result");
+        assert_eq!(prov.transformed_by, Some("beforeToolCall".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_after_tool_call_replace_provenance() {
+        let mut ext = ExtensionManager::new();
+        ext.add(ReplaceExtension);
+
+        let client = Arc::new(MockLlmClient {
+            respond_with_tool_call: true,
+        });
+        let tool = ToolBuilder::new("test_tool")
+            .description("test")
+            .parameters(json!({}))
+            .execute(|_ctx| async { Ok(ToolResult::success(json!({"raw": true}))) })
+            .build();
+
+        let tool_registry = ToolRegistry::new();
+        tool_registry.register(tool);
+
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "test-model"))
+            .tools(Arc::new(tool_registry))
+            .extensions(ext)
+            .max_turns(1);
+
+        let agent = builder.build(client);
+        let (mut rx, _channel, _handle) = agent.run("test".to_string()).await.unwrap();
+
+        let mut found_result = None;
+        while let Some(event) = rx.recv().await {
+            if let Ok(StreamEvent::ToolExecutionEnd { result, .. }) = event {
+                found_result = Some(result);
+            }
+        }
+
+        let result = found_result.expect("expected tool result");
+        assert_eq!(result.content, json!({"replaced": true}));
+        let prov = result
+            .provenance
+            .expect("expected provenance on replaced tool result");
+        assert_eq!(prov.transformed_by, Some("afterToolCall".to_string()));
+        assert_eq!(
+            prov.hook_details
+                .as_ref()
+                .and_then(|details| details.get("replaced")),
+            Some(&json!(true)),
+        );
+    }
+
+    #[tokio::test]
+    async fn test_no_provenance_for_normal_execution() {
+        let client = Arc::new(MockLlmClient {
+            respond_with_tool_call: true,
+        });
+        let tool = ToolBuilder::new("test_tool")
+            .description("test")
+            .parameters(json!({}))
+            .execute(|_ctx| async { Ok(ToolResult::success(json!("ok"))) })
+            .build();
+
+        let tool_registry = ToolRegistry::new();
+        tool_registry.register(tool);
+
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "test-model"))
+            .tools(Arc::new(tool_registry))
+            .max_turns(1);
+
+        let agent = builder.build(client);
+        let (mut rx, _channel, _handle) = agent.run("test".to_string()).await.unwrap();
+
+        let mut found_provenance: Option<Provenance> = None;
+        while let Some(event) = rx.recv().await {
+            if let Ok(StreamEvent::ToolExecutionEnd { result, .. }) = event {
+                found_provenance = result.provenance;
+            }
+        }
+
+        assert!(
+            found_provenance.is_none(),
+            "normal execution should not have provenance"
+        );
     }
 }

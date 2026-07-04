@@ -139,28 +139,42 @@ mod tests {
 
     impl Extension for TestExtension {
         fn on_before_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
-            self.before_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            self.before_count
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             BeforeToolCallAction::Allow
         }
 
-        fn on_after_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext, _result: &ToolResult) -> AfterToolCallAction {
-            self.after_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        fn on_after_tool_call(
+            &self,
+            _tc: &ToolCall,
+            _ctx: &ToolContext,
+            _result: &ToolResult,
+        ) -> AfterToolCallAction {
+            self.after_count
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             AfterToolCallAction::Passthrough
         }
 
         fn on_agent_start(&self) {
-            self.start_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            self.start_count
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         }
 
         fn on_agent_end(&self) {
-            self.end_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            self.end_count
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         }
     }
 
     #[test]
     fn test_extension_manager_new_is_empty() {
         let mgr = ExtensionManager::new();
-        let tc = ToolCall { id: "1".into(), name: "t".into(), arguments: json!({}), thinking_signature: None };
+        let tc = ToolCall {
+            id: "1".into(),
+            name: "t".into(),
+            arguments: json!({}),
+            thinking_signature: None,
+        };
         let ctx = ToolContext::new("1".into(), json!({}));
         let actions = mgr.on_before_tool_call(&tc, &ctx);
         assert!(actions.is_empty());
@@ -172,13 +186,18 @@ mod tests {
         let ext = TestExtension::new();
         mgr.add(ext);
 
-        let tc = ToolCall { id: "1".into(), name: "t".into(), arguments: json!({}), thinking_signature: None };
+        let tc = ToolCall {
+            id: "1".into(),
+            name: "t".into(),
+            arguments: json!({}),
+            thinking_signature: None,
+        };
         let ctx = ToolContext::new("1".into(), json!({}));
 
         let before_actions = mgr.on_before_tool_call(&tc, &ctx);
         assert_eq!(before_actions.len(), 1);
         match &before_actions[0] {
-            BeforeToolCallAction::Allow => {},
+            BeforeToolCallAction::Allow => {}
             _ => panic!("Expected Allow"),
         }
     }
@@ -203,15 +222,27 @@ mod tests {
     fn test_multiple_extensions_before_tool_call() {
         struct BlockExt;
         impl Extension for BlockExt {
-            fn on_before_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
-                BeforeToolCallAction::Block { reason: "nope".into() }
+            fn on_before_tool_call(
+                &self,
+                _tc: &ToolCall,
+                _ctx: &ToolContext,
+            ) -> BeforeToolCallAction {
+                BeforeToolCallAction::Block {
+                    reason: "nope".into(),
+                }
             }
         }
 
         struct TransformExt;
         impl Extension for TransformExt {
-            fn on_before_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext) -> BeforeToolCallAction {
-                BeforeToolCallAction::Transform { modified_args: json!({"x": 1}) }
+            fn on_before_tool_call(
+                &self,
+                _tc: &ToolCall,
+                _ctx: &ToolContext,
+            ) -> BeforeToolCallAction {
+                BeforeToolCallAction::Transform {
+                    modified_args: json!({"x": 1}),
+                }
             }
         }
 
@@ -219,7 +250,12 @@ mod tests {
         mgr.add(BlockExt);
         mgr.add(TransformExt);
 
-        let tc = ToolCall { id: "b1".into(), name: "b".into(), arguments: json!({}), thinking_signature: None };
+        let tc = ToolCall {
+            id: "b1".into(),
+            name: "b".into(),
+            arguments: json!({}),
+            thinking_signature: None,
+        };
         let ctx = ToolContext::new("b1".into(), json!({}));
         let actions = mgr.on_before_tool_call(&tc, &ctx);
         assert_eq!(actions.len(), 2);
@@ -231,19 +267,24 @@ mod tests {
         impl Extension for MinimalExt {}
 
         let ext = MinimalExt;
-        let tc = ToolCall { id: "m".into(), name: "m".into(), arguments: json!({}), thinking_signature: None };
+        let tc = ToolCall {
+            id: "m".into(),
+            name: "m".into(),
+            arguments: json!({}),
+            thinking_signature: None,
+        };
         let ctx = ToolContext::new("m".into(), json!({}));
 
         let action = ext.on_before_tool_call(&tc, &ctx);
         match action {
-            BeforeToolCallAction::Allow => {},
+            BeforeToolCallAction::Allow => {}
             _ => panic!("Default should be Allow"),
         }
 
         let result = ToolResult::success(json!({}));
         let action = ext.on_after_tool_call(&tc, &ctx, &result);
         match action {
-            AfterToolCallAction::Passthrough => {},
+            AfterToolCallAction::Passthrough => {}
             _ => panic!("Default should be Passthrough"),
         }
     }
@@ -252,7 +293,12 @@ mod tests {
     fn test_after_tool_call_replace_action() {
         struct ReplaceExt;
         impl Extension for ReplaceExt {
-            fn on_after_tool_call(&self, _tc: &ToolCall, _ctx: &ToolContext, _result: &ToolResult) -> AfterToolCallAction {
+            fn on_after_tool_call(
+                &self,
+                _tc: &ToolCall,
+                _ctx: &ToolContext,
+                _result: &ToolResult,
+            ) -> AfterToolCallAction {
                 AfterToolCallAction::Replace {
                     result: ToolResult::success(json!({"replaced": true})),
                 }
@@ -262,7 +308,12 @@ mod tests {
         let mut mgr = ExtensionManager::new();
         mgr.add(ReplaceExt);
 
-        let tc = ToolCall { id: "r".into(), name: "r".into(), arguments: json!({}), thinking_signature: None };
+        let tc = ToolCall {
+            id: "r".into(),
+            name: "r".into(),
+            arguments: json!({}),
+            thinking_signature: None,
+        };
         let ctx = ToolContext::new("r".into(), json!({}));
         let result = ToolResult::success(json!({}));
         let actions = mgr.on_after_tool_call(&tc, &ctx, &result);

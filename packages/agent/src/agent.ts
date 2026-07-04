@@ -619,6 +619,7 @@ export class Agent {
 				true,
 				assistantMessage,
 				emit,
+				{ blockedBy: 'beforeToolCall', blockReason: blockReason ?? 'Tool call blocked' },
 			);
 		}
 
@@ -661,7 +662,9 @@ export class Agent {
 		isError: boolean,
 		assistantMessage: AssistantMessage,
 		emit: EmitFn,
+		provenance?: ToolResultMessage['provenance'],
 	): Promise<ToolResultMessage> {
+		let wasOverridden = false;
 		if (this.afterToolCallHook) {
 			try {
 				const override = await this.afterToolCallHook(
@@ -669,12 +672,23 @@ export class Agent {
 					this.abortController?.signal,
 				);
 				if (override) {
-					if (override.content) result = { ...result, content: override.content };
+					if (override.content) {
+						result = { ...result, content: override.content };
+						wasOverridden = true;
+					}
 					if (override.isError !== undefined) isError = override.isError;
 				}
 			} catch {
 				// Hook errors should not break tool execution
 			}
+		}
+
+		if (wasOverridden) {
+			provenance = {
+				...provenance,
+				transformedBy: 'afterToolCall',
+				hookDetails: { ...provenance?.hookDetails, replaced: true },
+			};
 		}
 
 		const msg: ToolResultMessage = {
@@ -685,6 +699,7 @@ export class Agent {
 			details: result.details,
 			isError,
 			timestamp: Date.now(),
+			provenance,
 		};
 		this._messages.push(msg);
 

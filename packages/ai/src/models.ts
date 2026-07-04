@@ -4963,6 +4963,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 202752
     },
     {
+      "id": "glm-5.1",
+      "name": "GLM-5.1",
+      "contextWindow": 200000
+    },
+    {
+      "id": "glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1000000
+    },
+    {
       "id": "openai-gpt-4.1",
       "name": "GPT-4.1",
       "contextWindow": 1047576
@@ -13008,9 +13018,9 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 256000
     },
     {
-      "id": "z-ai/glm-5.1",
-      "name": "GLM-5.1",
-      "contextWindow": 131072
+      "id": "z-ai/glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1000000
     },
     {
       "id": "openai/gpt-oss-20b",

@@ -6,24 +6,56 @@ use tokio::sync::broadcast;
 pub enum StreamEvent {
     AgentStart,
     TurnStart,
-    MessageStart { message: Message },
-    MessageUpdate { delta: ContentDelta },
-    MessageEnd { message: Message },
-    TurnEnd { tool_results: Vec<ToolResultMessage> },
-    ToolExecutionStart { tool_call: ToolCall },
-    ToolExecutionUpdate { partial: serde_json::Value },
-    ToolExecutionEnd { result: ToolResultMessage, is_error: bool },
-    AgentEnd { messages: Vec<AssistantMessage> },
-    Error { message: String },
+    MessageStart {
+        message: Message,
+    },
+    MessageUpdate {
+        delta: ContentDelta,
+    },
+    MessageEnd {
+        message: Message,
+    },
+    TurnEnd {
+        tool_results: Vec<ToolResultMessage>,
+    },
+    ToolExecutionStart {
+        tool_call: ToolCall,
+    },
+    ToolExecutionUpdate {
+        partial: serde_json::Value,
+    },
+    ToolExecutionEnd {
+        result: ToolResultMessage,
+        is_error: bool,
+    },
+    AgentEnd {
+        messages: Vec<AssistantMessage>,
+    },
+    Error {
+        message: String,
+    },
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum ContentDelta {
-    Text { delta: String },
-    Thinking { delta: String, signature: Option<String> },
-    ToolCallStart { id: String, name: String },
-    ToolCallDelta { id: String, args_delta: String },
-    ToolCallEnd { id: String },
+    Text {
+        delta: String,
+    },
+    Thinking {
+        delta: String,
+        signature: Option<String>,
+    },
+    ToolCallStart {
+        id: String,
+        name: String,
+    },
+    ToolCallDelta {
+        id: String,
+        args_delta: String,
+    },
+    ToolCallEnd {
+        id: String,
+    },
 }
 
 pub struct EventChannel {

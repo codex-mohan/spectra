@@ -135,21 +135,17 @@ impl ToolRegistry {
     }
 
     pub async fn dispatch(&self, name: &str, ctx: ToolContext) -> Result<ToolResult> {
-        let tool = self
-            .get(name)
-            .ok_or_else(|| SpectraError::ToolNotFound {
-                name: name.to_string(),
-            })?;
+        let tool = self.get(name).ok_or_else(|| SpectraError::ToolNotFound {
+            name: name.to_string(),
+        })?;
 
         tool.execute(ctx).await
     }
 
     pub async fn dispatch_by_name(&self, name: &str, ctx: ToolContext) -> Result<ToolResult> {
-        let tool = self
-            .get(name)
-            .ok_or_else(|| SpectraError::ToolNotFound {
-                name: name.to_string(),
-            })?;
+        let tool = self.get(name).ok_or_else(|| SpectraError::ToolNotFound {
+            name: name.to_string(),
+        })?;
 
         tool.execute(ctx).await
     }
@@ -222,10 +218,7 @@ impl ToolBuilder {
         let def = ToolDef::new(&self.name, &self.description, self.parameters);
         let executor = self.executor.expect("executor not set");
 
-        Arc::new(BuiltTool {
-            def,
-            executor,
-        })
+        Arc::new(BuiltTool { def, executor })
     }
 }
 

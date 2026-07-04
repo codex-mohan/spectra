@@ -80,7 +80,7 @@ function getBranchPath(entries: SessionEntry[], entryId?: string): SessionEntry[
 export class SessionManager {
 	constructor(private store: SessionStore) {}
 
-	async create(config: SessionConfig, userId?: string): Promise<Session> {
+	async create(config: SessionConfig, userId?: string, tenantId?: string): Promise<Session> {
 		const session: Session = {
 			id: generateId(),
 			model: config.model,
@@ -93,6 +93,7 @@ export class SessionManager {
 				tokenUsage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
 				isStreaming: false,
 				userId,
+				tenantId,
 			},
 		};
 
@@ -213,6 +214,7 @@ export class SessionManager {
 				isStreaming: false,
 				parentSessionId: sourceId,
 				userId: source.metadata.userId,
+				tenantId: source.metadata.tenantId,
 			},
 		};
 

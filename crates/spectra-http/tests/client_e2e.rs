@@ -1,10 +1,10 @@
-use spectra_http::{AnthropicClient, OpenAIClient};
-use spectra_rs::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model};
-use spectra_rs::event::ContentDelta;
-use spectra_rs::messages::{Content, StopReason};
 use futures_util::StreamExt;
-use wiremock::{MockServer, Mock, ResponseTemplate};
-use wiremock::matchers::{method, path, header};
+use spectra_http::{AnthropicClient, OpenAIClient};
+use spectra_rs::event::ContentDelta;
+use spectra_rs::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model};
+use spectra_rs::messages::{Content, StopReason};
+use wiremock::matchers::{header, method, path};
+use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn make_request(model: Model) -> LlmRequest {
     let mut req = LlmRequest::new(model);
@@ -37,25 +37,40 @@ data: {"type":"message_stop"}
     let client = AnthropicClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/messages", mock_server.uri()));
-    
+
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
-    
+
     let mut request = LlmRequest::new(model);
     request.system_prompt = Some("You are a helpful assistant.".to_string());
     request.messages = vec![spectra_rs::messages::Message::User(
-        spectra_rs::messages::UserMessage::text("Hello!")
+        spectra_rs::messages::UserMessage::text("Hello!"),
     )];
 
     let response = client.complete(request).await;
     assert!(response.is_ok(), "Complete should succeed");
-    
+
     let resp = response.unwrap();
-    let full_text: String = resp.message.content.iter()
-        .filter_map(|c| if let spectra_rs::messages::Content::Text { text } = c { Some(text.as_str()) } else { None })
+    let full_text: String = resp
+        .message
+        .content
+        .iter()
+        .filter_map(|c| {
+            if let spectra_rs::messages::Content::Text { text } = c {
+                Some(text.as_str())
+            } else {
+                None
+            }
+        })
         .collect();
-    
-    assert_eq!(full_text, "I'll help you", "Should concatenate all text deltas");
-    assert_eq!(resp.stop_reason, spectra_rs::messages::StopReason::EndOfTurn);
+
+    assert_eq!(
+        full_text, "I'll help you",
+        "Should concatenate all text deltas"
+    );
+    assert_eq!(
+        resp.stop_reason,
+        spectra_rs::messages::StopReason::EndOfTurn
+    );
 }
 
 #[tokio::test]
@@ -82,23 +97,35 @@ data: [DONE]
     let client = OpenAIClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
-    
+
     let model = Model::openai("gpt-4o");
-    
+
     let mut request = LlmRequest::new(model);
     request.messages = vec![spectra_rs::messages::Message::User(
-        spectra_rs::messages::UserMessage::text("Hi!")
+        spectra_rs::messages::UserMessage::text("Hi!"),
     )];
 
     let response = client.complete(request).await;
     assert!(response.is_ok(), "Complete should succeed");
-    
+
     let resp = response.unwrap();
-    let full_text: String = resp.message.content.iter()
-        .filter_map(|c| if let spectra_rs::messages::Content::Text { text } = c { Some(text.as_str()) } else { None })
+    let full_text: String = resp
+        .message
+        .content
+        .iter()
+        .filter_map(|c| {
+            if let spectra_rs::messages::Content::Text { text } = c {
+                Some(text.as_str())
+            } else {
+                None
+            }
+        })
         .collect();
-    
-    assert_eq!(full_text, "Hello there!", "Should concatenate all text chunks");
+
+    assert_eq!(
+        full_text, "Hello there!",
+        "Should concatenate all text chunks"
+    );
 }
 
 #[tokio::test]
@@ -125,9 +152,9 @@ data: {"type":"message_stop"}
     let client = AnthropicClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/messages", mock_server.uri()));
-    
+
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
-    
+
     let mut request = LlmRequest::new(model);
     request.tools = vec![spectra_rs::llm::ToolDef {
         name: "get_weather".to_string(),
@@ -142,13 +169,16 @@ data: {"type":"message_stop"}
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
-    
+
     let resp = response.unwrap();
-    assert_eq!(resp.stop_reason, spectra_rs::messages::StopReason::ToolCalls);
+    assert_eq!(
+        resp.stop_reason,
+        spectra_rs::messages::StopReason::ToolCalls
+    );
     assert_eq!(resp.message.tool_calls.len(), 1);
     assert_eq!(resp.message.tool_calls[0].name, "get_weather");
     assert_eq!(resp.message.tool_calls[0].id, "tool_123");
-    
+
     let args = &resp.message.tool_calls[0].arguments;
     let args_str = match args {
         serde_json::Value::String(s) => s.clone(),
@@ -186,9 +216,9 @@ data: [DONE]
     let client = OpenAIClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
-    
+
     let model = Model::openai("gpt-4o");
-    
+
     let mut request = LlmRequest::new(model);
     request.tools = vec![spectra_rs::llm::ToolDef {
         name: "calculate".to_string(),
@@ -204,12 +234,15 @@ data: [DONE]
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
-    
+
     let resp = response.unwrap();
-    assert_eq!(resp.stop_reason, spectra_rs::messages::StopReason::ToolCalls);
+    assert_eq!(
+        resp.stop_reason,
+        spectra_rs::messages::StopReason::ToolCalls
+    );
     assert_eq!(resp.message.tool_calls.len(), 1);
     assert_eq!(resp.message.tool_calls[0].name, "calculate");
-    
+
     let args = &resp.message.tool_calls[0].arguments;
     let args_str = match args {
         serde_json::Value::String(s) => s.clone(),
@@ -245,16 +278,16 @@ data: {"type":"message_stop"}
     let client = AnthropicClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/messages", mock_server.uri()));
-    
+
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
-    
+
     let request = make_request(model);
 
     let mut stream = client.stream(request).await.unwrap();
-    
+
     let mut event_types = Vec::new();
     let mut full_text = String::new();
-    
+
     while let Some(event_result) = stream.next().await {
         match event_result.unwrap() {
             LlmStreamEvent::Start { .. } => event_types.push("Start"),
@@ -268,9 +301,12 @@ data: {"type":"message_stop"}
             LlmStreamEvent::Error { .. } => event_types.push("Error"),
         }
     }
-    
+
     assert!(event_types.contains(&"Start"), "Should have Start event");
-    assert!(event_types.contains(&"ContentDelta"), "Should have ContentDelta events");
+    assert!(
+        event_types.contains(&"ContentDelta"),
+        "Should have ContentDelta events"
+    );
     assert!(event_types.contains(&"Done"), "Should have Done event");
     assert_eq!(full_text, "Hello World", "Should concatenate text deltas");
 }
@@ -289,17 +325,20 @@ async fn test_error_handling_anthropic() {
     let client = AnthropicClient::with_api_key("invalid-key")
         .unwrap()
         .with_base_url(format!("{}/v1/messages", mock_server.uri()));
-    
+
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
-    
+
     let request = make_request(model);
 
     let result = client.complete(request).await;
     assert!(result.is_err(), "Should return error for 401");
-    
+
     let err_msg = result.unwrap_err().to_string();
-    assert!(err_msg.contains("401") || err_msg.contains("API error"), 
-            "Error should contain status code: {}", err_msg);
+    assert!(
+        err_msg.contains("401") || err_msg.contains("API error"),
+        "Error should contain status code: {}",
+        err_msg
+    );
 }
 
 #[tokio::test]
@@ -308,17 +347,18 @@ async fn test_error_handling_openai() {
 
     Mock::given(method("POST"))
         .and(path("/v1/chat/completions"))
-        .respond_with(ResponseTemplate::new(500)
-            .set_body_string(r#"{"error":{"message":"Internal server error","type":"internal_error"}}"#))
+        .respond_with(ResponseTemplate::new(500).set_body_string(
+            r#"{"error":{"message":"Internal server error","type":"internal_error"}}"#,
+        ))
         .mount(&mock_server)
         .await;
 
     let client = OpenAIClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
-    
+
     let model = Model::openai("gpt-4o");
-    
+
     let request = make_request(model);
 
     let result = client.complete(request).await;
@@ -347,35 +387,44 @@ data: {"type":"message_stop"}
     let client = AnthropicClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/messages", mock_server.uri()));
-    
+
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
-    
+
     let mut request = LlmRequest::new(model);
     request.system_prompt = Some("You are a helpful assistant.".to_string());
     request.messages = vec![
-        spectra_rs::messages::Message::User(
-            spectra_rs::messages::UserMessage::text("What is my name?")
-        ),
-        spectra_rs::messages::Message::Assistant(
-            spectra_rs::messages::AssistantMessage::new(
-                vec![Content::Text { text: "Your name is Alice.".to_string() }],
-                vec![],
-                StopReason::EndOfTurn,
-            )
-        ),
-        spectra_rs::messages::Message::User(
-            spectra_rs::messages::UserMessage::text("What did you say my name is?")
-        ),
+        spectra_rs::messages::Message::User(spectra_rs::messages::UserMessage::text(
+            "What is my name?",
+        )),
+        spectra_rs::messages::Message::Assistant(spectra_rs::messages::AssistantMessage::new(
+            vec![Content::Text {
+                text: "Your name is Alice.".to_string(),
+            }],
+            vec![],
+            StopReason::EndOfTurn,
+        )),
+        spectra_rs::messages::Message::User(spectra_rs::messages::UserMessage::text(
+            "What did you say my name is?",
+        )),
     ];
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
-    
+
     let resp = response.unwrap();
-    let text: String = resp.message.content.iter()
-        .filter_map(|c| if let spectra_rs::messages::Content::Text { text } = c { Some(text.as_str()) } else { None })
+    let text: String = resp
+        .message
+        .content
+        .iter()
+        .filter_map(|c| {
+            if let spectra_rs::messages::Content::Text { text } = c {
+                Some(text.as_str())
+            } else {
+                None
+            }
+        })
         .collect();
-    
+
     assert_eq!(text, "Response with history");
 }
 
@@ -400,23 +449,25 @@ data: [DONE]
     let client = OpenAIClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
-    
+
     let model = Model::openai("gpt-4o");
-    
+
     let request = make_request(model);
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
-    
+
     let resp = response.unwrap();
-    assert!(resp.message.content.is_empty() || 
-            resp.message.content.iter().all(|c| {
+    assert!(
+        resp.message.content.is_empty()
+            || resp.message.content.iter().all(|c| {
                 if let spectra_rs::messages::Content::Text { text } = c {
                     text.is_empty()
                 } else {
                     true
                 }
-            }));
+            })
+    );
 }
 
 #[tokio::test]
@@ -444,14 +495,14 @@ data: {"type":"message_stop"}
     let client = AnthropicClient::with_api_key("test-key")
         .unwrap()
         .with_base_url(format!("{}/v1/messages", mock_server.uri()));
-    
+
     let model = Model::anthropic("claude-3-5-sonnet-20241022");
-    
+
     let request = make_request(model);
 
     let response = client.complete(request).await;
     assert!(response.is_ok());
-    
+
     let resp = response.unwrap();
     assert_eq!(resp.message.tool_calls.len(), 2, "Should have 2 tool calls");
     assert_eq!(resp.message.tool_calls[0].name, "search");

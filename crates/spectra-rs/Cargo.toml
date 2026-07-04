@@ -23,12 +23,15 @@ dashmap = "6"
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
 toml = "0.8"
-
+uuid = { version = "1", features = ["v4"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
+parking_lot = "0.12"
 [dev-dependencies]
 tokio-test = "0.4"
 wiremock = "0.6"
 insta = "1"
 tokio-stream = "0.1"
+tempfile = "3"
 
 [lib]
 path = "src/lib.rs"

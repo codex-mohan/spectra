@@ -73,6 +73,10 @@ pub enum SpectraError {
     #[diagnostic(code(spectra::approval::denied))]
     ApprovalDenied { reason: String },
 
+    #[error("Database error: {0}")]
+    #[diagnostic(code(spectra::db))]
+    Database(#[from] rusqlite::Error),
+
     #[error("Agent aborted")]
     #[diagnostic(code(spectra::agent::aborted))]
     Aborted,

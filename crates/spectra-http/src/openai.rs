@@ -2,14 +2,14 @@ use async_trait::async_trait;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::Deserialize;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
 use spectra_rs::error::{Result, SpectraError};
 use spectra_rs::event::ContentDelta;
-use spectra_rs::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmResponse, Provider, ToolChoice};
-use spectra_rs::messages::{
-    AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall,
+use spectra_rs::llm::{
+    LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Provider, ToolChoice,
 };
+use spectra_rs::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
 
 const OPENAI_API_URL: &str = "https://api.openai.com/v1/chat/completions";
 const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
@@ -34,7 +34,11 @@ impl OpenAIClient {
                 message: format!("Failed to create HTTP client: {}", e),
                 source: Some(Box::new(e)),
             })?;
-        Ok(Self { client, api_key, base_url: None })
+        Ok(Self {
+            client,
+            api_key,
+            base_url: None,
+        })
     }
 
     pub fn with_api_key(api_key: impl Into<String>) -> Result<Self> {
@@ -203,11 +207,8 @@ impl OpenAIClient {
         let provider_name = "openai".to_string();
 
         tokio::spawn(async move {
-            let mut assistant_msg = AssistantMessage::new(
-                Vec::new(),
-                Vec::new(),
-                StopReason::EndOfTurn,
-            );
+            let mut assistant_msg =
+                AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
             assistant_msg.provider = provider_name;
             assistant_msg.model = model_id;
             let mut current_tool: Option<ToolCall> = None;
@@ -465,8 +466,7 @@ async fn parse_openai_event(
                                     if let serde_json::Value::String(s) = &mut tc.arguments {
                                         s.push_str(&args_str);
                                     } else {
-                                        tc.arguments =
-                                            serde_json::Value::String(args_str.clone());
+                                        tc.arguments = serde_json::Value::String(args_str.clone());
                                     }
                                     let _ = tx
                                         .send(Ok(LlmStreamEvent::ContentDelta {

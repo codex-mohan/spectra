@@ -2,14 +2,12 @@ use async_trait::async_trait;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::Deserialize;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::ReceiverStream;
 use spectra_rs::error::{Result, SpectraError};
 use spectra_rs::event::ContentDelta;
-use spectra_rs::llm::{LlmClient, LlmStream, LlmStreamEvent, LlmRequest, LlmResponse, Provider};
-use spectra_rs::messages::{
-    AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall,
-};
+use spectra_rs::llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Provider};
+use spectra_rs::messages::{AssistantMessage, Content, Message, StopReason, TokenUsage, ToolCall};
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
 
 const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
 const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
@@ -34,7 +32,11 @@ impl AnthropicClient {
                 message: format!("Failed to create HTTP client: {}", e),
                 source: Some(Box::new(e)),
             })?;
-        Ok(Self { client, api_key, base_url: None })
+        Ok(Self {
+            client,
+            api_key,
+            base_url: None,
+        })
     }
 
     pub fn with_api_key(api_key: impl Into<String>) -> Result<Self> {
@@ -74,16 +76,24 @@ impl AnthropicClient {
 
     fn build_request_body(&self, request: &LlmRequest) -> Result<String> {
         let mut body = serde_json::Map::new();
-        body.insert("model".into(), serde_json::Value::String(request.model.id.clone()));
-        body.insert("max_tokens".into(), serde_json::Value::Number(request.model.config.max_tokens.into()));
+        body.insert(
+            "model".into(),
+            serde_json::Value::String(request.model.id.clone()),
+        );
+        body.insert(
+            "max_tokens".into(),
+            serde_json::Value::Number(request.model.config.max_tokens.into()),
+        );
         body.insert("stream".into(), serde_json::Value::Bool(true));
 
         if let Some(temp) = request.model.config.temperature {
             body.insert("temperature".into(), serde_json::json!(temp));
         }
 
-        let mut messages: Vec<serde_json::Value> = request.messages.iter().map(|msg| {
-            match msg {
+        let mut messages: Vec<serde_json::Value> = request
+            .messages
+            .iter()
+            .map(|msg| match msg {
                 Message::User(u) => serde_json::json!({
                     "role": "user",
                     "content": user_content_to_json(&u.content),
@@ -100,8 +110,8 @@ impl AnthropicClient {
                         "content": tr.content.to_string(),
                     }],
                 }),
-            }
-        }).collect();
+            })
+            .collect();
 
         let cache_control = build_cache_control(&self.base_url);
 
@@ -120,24 +130,31 @@ impl AnthropicClient {
 
         if let Some(system) = &request.system_prompt {
             if let Some(ref cc) = cache_control {
-                body.insert("system".into(), serde_json::json!([{
-                    "type": "text",
-                    "text": system,
-                    "cache_control": cc
-                }]));
+                body.insert(
+                    "system".into(),
+                    serde_json::json!([{
+                        "type": "text",
+                        "text": system,
+                        "cache_control": cc
+                    }]),
+                );
             } else {
                 body.insert("system".into(), serde_json::Value::String(system.clone()));
             }
         }
 
         if !request.tools.is_empty() {
-            let tools: Vec<serde_json::Value> = request.tools.iter().map(|t| {
-                serde_json::json!({
-                    "name": t.name,
-                    "description": t.description,
-                    "input_schema": t.parameters,
+            let tools: Vec<serde_json::Value> = request
+                .tools
+                .iter()
+                .map(|t| {
+                    serde_json::json!({
+                        "name": t.name,
+                        "description": t.description,
+                        "input_schema": t.parameters,
+                    })
                 })
-            }).collect();
+                .collect();
             body.insert("tools".into(), serde_json::Value::Array(tools));
         }
 
@@ -149,19 +166,27 @@ impl AnthropicClient {
         let body = self.build_request_body(&request)?;
         let (tx, rx) = mpsc::channel(256);
         let client = self.client.clone();
-        let url = self.base_url.clone().unwrap_or_else(|| ANTHROPIC_API_URL.to_string());
+        let url = self
+            .base_url
+            .clone()
+            .unwrap_or_else(|| ANTHROPIC_API_URL.to_string());
 
         let model_id = request.model.id.clone();
         let provider_name = "anthropic".to_string();
 
         tokio::spawn(async move {
-            let mut assistant_msg = AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
+            let mut assistant_msg =
+                AssistantMessage::new(Vec::new(), Vec::new(), StopReason::EndOfTurn);
             assistant_msg.provider = provider_name;
             assistant_msg.model = model_id;
             let mut current_tool: Option<ToolCall> = None;
             let mut in_tool = false;
 
-            let _ = tx.send(Ok(LlmStreamEvent::Start { partial: assistant_msg.clone() })).await;
+            let _ = tx
+                .send(Ok(LlmStreamEvent::Start {
+                    partial: assistant_msg.clone(),
+                }))
+                .await;
 
             let response = match client
                 .post(&url)
@@ -175,11 +200,13 @@ impl AnthropicClient {
             {
                 Ok(r) => r,
                 Err(e) => {
-                    let _ = tx.send(Err(SpectraError::LlmError {
-                        provider: "anthropic".into(),
-                        message: format!("Request failed: {}", e),
-                        source: None,
-                    })).await;
+                    let _ = tx
+                        .send(Err(SpectraError::LlmError {
+                            provider: "anthropic".into(),
+                            message: format!("Request failed: {}", e),
+                            source: None,
+                        }))
+                        .await;
                     return;
                 }
             };
@@ -187,11 +214,13 @@ impl AnthropicClient {
             if !response.status().is_success() {
                 let status = response.status();
                 let body_text = response.text().await.unwrap_or_default();
-                let _ = tx.send(Err(SpectraError::LlmError {
-                    provider: "anthropic".into(),
-                    message: format!("API error {}: {}", status, body_text),
-                    source: None,
-                })).await;
+                let _ = tx
+                    .send(Err(SpectraError::LlmError {
+                        provider: "anthropic".into(),
+                        message: format!("API error {}: {}", status, body_text),
+                        source: None,
+                    }))
+                    .await;
                 return;
             }
 
@@ -206,21 +235,34 @@ impl AnthropicClient {
                                 b'\n' | b'\r' if !line.is_empty() => {
                                     let s = String::from_utf8_lossy(&line).trim().to_string();
                                     line.clear();
-                                    if !s.starts_with("data: ") || s.len() <= 6 { continue; }
+                                    if !s.starts_with("data: ") || s.len() <= 6 {
+                                        continue;
+                                    }
                                     let data = &s[6..];
-                                    if data == "[DONE]" { break; }
-                                    parse_event(data, &mut assistant_msg, &mut current_tool, &mut in_tool, &tx).await;
+                                    if data == "[DONE]" {
+                                        break;
+                                    }
+                                    parse_event(
+                                        data,
+                                        &mut assistant_msg,
+                                        &mut current_tool,
+                                        &mut in_tool,
+                                        &tx,
+                                    )
+                                    .await;
                                 }
                                 _ => line.push(byte),
                             }
                         }
                     }
                     Err(e) => {
-                        let _ = tx.send(Err(SpectraError::LlmError {
-                            provider: "anthropic".into(),
-                            message: format!("Stream error: {}", e),
-                            source: None,
-                        })).await;
+                        let _ = tx
+                            .send(Err(SpectraError::LlmError {
+                                provider: "anthropic".into(),
+                                message: format!("Stream error: {}", e),
+                                source: None,
+                            }))
+                            .await;
                         break;
                     }
                 }
@@ -234,7 +276,11 @@ impl AnthropicClient {
                 }
             }
 
-            let _ = tx.send(Ok(LlmStreamEvent::Done { message: assistant_msg })).await;
+            let _ = tx
+                .send(Ok(LlmStreamEvent::Done {
+                    message: assistant_msg,
+                }))
+                .await;
         });
 
         Ok(Box::pin(ReceiverStream::new(rx)))
@@ -242,10 +288,13 @@ impl AnthropicClient {
 }
 
 fn user_content_to_json(content: &[Content]) -> serde_json::Value {
-    let items: Vec<serde_json::Value> = content.iter().filter_map(|c| {
-        match c {
+    let items: Vec<serde_json::Value> = content
+        .iter()
+        .filter_map(|c| match c {
             Content::Text { text } => {
-                if text.is_empty() { None } else {
+                if text.is_empty() {
+                    None
+                } else {
                     Some(serde_json::json!({ "type": "text", "text": text }))
                 }
             }
@@ -254,9 +303,13 @@ fn user_content_to_json(content: &[Content]) -> serde_json::Value {
                 "source": { "type": "url", "url": url },
             })),
             Content::Thinking { .. } => None,
-        }
-    }).collect();
-    if items.len() == 1 { items.into_iter().next().unwrap() } else { serde_json::json!(items) }
+        })
+        .collect();
+    if items.len() == 1 {
+        items.into_iter().next().unwrap()
+    } else {
+        serde_json::json!(items)
+    }
 }
 
 fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> serde_json::Value {
@@ -264,9 +317,10 @@ fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> se
 
     for c in content {
         if let Content::Text { text } = c
-            && !text.is_empty() {
-                items.push(serde_json::json!({ "type": "text", "text": text }));
-            }
+            && !text.is_empty()
+        {
+            items.push(serde_json::json!({ "type": "text", "text": text }));
+        }
     }
 
     for tc in tool_calls {
@@ -278,7 +332,11 @@ fn assistant_content_to_json(content: &[Content], tool_calls: &[ToolCall]) -> se
         }));
     }
 
-    if items.len() == 1 { items.into_iter().next().unwrap() } else { serde_json::json!(items) }
+    if items.len() == 1 {
+        items.into_iter().next().unwrap()
+    } else {
+        serde_json::json!(items)
+    }
 }
 
 fn build_cache_control(base_url: &Option<String>) -> Option<serde_json::Value> {
@@ -286,7 +344,9 @@ fn build_cache_control(base_url: &Option<String>) -> Option<serde_json::Value> {
     if retention == "none" {
         return None;
     }
-    let is_direct = base_url.as_ref().map_or(true, |u| u.contains("api.anthropic.com"));
+    let is_direct = base_url
+        .as_ref()
+        .is_none_or(|u| u.contains("api.anthropic.com"));
     if retention == "long" && is_direct {
         Some(serde_json::json!({ "type": "ephemeral", "ttl": "1h" }))
     } else {
@@ -294,7 +354,10 @@ fn build_cache_control(base_url: &Option<String>) -> Option<serde_json::Value> {
     }
 }
 
-fn add_cache_control_to_last_block(content: &mut serde_json::Value, cache_control: &serde_json::Value) {
+fn add_cache_control_to_last_block(
+    content: &mut serde_json::Value,
+    cache_control: &serde_json::Value,
+) {
     match content {
         serde_json::Value::Array(blocks) => {
             if let Some(last) = blocks.last_mut() {
@@ -363,29 +426,51 @@ async fn parse_event(
                     match block.get("type").and_then(|t| t.as_str()) {
                         Some("tool_use") => {
                             *in_tool = true;
-                            let id = block.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                            let name = block.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let id = block
+                                .get("id")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string();
+                            let name = block
+                                .get("name")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string();
                             *current_tool = Some(ToolCall {
                                 id: id.clone(),
                                 name: name.clone(),
                                 arguments: serde_json::Value::Null,
                                 thinking_signature: None,
                             });
-                            let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                                delta: ContentDelta::ToolCallStart { id, name },
-                            })).await;
+                            let _ = tx
+                                .send(Ok(LlmStreamEvent::ContentDelta {
+                                    delta: ContentDelta::ToolCallStart { id, name },
+                                }))
+                                .await;
                         }
                         Some("thinking") => {
-                            let thinking = block.get("thinking").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                            let signature = block.get("signature").and_then(|v| v.as_str()).map(|s| s.to_string());
+                            let thinking = block
+                                .get("thinking")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string();
+                            let signature = block
+                                .get("signature")
+                                .and_then(|v| v.as_str())
+                                .map(|s| s.to_string());
                             msg.content.push(Content::Thinking {
                                 thinking: thinking.clone(),
                                 signature: signature.clone(),
                                 redacted: false,
                             });
-                            let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                                delta: ContentDelta::Thinking { delta: thinking, signature },
-                            })).await;
+                            let _ = tx
+                                .send(Ok(LlmStreamEvent::ContentDelta {
+                                    delta: ContentDelta::Thinking {
+                                        delta: thinking,
+                                        signature,
+                                    },
+                                }))
+                                .await;
                         }
                         _ => {}
                     }
@@ -401,29 +486,47 @@ async fn parse_event(
                                 } else {
                                     tc.arguments = serde_json::Value::String(text.to_string());
                                 }
-                                let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                                    delta: ContentDelta::ToolCallDelta {
-                                        id: tc.id.clone(),
-                                        args_delta: text.to_string(),
-                                    },
-                                })).await;
+                                let _ = tx
+                                    .send(Ok(LlmStreamEvent::ContentDelta {
+                                        delta: ContentDelta::ToolCallDelta {
+                                            id: tc.id.clone(),
+                                            args_delta: text.to_string(),
+                                        },
+                                    }))
+                                    .await;
                             }
                         }
                     } else if let Some(text) = delta.get("text").and_then(|t| t.as_str()) {
-                        msg.content.push(Content::Text { text: text.to_string() });
-                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: ContentDelta::Text { delta: text.to_string() },
-                        })).await;
-                    } else if let Some(thinking_delta) = delta.get("thinking").and_then(|t| t.as_str()) {
-                        let sig = delta.get("signature").and_then(|v| v.as_str()).map(|s| s.to_string());
+                        msg.content.push(Content::Text {
+                            text: text.to_string(),
+                        });
+                        let _ = tx
+                            .send(Ok(LlmStreamEvent::ContentDelta {
+                                delta: ContentDelta::Text {
+                                    delta: text.to_string(),
+                                },
+                            }))
+                            .await;
+                    } else if let Some(thinking_delta) =
+                        delta.get("thinking").and_then(|t| t.as_str())
+                    {
+                        let sig = delta
+                            .get("signature")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
                         msg.content.push(Content::Thinking {
                             thinking: thinking_delta.to_string(),
                             signature: sig.clone(),
                             redacted: false,
                         });
-                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: ContentDelta::Thinking { delta: thinking_delta.to_string(), signature: sig },
-                        })).await;
+                        let _ = tx
+                            .send(Ok(LlmStreamEvent::ContentDelta {
+                                delta: ContentDelta::Thinking {
+                                    delta: thinking_delta.to_string(),
+                                    signature: sig,
+                                },
+                            }))
+                            .await;
                     }
                 }
             }
@@ -431,9 +534,11 @@ async fn parse_event(
                 if *in_tool {
                     if let Some(tc) = current_tool.take() {
                         msg.tool_calls.push(tc.clone());
-                        let _ = tx.send(Ok(LlmStreamEvent::ContentDelta {
-                            delta: ContentDelta::ToolCallEnd { id: tc.id.clone() },
-                        })).await;
+                        let _ = tx
+                            .send(Ok(LlmStreamEvent::ContentDelta {
+                                delta: ContentDelta::ToolCallEnd { id: tc.id.clone() },
+                            }))
+                            .await;
                     }
                     *in_tool = false;
                 }
@@ -444,10 +549,24 @@ async fn parse_event(
                         msg.stop_reason = parse_stop_reason(reason);
                     }
                     if let Some(usage) = delta.get("usage") {
-                        msg.usage.input_tokens = usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                        msg.usage.output_tokens = usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                        msg.usage.cache_read_tokens = usage.get("cache_read_input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                        msg.usage.cache_write_tokens = usage.get("cache_creation_input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        msg.usage.input_tokens = usage
+                            .get("input_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0) as u32;
+                        msg.usage.output_tokens = usage
+                            .get("output_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0) as u32;
+                        msg.usage.cache_read_tokens = usage
+                            .get("cache_read_input_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0)
+                            as u32;
+                        msg.usage.cache_write_tokens = usage
+                            .get("cache_creation_input_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0)
+                            as u32;
                     }
                 }
             }
@@ -473,10 +592,18 @@ impl LlmClient for AnthropicClient {
             match event? {
                 LlmStreamEvent::Done { message } => {
                     let stop = message.stop_reason;
-                    return Ok(LlmResponse { message, usage: TokenUsage::default(), stop_reason: stop });
+                    return Ok(LlmResponse {
+                        message,
+                        usage: TokenUsage::default(),
+                        stop_reason: stop,
+                    });
                 }
                 LlmStreamEvent::Error { message } => {
-                    return Err(SpectraError::LlmError { provider: "anthropic".into(), message, source: None });
+                    return Err(SpectraError::LlmError {
+                        provider: "anthropic".into(),
+                        message,
+                        source: None,
+                    });
                 }
                 _ => continue,
             }

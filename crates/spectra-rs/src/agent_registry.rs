@@ -40,10 +40,8 @@ impl AgentRegistry {
         client: Arc<dyn LlmClient>,
         builder: AgentBuilder,
     ) {
-        self.agents.insert(
-            name.into(),
-            StoredAgent { client, builder },
-        );
+        self.agents
+            .insert(name.into(), StoredAgent { client, builder });
     }
 
     pub async fn delegate(&self, agent_type: &str, task: &str) -> DelegationResult {
@@ -110,7 +108,9 @@ impl Default for AgentRegistry {
 mod tests {
     use super::*;
     use crate::agent::AgentBuilder;
-    use crate::llm::{LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, Provider};
+    use crate::llm::{
+        LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, Provider,
+    };
     use crate::messages::{AssistantMessage, Content, StopReason};
     use async_trait::async_trait;
 
@@ -132,13 +132,17 @@ mod tests {
 
         async fn stream(&self, _request: LlmRequest) -> crate::error::Result<LlmStream> {
             let (tx, rx) = tokio::sync::mpsc::channel(1);
-            let _ = tx.send(Ok(LlmStreamEvent::Done {
-                message: AssistantMessage::new(
-                    vec![Content::Text { text: "mock".into() }],
-                    vec![],
-                    StopReason::EndOfTurn,
-                ),
-            })).await;
+            let _ = tx
+                .send(Ok(LlmStreamEvent::Done {
+                    message: AssistantMessage::new(
+                        vec![Content::Text {
+                            text: "mock".into(),
+                        }],
+                        vec![],
+                        StopReason::EndOfTurn,
+                    ),
+                }))
+                .await;
             Ok(Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)))
         }
     }
@@ -168,9 +172,21 @@ mod tests {
         let mut registry = AgentRegistry::new();
         let client = Arc::new(MockLlmClient);
 
-        registry.register("agent_a", client.clone(), AgentBuilder::new(Model::new(Provider::Custom, "a")));
-        registry.register("agent_b", client.clone(), AgentBuilder::new(Model::new(Provider::Custom, "b")));
-        registry.register("agent_c", client, AgentBuilder::new(Model::new(Provider::Custom, "c")));
+        registry.register(
+            "agent_a",
+            client.clone(),
+            AgentBuilder::new(Model::new(Provider::Custom, "a")),
+        );
+        registry.register(
+            "agent_b",
+            client.clone(),
+            AgentBuilder::new(Model::new(Provider::Custom, "b")),
+        );
+        registry.register(
+            "agent_c",
+            client,
+            AgentBuilder::new(Model::new(Provider::Custom, "c")),
+        );
 
         assert_eq!(registry.len(), 3);
         assert!(registry.contains("agent_a"));
@@ -195,8 +211,14 @@ mod tests {
         registry.register("ok_agent", client.clone(), builder);
 
         let tasks = vec![
-            TaskConfig { agent_type: "ok_agent".into(), task: "do something".into() },
-            TaskConfig { agent_type: "bad_agent".into(), task: "fail".into() },
+            TaskConfig {
+                agent_type: "ok_agent".into(),
+                task: "do something".into(),
+            },
+            TaskConfig {
+                agent_type: "bad_agent".into(),
+                task: "fail".into(),
+            },
         ];
 
         let results = registry.execute_parallel(&tasks).await;

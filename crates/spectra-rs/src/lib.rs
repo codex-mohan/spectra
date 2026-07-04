@@ -8,32 +8,46 @@ pub mod health_probe;
 pub mod llm;
 pub mod messages;
 pub mod rate_limiter;
+pub mod session;
 pub mod tool;
 pub mod worker_pool;
 
 pub use agent::{Agent, AgentBuilder, AgentConfig, AgentHandle, ToolExecutionMode};
+pub use agent_registry::{AgentRegistry, DelegationResult, TaskConfig};
+pub use circuit_breaker::{
+    CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState,
+};
 pub use error::{Result, SpectraError};
 pub use event::{ContentDelta, EventChannel, EventSink, StreamEvent};
 pub use extension::{AfterToolCallAction, BeforeToolCallAction, Extension, ExtensionManager};
+pub use health_probe::{HealthCheckResult, HealthProbe, HealthReport, HealthStatus};
 pub use llm::{
     LlmClient, LlmRequest, LlmResponse, LlmStream, LlmStreamEvent, Model, ModelConfig, ModelId,
     ModelInfo, ModelRegistry, Provider, ReasoningEffort, ToolChoice, ToolDef,
 };
 pub use messages::{
-    AssistantMessage, Content, ImageDetail, Message, Provenance, StopReason, TokenCost,
-    TokenUsage, ToolCall, ToolResultMessage, UserMessage,
+    AssistantMessage, Content, ImageDetail, Message, Provenance, StopReason, TokenCost, TokenUsage,
+    ToolCall, ToolResultMessage, UserMessage,
 };
-pub use agent_registry::{AgentRegistry, DelegationResult, TaskConfig};
-pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState};
-pub use health_probe::{HealthCheckResult, HealthProbe, HealthReport, HealthStatus};
 pub use rate_limiter::{LocalRateLimiter, RateLimitResult, RateLimiter};
-pub use tool::{Tool, ToolBuilder, ToolContext, ToolDef as ToolDefinition, ToolRegistry, ToolResult};
+pub use session::{
+    AuditEntry, CustomEntry, EngineLifecycle, FileSystemSessionStore, InMemorySessionStore,
+    MessageEntry, ModelChangeEntry, SQLiteSessionStore, Session, SessionConfig, SessionContext,
+    SessionEngine, SessionEngineConfig, SessionEngineResult, SessionEntry, SessionEntryBase,
+    SessionFilter, SessionManager, SessionMetadata, SessionStatus, SessionStore, SessionTreeNode,
+    TokenUsageSummary,
+};
+pub use tool::{
+    Tool, ToolBuilder, ToolContext, ToolDef as ToolDefinition, ToolRegistry, ToolResult,
+};
 pub use worker_pool::{SequentialWorkerPool, WorkerJob, WorkerResult};
 
 pub mod prelude {
     pub use super::agent::{Agent, AgentBuilder, AgentConfig};
     pub use super::agent_registry::AgentRegistry;
-    pub use super::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState};
+    pub use super::circuit_breaker::{
+        CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState,
+    };
     pub use super::error::{Result, SpectraError};
     pub use super::event::{ContentDelta, EventChannel, EventSink, StreamEvent};
     pub use super::extension::{Extension, ExtensionManager};
@@ -43,6 +57,7 @@ pub mod prelude {
         AssistantMessage, Content, Message, StopReason, ToolCall, ToolResultMessage, UserMessage,
     };
     pub use super::rate_limiter::{LocalRateLimiter, RateLimitResult, RateLimiter};
+    pub use super::session::{InMemorySessionStore, Session, SessionManager, SessionStore};
     pub use super::tool::{Tool, ToolBuilder, ToolContext, ToolRegistry, ToolResult};
     pub use super::worker_pool::SequentialWorkerPool;
 }

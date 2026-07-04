@@ -55,8 +55,18 @@ describe('SessionManager Core', () => {
 		expect(session.metadata.userId).toBe('user-123');
 		expect(session.metadata.turnCount).toBe(0);
 		expect(session.metadata.isStreaming).toBe(false);
+		expect(session.metadata.tenantId).toBeUndefined();
 	});
 
+	it('should create a session with tenant metadata', async () => {
+		const store = new InMemorySessionStore();
+		const manager = new SessionManager(store);
+
+		const session = await manager.create({ model: testModel }, 'user-123', 'tenant-abc');
+
+		expect(session.metadata.userId).toBe('user-123');
+		expect(session.metadata.tenantId).toBe('tenant-abc');
+	});
 	it('should load a session', async () => {
 		const store = new InMemorySessionStore();
 		const manager = new SessionManager(store);
@@ -104,7 +114,7 @@ describe('SessionManager Core', () => {
 		const store = new InMemorySessionStore();
 		const manager = new SessionManager(store);
 
-		const original = await manager.create({ model: testModel });
+		const original = await manager.create({ model: testModel }, 'user-fork', 'tenant-fork');
 		manager.appendMessage(original, { role: 'user', content: 'Hello', timestamp: Date.now() });
 		manager.appendMessage(original, {
 			role: 'assistant',
@@ -133,6 +143,8 @@ describe('SessionManager Core', () => {
 		expect(forked.id).not.toBe(original.id);
 		expect(forked.entries).toHaveLength(3);
 		expect(forked.metadata.parentSessionId).toBe(original.id);
+		expect(forked.metadata.userId).toBe('user-fork');
+		expect(forked.metadata.tenantId).toBe('tenant-fork');
 		expect(forked.config.model).toEqual(testModel);
 	});
 
@@ -446,6 +458,18 @@ describe('SQLiteSessionStore', () => {
 
 		const userASessions = await manager.list({ userId: 'user-a' });
 		expect(userASessions).toHaveLength(2);
+
+		const tenantA = await manager.create({ model: testModel }, 'user-c', 'tenant-a');
+		await manager.save(tenantA);
+		const tenantB = await manager.create({ model: testModel }, 'user-c', 'tenant-b');
+		await manager.save(tenantB);
+
+		const tenantASessions = await manager.list({ tenantId: 'tenant-a' });
+		expect(tenantASessions).toHaveLength(1);
+		expect(tenantASessions[0].metadata.tenantId).toBe('tenant-a');
+
+		const injected = await manager.list({ tenantId: `tenant-a' OR 1=1 --` });
+		expect(injected).toHaveLength(0);
 	});
 
 	it('should preserve structured assistant messages including thinking and tool calls', async () => {

@@ -35,7 +35,7 @@ pub struct AssistantMessage {
     pub metadata: Option<HashMap<String, Value>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Provenance {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_by: Option<String>,
@@ -67,9 +67,18 @@ pub struct ToolResultMessage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Content {
-    Text { text: String },
-    Image { url: String, detail: ImageDetail },
-    Thinking { thinking: String, signature: Option<String>, redacted: bool },
+    Text {
+        text: String,
+    },
+    Image {
+        url: String,
+        detail: ImageDetail,
+    },
+    Thinking {
+        thinking: String,
+        signature: Option<String>,
+        redacted: bool,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -148,11 +157,7 @@ impl UserMessage {
 }
 
 impl AssistantMessage {
-    pub fn new(
-        content: Vec<Content>,
-        tool_calls: Vec<ToolCall>,
-        stop_reason: StopReason,
-    ) -> Self {
+    pub fn new(content: Vec<Content>, tool_calls: Vec<ToolCall>, stop_reason: StopReason) -> Self {
         Self {
             content,
             tool_calls,
@@ -314,7 +319,11 @@ mod tests {
 
     #[test]
     fn test_tool_result_success() {
-        let msg = ToolResultMessage::success("tc-1".to_string(), "get_weather".to_string(), json!({"temp": 72}));
+        let msg = ToolResultMessage::success(
+            "tc-1".to_string(),
+            "get_weather".to_string(),
+            json!({"temp": 72}),
+        );
         assert_eq!(msg.tool_call_id, "tc-1");
         assert_eq!(msg.tool_name, "get_weather");
         assert!(!msg.is_error);
@@ -323,7 +332,11 @@ mod tests {
 
     #[test]
     fn test_tool_result_error() {
-        let msg = ToolResultMessage::error("tc-2".to_string(), "bad_tool".to_string(), "Permission denied".to_string());
+        let msg = ToolResultMessage::error(
+            "tc-2".to_string(),
+            "bad_tool".to_string(),
+            "Permission denied".to_string(),
+        );
         assert_eq!(msg.tool_call_id, "tc-2");
         assert!(msg.is_error);
         assert_eq!(msg.content, json!({"error": "Permission denied"}));

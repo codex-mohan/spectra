@@ -155,10 +155,7 @@ impl CircuitBreaker {
         &self.config
     }
 
-    fn transition_if_needed_inner(
-        inner: &mut CircuitBreakerInner,
-        config: &CircuitBreakerConfig,
-    ) {
+    fn transition_if_needed_inner(inner: &mut CircuitBreakerInner, config: &CircuitBreakerConfig) {
         if inner.state == CircuitState::Open {
             if let Some(last_failure) = inner.last_failure_time {
                 if last_failure.elapsed() >= config.reset_timeout {
@@ -178,12 +175,8 @@ impl Default for CircuitBreaker {
 
 #[derive(Debug)]
 pub enum CircuitBreakerError<E = Box<dyn std::error::Error + Send + Sync>> {
-    Open {
-        last_failure_ago_ms: u64,
-    },
-    HalfOpenLimitReached {
-        max: u32,
-    },
+    Open { last_failure_ago_ms: u64 },
+    HalfOpenLimitReached { max: u32 },
     Inner(E),
 }
 
@@ -269,10 +262,14 @@ mod tests {
         };
         let cb = CircuitBreaker::with_config(config);
 
-        let r1 = cb.call(|| async { Err::<String, String>("fail1".to_string()) }).await;
+        let r1 = cb
+            .call(|| async { Err::<String, String>("fail1".to_string()) })
+            .await;
         assert!(r1.is_err());
 
-        let r2 = cb.call(|| async { Err::<String, String>("fail2".to_string()) }).await;
+        let r2 = cb
+            .call(|| async { Err::<String, String>("fail2".to_string()) })
+            .await;
         assert!(r2.is_err());
 
         assert_eq!(cb.state(), CircuitState::Open);
@@ -287,13 +284,17 @@ mod tests {
         };
         let cb = CircuitBreaker::with_config(config);
 
-        let _ = cb.call(|| async { Err::<String, String>("fail".to_string()) }).await;
+        let _ = cb
+            .call(|| async { Err::<String, String>("fail".to_string()) })
+            .await;
         assert_eq!(cb.state(), CircuitState::Open);
 
-        let result: Result<_, CircuitBreakerError<String>> = cb.call(|| async { Ok::<String, String>("should not run".to_string()) }).await;
+        let result: Result<_, CircuitBreakerError<String>> = cb
+            .call(|| async { Ok::<String, String>("should not run".to_string()) })
+            .await;
         assert!(result.is_err());
         match result.unwrap_err() {
-            CircuitBreakerError::Open { .. } => {},
+            CircuitBreakerError::Open { .. } => {}
             _ => panic!("Expected Open error"),
         }
     }
@@ -307,7 +308,9 @@ mod tests {
         };
         let cb = CircuitBreaker::with_config(config);
 
-        let _ = cb.call(|| async { Err::<String, String>("fail".to_string()) }).await;
+        let _ = cb
+            .call(|| async { Err::<String, String>("fail".to_string()) })
+            .await;
         assert_eq!(cb.state(), CircuitState::Open);
 
         tokio::time::sleep(std::time::Duration::from_millis(20)).await;
@@ -323,10 +326,14 @@ mod tests {
         };
         let cb = CircuitBreaker::with_config(config);
 
-        let _ = cb.call(|| async { Err::<String, String>("fail".to_string()) }).await;
+        let _ = cb
+            .call(|| async { Err::<String, String>("fail".to_string()) })
+            .await;
         tokio::time::sleep(std::time::Duration::from_millis(20)).await;
 
-        let result: Result<_, CircuitBreakerError<String>> = cb.call(|| async { Ok::<String, String>("recovered".to_string()) }).await;
+        let result: Result<_, CircuitBreakerError<String>> = cb
+            .call(|| async { Ok::<String, String>("recovered".to_string()) })
+            .await;
         assert!(result.is_ok());
         assert_eq!(cb.state(), CircuitState::Closed);
     }
@@ -340,10 +347,14 @@ mod tests {
         };
         let cb = CircuitBreaker::with_config(config);
 
-        let _ = cb.call(|| async { Err::<String, String>("first fail".to_string()) }).await;
+        let _ = cb
+            .call(|| async { Err::<String, String>("first fail".to_string()) })
+            .await;
         tokio::time::sleep(std::time::Duration::from_millis(20)).await;
 
-        let _ = cb.call(|| async { Err::<String, String>("probe fail".to_string()) }).await;
+        let _ = cb
+            .call(|| async { Err::<String, String>("probe fail".to_string()) })
+            .await;
         assert_eq!(cb.state(), CircuitState::Open);
     }
 
@@ -356,7 +367,9 @@ mod tests {
         };
         let cb = CircuitBreaker::with_config(config);
 
-        let _ = cb.call(|| async { Err::<String, String>("fail".to_string()) }).await;
+        let _ = cb
+            .call(|| async { Err::<String, String>("fail".to_string()) })
+            .await;
         tokio::time::sleep(std::time::Duration::from_millis(20)).await;
 
         let cb = std::sync::Arc::new(cb);
@@ -374,7 +387,7 @@ mod tests {
         assert!(r1.is_ok());
         assert!(r2.is_err());
         match r2.unwrap_err() {
-            CircuitBreakerError::HalfOpenLimitReached { max: 1 } => {},
+            CircuitBreakerError::HalfOpenLimitReached { max: 1 } => {}
             _ => panic!("Expected HalfOpenLimitReached"),
         }
     }
@@ -398,7 +411,9 @@ mod tests {
 
     #[test]
     fn test_error_display() {
-        let open_err = CircuitBreakerError::<String>::Open { last_failure_ago_ms: 100 };
+        let open_err = CircuitBreakerError::<String>::Open {
+            last_failure_ago_ms: 100,
+        };
         assert!(open_err.to_string().contains("OPEN"));
         assert!(open_err.to_string().contains("100ms"));
 

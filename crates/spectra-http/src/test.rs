@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     use crate::{AnthropicClient, OpenAIClient};
-    use spectra_rs::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model};
-    use spectra_rs::event::ContentDelta;
     use futures_util::StreamExt;
-    use wiremock::{MockServer, Mock, ResponseTemplate};
-    use wiremock::matchers::{method, path, header};
+    use spectra_rs::event::ContentDelta;
+    use spectra_rs::llm::{LlmClient, LlmRequest, LlmStreamEvent, Model};
+    use wiremock::matchers::{header, method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
     async fn test_anthropic_client_basic_request() {
@@ -32,7 +32,7 @@ data: {"type":"message_stop"}
             .unwrap()
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
@@ -66,7 +66,7 @@ data: [DONE]
             .unwrap()
             .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
         let model = Model::openai("gpt-4o");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
@@ -100,7 +100,7 @@ data: {"type":"message_stop"}
             .unwrap()
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
@@ -139,7 +139,7 @@ data: {"type":"message_stop"}
             .unwrap()
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
@@ -150,16 +150,31 @@ data: {"type":"message_stop"}
 
         while let Some(event_result) = stream.next().await {
             match event_result.unwrap() {
-                LlmStreamEvent::Start { .. } => { got_start = true; }
-                LlmStreamEvent::ContentDelta { delta: ContentDelta::Text { delta: text } } => {
+                LlmStreamEvent::Start { .. } => {
+                    got_start = true;
+                }
+                LlmStreamEvent::ContentDelta {
+                    delta: ContentDelta::Text { delta: text },
+                } => {
                     text_deltas.push(text);
                 }
                 LlmStreamEvent::Done { message } => {
                     got_done = true;
-                    let full_text: String = message.content.iter()
-                        .filter_map(|c| if let spectra_rs::messages::Content::Text { text } = c { Some(text.as_str()) } else { None })
+                    let full_text: String = message
+                        .content
+                        .iter()
+                        .filter_map(|c| {
+                            if let spectra_rs::messages::Content::Text { text } = c {
+                                Some(text.as_str())
+                            } else {
+                                None
+                            }
+                        })
                         .collect();
-                    assert_eq!(full_text, "Hello World", "Text should be concatenated, not fragmented per chunk");
+                    assert_eq!(
+                        full_text, "Hello World",
+                        "Text should be concatenated, not fragmented per chunk"
+                    );
                 }
                 _ => {}
             }
@@ -167,7 +182,11 @@ data: {"type":"message_stop"}
 
         assert!(got_start, "Should receive Start event");
         assert!(got_done, "Should receive Done event");
-        assert_eq!(text_deltas, vec!["Hel", "lo ", "World"], "Should receive individual text deltas");
+        assert_eq!(
+            text_deltas,
+            vec!["Hel", "lo ", "World"],
+            "Should receive individual text deltas"
+        );
     }
 
     #[tokio::test]
@@ -196,7 +215,7 @@ data: {"type":"message_stop"}
             .unwrap()
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
@@ -207,20 +226,18 @@ data: {"type":"message_stop"}
 
         while let Some(event_result) = stream.next().await {
             match event_result.unwrap() {
-                LlmStreamEvent::ContentDelta { delta } => {
-                    match delta {
-                        ContentDelta::ToolCallStart { id, name } => {
-                            tool_call_start = Some((id, name));
-                        }
-                        ContentDelta::ToolCallDelta { id: _, args_delta } => {
-                            tool_call_deltas.push(args_delta);
-                        }
-                        ContentDelta::ToolCallEnd { id } => {
-                            tool_call_end_id = Some(id);
-                        }
-                        _ => {}
+                LlmStreamEvent::ContentDelta { delta } => match delta {
+                    ContentDelta::ToolCallStart { id, name } => {
+                        tool_call_start = Some((id, name));
                     }
-                }
+                    ContentDelta::ToolCallDelta { id: _, args_delta } => {
+                        tool_call_deltas.push(args_delta);
+                    }
+                    ContentDelta::ToolCallEnd { id } => {
+                        tool_call_end_id = Some(id);
+                    }
+                    _ => {}
+                },
                 LlmStreamEvent::Done { message } => {
                     assert_eq!(message.tool_calls.len(), 1);
                     let tc = &message.tool_calls[0];
@@ -237,12 +254,21 @@ data: {"type":"message_stop"}
             }
         }
 
-        assert_eq!(tool_call_start, Some(("tool_abc".to_string(), "read_file".to_string())),
-            "ToolCallStart should fire with id and name");
-        assert_eq!(tool_call_deltas, vec!["{\"pat", "h\":\"/tm", "p/test\"}"],
-            "ToolCallDelta should stream argument fragments");
-        assert_eq!(tool_call_end_id, Some("tool_abc".to_string()),
-            "ToolCallEnd should fire with id");
+        assert_eq!(
+            tool_call_start,
+            Some(("tool_abc".to_string(), "read_file".to_string())),
+            "ToolCallStart should fire with id and name"
+        );
+        assert_eq!(
+            tool_call_deltas,
+            vec!["{\"pat", "h\":\"/tm", "p/test\"}"],
+            "ToolCallDelta should stream argument fragments"
+        );
+        assert_eq!(
+            tool_call_end_id,
+            Some("tool_abc".to_string()),
+            "ToolCallEnd should fire with id"
+        );
     }
 
     #[tokio::test]
@@ -272,7 +298,7 @@ data: [DONE]
             .unwrap()
             .with_base_url(format!("{}/v1/chat/completions", mock_server.uri()));
         let model = Model::openai("gpt-4o");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
@@ -299,13 +325,17 @@ data: [DONE]
             .unwrap()
             .with_base_url(format!("{}/v1/messages", mock_server.uri()));
         let model = Model::anthropic("claude-3-5-sonnet-20241022");
-        
+
         let mut request = LlmRequest::new(model);
         request.system_prompt = None;
 
         let result = client.complete(request).await;
         assert!(result.is_err(), "Should return error for 429 response");
         let err_msg = result.unwrap_err().to_string();
-        assert!(err_msg.contains("429") || err_msg.contains("API error"), "Error should mention status: {}", err_msg);
+        assert!(
+            err_msg.contains("429") || err_msg.contains("API error"),
+            "Error should mention status: {}",
+            err_msg
+        );
     }
 }
