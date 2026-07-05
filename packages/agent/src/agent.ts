@@ -186,6 +186,8 @@ export class Agent {
 		this._streamingMessage = undefined;
 		this._pendingToolCalls = new Set();
 		this._errorMessage = undefined;
+		this.steeringQueue.clear();
+		this.followUpQueue.clear();
 	}
 
 	async *run(
@@ -320,7 +322,7 @@ export class Agent {
 
 			await emit({ type: 'turn_end', message: assistantMessage, toolResults });
 
-			const drained = await this.drainEndOfTurnQueues(emit);
+			const drained = await this.drainSteeringQueue(emit);
 			if (drained) {
 				turns = 0;
 				continue;
@@ -341,20 +343,25 @@ export class Agent {
 		return true;
 	}
 
-	private async drainEndOfTurnQueues(emit: EmitFn): Promise<boolean> {
-		// Drain any queued messages that were already submitted.
-		if (await this.drainQueuedMessages(this.steeringQueue, emit)) return true;
-		if (await this.drainQueuedMessages(this.followUpQueue, emit)) return true;
+	private async drainQueueAfterYield(queue: PendingMessageQueue, emit: EmitFn): Promise<boolean> {
+		// Drain messages already submitted.
+		if (await this.drainQueuedMessages(queue, emit)) return true;
 
-		// Yield to let pending steer()/followUp() calls that were triggered during
-		// this turn enqueue their messages before we commit to ending the turn.
+		// Yield to let pending steer()/followUp() calls triggered during this turn
+		// enqueue before we commit to ending the turn.
 		await Promise.resolve();
 
 		// Final drain check for messages that arrived during the yield.
-		if (await this.drainQueuedMessages(this.steeringQueue, emit)) return true;
-		if (await this.drainQueuedMessages(this.followUpQueue, emit)) return true;
+		return this.drainQueuedMessages(queue, emit);
+	}
 
-		return false;
+	private async drainSteeringQueue(emit: EmitFn): Promise<boolean> {
+		return this.drainQueueAfterYield(this.steeringQueue, emit);
+	}
+
+	private async drainEndOfTurnQueues(emit: EmitFn): Promise<boolean> {
+		if (await this.drainSteeringQueue(emit)) return true;
+		return this.drainQueueAfterYield(this.followUpQueue, emit);
 	}
 
 	private async streamAssistantResponse(

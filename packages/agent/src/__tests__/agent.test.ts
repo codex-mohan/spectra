@@ -289,6 +289,90 @@ describe('Agent Queues and Hooks', () => {
 		expect(seenContexts[1].map((message) => message.role)).toEqual(['user', 'assistant', 'user']);
 	});
 
+
+	it('should wait to drain follow-up messages until tool work finishes', async () => {
+		let callIndex = 0;
+		const seenContexts: Message[][] = [];
+		registerProvider({
+			name: testModel.provider,
+			stream(_model, context) {
+				const stream = new AssistantMessageEventStream();
+				seenContexts.push([...(context.messages as Message[])]);
+				const message: AssistantMessage = {
+					role: 'assistant',
+					content: callIndex === 0
+						? [{ type: 'toolCall', id: 'tool-1', name: 'echo', arguments: { value: 'first' } }]
+						: [{ type: 'text', text: callIndex === 1 ? 'Tool response' : 'Follow-up response' }],
+					provider: testModel.provider,
+					model: testModel.id,
+					usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+					stopReason: callIndex === 0 ? 'toolUse' : 'stop',
+					timestamp: Date.now(),
+				};
+				const reason = callIndex === 0 ? 'toolUse' : 'stop';
+				callIndex++;
+				stream.push({ type: 'start', partial: message });
+				setTimeout(() => {
+					stream.push({ type: 'done', reason, message });
+					stream.end(message);
+				}, 0);
+				return stream;
+			},
+		});
+		const tool = defineTool({
+			name: 'echo',
+			description: 'Echo input',
+			parameters: z.object({ value: z.string() }),
+			execute: async ({ value }) => ({ content: [{ type: 'text' as const, text: value }] }),
+		});
+		const agent = new Agent({ model: testModel, tools: [tool] });
+		let queued = false;
+		for await (const event of agent.run('Initial')) {
+			if (event.type === 'message_start' && event.message.role === 'assistant' && !queued) {
+				queued = true;
+				agent.followUp('Follow later');
+			}
+		}
+
+		expect(seenContexts).toHaveLength(3);
+		expect(seenContexts[1].map((message) => message.role)).toEqual(['user', 'assistant', 'toolResult']);
+		expect(seenContexts[2].map((message) => message.role)).toEqual(['user', 'assistant', 'toolResult', 'assistant', 'user']);
+	});
+
+	it('should clear queued steering and follow-up messages on reset', async () => {
+		const seenContexts: Message[][] = [];
+		registerProvider({
+			name: testModel.provider,
+			stream(_model, context) {
+				const stream = new AssistantMessageEventStream();
+				seenContexts.push([...(context.messages as Message[])]);
+				const message: AssistantMessage = {
+					role: 'assistant',
+					content: [{ type: 'text', text: 'Done' }],
+					provider: testModel.provider,
+					model: testModel.id,
+					usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+					stopReason: 'stop',
+					timestamp: Date.now(),
+				};
+				setTimeout(() => {
+					stream.push({ type: 'done', reason: 'stop', message });
+					stream.end(message);
+				}, 0);
+				return stream;
+			},
+		});
+		const agent = new Agent({ model: testModel });
+		agent.steer('stale steering');
+		agent.followUp('stale follow-up');
+		agent.reset();
+
+		for await (const _event of agent.run('Initial')) {
+		}
+
+		expect(seenContexts).toHaveLength(1);
+		expect(seenContexts[0].map((message) => message.role)).toEqual(['user']);
+	});
 describe('Agent Retry Logic', () => {
 	it('should configure max retry delay', () => {
 		const agent = new Agent({

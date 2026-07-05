@@ -131,8 +131,8 @@ const unsub = agent.subscribe((event, signal) => {
 
 ### `agent.steer(message)` / `agent.followUp(message)`
 
-- `steer()` — Injects a user message into the current run loop. Processed on the next turn.
-- `followUp()` — Queues a message for after the current `run()` completes.
+- `steer()` — Injects a user message after the current assistant turn finishes executing its tool calls.
+- `followUp()` — Queues a user message only after the agent has no more tool calls or steering messages.
 
 ### State
 
