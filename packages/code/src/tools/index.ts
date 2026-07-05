@@ -38,7 +38,7 @@ export const builtinTools: SpectraTool[] = [
 ];
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
-const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory']);
+const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'task', 'web_fetch', 'webfetch']);
 
 function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool['execute'] {
 	const tracker = security.getReadTracker();
