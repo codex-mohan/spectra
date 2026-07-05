@@ -593,7 +593,7 @@ export function MessageView({
 		}
 
 		if (tName === 'task') {
-			const subagentType = (argsObj as any)?.subagent_type || 'subagent';
+			const subagentType = (argsObj as any)?.agent || (argsObj as any)?.subagent_type || 'subagent';
 			const description = (argsObj as any)?.description || '';
 			const title = `@${subagentType} ${description}`.slice(0, 60);
 			const statusColor = toolError ? c.error : c.success;

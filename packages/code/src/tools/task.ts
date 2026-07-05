@@ -9,6 +9,107 @@ import { backgroundTasks } from '../services/background-tasks.js';
 import { runSubagent } from '@mohanscodex/spectra-agent';
 import { getSystemPrompt } from '../utils/platform.js';
 
+const DEFAULT_REPORTING = `Return a concise final report. Include the result, files changed or inspected, verification run or intentionally skipped, and any blockers.`;
+
+export interface StructuredTask {
+	id?: string;
+	role?: string;
+	description?: string;
+	assignment: string;
+	reporting?: string;
+}
+
+export interface TaskArgs {
+	description?: string;
+	prompt?: string;
+	subagent_type?: string;
+	agent?: string;
+	context?: string;
+	tasks?: StructuredTask[];
+	reporting?: string;
+	background?: boolean;
+	task_id?: string;
+}
+
+export interface NormalizedTask {
+	id: string;
+	role?: string;
+	description: string;
+	assignment: string;
+	reporting?: string;
+}
+
+export interface NormalizedTaskRequest {
+	agent: string;
+	description: string;
+	context?: string;
+	tasks: NormalizedTask[];
+	reporting?: string;
+	background?: boolean;
+	taskId?: string;
+}
+
+const structuredTaskSchema = z.object({
+	id: z.string().optional().describe('Stable task id, useful for UI labels and result correlation'),
+	role: z.string().optional().describe('Specialist role/persona for this task'),
+	description: z.string().optional().describe('Short UI label for this task'),
+	assignment: z.string().describe('The concrete task assignment'),
+	reporting: z.string().optional().describe('Task-specific reporting instructions, overriding the agent default'),
+});
+
+export function normalizeTaskArgs(args: TaskArgs): NormalizedTaskRequest {
+	const agent = args.agent || args.subagent_type;
+	if (!agent) throw new Error('Missing required parameter: agent');
+
+	const tasks = args.tasks?.length
+		? args.tasks.map((task, index) => ({
+			id: task.id || `Task${index + 1}`,
+			role: task.role,
+			description: task.description || task.id || `Task ${index + 1}`,
+			assignment: task.assignment,
+			reporting: task.reporting,
+		}))
+		: [{
+			id: 'Task1',
+			description: args.description || 'Task',
+			assignment: args.prompt || '',
+		}];
+
+	if (tasks.some((task) => task.assignment.trim().length === 0)) {
+		throw new Error('Each task requires a non-empty assignment');
+	}
+
+	return {
+		agent,
+		description: args.description || (tasks.length === 1 ? tasks[0].description : `${tasks.length} tasks`),
+		context: args.context,
+		tasks,
+		reporting: args.reporting,
+		background: args.background,
+		taskId: args.task_id,
+	};
+}
+
+export function buildTaskPrompt(
+	task: NormalizedTask,
+	context: string | undefined,
+	reporting: string | undefined,
+	agentReporting: string | undefined,
+): string {
+	const sections: string[] = [];
+	if (task.role) sections.push(`# Role\n${task.role}`);
+	if (context?.trim()) sections.push(`# Context\n${context.trim()}`);
+	sections.push(`# Assignment\n${task.assignment.trim()}`);
+	sections.push(`# Reporting\n${(task.reporting || reporting || agentReporting || DEFAULT_REPORTING).trim()}`);
+	return sections.join('\n\n');
+}
+
+function combineTaskPrompts(tasks: NormalizedTask[], context: string | undefined, reporting: string | undefined, agentReporting: string | undefined): string {
+	if (tasks.length === 1) return buildTaskPrompt(tasks[0], context, reporting, agentReporting);
+	return tasks.map((task) => `## ${task.id}: ${task.description}\n\n${buildTaskPrompt(task, context, reporting, agentReporting)}`).join('\n\n');
+}
+
+
 function descriptionForTaskTool(): string {
 	const subagentList = SUBAGENTS.map((name) => {
 		const def = AGENT_DEFINITIONS[name];
@@ -39,26 +140,36 @@ export function createTaskTool(
 		name: 'task',
 		capabilities: { reads: false, writes: false },
 		description: descriptionForTaskTool(),
-		displayName: (args: { description: string }) =>
-			`@${(args as any).subagent_type || 'subagent'} ${args.description || ''}`.slice(0, 60),
+		displayName: (args: TaskArgs) => {
+			const agent = args.agent || args.subagent_type || 'subagent';
+			return `@${agent} ${args.description || ''}`.slice(0, 60);
+		},
 		parameters: z.object({
-			description: z.string().describe('A short (3-5 words) description of the task'),
-			prompt: z.string().describe('The task for the agent to perform'),
-			subagent_type: z.string().describe('The type of specialized agent to use for this task'),
+			description: z.string().optional().describe('A short (3-5 words) description of the task or task group'),
+			prompt: z.string().optional().describe('Legacy single task prompt'),
+			subagent_type: z.string().optional().describe('Legacy specialized agent selector'),
+			agent: z.string().optional().describe('The specialized subagent to use'),
+			context: z.string().optional().describe('Shared context prepended to every task assignment'),
+			tasks: z.array(structuredTaskSchema).optional().describe('One or more task assignments for the selected agent'),
+			reporting: z.string().optional().describe('Reporting instructions overriding the selected agent default'),
 			background: z.boolean().optional().describe('Run in background (returns immediately with a task_id)'),
 			task_id: z.string().optional().describe('Resume or extend a previous task by its id'),
 		}),
 
 		execute: async (args, ctx) => {
-			const { description, prompt, subagent_type, background, task_id } = args as {
-				description: string;
-				prompt: string;
-				subagent_type: string;
-				background?: boolean;
-				task_id?: string;
-			};
+			let request: NormalizedTaskRequest;
+			try {
+				request = normalizeTaskArgs(args as TaskArgs);
+			} catch (err) {
+				return errorResult(err instanceof Error ? err.message : String(err));
+			}
 
-			const def = AGENT_DEFINITIONS[subagent_type];
+			const subagent_type = request.agent;
+			const description = request.description;
+			const background = request.background;
+			const task_id = request.taskId;
+
+			const def = AGENT_DEFINITIONS[request.agent];
 			if (!def) {
 				const available = SUBAGENTS.join(', ');
 				return errorResult(`Unknown subagent "${subagent_type}". Available: ${available}`);
@@ -68,6 +179,8 @@ export function createTaskTool(
 					`"${subagent_type}" is a primary agent, not a subagent. Available subagents: ${SUBAGENTS.join(', ')}`,
 				);
 			}
+			const prompt = combineTaskPrompts(request.tasks, request.context, request.reporting, (def as { reporting?: string }).reporting);
+
 
 			try {
 				const { createAllToolsWithSecurity } = await import('./index.js');

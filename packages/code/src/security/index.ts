@@ -472,7 +472,7 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 		}
 
 		if (toolName === 'task') {
-			const subagent = (args.subagent_name || args.subagent_type) as string | undefined;
+			const subagent = (args.agent || args.subagent_name || args.subagent_type) as string | undefined;
 			if (subagent) toolPatterns.push(subagent);
 		}
 

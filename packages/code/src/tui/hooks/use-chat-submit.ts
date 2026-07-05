@@ -612,7 +612,7 @@ Return ONLY the title text, nothing else.`;
 							toolArgsMap.current.set(ev.toolCallId, ev.args);
 							if (ev.toolName === 'task') {
 								const taskArgs = (ev.args ?? {}) as Record<string, unknown>;
-								const subagent = String(taskArgs.subagent_type || 'subagent');
+								const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
 								const description = taskArgs.description ? `: ${String(taskArgs.description)}` : '';
 								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} running${description}`.slice(0, 120));
 							}
@@ -636,14 +636,14 @@ Return ONLY the title text, nothing else.`;
 								toolOutput.split('\n').find((line: string) => line.trim().length > 0)?.trim() || 'Unknown error';
 							if (ev.toolName === 'task') {
 								const taskArgs = args as Record<string, unknown>;
-								const subagent = String(taskArgs.subagent_type || 'subagent');
+								const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
 								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} failed: ${firstLine}`.slice(0, 160));
 							} else {
 								sessionState.setStatusIn(runSessionId, `${ev.toolName} failed: ${firstLine}`.slice(0, 160));
 							}
 						} else if (ev.toolName === 'task') {
 							const taskArgs = args as Record<string, unknown>;
-							const subagent = String(taskArgs.subagent_type || 'subagent');
+							const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
 							sessionState.setStatusIn(runSessionId, `Subagent @${subagent} completed`);
 						}
 						const toolMsg: Message = {
