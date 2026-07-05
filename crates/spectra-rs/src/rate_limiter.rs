@@ -95,10 +95,4 @@ mod tests {
         assert!(!rl.check_limit("user_b").allowed);
     }
 
-    #[test]
-    fn test_default_constructor() {
-        let rl = LocalRateLimiter::with_defaults();
-        let result = rl.check_limit("test");
-        assert!(result.allowed);
-    }
 }

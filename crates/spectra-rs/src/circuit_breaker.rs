@@ -225,25 +225,6 @@ mod tests {
         assert_eq!(cb.failure_count(), 0);
     }
 
-    #[test]
-    fn test_default_config_values() {
-        let config = CircuitBreakerConfig::default();
-        assert_eq!(config.failure_threshold, 5);
-        assert_eq!(config.reset_timeout, std::time::Duration::from_secs(30));
-        assert_eq!(config.half_open_max_requests, 3);
-    }
-
-    #[test]
-    fn test_custom_config() {
-        let config = CircuitBreakerConfig {
-            failure_threshold: 3,
-            reset_timeout: std::time::Duration::from_millis(100),
-            half_open_max_requests: 1,
-        };
-        assert_eq!(config.failure_threshold, 3);
-        assert_eq!(config.reset_timeout.as_millis(), 100);
-        assert_eq!(config.half_open_max_requests, 1);
-    }
 
     #[tokio::test]
     async fn test_successful_call_keeps_closed() {

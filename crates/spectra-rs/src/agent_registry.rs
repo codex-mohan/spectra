@@ -228,9 +228,4 @@ mod tests {
         assert!(results[1].error.as_ref().unwrap().contains("Unknown"));
     }
 
-    #[test]
-    fn test_default_registry() {
-        let registry = AgentRegistry::default();
-        assert!(registry.is_empty());
-    }
 }

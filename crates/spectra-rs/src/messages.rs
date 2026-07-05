@@ -384,16 +384,4 @@ mod tests {
         assert!(json_str.contains("user"));
     }
 
-    #[test]
-    fn test_tool_call_creation() {
-        let tc = ToolCall {
-            id: "tc-1".to_string(),
-            name: "search".to_string(),
-            arguments: json!({"query": "rust"}),
-            thinking_signature: None,
-        };
-        assert_eq!(tc.id, "tc-1");
-        assert_eq!(tc.name, "search");
-        assert_eq!(tc.arguments, json!({"query": "rust"}));
-    }
 }

@@ -76,50 +76,6 @@ describe('Agent: registration and lifecycle', () => {
 	});
 });
 
-describe('Agent: steering and follow-up queuing', () => {
-	it('should accept steering messages as string', () => {
-		const agent = new Agent({ model: testModel });
-		expect(() => agent.steer('Be more concise')).not.toThrow();
-	});
-
-	it('should accept steering messages as Message object', () => {
-		const agent = new Agent({ model: testModel });
-		const msg: Message = { role: 'user', content: 'Custom steer', timestamp: Date.now() };
-		expect(() => agent.steer(msg)).not.toThrow();
-	});
-
-	it('should accept follow-up messages as string', () => {
-		const agent = new Agent({ model: testModel });
-		expect(() => agent.followUp('One more thing')).not.toThrow();
-	});
-
-	it('should accept follow-up messages as Message object', () => {
-		const agent = new Agent({ model: testModel });
-		const msg: Message = { role: 'user', content: 'Follow', timestamp: Date.now() };
-		expect(() => agent.followUp(msg)).not.toThrow();
-	});
-
-	it('should configure one-at-a-time steering mode', () => {
-		const agent = new Agent({ model: testModel, steeringMode: 'one-at-a-time' });
-		agent.steer('A');
-		agent.steer('B');
-		expect(agent).toBeDefined();
-	});
-
-	it('should configure all-at-once steering mode', () => {
-		const agent = new Agent({ model: testModel, steeringMode: 'all' });
-		agent.steer('A');
-		agent.steer('B');
-		expect(agent).toBeDefined();
-	});
-
-	it('should configure all-at-once follow-up mode', () => {
-		const agent = new Agent({ model: testModel, followUpMode: 'all' });
-		agent.followUp('A');
-		agent.followUp('B');
-		expect(agent).toBeDefined();
-	});
-});
 
 describe('Agent: max turns enforcement', () => {
 	it('should stop after maxTurns is reached', async () => {

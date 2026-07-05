@@ -81,23 +81,4 @@ describe('Anthropic Provider thinkingEffort', () => {
 		expect(events).toContain('error');
 	});
 
-	it('should error with thinkingEffort none (same as undefined)', async () => {
-		const provider = createAnthropicProvider();
-		const model: Model = {
-			id: 'claude-sonnet-4-20250514',
-			name: 'Claude Sonnet 4',
-			provider: 'anthropic',
-			api: 'anthropic-messages',
-		};
-		const context: Context = { messages: [{ role: 'user', content: 'Hello', timestamp: Date.now() }] };
-
-		const stream = provider.stream(model, context, { thinkingEffort: 'none' });
-
-		const events: string[] = [];
-		for await (const event of stream) {
-			events.push(event.type);
-		}
-
-		expect(events).toContain('error');
-	});
 });

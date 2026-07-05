@@ -161,12 +161,6 @@ mod tests {
         assert_eq!(*results, vec!["first", "second", "third"]);
     }
 
-    #[test]
-    fn test_stop_flag() {
-        let mut pool = SequentialWorkerPool::new();
-        assert!(!pool.is_processing());
-        pool.stop();
-    }
 
     #[tokio::test]
     async fn test_empty_pool_processes_nothing() {

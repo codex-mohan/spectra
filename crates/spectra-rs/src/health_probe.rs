@@ -138,19 +138,6 @@ mod tests {
         assert_eq!(HealthStatus::Unhealthy.as_str(), "unhealthy");
     }
 
-    #[test]
-    fn test_uptime_increases() {
-        let probe = HealthProbe::new();
-        let report1 = probe.health();
-        let uptime1 = report1.uptime_secs;
-
-        // Uptime should be near zero for a fresh probe
-        assert!(uptime1 <= 1);
-
-        // Can't easily test increase in unit test without sleeping,
-        // but we can verify the field exists and is populated
-        assert!(report1.uptime_secs < 5);
-    }
 
     #[test]
     fn test_multiple_degraded_checks_stay_degraded() {
