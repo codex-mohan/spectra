@@ -36,4 +36,26 @@ describe('session message hydration', () => {
 		expect(converted.messages[0].attachments?.[0].badge.color).toBeTruthy();
 		expect(converted.messages[0].attachments?.[0].filename).toBe('example.ts');
 	});
+
+	it('hydrates delivered steering messages as normal user messages', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [
+				{
+					role: 'user',
+					content: 'Queued text',
+					metadata: { steeringStatus: 'sent' },
+					timestamp: Date.now(),
+				},
+			],
+		});
+
+		expect(converted.messages[0]).toMatchObject({
+			role: 'user',
+			content: 'Queued text',
+			model: 'test-model',
+		});
+		expect(converted.messages[0]).not.toHaveProperty('steeringStatus');
+	});
 });

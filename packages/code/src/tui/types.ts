@@ -29,6 +29,12 @@ export interface Patch {
 	hash: string;
 	files: string[];
 }
+export interface PendingQueueMessage {
+	/** Stable UI-only id for this transient queued message */
+	id: string;
+	content: string;
+}
+
 
 export interface ChatMessage {
 	/** Unique identifier for this message */
@@ -42,8 +48,6 @@ export interface ChatMessage {
 	meta?: string;
 	/** Whether the message is being streamed */
 	streaming?: boolean;
-	/** Queue state for a user message sent while an assistant response is active */
-	steeringStatus?: 'queued' | 'sent';
 	/** The model used for this message */
 	model?: string;
 	/** Attachments for user messages */

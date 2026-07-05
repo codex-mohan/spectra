@@ -105,6 +105,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 	} = deps;
 
 interface QueuedSteeringDisplay {
+	id: string;
 	content: string;
 	attachments: PromptSubmitPayload['attachments'];
 	model: string;
@@ -120,7 +121,6 @@ interface QueuedSteeringDisplay {
 	const firstUserMessageRef = useRef<string | null>(null);
 	const steeringMessagesRef = useRef(new Set<Message>());
 	const steeringDisplaysRef = useRef(new Map<Message, QueuedSteeringDisplay>());
-	const steeringUiIdsRef = useRef(new Map<number, string>());
 
 
 	function persistMessage(targetSessionId: string, sdkMsg: Message) {
@@ -280,21 +280,12 @@ Return ONLY the title text, nothing else.`;
 						role: 'user',
 						content: userContent,
 						timestamp: Date.now(),
-						metadata: { steeringStatus: 'queued' },
 					};
 					const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
-					const steeringUiId = genId();
+					const steeringDisplayId = genId();
 					steeringMessagesRef.current.add(userMsg);
-					steeringDisplaysRef.current.set(userMsg, { content: displayContent, attachments, model: selectedModel });
-					sessionState.addMessageTo(currentSessionId, {
-						id: steeringUiId,
-						role: 'user',
-						content: displayContent,
-						attachments,
-						model: selectedModel,
-						steeringStatus: 'queued',
-					});
-					steeringUiIdsRef.current.set(userMsg.timestamp, steeringUiId);
+					steeringDisplaysRef.current.set(userMsg, { id: steeringDisplayId, content: displayContent, attachments, model: selectedModel });
+					sessionState.addPendingSteeringTo(currentSessionId, { id: steeringDisplayId, content: displayContent });
 					agent.steer(userMsg);
 					if (trimmed) promptHistoryService.current.append(trimmed);
 					setDraftText('');
@@ -425,16 +416,19 @@ Return ONLY the title text, nothing else.`;
 				for await (const ev of agent.run(attachments.length > 0 ? { ...userMsg, content: userContent } : promptInputText)) {
 					if (ev.type === 'message_end' && ev.message.role === 'user' && steeringMessagesRef.current.has(ev.message)) {
 						steeringMessagesRef.current.delete(ev.message);
+						const display = steeringDisplaysRef.current.get(ev.message);
 						steeringDisplaysRef.current.delete(ev.message);
-						const steeringUiId = steeringUiIdsRef.current.get(ev.message.timestamp);
-						steeringUiIdsRef.current.delete(ev.message.timestamp);
-						// Update persisted message status from 'queued' to 'sent'
-						const sentMessage: Message = { ...ev.message, metadata: { ...ev.message.metadata, steeringStatus: 'sent' } };
-						persistMessage(runSessionId, sentMessage);
-						// Update the existing UI message (already displayed from steering path)
-						if (steeringUiId) {
-							sessionState.updateMessageIn(runSessionId, steeringUiId, { steeringStatus: 'sent' });
+						if (display) {
+							sessionState.removePendingSteeringFrom(runSessionId, display.id);
+							sessionState.addMessageTo(runSessionId, {
+								id: display.id,
+								role: 'user',
+								content: display.content,
+								attachments: display.attachments,
+								model: display.model,
+							});
 						}
+						persistMessage(runSessionId, ev.message);
 						sessionState.setStatusIn(runSessionId, 'Steering sent to model');
 					}
 					if (ev.type === 'message_start' && ev.message.role === 'assistant') {

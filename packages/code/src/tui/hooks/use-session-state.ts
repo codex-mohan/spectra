@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
-import type { ChatMessage } from '../types.js';
+import type { ChatMessage, PendingQueueMessage } from '../types.js';
 
 export interface SessionViewState {
 	messages: ChatMessage[];
+	pendingSteering: PendingQueueMessage[];
+	pendingFollowUp: PendingQueueMessage[];
 	isLoading: boolean;
 	status: string;
 	tokenUsage: { input: number; output: number };
@@ -17,6 +19,8 @@ export interface SessionViewState {
 
 const DEFAULT_STATE: SessionViewState = {
 	messages: [],
+	pendingSteering: [],
+	pendingFollowUp: [],
 	isLoading: false,
 	status: 'Ready',
 	tokenUsage: { input: 0, output: 0 },
@@ -69,6 +73,30 @@ export function useSessionState() {
 		set(sessionId, { messages: fn(current.messages) });
 	}
 
+	function addPendingSteeringTo(sessionId: string, msg: PendingQueueMessage) {
+		const current = getState(sessionId);
+		set(sessionId, { pendingSteering: [...current.pendingSteering, msg] });
+	}
+
+	function removePendingSteeringFrom(sessionId: string, msgId: string) {
+		const current = getState(sessionId);
+		set(sessionId, { pendingSteering: current.pendingSteering.filter((msg) => msg.id !== msgId) });
+	}
+
+	function addPendingFollowUpTo(sessionId: string, msg: PendingQueueMessage) {
+		const current = getState(sessionId);
+		set(sessionId, { pendingFollowUp: [...current.pendingFollowUp, msg] });
+	}
+
+	function removePendingFollowUpFrom(sessionId: string, msgId: string) {
+		const current = getState(sessionId);
+		set(sessionId, { pendingFollowUp: current.pendingFollowUp.filter((msg) => msg.id !== msgId) });
+	}
+
+	function clearPendingQueuesIn(sessionId: string) {
+		set(sessionId, { pendingSteering: [], pendingFollowUp: [] });
+	}
+
 	function setLoadingIn(sessionId: string, value: boolean) {
 		set(sessionId, { isLoading: value });
 	}
@@ -114,6 +142,11 @@ export function useSessionState() {
 		addMessageTo,
 		updateMessageIn,
 		setMessagesIn,
+		addPendingSteeringTo,
+		removePendingSteeringFrom,
+		addPendingFollowUpTo,
+		removePendingFollowUpFrom,
+		clearPendingQueuesIn,
 		setLoadingIn,
 		setStatusIn,
 		setTokenUsageIn,

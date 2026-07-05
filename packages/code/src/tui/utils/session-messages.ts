@@ -81,7 +81,6 @@ export function sdkMessagesToChatMessages(data: {
 				role: 'user' as const,
 				content: content || '',
 				attachments,
-				steeringStatus: metadata.steeringStatus === 'queued' || metadata.steeringStatus === 'sent' ? metadata.steeringStatus : undefined,
 				model: data.model,
 			};
 		}

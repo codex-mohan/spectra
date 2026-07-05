@@ -4,6 +4,7 @@ import type { CliRenderer } from '@opentui/core';
 import { execFileSync } from 'child_process';
 import { c, SPINNER } from './theme.js';
 import { ChatArea } from './components/chat-area.js';
+import { PendingQueue } from './components/pending-queue.js';
 import { CommandPalette } from './components/command-palette.js';
 import { PromptBar, type PromptBarRef } from './prompt-bar.js';
 import { FileAutocomplete } from './components/file-autocomplete.js';
@@ -101,6 +102,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	// Per-session state
 	const sessionState = useSessionState();
 	const messages = sessionState.activeState.messages;
+	const pendingSteering = sessionState.activeState.pendingSteering;
+	const pendingFollowUp = sessionState.activeState.pendingFollowUp;
 	const isLoading = sessionState.activeState.isLoading;
 	const status = sessionState.activeState.status;
 	const visibleStatus = status !== 'Ready' && status !== 'Streaming...' ? status : null;
@@ -465,6 +468,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			selectedProvider: childData.provider || childData.model.split('/')[0],
 			selectedAgent: childData.agent || 'build',
 			thinkingEffort: childData.thinkingEffort || undefined,
+			pendingSteering: [],
+			pendingFollowUp: [],
 		});
 		sessionId.current = childId;
 		setViewingChildSession(childId);
@@ -798,6 +803,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							onTaskClick={handleViewChildSession}
 						/>
 					</box>
+						<PendingQueue
+							steering={pendingSteering}
+							followUp={pendingFollowUp}
+							width={termWidth - 6}
+						/>
 						<box flexShrink={0}>
 							{viewingChildSession ? (
 								<SubagentNav
@@ -974,6 +984,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							selectedProvider: data.provider || data.model.split('/')[0],
 							selectedAgent: data.agent || 'build',
 							thinkingEffort: data.thinkingEffort || undefined,
+							pendingSteering: [],
+							pendingFollowUp: [],
 						});
 						sessionId.current = data.id;
 						setRoute('chat');
@@ -1236,7 +1248,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							if (data) {
 								const { messages: loadedMsgs } = sdkMessagesToChatMessages(data);
 								sessionState.switchSession(data.id);
-								sessionState.set(data.id, { messages: loadedMsgs });
+								sessionState.set(data.id, { messages: loadedMsgs, pendingSteering: [], pendingFollowUp: [] });
 								sessionId.current = forked.id;
 								showToast('Session forked', 'success');
 							}
