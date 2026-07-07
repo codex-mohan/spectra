@@ -91,8 +91,9 @@ jobs:
           cp ${{ matrix.platform }}/libopentui.dylib dmg-staging/ 2>/dev/null || true
           cp -r ${{ matrix.platform }}/assets dmg-staging/ 2>/dev/null || true
           ln -s /usr/local/bin dmg-staging/bin
-          # Create DMG
-          hdiutil create -volname "Spectra" -srcfolder dmg-staging -ov -format UDZO spectra-${{ matrix.platform }}.dmg
+          # macOS 26 hdiutil can undersize srcfolder images and fail while copying.
+          # Give the temporary image explicit headroom, then compress to UDZO.
+          hdiutil create -volname "Spectra" -srcfolder dmg-staging -ov -format UDZO -fs HFS+ -size 512m spectra-${{ matrix.platform }}.dmg
           rm -rf dmg-staging
         shell: bash
 
@@ -129,10 +130,11 @@ jobs:
             done
           done
 
+          VERSION="${RELEASE_TAG#v}"
           cat > spectra.wxs << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-            <Package Name="Spectra" Language="1033" Version="0.5.1"
+            <Package Name="Spectra" Language="1033" Version="${VERSION}"
                      Manufacturer="codex-mohan" UpgradeCode="A7B9C2D4-E5F6-7890-ABCD-EF1234567890">
               <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
               <MediaTemplate EmbedCab="yes" />
