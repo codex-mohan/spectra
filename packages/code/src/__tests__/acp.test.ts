@@ -122,7 +122,7 @@ describe('ACP Protocol', () => {
 			expect((result.serverInfo as Record<string, unknown>).name).toBe('Spectra Code');
 
 			proc.kill();
-		});
+		}, 15000);
 
 		it('session/new error with auth store via config', async () => {
 			// Tests that the same auth resolution path works

@@ -1,21 +1,23 @@
 # Spectra Code
 
-> AI coding agent in your terminal. Built on the Spectra agent framework.
+> AI coding agent in your terminal. Built on the Spectra core packages and OpenTUI.
 
-Spectra Code is a terminal-native coding agent with a full-screen TUI, CLI utilities, MCP tool-server support, ACP editor integration, custom tools, evolving skills, and configurable safety controls. It runs locally, keeps API keys in the system auth store, and adapts to your project through config files, `AGENTS.md`, skills, and custom tools.
+Spectra Code is a terminal-native OpenTUI coding agent with CLI utilities, MCP tool-server support, ACP editor integration, custom tools, evolving skills, local file attachments, todo planning, memory tools, provider usage reporting, and configurable safety controls. It runs locally, keeps API keys in the system auth store, and adapts to your project through config files, `AGENTS.md`, skills, memory, and custom tools. It does not use the archived `@mohanscodex/spectra-tui` package.
 
 ## Features
 
-- **Full-screen TUI** — Chat with agents, switch models/providers, manage sessions, view costs, and control permissions.
-- **Agent modes** — `build`, `plan`, and `debug` modes with tailored tool access; `explore` is available as a fast read-only sub-agent.
+- **Full-screen TUI** — Chat with agents, switch models/providers, manage sessions, view costs, inspect usage, and control permissions.
+- **Agent modes and subagents** — `build`, `plan`, and `debug` modes with tailored tool access; `explore` is available as a fast read-only sub-agent, and task delegation can run in foreground or background sessions.
+- **File attachments** — Use `@` fuzzy file autocomplete to attach local files with MIME detection, path metadata, visual badges, and provider serialization.
+- **Todo planning** — `/todo` slash commands plus a built-in todo tool render phased task plans inline.
 - **Bundled and evolving skills** — 60+ bundled skills plus skills learned from sessions and custom user/project skills.
+- **Memory tools** — Project, user, and session memory surfaces with scoped theming and safe tool rendering.
 - **Custom tools** — Add `.ts` or `.js` tools in `.spectra/tools/`, `.opencode/tools/`, `.claude/tools/`, `.agents/tools/`, or the global Spectra config directory.
 - **MCP integration** — Connect stdio and HTTP MCP servers and expose their tools to the agent.
 - **ACP support** — Run as an Agent Client Protocol server for editors such as Zed, Neovim, JetBrains, and other ACP-compatible clients.
-- **Persistent sessions** — Save, resume, fork, archive, and checkpoint conversations.
-- **Configurable providers** — Use built-in providers or register custom OpenAI-compatible providers.
+- **Provider management** — Built-in cloud providers, OAuth/device-login coding plans, local runtimes such as Ollama and LM Studio, and custom OpenAI-compatible providers.
 - **Security controls** — Permission rules, path safety, read-before-write guards, SSRF protection, and doom-loop detection.
-- **Cost and token visibility** — Real-time cost display, token counts, and model pricing support.
+- **Cost and token visibility** — Real-time cost display, token counts, model pricing, and provider usage windows.
 
 ## Install
 
@@ -75,11 +77,13 @@ The TUI lets you:
 
 - Chat with the selected agent.
 - Switch between `build`, `plan`, and `debug` modes.
-- Switch models and providers.
+- Launch foreground/background subagents and navigate child sessions.
+- Attach local files from the prompt with `@` autocomplete.
+- Switch models and providers, including local runtimes and OAuth-backed coding-plan providers.
 - Browse, resume, fork, archive, rename, and delete sessions.
-- Manage permissions and security settings.
-- View token usage, cost, tool calls, and model thinking output.
-- Use slash commands such as `/sessions`, `/agent`, `/thinking`, `/tools`, `/permissions`, `/theme`, `/cost`, and `/doctor`.
+- Manage permissions, memory, skills, usage, and security settings.
+- View token usage, cost, shell timing, tool calls, syntax-highlighted output, and model thinking output.
+- Use slash commands such as `/sessions`, `/agent`, `/todo`, `/thinking`, `/tools`, `/permissions`, `/memory`, `/usage`, `/theme`, `/cost`, and `/doctor`.
 
 ### CLI
 
@@ -92,6 +96,12 @@ spectra db path
 ```
 
 `session delete` can also be run without `--id` to select a session interactively.
+
+### Attachments and todos
+
+Use `@` in the prompt to fuzzy-search project files, attach one, and send it as typed file content to providers that support multimodal or file inputs. Attachments keep filename, path, MIME, and size metadata so providers and transcripts can preserve context.
+
+Use `/todo` to edit, import, export, copy, append, start, complete, or drop phased todos. Agent todo tool results render inline with phase hierarchy and validation feedback.
 
 ### MCP
 

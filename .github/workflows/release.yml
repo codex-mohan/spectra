@@ -15,6 +15,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,19 +46,93 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Delete per-package tags and draft releases
+      - name: Delete per-package tags and releases
         run: |
-          # Delete per-package tags
+          # Changesets publishes fixed packages together, but it can still create package-scoped tags/releases.
+          # Spectra ships one unified GitHub release (vX.Y.Z), so remove package-scoped artifacts.
           for TAG in $(git tag -l "@mohanscodex/spectra-*"); do
             git push origin ":refs/tags/$TAG" || true
           done
-          # Delete per-package draft releases created by changesets
-          for RELEASE in $(gh release list --limit 50 --json tagName --jq '.[] | select(.tagName | startswith("@mohanscodex/")) | .tagName'); do
+          for RELEASE in $(gh release list --limit 100 --json tagName --jq '.[] | select(.tagName | startswith("@mohanscodex/")) | .tagName'); do
             gh release delete "$RELEASE" --yes 2>/dev/null || true
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create unified GitHub release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const packages = JSON.parse(process.env.PUBLISHED_PACKAGES || '[]');
+          if (packages.length === 0) throw new Error('No published packages found');
+
+          const version = packages[0].version;
+          const changelogPaths = [
+            'packages/code/CHANGELOG.md',
+            'packages/ai/CHANGELOG.md',
+            'packages/agent/CHANGELOG.md',
+            'packages/app/CHANGELOG.md',
+          ];
+
+          let changes = '';
+          for (const path of changelogPaths) {
+            if (!fs.existsSync(path)) continue;
+            const changelog = fs.readFileSync(path, 'utf8');
+            const match = changelog.match(new RegExp(`## ${version}\\n([\\s\\S]*?)(?=\\n## |$)`));
+            if (match) {
+              changes = match[1].trim();
+              break;
+            }
+          }
+
+          changes = changes
+            .replace(/^### Minor Changes\s*/m, '')
+            .replace(/^- \[`[^\]]+`\]\([^)]+\) Thanks \[[^\]]+\]\([^)]+\)! - /m, '')
+            .replace(/\n- Updated dependencies[\s\S]*$/m, '')
+            .trim();
+
+          const packageList = packages
+            .map((pkg) => `- \`${pkg.name}@${pkg.version}\``)
+            .join('\n');
+
+          const notes = [
+            `# Spectra v${version}`,
+            '',
+            '## Published packages',
+            '',
+            packageList,
+            '',
+            '## Release notes',
+            '',
+            changes || 'See package changelogs for details.',
+            '',
+          ].join('\n');
+
+          fs.writeFileSync('release-notes.md', notes);
+          fs.writeFileSync('release-version.txt', version);
+          NODE
+
+          VERSION=$(cat release-version.txt)
+          TAG="v$VERSION"
+          git fetch --tags origin "$TAG" || true
+
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "Spectra $TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" --title "Spectra $TAG" --notes-file release-notes.md --target "$GITHUB_SHA"
+          fi
+
+          gh workflow run build-binaries.yml --ref main -f tag="$TAG"
       - name: Smoke test published packages
         if: steps.changesets.outputs.published == 'true'
         run: |
@@ -84,13 +159,15 @@ jobs:
           npm install \
             @mohanscodex/spectra-ai@$VERSION \
             @mohanscodex/spectra-agent@$VERSION \
-            @mohanscodex/spectra-app@$VERSION
+            @mohanscodex/spectra-app@$VERSION \
+            @mohanscodex/spectra-code@$VERSION
 
           echo "==> Verifying imports..."
           node --input-type=module -e "
             import { EventStream, stream } from '@mohanscodex/spectra-ai';
             import { Agent, defineTool } from '@mohanscodex/spectra-agent';
             import { SessionManager } from '@mohanscodex/spectra-app';
+            import { loadConfig, SessionStore } from '@mohanscodex/spectra-code';
             import { z } from 'zod';
 
             // Verify each package loads
@@ -106,6 +183,10 @@ jobs:
 
             new SessionManager({ model: 'anthropic/claude-3-haiku-20240307' });
             console.log('  @mohanscodex/spectra-app: OK');
+
+            console.assert(typeof loadConfig === 'function', 'loadConfig must be a function');
+            console.assert(typeof SessionStore === 'function', 'SessionStore must be a constructor');
+            console.log('  @mohanscodex/spectra-code: OK');
 
             console.log('==> All smoke tests passed.');
           "

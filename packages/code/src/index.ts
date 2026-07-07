@@ -1,4 +1,8 @@
-export { launchTui } from './tui/index.js';
+export type { TuiOptions } from './tui/index.js';
+export async function launchTui(options?: import('./tui/index.js').TuiOptions): Promise<void> {
+	const tui = await import('./tui/index.js');
+	return tui.launchTui(options);
+}
 export { loadConfig } from './services/config.js';
 export { loadContext } from './services/context.js';
 export { SessionStore } from './services/session-store.js';

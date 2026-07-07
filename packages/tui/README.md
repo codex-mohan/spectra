@@ -1,8 +1,8 @@
-# @singularity-ai/spectra-tui
+# @mohanscodex/spectra-tui
 
-> **Archived.** This was Spectra's original custom TUI framework — built from scratch on raw ANSI escape codes with differential rendering (directly borrowed from **[pi-mono](https://github.com/badlogic/pi-mono)** by **Mario Zechner**). It has been superseded by **[OpenTUI](https://github.com/anomalyco/opentui)** (`@opentui/react`), which is what Spectra Code uses today.
+> **Archived and deprecated.** This was Spectra's original custom TUI framework. Spectra Code no longer uses this package; the active TUI app is `@mohanscodex/spectra-code`, built with **[OpenTUI](https://github.com/anomalyco/opentui)** (`@opentui/core` + `@opentui/react`).
 
-Originally featured zero-dependency components (`Box`, `Text`, `Input`, `Editor`, `Loader`, `Markdown`, `Spacer`, `TruncatedText`), a composable `Container` system, Kitty keyboard protocol support, and flicker-free differential rendering.
+This package is private, retained only for historical reference, and must not be used for new Spectra Code work.
 
 ## License
 

@@ -1,8 +1,8 @@
-# @singularity-ai/spectra-agent
+# @mohanscodex/spectra-agent
 
-**Agent runtime with multi-turn tool dispatch and streaming event delivery.**
+**Agent runtime with multi-turn tool dispatch, subagent delegation, and streaming event delivery.**
 
-Orchestrates conversations with LLMs: streams responses, dispatches tool calls (parallel or sequential), injects intermediate messages mid-turn, and emits typed events for every phase of execution.
+Orchestrates conversations with LLMs: streams responses, dispatches tool calls (parallel or sequential), injects steering and follow-up messages, runs bounded subagents, and emits typed events for every phase of execution.
 
 ## Features
 
@@ -10,7 +10,8 @@ Orchestrates conversations with LLMs: streams responses, dispatches tool calls (
 - **Tool execution** — Parallel or sequential dispatch. Tools defined with Zod schemas for type-safe argument validation.
 - **Streaming events** — AsyncGenerator yields `AgentEvent` discriminated unions. Subscribe via `for await` or side-channel listeners.
 - **Hooks** — `beforeToolCall` (block/modify), `afterToolCall` (modify results), `transformContext` (rewrite messages), `getApiKey` (dynamic key resolution).
-- **Steering & follow-up queues** — Inject messages mid-turn (`steer()`) or queue them for the next run (`followUp()`).
+- **Steering & follow-up queues** — Inject messages mid-turn (`steer()`) or queue them for the next run (`followUp()`); queues drain reliably across tool turns.
+- **Subagent primitive** — `runSubagent()` creates bounded child agents with optional model override, timeout, token budget, event forwarding, and abort propagation.
 - **Automatic retry** — Exponential backoff (up to 3 retries) for transient API errors. Configurable max delay.
 - **Abort support** — `agent.abort()` cancels in-flight requests with `AbortController`.
 - **Subscriber pattern** — Push-based listeners for side-channel logging, metrics, or persistence.
@@ -18,15 +19,15 @@ Orchestrates conversations with LLMs: streams responses, dispatches tool calls (
 ## Installation
 
 ```bash
-bun add @singularity-ai/spectra-agent
+bun add @mohanscodex/spectra-agent
 ```
 
-Depends on `@singularity-ai/spectra-ai` (automatically resolved as a workspace dependency).
+Depends on `@mohanscodex/spectra-ai`.
 
 ## Quick Start
 
 ```typescript
-import { Agent, defineTool } from "@singularity-ai/spectra-agent";
+import { Agent, defineTool } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const weatherTool = defineTool({
@@ -77,7 +78,7 @@ agent.run("Hello")
   ├─ emit message_start/user
   ├─ emit turn_start
   │
-  ├─ LLM stream (via @spectra-ai)
+  ├─ LLM stream (via @mohanscodex/spectra-ai)
   │   ├─ emit message_start (assistant)
   │   ├─ emit message_update (deltas)
   │   └─ emit message_end (complete)
@@ -134,6 +135,22 @@ const unsub = agent.subscribe((event, signal) => {
 - `steer()` — Injects a user message after the current assistant turn finishes executing its tool calls.
 - `followUp()` — Queues a user message only after the agent has no more tool calls or steering messages.
 
+### `runSubagent(config, prompt)`
+
+Runs a child `Agent` with its own tools, prompt, optional model override, and budget controls.
+
+```typescript
+import { runSubagent } from "@mohanscodex/spectra-agent";
+
+const result = await runSubagent({
+  ...agentConfig,
+  budget: { maxTurns: 5, timeoutMs: 60_000 },
+  onEvent: (event) => console.log(event.type),
+}, "Investigate this failing test");
+
+console.log(result.text, result.usage, result.aborted);
+```
+
 ### State
 
 ```typescript
@@ -150,7 +167,7 @@ agent.signal             // AbortSignal | undefined
 ## Tool Definition
 
 ```typescript
-import { defineTool, textResult, errorResult } from "@singularity-ai/spectra-agent";
+import { defineTool, textResult, errorResult } from "@mohanscodex/spectra-agent";
 import { z } from "zod";
 
 const searchTool = defineTool({

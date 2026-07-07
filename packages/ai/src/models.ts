@@ -2030,6 +2030,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 200000
     },
     {
+      "id": "jp.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "name": "Claude Haiku 4.5 (JP)",
+      "contextWindow": 200000
+    },
+    {
       "id": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
       "name": "Claude Haiku 4.5 (US)",
       "contextWindow": 200000
@@ -2529,11 +2534,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "claude-3-haiku-20240307",
-      "name": "Claude Haiku 3",
-      "contextWindow": 200000
-    },
-    {
       "id": "claude-haiku-4-5-20251001",
       "name": "Claude Haiku 4.5",
       "contextWindow": 200000
@@ -2541,21 +2541,6 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "claude-haiku-4-5",
       "name": "Claude Haiku 4.5 (latest)",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-opus-20240229",
-      "name": "Claude Opus 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-20250514",
-      "name": "Claude Opus 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-opus-4-0",
-      "name": "Claude Opus 4 (latest)",
       "contextWindow": 200000
     },
     {
@@ -2594,44 +2579,14 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "claude-3-sonnet-20240229",
-      "name": "Claude Sonnet 3",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-sonnet-20240620",
-      "name": "Claude Sonnet 3.5",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-5-sonnet-20241022",
-      "name": "Claude Sonnet 3.5 v2",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-3-7-sonnet-20250219",
-      "name": "Claude Sonnet 3.7",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-20250514",
-      "name": "Claude Sonnet 4",
-      "contextWindow": 200000
-    },
-    {
-      "id": "claude-sonnet-4-0",
-      "name": "Claude Sonnet 4 (latest)",
-      "contextWindow": 200000
-    },
-    {
       "id": "claude-sonnet-4-5-20250929",
       "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
+      "contextWindow": 1000000
     },
     {
       "id": "claude-sonnet-4-5",
       "name": "Claude Sonnet 4.5 (latest)",
-      "contextWindow": 200000
+      "contextWindow": 1000000
     },
     {
       "id": "claude-sonnet-4-6",
@@ -4784,6 +4739,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 131072
     },
     {
+      "id": "nvidia/Llama-3.3-Nemotron-Super-49B-v1.5",
+      "name": "Llama 3.3 Nemotron Super 49B v1.5",
+      "contextWindow": 131072
+    },
+    {
       "id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
       "name": "Llama 4 Scout 17B",
       "contextWindow": 327680
@@ -4804,6 +4764,26 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 196608
     },
     {
+      "id": "MiniMaxAI/MiniMax-M2.7",
+      "name": "MiniMax-M2.7",
+      "contextWindow": 196608
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M3",
+      "name": "MiniMax-M3",
+      "contextWindow": 524288
+    },
+    {
+      "id": "nvidia/Nemotron-3-Nano-30B-A3B",
+      "name": "Nemotron 3 Nano 30B A3B",
+      "contextWindow": 262144
+    },
+    {
+      "id": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning",
+      "name": "Nemotron 3 Nano Omni 30B A3B Reasoning",
+      "contextWindow": 262144
+    },
+    {
       "id": "Qwen/Qwen3.5-35B-A3B",
       "name": "Qwen 3.5 35B A3B",
       "contextWindow": 262144
@@ -4814,14 +4794,54 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 262144
     },
     {
+      "id": "Qwen/Qwen3-32B",
+      "name": "Qwen3 32B",
+      "contextWindow": 40960
+    },
+    {
       "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo",
       "name": "Qwen3 Coder 480B A35B Instruct Turbo",
+      "contextWindow": 262144
+    },
+    {
+      "id": "Qwen/Qwen3-Max",
+      "name": "Qwen3 Max",
+      "contextWindow": 256000
+    },
+    {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "name": "Qwen3-Next 80B-A3B Instruct",
+      "contextWindow": 262144
+    },
+    {
+      "id": "Qwen/Qwen3.5-122B-A10B",
+      "name": "Qwen3.5 122B-A10B",
+      "contextWindow": 16384
+    },
+    {
+      "id": "Qwen/Qwen3.5-27B",
+      "name": "Qwen3.5 27B",
+      "contextWindow": 262144
+    },
+    {
+      "id": "Qwen/Qwen3.5-9B",
+      "name": "Qwen3.5 9B",
+      "contextWindow": 262144
+    },
+    {
+      "id": "Qwen/Qwen3.6-27B",
+      "name": "Qwen3.6 27B",
       "contextWindow": 262144
     },
     {
       "id": "Qwen/Qwen3.6-35B-A3B",
       "name": "Qwen3.6 35B A3B",
       "contextWindow": 262144
+    },
+    {
+      "id": "Qwen/Qwen3.7-Max",
+      "name": "Qwen3.7 Max",
+      "contextWindow": 256000
     }
   ],
   "deepseek": [
@@ -7078,6 +7098,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "openai/gpt-oss-120b",
       "name": "GPT OSS 120B",
+      "contextWindow": 131072
+    },
+    {
+      "id": "openai/gpt-oss-20b",
+      "name": "GPT OSS 20B",
       "contextWindow": 131072
     },
     {
@@ -10084,6 +10109,13 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen/qwen3-coder-30b",
       "name": "Qwen3 Coder 30B",
       "contextWindow": 262144
+    }
+  ],
+  "longcat": [
+    {
+      "id": "LongCat-2.0",
+      "name": "LongCat-2.0",
+      "contextWindow": 1000000
     }
   ],
   "lucidquery": [
@@ -13844,6 +13876,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 256000
     },
     {
+      "id": "hy3-free",
+      "name": "Hy3 Free",
+      "contextWindow": 256000
+    },
+    {
       "id": "hy3-preview-free",
       "name": "Hy3 preview Free",
       "contextWindow": 256000
@@ -14438,6 +14475,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 131072
     },
     {
+      "id": "openai/gpt-oss-20b",
+      "name": "GPT OSS 20B",
+      "contextWindow": 131072
+    },
+    {
       "id": "openai/gpt-3.5-turbo-0613",
       "name": "GPT-3.5 Turbo (older v0613)",
       "contextWindow": 4095
@@ -14628,11 +14670,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 131072
     },
     {
-      "id": "openai/gpt-oss-20b",
-      "name": "gpt-oss-20b",
-      "contextWindow": 131072
-    },
-    {
       "id": "openai/gpt-oss-20b:free",
       "name": "gpt-oss-20b (free)",
       "contextWindow": 131072
@@ -14661,6 +14698,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "x-ai/grok-build-0.1",
       "name": "Grok Build 0.1",
       "contextWindow": 256000
+    },
+    {
+      "id": "tencent/hy3",
+      "name": "Hy3",
+      "contextWindow": 202752
+    },
+    {
+      "id": "tencent/hy3:free",
+      "name": "Hy3 (free)",
+      "contextWindow": 262144
     },
     {
       "id": "tencent/hy3-preview",
@@ -14956,6 +15003,15 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "nvidia/nemotron-nano-9b-v2:free",
       "name": "Nemotron Nano 9B V2 (free)",
       "contextWindow": 128000
+    },
+    {
+      "id": "nex-agi/nex-n2-pro",
+      "name": "Nex AGI: Nex-N2-Pro"
+    },
+    {
+      "id": "nex-agi/nex-n2-mini",
+      "name": "Nex-N2-Mini",
+      "contextWindow": 262144
     },
     {
       "id": "cohere/north-mini-code:free",
@@ -18214,13 +18270,13 @@ const MODELS: Record<string, ModelEntry[]> = {
   "stackit": [
     {
       "id": "openai/gpt-oss-120b",
-      "name": "GPT-OSS 120B",
+      "name": "GPT OSS 120B",
       "contextWindow": 131000
     },
     {
-      "id": "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8",
-      "name": "Llama 3.1 8B",
-      "contextWindow": 128000
+      "id": "openai/gpt-oss-20b",
+      "name": "GPT OSS 20B",
+      "contextWindow": 131072
     },
     {
       "id": "cortecs/Llama-3.3-70B-Instruct-FP8-Dynamic",
@@ -18228,14 +18284,14 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 128000
     },
     {
-      "id": "neuralmagic/Mistral-Nemo-Instruct-2407-FP8",
-      "name": "Mistral Nemo",
-      "contextWindow": 128000
-    },
-    {
       "id": "Qwen/Qwen3-VL-235B-A22B-Instruct-FP8",
       "name": "Qwen3-VL 235B",
       "contextWindow": 218000
+    },
+    {
+      "id": "Qwen/Qwen3.6-27B",
+      "name": "Qwen3.6 27B",
+      "contextWindow": 262144
     }
   ],
   "stepfun": [
@@ -18293,6 +18349,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     }
   ],
   "subconscious": [
+    {
+      "id": "subconscious/glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1000000
+    },
     {
       "id": "subconscious/tim-qwen3.6-27b",
       "name": "TIM-Qwen3.6 27B",
@@ -19201,12 +19262,12 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "anthropic/claude-sonnet-4",
       "name": "Claude Sonnet 4",
-      "contextWindow": 200000
+      "contextWindow": 1000000
     },
     {
       "id": "anthropic/claude-sonnet-4.5",
       "name": "Claude Sonnet 4.5",
-      "contextWindow": 200000
+      "contextWindow": 1000000
     },
     {
       "id": "anthropic/claude-sonnet-4.6",

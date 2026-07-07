@@ -24,7 +24,7 @@ try {
 
 	// 3. Pack tarballs
 	console.log('\n=== 3. Pack tarballs ===');
-	for (const pkg of ['ai', 'agent', 'app']) {
+	for (const pkg of ['ai', 'agent', 'app', 'code']) {
 		const pkgDir = join(root, 'packages', pkg);
 		run(`npm pack --pack-destination "${tmpDir}"`, { cwd: pkgDir });
 	}
@@ -44,6 +44,7 @@ try {
 			'import { EventStream, stream } from "@mohanscodex/spectra-ai";',
 			'import { Agent, defineTool } from "@mohanscodex/spectra-agent";',
 			'import { SessionManager } from "@mohanscodex/spectra-app";',
+			'import { loadConfig, SessionStore } from "@mohanscodex/spectra-code";',
 			'import { z } from "zod";',
 			'',
 			'new EventStream();',
@@ -59,6 +60,9 @@ try {
 			'',
 			'new Agent({ name: "a", instructions: "i", model: "m", tools: [tool] });',
 			'new SessionManager({ model: "anthropic/claude-3-haiku-20240307" });',
+			'console.assert(typeof loadConfig === "function", "loadConfig must be a function");',
+			'console.assert(typeof SessionStore === "function", "SessionStore must be a constructor");',
+			'',
 			'',
 			'console.log("✓ All imports verified -- ready to publish");',
 		].join('\n'),

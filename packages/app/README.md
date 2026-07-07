@@ -1,8 +1,8 @@
-# @singularity-ai/spectra-app
+# @mohanscodex/spectra-app
 
 **Production runtime infrastructure for conversational AI — session management, rate limiting, orchestration, and streaming bridge.**
 
-Builds on `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent` to provide the runtime needed for serving agents from local dev (SQLite) to distributed clusters (Redis + K8s).
+Builds on `@mohanscodex/spectra-ai` and `@mohanscodex/spectra-agent` to provide the runtime needed for serving agents from local dev (SQLite) to distributed clusters (Redis + K8s).
 
 ## Features
 
@@ -14,21 +14,21 @@ Builds on `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent` to pr
 - **SSE bridge** — Manage SSE client connections, heartbeat, reconnection. Interface designed for WebSocket adapter.
 - **Health probe** — K8s-compatible health/readiness checks with `registerCheck()`.
 - **Worker pool** — Enqueue agent jobs, process sequentially. Built-in `createAgentRunner()`.
-- **Agent registry** — Register specialist agents and delegate tasks in parallel.
+- **Agent registry** — Register specialist agents and delegate tasks through `runSubagent()` with bounded parallel orchestration.
 
 ## Installation
 
 ```bash
-bun add @singularity-ai/spectra-app
+bun add @mohanscodex/spectra-app
 ```
 
 For Redis backends:
 
 ```bash
-bun add @singularity-ai/spectra-app ioredis
+bun add @mohanscodex/spectra-app ioredis
 ```
 
-Depends on `@singularity-ai/spectra-ai` and `@singularity-ai/spectra-agent` (automatically resolved as workspace/transitive dependencies).
+Depends on `@mohanscodex/spectra-ai` and `@mohanscodex/spectra-agent`.
 
 ## Quick Start
 
@@ -39,7 +39,7 @@ import {
   InMemorySessionStore,
   CompositeRateLimiter,
   LocalRateLimiter,
-} from "@singularity-ai/spectra-app";
+} from "@mohanscodex/spectra-app";
 
 const engine = new SessionEngine({
   sessionManager: new SessionManager(new InMemorySessionStore()),
@@ -72,7 +72,7 @@ await engine.stop(true); // graceful drain
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│                  @singularity-ai/spectra-app                │
+│                  @mohanscodex/spectra-app                 │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │  SessionEngine                                       │    │
@@ -96,8 +96,8 @@ await engine.stop(true); // graceful drain
          │                │                  │
          ▼                ▼                  ▼
   ┌────────────┐  ┌──────────────┐  ┌────────────┐
-  │@spectra-ai │  │@spectra-agent│  │@spectra-ai │
-  │(provider)  │  │  (Agent)     │  │(provider)  │
+  │@mohanscodex│  │@mohanscodex│  │@mohanscodex│
+  │/spectra-ai │  │/spectra-agent│ │/spectra-ai │
   └────────────┘  └──────────────┘  └────────────┘
 ```
 

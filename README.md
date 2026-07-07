@@ -51,12 +51,14 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 
 ## Packages
 
+Core SDK packages are `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent`, and `@mohanscodex/spectra-app`. `@mohanscodex/spectra-code` is the terminal TUI app built on those core packages.
+
 | Package | Layer | Description |
 |---------|-------|-------------|
-| `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic Messages + OpenAI Chat Completions with SSE streaming. Any OpenAI-compatible endpoint works via baseUrl. Core types (Message, Model, ToolCall, StopReason). |
-| `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, retry with backoff, abort support. |
-| `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine`, `SessionManager`, `SessionStore`, `Rate Limiting`, `CircuitBreaker`, `SseBridge`, `HealthProbe`. |
-| `@mohanscodex/spectra-code` | **TUI App** | Terminal-native AI coding agent — full-screen TUI, agent modes, MCP/ACP, 185+ skills, custom tools, security controls. [Docs →](packages/code/README.md) |
+| `@mohanscodex/spectra-ai` | **Provider** | LLM abstraction — stream, complete, register providers. Anthropic Messages, OpenAI Chat Completions/Responses, OpenRouter, coding-plan providers, local runtimes, usage metadata, and file content blocks. |
+| `@mohanscodex/spectra-agent` | **Agent** | Agent loop with multi-turn tool dispatch. `defineTool()` with Zod validation, before/after hooks, parallel/sequential execution, steering queues, retry with backoff, abort support, and subagent delegation. |
+| `@mohanscodex/spectra-app` | **Infrastructure** *(optional)* | Production utilities you'd build anyway — `SessionEngine`, `SessionManager`, `SessionStore`, `Rate Limiting`, `CircuitBreaker`, `SseBridge`, `HealthProbe`, worker pools, and agent registry orchestration. |
+| `@mohanscodex/spectra-code` | **TUI App** | Terminal-native AI coding agent built with OpenTUI — full-screen TUI, foreground/background subagents, MCP/ACP, file attachments, todos, memory, 60+ skills, custom tools, and security controls. [Docs →](packages/code/README.md) |
 | `spectra-rs` | **Rust Core** | Rust SDK — core types, agent, tools, events. |
 | `spectra-http` | **Rust HTTP** | Rust HTTP clients for Anthropic Messages + OpenAI Chat Completions. OpenRouter-compatible. |
 
@@ -69,9 +71,12 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 | Before/After Tool Hooks | ✅ | ✅ |
 | Extension / Middleware System | ✅ | ✅ |
 | Agent Loop (Multi-Turn) | ✅ | ✅ |
+| Steering / Follow-up Queues | ✅ | — |
+| Subagent Delegation | ✅ | ✅ |
 | Retry with Exponential Backoff | ✅ | ✅ |
+| File Attachments / Multimodal File Content | ✅ | — |
 | Session Management | ✅ | — |
-| Session Persistence (FS + SQLite) | ✅ | — |
+| Session Persistence (FS + SQLite) | ✅ | ✅ |
 | Redis Session Store (distributed) | ✅ | — |
 | Worker Pool | ✅ | ✅ |
 | Rate Limiting (in-memory) | ✅ | ✅ |
@@ -81,10 +86,11 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 | SSE Bridge (WS-compatible interface) | ✅ | — |
 | Health Probe (K8s ready) | ✅ | ✅ |
 | Agent Registry | ✅ | ✅ |
-| Cost Tracking | ✅ | ✅ |
+| Cost / Usage Tracking | ✅ | ✅ |
 | Tool Choice / Reasoning Effort | ✅ | ✅ |
 | Model Registry | ✅ | ✅ |
 | Audit Trail / Provenance | ✅ | ✅ |
+| Coding TUI (MCP, ACP, skills, todos, memory) | ✅ | — |
 
 ## Quick Start
 
@@ -130,19 +136,20 @@ for await (const event of agent.run("What is Rust?")) {
   <img src=".github/assets/spectra-code-home.png" alt="Spectra Code" width="100%" />
 </p>
 
-> Terminal-native AI coding agent built on the Spectra SDK.
+> Terminal-native AI coding agent built on the Spectra SDK and OpenTUI.
 
-Spectra Code is a full-screen TUI for coding with AI — chat with agents, run tools, manage sessions, and connect to MCP servers, all from your terminal.
+Spectra Code is a full-screen OpenTUI app for coding with AI — chat with agents, run tools, manage sessions, and connect to MCP servers, all from your terminal. It does not use the archived `@mohanscodex/spectra-tui` package.
 
 <p align="center">
   <img src=".github/assets/spectra-code-action.png" alt="Spectra Code in action" width="100%" />
 </p>
 
-- **Agent modes** — `build`, `plan`, `debug`, and read-only `explore`
+- **Foreground/background subagents** — delegate exploration or implementation and switch between child sessions
+- **File attachments** — `@` fuzzy file picker, local file reading, MIME detection, and inline attachment badges
+- **Hierarchical todos** — `/todo` command and todo tool rendering for phased task plans
 - **60+ bundled skills** — plus skills learned from sessions and custom user skills
 - **MCP integration** — connect stdio and HTTP tool servers
 - **ACP support** — run as an agent server for Zed, Neovim, JetBrains
-- **Custom tools** — drop `.ts`/`.js` files in `.spectra/tools/`
 - **Security controls** — permissions, path safety, SSRF protection, doom-loop detection
 
 <p align="center">
@@ -185,14 +192,17 @@ tokio = { version = "1", features = ["full"] }
 
 ## Supported APIs
 
-Spectra works with any endpoint that speaks Anthropic's Messages API or OpenAI's Chat Completions API — just set `baseUrl` on your model.
+Spectra works with Anthropic's Messages API, OpenAI's Chat Completions/Responses APIs, and OpenAI-compatible endpoints. Set `baseUrl` on your model or choose a built-in provider.
 
 | Protocol | TypeScript | Rust |
 |----------|------------|------|
 | **Anthropic Messages** | ✅ | ✅ |
 | **OpenAI Chat Completions** | ✅ | ✅ |
+| **OpenAI Responses** | ✅ | — |
+| **OpenAI-compatible cloud providers** | ✅ | ✅ |
+| **Local OpenAI-compatible runtimes** | ✅ | ✅ |
 
-Any OpenAI-compatible provider (Groq, OpenRouter, Together, Fireworks, Ollama, vLLM, LiteLLM, local models) works out of the box — no integration needed.
+OpenAI-compatible providers such as Groq, OpenRouter, Together, Fireworks, Ollama, LM Studio, vLLM, LiteLLM, and local models work without framework-specific integrations.
 
 ## Project Structure
 

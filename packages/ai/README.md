@@ -1,29 +1,30 @@
-# @singularity-ai/spectra-ai
+# @mohanscodex/spectra-ai
 
 **LLM provider abstraction layer with real-time streaming.**
 
-A registry-based system for interacting with multiple LLM providers through a unified streaming interface. Built-in providers for Anthropic, OpenAI (Chat Completions + Responses API), Groq, and OpenRouter — all streaming SSE by default.
+A registry-based system for interacting with multiple LLM providers through a unified streaming interface. Built-in providers include Anthropic, OpenAI Chat Completions, OpenAI Responses, OpenRouter, OpenAI-compatible cloud providers, coding-plan providers, and local runtimes such as Ollama, LM Studio, llama.cpp, vLLM, and SGLang.
 
 ## Features
 
 - **Streaming-first** — Every provider streams SSE events. No polling, no buffering.
 - **Provider registry** — Register, resolve, and swap providers at runtime. Extensible for custom implementations.
 - **Typed events** — Fine-grained delta events (`text_delta`, `thinking_delta`, `toolcall_delta`) for real-time UI updates.
+- **File content support** — User messages can include text, images, and local file blocks with filename/path/MIME/size metadata.
+- **Usage metadata** — Assistant messages include token usage, cache read/write, provider, model, response ID, and stop reason.
 - **Abort support** — Pass an `AbortSignal` to cancel in-flight requests.
-- **Zero SD KB at rest** — SDK is size-zero until streamed; no pre-bundled provider payloads.
 
 ## Installation
 
 ```bash
-bun add @singularity-ai/spectra-ai
+bun add @mohanscodex/spectra-ai
 ```
 
 ## Quick Start
 
 ```typescript
-import { stream, complete, initProviders } from "@singularity-ai/spectra-ai";
+import { stream, complete, initProviders } from "@mohanscodex/spectra-ai";
 
-// Registers anthropic, openai-completions, openai-responses, groq, openrouter
+// Registers built-in cloud, coding-plan, and local OpenAI-compatible providers
 initProviders();
 
 const model = {
@@ -62,8 +63,8 @@ console.log(msg.content);
               ┌────────────┼────────────┬───────────────┐
               ▼            ▼            ▼               ▼
        ┌──────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐
-       │anthropic │ │openai-     │ │openai-   │ │  groq /  │
-       │          │ │completions │ │responses │ │openrouter│
+       │anthropic │ │openai-     │ │openai-   │ │OpenAI-  │
+       │          │ │completions │ │responses │ │compatible│
        └──────────┘ └────────────┘ └──────────┘ └──────────┘
               │            │            │               │
               ▼            ▼            ▼               ▼
@@ -83,8 +84,10 @@ console.log(msg.content);
 | `anthropic` | Anthropic Messages API | `ANTHROPIC_API_KEY` |
 | `openai-completions` | OpenAI Chat Completions | `OPENAI_API_KEY` |
 | `openai-responses` | OpenAI Responses API | `OPENAI_API_KEY` |
-| `groq` | Groq (OpenAI-compatible) | `GROQ_API_KEY` |
 | `openrouter` | OpenRouter (OpenAI-compatible) | `OPENROUTER_API_KEY` |
+| `groq`, `xai`, `deepseek`, `mistral`, `cerebras`, `google`, `fireworks-ai`, `togetherai`, `perplexity`, `cohere`, `moonshotai`, and others | OpenAI-compatible APIs | Provider-specific API key |
+| `ollama`, `lm-studio`, `llama-cpp`, `vllm`, `sglang` | Local OpenAI-compatible runtimes | No API key; base URLs configurable with `*_BASE_URL` env vars |
+| `kimi-code`, `opencode-go`, `alibaba-coding-plan`, `zai-coding-plan`, and related coding-plan providers | OpenAI-compatible coding endpoints | Provider-specific API key or OAuth flow in Spectra Code |
 
 ## API
 
@@ -101,7 +104,7 @@ Convenience wrapper. Returns a `Promise<AssistantMessage>` — accumulates the s
 Register a custom provider:
 
 ```typescript
-import { registerProvider } from "@singularity-ai/spectra-ai";
+import { registerProvider } from "@mohanscodex/spectra-ai";
 
 registerProvider({
   name: "my-provider",
@@ -162,14 +165,14 @@ interface StreamOptions {
 
 ## Message Types
 
-- `UserMessage` — role `"user"`, content is a string or array of `TextContent | ImageContent` blocks
+- `UserMessage` — role `"user"`, content is a string or array of `TextContent | ImageContent | FileContent` blocks
 - `AssistantMessage` — role `"assistant"`, content is `(TextContent | ThinkingContent | ToolCall)[]`, includes `usage`, `stopReason`, `provider`, `model`, `responseId`, `errorMessage`
 - `ToolResultMessage` — role `"toolResult"`, maps tool call results back to the model
 
 ## Usage
 
 ```typescript
-import { complete } from "@singularity-ai/spectra-ai";
+import { complete } from "@mohanscodex/spectra-ai";
 
 const msg = await complete(
   { id: "gpt-4o", name: "GPT-4o", provider: "openai-completions", api: "openai" },
