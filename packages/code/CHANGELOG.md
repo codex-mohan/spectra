@@ -1,5 +1,15 @@
 # @mohanscodex/spectra-code
 
+## 0.6.1
+
+### Patch Changes
+
+- [`a258557`](https://github.com/codex-mohan/spectra/commit/a25855716665c6486ad116682894a16b6f47c622) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Fix the update dialog to copy `bun add -g @mohanscodex/spectra-code@latest` so users can cross `0.x` minor version boundaries.
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.6.1
+  - @mohanscodex/spectra-agent@0.6.1
+
 ## 0.6.0
 
 ### Minor Changes
