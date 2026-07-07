@@ -26,7 +26,7 @@ import { AgentSwitcher } from './ui/agent-switcher.js';
 import { ThinkingEffortDialog } from './ui/thinking-effort-dialog.js';
 import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
-import { UpdateDialog } from './ui/update-dialog.js';
+import { UpdateDialog, UPDATE_COMMAND } from './ui/update-dialog.js';
 import { CostDialog } from './ui/cost-dialog.js';
 import { UsageDialog } from './ui/usage-dialog.js';
 import { MemoryDialog } from './ui/memory-dialog.js';
@@ -1094,7 +1094,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					onClose={() => setUpdateVersion(null)}
 					onInstall={() => {
 						try {
-							clipboard.writeSync('bun update -g @mohanscodex/spectra-code');
+							clipboard.writeSync(UPDATE_COMMAND);
 							showToast('Command copied to clipboard', 'success');
 						} catch {}
 						setUpdateVersion(null);

@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { c } from '../theme.js';
 import { ModalFrame } from './modal-frame.js';
 
+export const UPDATE_COMMAND = 'bun add -g @mohanscodex/spectra-code@latest';
+
 export interface UpdateDialogProps {
 	newVersion: string;
 	currentVersion: string;
@@ -65,7 +67,7 @@ export function UpdateDialog({
 					<text fg={c.dim}>Run the following to update:</text>
 				</box>
 				<box backgroundColor={c.bgBar} paddingX={2} paddingY={1}>
-					<text fg={c.text}>bun update -g @mohanscodex/spectra-code</text>
+					<text fg={c.text}>{UPDATE_COMMAND}</text>
 				</box>
 			</box>
 		</ModalFrame>
