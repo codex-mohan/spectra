@@ -25,6 +25,47 @@ pub type ConvertToLlmFn =
 
 pub type ApiKeyFn = Arc<dyn Fn(&str) -> Option<String> + Send + Sync>;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ProvenanceDetailLevel {
+    None,
+    Hash,
+    Redacted,
+    Full,
+}
+
+#[derive(Clone, Debug)]
+pub struct ProvenanceConfig {
+    pub enabled: bool,
+    pub audit: bool,
+    pub message_provenance: bool,
+    pub include_args: ProvenanceDetailLevel,
+    pub include_context_diff: bool,
+}
+
+impl Default for ProvenanceConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            audit: true,
+            message_provenance: true,
+            include_args: ProvenanceDetailLevel::Hash,
+            include_context_diff: false,
+        }
+    }
+}
+
+impl ProvenanceConfig {
+    pub fn disabled() -> Self {
+        Self {
+            enabled: false,
+            audit: false,
+            message_provenance: false,
+            ..Self::default()
+        }
+    }
+}
+
+
 #[derive(Clone)]
 pub struct AgentConfig {
     pub model: Model,
@@ -39,6 +80,7 @@ pub struct AgentConfig {
     pub transform_context: Option<TransformFn>,
     pub convert_to_llm: Option<ConvertToLlmFn>,
     pub get_api_key: Option<ApiKeyFn>,
+    pub provenance: ProvenanceConfig,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -62,6 +104,7 @@ impl Default for AgentConfig {
             transform_context: None,
             convert_to_llm: None,
             get_api_key: None,
+            provenance: ProvenanceConfig::default(),
         }
     }
 }
@@ -85,6 +128,7 @@ pub struct AgentBuilder {
     extensions: Option<ExtensionManager>,
     transform_context: Option<TransformFn>,
     convert_to_llm: Option<ConvertToLlmFn>,
+    provenance: ProvenanceConfig,
     get_api_key: Option<ApiKeyFn>,
 }
 
@@ -103,6 +147,7 @@ impl AgentBuilder {
             transform_context: None,
             convert_to_llm: None,
             get_api_key: None,
+            provenance: ProvenanceConfig::default(),
         }
     }
 
@@ -177,6 +222,20 @@ impl AgentBuilder {
         self
     }
 
+    pub fn provenance(mut self, enabled: bool) -> Self {
+        self.provenance = if enabled {
+            ProvenanceConfig::default()
+        } else {
+            ProvenanceConfig::disabled()
+        };
+        self
+    }
+
+    pub fn provenance_config(mut self, config: ProvenanceConfig) -> Self {
+        self.provenance = config;
+        self
+    }
+
     pub fn build(self, client: Arc<dyn LlmClient>) -> Agent {
         let config = AgentConfig {
             model: self.model,
@@ -191,6 +250,7 @@ impl AgentBuilder {
             transform_context: self.transform_context,
             convert_to_llm: self.convert_to_llm,
             get_api_key: self.get_api_key,
+            provenance: self.provenance,
         };
         Agent::new(client, config)
     }
@@ -255,6 +315,7 @@ impl Agent {
             .await;
 
             match result {
+
                 Ok(final_messages) => {
                     *message_store.lock().await = final_messages;
                 }
@@ -314,6 +375,40 @@ fn emit(
             reason: "Receiver dropped".to_string(),
         })?;
     Ok(())
+}
+
+fn hash_json<T: serde::Serialize>(value: &T) -> String {
+    use std::hash::{Hash, Hasher};
+    let text = serde_json::to_string(value).unwrap_or_else(|_| "<unserializable>".to_string());
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    text.hash(&mut hasher);
+    format!("{:016x}", hasher.finish())
+}
+
+fn should_attach_message_provenance(config: &ProvenanceConfig) -> bool {
+    config.enabled && config.message_provenance
+}
+
+fn emit_audit(
+    tx: &mpsc::Sender<Result<StreamEvent>>,
+    channel: &EventChannel,
+    provenance: &ProvenanceConfig,
+    event_type: impl Into<String>,
+    details: std::collections::HashMap<String, serde_json::Value>,
+) -> Result<()> {
+    if !provenance.enabled || !provenance.audit {
+        return Ok(());
+    }
+
+    emit(
+        tx,
+        channel,
+        StreamEvent::Audit {
+            event_type: event_type.into(),
+            details,
+            timestamp: chrono::Utc::now(),
+        },
+    )
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -395,7 +490,22 @@ async fn run_agent_loop(
 
         // Apply transform context hook
         let context_messages = if let Some(ref transform) = config.transform_context {
-            transform(all_messages.clone()).await
+            let before_hash = hash_json(&all_messages);
+            let before_message_count = all_messages.len();
+            let transformed = transform(all_messages.clone()).await;
+            let after_hash = hash_json(&transformed);
+            let mut details = std::collections::HashMap::new();
+            details.insert("hook".to_string(), serde_json::json!("transformContext"));
+            details.insert("beforeMessageCount".to_string(), serde_json::json!(before_message_count));
+            details.insert("afterMessageCount".to_string(), serde_json::json!(transformed.len()));
+            details.insert("beforeHash".to_string(), serde_json::json!(before_hash));
+            details.insert("afterHash".to_string(), serde_json::json!(after_hash));
+            details.insert(
+                "changed".to_string(),
+                serde_json::json!(hash_json(&all_messages) != hash_json(&transformed)),
+            );
+            emit_audit(tx, channel, &config.provenance, "context_transformed", details)?;
+            transformed
         } else {
             all_messages.clone()
         };
@@ -439,6 +549,7 @@ async fn run_agent_loop(
             channel,
             abort_rx.clone(),
             config.max_retry_delay_ms,
+            &config.provenance,
         )
         .await
         {
@@ -471,6 +582,7 @@ async fn run_agent_loop(
                                 channel,
                                 abort_rx.clone(),
                                 &config.extensions,
+                                &config.provenance,
                             )
                         }))
                         .await;
@@ -501,6 +613,7 @@ async fn run_agent_loop(
                             channel,
                             abort_rx.clone(),
                             &config.extensions,
+                            &config.provenance,
                         )
                         .await
                         {
@@ -609,12 +722,17 @@ async fn stream_with_retry(
     channel: &EventChannel,
     mut abort_rx: watch::Receiver<bool>,
     max_retry_delay_ms: u64,
+    provenance: &ProvenanceConfig,
 ) -> Result<AssistantMessage> {
     let max_retries = 3;
     let mut last_error = None;
 
     for attempt in 0..=max_retries {
         if *abort_rx.borrow() {
+            let mut details = std::collections::HashMap::new();
+            details.insert("attempt".to_string(), serde_json::json!(attempt + 1));
+            details.insert("reason".to_string(), serde_json::json!("aborted"));
+            emit_audit(tx, channel, provenance, "retry_cancelled", details)?;
             return Err(SpectraError::Aborted);
         }
 
@@ -635,7 +753,20 @@ async fn stream_with_retry(
 
                 if attempt < max_retries {
                     let delay = std::cmp::min(1000 * 2_u64.pow(attempt as u32), max_retry_delay_ms);
+                    let mut details = std::collections::HashMap::new();
+                    details.insert("attempt".to_string(), serde_json::json!(attempt + 1));
+                    details.insert("maxRetries".to_string(), serde_json::json!(max_retries));
+                    details.insert("errorMessage".to_string(), serde_json::json!(error_msg));
+                    details.insert("delayMs".to_string(), serde_json::json!(delay));
+                    details.insert("decidedBy".to_string(), serde_json::json!("default"));
+                    details.insert("willRetry".to_string(), serde_json::json!(true));
+                    emit_audit(tx, channel, provenance, "retry_scheduled", details)?;
                     tokio::time::sleep(tokio::time::Duration::from_millis(delay)).await;
+                } else {
+                    let mut details = std::collections::HashMap::new();
+                    details.insert("attempts".to_string(), serde_json::json!(max_retries + 1));
+                    details.insert("errorMessage".to_string(), serde_json::json!(error_msg));
+                    emit_audit(tx, channel, provenance, "retry_exhausted", details)?;
                 }
             }
         }
@@ -745,6 +876,7 @@ async fn dispatch_tool_with_events(
     channel: &EventChannel,
     abort_rx: watch::Receiver<bool>,
     extensions: &ExtensionManager,
+    provenance_config: &ProvenanceConfig,
 ) -> Result<ToolResultMessage> {
     emit(
         tx,
@@ -783,13 +915,22 @@ async fn dispatch_tool_with_events(
     });
 
     if let Some(reason) = block_action {
-        let err_msg =
-            ToolResultMessage::error(tool_call.id.clone(), tool_call.name.clone(), reason.clone())
-                .with_provenance(Provenance {
-                    blocked_by: Some("beforeToolCall".to_string()),
-                    block_reason: Some(reason),
-                    ..Default::default()
-                });
+        let mut details = std::collections::HashMap::new();
+        details.insert("toolCallId".to_string(), serde_json::json!(tool_call.id.clone()));
+        details.insert("toolName".to_string(), serde_json::json!(tool_call.name.clone()));
+        details.insert("blockedBy".to_string(), serde_json::json!("beforeToolCall"));
+        details.insert("blockReason".to_string(), serde_json::json!(reason.clone()));
+        emit_audit(tx, channel, provenance_config, "tool_blocked", details)?;
+
+        let mut err_msg =
+            ToolResultMessage::error(tool_call.id.clone(), tool_call.name.clone(), reason.clone());
+        if should_attach_message_provenance(provenance_config) {
+            err_msg = err_msg.with_provenance(Provenance {
+                blocked_by: Some("beforeToolCall".to_string()),
+                block_reason: Some(reason),
+                ..Default::default()
+            });
+        }
         emit(
             tx,
             channel,
@@ -811,14 +952,26 @@ async fn dispatch_tool_with_events(
     });
 
     let args_were_transformed = modified_args.is_some();
+    if let Some(ref transformed_args) = modified_args {
+        let mut details = std::collections::HashMap::new();
+        details.insert("toolCallId".to_string(), serde_json::json!(tool_call.id.clone()));
+        details.insert("toolName".to_string(), serde_json::json!(tool_call.name.clone()));
+        details.insert("transformedBy".to_string(), serde_json::json!("beforeToolCall"));
+        details.insert("originalArgsHash".to_string(), serde_json::json!(hash_json(&args)));
+        details.insert(
+            "transformedArgsHash".to_string(),
+            serde_json::json!(hash_json(transformed_args)),
+        );
+        emit_audit(tx, channel, provenance_config, "tool_arguments_transformed", details)?;
+    }
+    let execution_args = modified_args.unwrap_or_else(|| args.clone());
 
     let tool_ctx = ToolContext {
         tool_call_id: tool_call.id.clone(),
-        params: modified_args.unwrap_or_else(|| args.clone()),
+        params: execution_args.clone(),
         signal: Some(abort_rx),
         progress_tx: Some(progress_tx),
     };
-
     // Spawn progress relay
     let tx_progress = tx.clone();
     let channel_progress = channel.clone();
@@ -838,11 +991,10 @@ async fn dispatch_tool_with_events(
 
     let after_ctx = ToolContext {
         tool_call_id: tool_call.id.clone(),
-        params: args,
+        params: execution_args,
         signal: None,
         progress_tx: None,
     };
-
     let tool_result_msg = match &result {
         Ok(r) => {
             let after_actions = extensions.on_after_tool_call(tool_call, &after_ctx, r);
@@ -852,18 +1004,48 @@ async fn dispatch_tool_with_events(
                 _ => None,
             });
             let was_replaced = replacement.is_some();
+            let original_result_hash = hash_json(&serde_json::json!({
+                "content": r.content.clone(),
+                "isError": r.is_error,
+            }));
+            let original_is_error = r.is_error;
             let (content, is_error) =
                 replacement.unwrap_or_else(|| (r.content.clone(), r.is_error));
 
-            let provenance = if args_were_transformed || was_replaced {
+            if was_replaced {
+                let mut details = std::collections::HashMap::new();
+                details.insert("toolCallId".to_string(), serde_json::json!(tool_call.id.clone()));
+                details.insert("toolName".to_string(), serde_json::json!(tool_call.name.clone()));
+                details.insert("transformedBy".to_string(), serde_json::json!("afterToolCall"));
+                details.insert("originalResultHash".to_string(), serde_json::json!(original_result_hash));
+                details.insert(
+                    "replacementResultHash".to_string(),
+                    serde_json::json!(hash_json(&serde_json::json!({
+                        "content": content.clone(),
+                        "isError": is_error,
+                    }))),
+                );
+                details.insert(
+                    "isErrorChanged".to_string(),
+                    serde_json::json!(original_is_error != is_error),
+                );
+                emit_audit(tx, channel, provenance_config, "tool_result_replaced", details)?;
+            }
+
+            let provenance = if should_attach_message_provenance(provenance_config)
+                && (args_were_transformed || was_replaced)
+            {
                 let mut provenance = Provenance::default();
+                let mut hook_details = std::collections::HashMap::new();
                 if args_were_transformed {
                     provenance.transformed_by = Some("beforeToolCall".to_string());
+                    hook_details.insert("argumentsTransformed".to_string(), serde_json::Value::Bool(true));
                 }
                 if was_replaced {
                     provenance.transformed_by = Some("afterToolCall".to_string());
-                    let mut hook_details = std::collections::HashMap::new();
                     hook_details.insert("replaced".to_string(), serde_json::Value::Bool(true));
+                }
+                if !hook_details.is_empty() {
                     provenance.hook_details = Some(hook_details);
                 }
                 Some(provenance)
@@ -1077,15 +1259,23 @@ mod tests {
         let (mut rx, _channel, _handle) = agent.run("test".to_string()).await.unwrap();
 
         let mut found_provenance: Option<Provenance> = None;
+        let mut saw_tool_blocked_audit = false;
         while let Some(event) = rx.recv().await {
-            if let Ok(StreamEvent::ToolExecutionEnd { result, .. }) = event {
-                found_provenance = result.provenance;
+            match event {
+                Ok(StreamEvent::ToolExecutionEnd { result, .. }) => {
+                    found_provenance = result.provenance;
+                }
+                Ok(StreamEvent::Audit { event_type, .. }) if event_type == "tool_blocked" => {
+                    saw_tool_blocked_audit = true;
+                }
+                _ => {}
             }
         }
 
         let prov = found_provenance.expect("expected provenance on blocked tool result");
         assert_eq!(prov.blocked_by, Some("beforeToolCall".to_string()));
         assert_eq!(prov.block_reason, Some("blocked by policy".to_string()));
+        assert!(saw_tool_blocked_audit, "expected tool_blocked audit event");
     }
 
     #[tokio::test]
@@ -1205,6 +1395,51 @@ mod tests {
         assert!(
             found_provenance.is_none(),
             "normal execution should not have provenance"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_provenance_can_be_disabled() {
+        let mut ext = ExtensionManager::new();
+        ext.add(BlockExtension);
+
+        let client = Arc::new(MockLlmClient {
+            respond_with_tool_call: true,
+        });
+        let tool = ToolBuilder::new("test_tool")
+            .description("test")
+            .parameters(json!({}))
+            .execute(|_ctx| async { Ok(ToolResult::success(json!("should not run"))) })
+            .build();
+
+        let tool_registry = ToolRegistry::new();
+        tool_registry.register(tool);
+
+        let builder = AgentBuilder::new(Model::new(Provider::Custom, "test-model"))
+            .tools(Arc::new(tool_registry))
+            .extensions(ext)
+            .provenance(false)
+            .max_turns(1);
+
+        let agent = builder.build(client);
+        let (mut rx, _channel, _handle) = agent.run("test".to_string()).await.unwrap();
+
+        let mut saw_audit = false;
+        let mut found_provenance: Option<Provenance> = None;
+        while let Some(event) = rx.recv().await {
+            match event {
+                Ok(StreamEvent::Audit { .. }) => saw_audit = true,
+                Ok(StreamEvent::ToolExecutionEnd { result, .. }) => {
+                    found_provenance = result.provenance;
+                }
+                _ => {}
+            }
+        }
+
+        assert!(!saw_audit, "disabled provenance should suppress audit events");
+        assert!(
+            found_provenance.is_none(),
+            "disabled provenance should suppress message provenance"
         );
     }
 }

@@ -36,6 +36,8 @@ export type {
 	AgentConfig,
 	RetryContext,
 	RetryDecision,
+	ProvenanceConfig,
+	ProvenanceDetailLevel,
 } from './types.js';
 export type { SubagentConfig, SubagentResult, SubagentBudget } from './subagent.js';
 export type { AssistantMessageEvent } from '@mohanscodex/spectra-ai';

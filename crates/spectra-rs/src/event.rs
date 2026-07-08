@@ -28,6 +28,11 @@ pub enum StreamEvent {
         result: ToolResultMessage,
         is_error: bool,
     },
+    Audit {
+        event_type: String,
+        details: std::collections::HashMap<String, serde_json::Value>,
+        timestamp: chrono::DateTime<chrono::Utc>,
+    },
     AgentEnd {
         messages: Vec<AssistantMessage>,
     },

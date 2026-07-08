@@ -225,6 +225,15 @@ impl SessionEngine {
                                 self.config.session_manager.save(&mut session).await?;
                             }
 
+                            if let StreamEvent::Audit { ref event_type, ref details, .. } = event {
+                                self.config.session_manager.append_audit(
+                                    &mut session,
+                                    event_type.clone(),
+                                    details.clone(),
+                                );
+                                self.config.session_manager.save(&mut session).await?;
+                            }
+
                             // Track final message text
                             if let StreamEvent::TurnEnd { .. } = event {
                                 // Extract text from the last assistant message in the turn

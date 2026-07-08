@@ -10,6 +10,7 @@ import type {
 	RateLimiter,
 	ConnectionBridge,
 	HealthStatus,
+	MessageEntry,
 } from './types.js';
 
 interface ActiveSession {
@@ -17,6 +18,10 @@ interface ActiveSession {
 	agent: Agent;
 	startTime: number;
 	abortController: AbortController;
+}
+
+function isMessageEntry(entry: Session['entries'][number]): entry is MessageEntry {
+	return entry.type === 'message';
 }
 
 export class SessionEngine {
@@ -113,7 +118,9 @@ export class SessionEngine {
 		}
 
 		const abortController = new AbortController();
+		let timeoutFired = false;
 		const timeout = setTimeout(() => {
+			timeoutFired = true;
 			abortController.abort();
 		}, this.config.sessionTimeoutMs ?? 300000);
 
@@ -126,11 +133,10 @@ export class SessionEngine {
 			afterToolCall: session.config.afterToolCall,
 			transformContext: session.config.transformContext,
 			streamOptions: options?.streamOptions ?? this.config.defaultStreamOptions,
+			provenance: this.config.provenance ?? session.config.provenance,
 		});
 
-		agent.restoreHistory(
-			session.entries.filter((e) => e.type === 'message').map((e) => (e as { message: Message }).message),
-		);
+		agent.restoreHistory(session.entries.filter(isMessageEntry).map((entry) => entry.message));
 
 		const active: ActiveSession = {
 			session,
@@ -155,16 +161,19 @@ export class SessionEngine {
 					});
 				}
 
-				// Per-event persistence: save each message as it completes
 				if (event.type === 'message_end') {
 					this.config.sessionManager.appendMessage(session, event.message);
+					await this.config.sessionManager.save(session);
+				}
+				if (event.type === 'audit') {
+					this.config.sessionManager.appendAudit(session, event.eventType, event.details);
 					await this.config.sessionManager.save(session);
 				}
 
 				if (event.type === 'turn_end') {
 					const content = event.message.content[0];
-					if (content && 'text' in content) {
-						finalMessage = (content as { text: string }).text;
+					if (content?.type === 'text') {
+						finalMessage = content.text;
 					}
 				}
 			}
@@ -175,6 +184,15 @@ export class SessionEngine {
 			});
 		} finally {
 			clearTimeout(timeout);
+			if (timeoutFired) {
+				this.config.sessionManager.appendAudit(session, 'session_timed_out', {
+					timeoutMs: this.config.sessionTimeoutMs ?? 300000,
+				});
+				await this.config.sessionManager.save(session);
+			} else if (abortController.signal.aborted) {
+				this.config.sessionManager.appendAudit(session, 'session_aborted', {});
+				await this.config.sessionManager.save(session);
+			}
 			this.activeSessions.delete(session.id);
 		}
 
@@ -187,8 +205,8 @@ export class SessionEngine {
 		};
 
 		const assistantMsg = agent.messages.find((m) => m.role === 'assistant');
-		if (assistantMsg && 'usage' in assistantMsg) {
-			Object.assign(tokenUsage, (assistantMsg as { usage: Usage }).usage);
+		if (assistantMsg?.role === 'assistant') {
+			Object.assign(tokenUsage, assistantMsg.usage);
 		}
 
 		return {
@@ -240,7 +258,9 @@ export class SessionEngine {
 		}
 
 		const abortController = new AbortController();
+		let timeoutFired = false;
 		const timeout = setTimeout(() => {
+			timeoutFired = true;
 			abortController.abort();
 		}, this.config.sessionTimeoutMs ?? 300000);
 
@@ -253,11 +273,10 @@ export class SessionEngine {
 			afterToolCall: session.config.afterToolCall,
 			transformContext: session.config.transformContext,
 			streamOptions: options?.streamOptions ?? this.config.defaultStreamOptions,
+			provenance: this.config.provenance ?? session.config.provenance,
 		});
 
-		agent.restoreHistory(
-			session.entries.filter((e) => e.type === 'message').map((e) => (e as { message: Message }).message),
-		);
+		agent.restoreHistory(session.entries.filter(isMessageEntry).map((entry) => entry.message));
 
 		const active: ActiveSession = {
 			session,
@@ -280,9 +299,12 @@ export class SessionEngine {
 						});
 					}
 
-					// Per-event persistence: save each message as it completes
 					if (event.type === 'message_end') {
 						engine.config.sessionManager.appendMessage(sess, event.message);
+						await engine.config.sessionManager.save(sess);
+					}
+					if (event.type === 'audit') {
+						engine.config.sessionManager.appendAudit(sess, event.eventType, event.details);
 						await engine.config.sessionManager.save(sess);
 					}
 				}
@@ -293,6 +315,15 @@ export class SessionEngine {
 				});
 			} finally {
 				clearTimeout(tm);
+				if (timeoutFired) {
+					engine.config.sessionManager.appendAudit(sess, 'session_timed_out', {
+						timeoutMs: engine.config.sessionTimeoutMs ?? 300000,
+					});
+					await engine.config.sessionManager.save(sess);
+				} else if (abortController.signal.aborted) {
+					engine.config.sessionManager.appendAudit(sess, 'session_aborted', {});
+					await engine.config.sessionManager.save(sess);
+				}
 				engine.activeSessions.delete(sess.id);
 			}
 		})(this, session, agent, timeout);

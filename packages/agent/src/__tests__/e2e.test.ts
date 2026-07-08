@@ -1002,6 +1002,52 @@ describe('Agent E2E - Provenance', () => {
 			expect(toolResult.provenance).toBeUndefined();
 		}
 	});
+
+	it('should emit audit events by default and suppress them when disabled', async () => {
+		const tool = defineTool({
+			name: 'blocked_by_config',
+			description: 'Config-sensitive tool',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text', text: 'Executed' }] }),
+		});
+
+		registerProvider(createMockProvider('prov-audit-on', [
+			[createToolCallMessage([{ type: 'toolCall', id: 'call_audit_on', name: 'blocked_by_config', arguments: {} }])],
+			[createTextMessage('Done')],
+		]));
+		const enabledAgent = new Agent({
+			model: { id: 'm', name: 'M', provider: 'prov-audit-on', api: 'prov-audit-on' },
+			tools: [tool],
+			beforeToolCall: async () => ({ block: true, reason: 'Denied' }),
+		});
+		const enabledEvents = [];
+		for await (const event of enabledAgent.run('Try enabled')) {
+			enabledEvents.push(event);
+		}
+		expect(enabledEvents.some((event) => event.type === 'audit' && event.eventType === 'tool_blocked')).toBe(true);
+
+		registerProvider(createMockProvider('prov-audit-off', [
+			[createToolCallMessage([{ type: 'toolCall', id: 'call_audit_off', name: 'blocked_by_config', arguments: {} }])],
+			[createTextMessage('Done')],
+		]));
+		const disabledAgent = new Agent({
+			model: { id: 'm', name: 'M', provider: 'prov-audit-off', api: 'prov-audit-off' },
+			tools: [tool],
+			beforeToolCall: async () => ({ block: true, reason: 'Denied' }),
+			provenance: false,
+		});
+		const disabledEvents = [];
+		for await (const event of disabledAgent.run('Try disabled')) {
+			disabledEvents.push(event);
+		}
+		const disabledResult = disabledAgent.messages.find(
+			(m: Message) => m.role === 'toolResult' && m.toolName === 'blocked_by_config',
+		);
+		expect(disabledEvents.some((event) => event.type === 'audit')).toBe(false);
+		if (disabledResult?.role === 'toolResult') {
+			expect(disabledResult.provenance).toBeUndefined();
+		}
+	});
 });
 
 describe('Agent E2E - Complex Scenarios', () => {

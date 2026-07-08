@@ -1,4 +1,4 @@
-import type { AgentConfig, AgentTool, AgentEvent } from '@mohanscodex/spectra-agent';
+import type { AgentConfig, AgentTool, AgentEvent, ProvenanceConfig } from '@mohanscodex/spectra-agent';
 import type { Model, Message, Usage, StreamOptions } from '@mohanscodex/spectra-ai';
 
 export interface SessionEntryBase {
@@ -250,6 +250,7 @@ export interface SessionEngineConfig {
 	defaultStreamOptions?: StreamOptions;
 	maxConcurrentSessions?: number;
 	sessionTimeoutMs?: number;
+	provenance?: boolean | ProvenanceConfig;
 }
 
 export interface SessionEngineResult {

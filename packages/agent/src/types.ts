@@ -66,6 +66,21 @@ export interface AfterToolCallResult {
 	isError?: boolean;
 }
 
+export type ProvenanceDetailLevel = 'none' | 'hash' | 'redacted' | 'full';
+
+export interface ProvenanceConfig {
+	/** Enabled by default. Disables all automatic provenance/audit capture when false. */
+	enabled?: boolean;
+	/** Emit durable audit events. Defaults to true when provenance is enabled. */
+	audit?: boolean;
+	/** Attach provenance directly to affected messages. Defaults to true when provenance is enabled. */
+	messageProvenance?: boolean;
+	/** Controls how much tool argument/result data may be recorded. Defaults to "hash". */
+	includeArgs?: ProvenanceDetailLevel;
+	/** Full context diffs are off by default; hashes/counts are recorded instead. */
+	includeContextDiff?: boolean;
+}
+
 export type AgentEvent =
 	| { type: 'agent_start' }
 	| { type: 'agent_end'; messages: Message[] }
@@ -76,7 +91,8 @@ export type AgentEvent =
 	| { type: 'message_end'; message: Message }
 	| { type: 'tool_execution_start'; toolCallId: string; toolName: string; args: unknown }
 	| { type: 'tool_execution_update'; toolCallId: string; toolName: string; args: unknown; partialResult: ToolResult }
-	| { type: 'tool_execution_end'; toolCallId: string; toolName: string; result: ToolResult; isError: boolean };
+	| { type: 'tool_execution_end'; toolCallId: string; toolName: string; result: ToolResult; isError: boolean }
+	| { type: 'audit'; eventType: string; details: Record<string, unknown>; timestamp: number };
 
 export type AgentEventListener = (event: AgentEvent, signal?: AbortSignal) => Promise<void> | void;
 
@@ -112,4 +128,5 @@ export interface AgentConfig {
 	transformContext?: (messages: Message[], signal?: AbortSignal) => Promise<Message[]>;
 	getApiKey?: (provider: string) => Promise<string | undefined> | string | undefined;
 	onRetry?: (context: RetryContext) => RetryDecision | void;
+	provenance?: boolean | ProvenanceConfig;
 }

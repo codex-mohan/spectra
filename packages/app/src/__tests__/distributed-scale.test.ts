@@ -722,6 +722,61 @@ describe('SessionEngine streaming with persistence', () => {
 		expect(entries[3].message.role).toBe('assistant');
 	});
 
+
+	it('should persist provenance audit events from agent runs', async () => {
+		const providerName = `audit-${Date.now()}`;
+		let callIndex = 0;
+		registerProvider({
+			name: providerName,
+			stream(model: Model) {
+				const stream = new AssistantMessageEventStream();
+				const message =
+					callIndex++ === 0
+						? {
+								role: 'assistant' as const,
+								content: [{ type: 'toolCall' as const, id: 'call_audit', name: 'dangerous', arguments: {} }],
+								provider: model.provider,
+								model: model.id,
+								usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+								stopReason: 'toolUse' as const,
+								timestamp: Date.now(),
+							}
+						: {
+								role: 'assistant' as const,
+								content: [{ type: 'text' as const, text: 'done' }],
+								provider: model.provider,
+								model: model.id,
+								usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2 },
+								stopReason: 'stop' as const,
+								timestamp: Date.now(),
+							};
+				stream.push({ type: 'start', partial: message });
+				stream.push({ type: 'done', reason: message.stopReason, message });
+				return stream;
+			},
+		});
+		const store = new InMemorySessionStore();
+		const sessionManager = new SessionManager(store);
+		const engine = new SessionEngine({ sessionManager });
+		engine.start();
+		const session = await sessionManager.create({
+			model: { id: 'audit-model', name: 'Audit', provider: providerName, api: 'test' },
+			beforeToolCall: async () => ({ block: true, reason: 'Policy block' }),
+		});
+
+		await engine.run('user-1', 'do dangerous thing', session.id, {
+			tools: [{
+				name: 'dangerous',
+				description: 'Dangerous',
+				parameters: { type: 'object', properties: {} },
+				execute: async () => ({ content: [{ type: 'text' as const, text: 'should not run' }] }),
+			}],
+		});
+
+		const loaded = await sessionManager.load(session.id);
+		const auditEntries = loaded?.entries.filter((entry) => entry.type === 'audit') ?? [];
+		expect(auditEntries.some((entry) => entry.type === 'audit' && entry.eventType === 'tool_blocked')).toBe(true);
+	});
 	it('should reject missing sessionId', async () => {
 		const store = new InMemorySessionStore();
 		const sessionManager = new SessionManager(store);

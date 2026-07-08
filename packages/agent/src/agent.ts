@@ -24,6 +24,56 @@ import type {
 
 type EmitFn = (event: AgentEvent) => void | Promise<void>;
 type QueueMode = 'all' | 'one-at-a-time';
+type ResolvedProvenanceConfig = {
+	enabled: boolean;
+	audit: boolean;
+	messageProvenance: boolean;
+	includeArgs: 'none' | 'hash' | 'redacted' | 'full';
+	includeContextDiff: boolean;
+};
+
+const DEFAULT_PROVENANCE_CONFIG: ResolvedProvenanceConfig = {
+	enabled: true,
+	audit: true,
+	messageProvenance: true,
+	includeArgs: 'hash',
+	includeContextDiff: false,
+};
+
+function resolveProvenanceConfig(config: AgentConfig['provenance']): ResolvedProvenanceConfig {
+	if (config === false) {
+		return { ...DEFAULT_PROVENANCE_CONFIG, enabled: false, audit: false, messageProvenance: false };
+	}
+	if (config === true || config === undefined) return { ...DEFAULT_PROVENANCE_CONFIG };
+	return {
+		...DEFAULT_PROVENANCE_CONFIG,
+		...config,
+		audit: config.enabled === false ? false : (config.audit ?? DEFAULT_PROVENANCE_CONFIG.audit),
+		messageProvenance:
+			config.enabled === false ? false : (config.messageProvenance ?? DEFAULT_PROVENANCE_CONFIG.messageProvenance),
+	};
+}
+
+function stableStringify(value: unknown): string {
+	if (value === null || typeof value !== 'object') return JSON.stringify(value);
+	if (Array.isArray(value)) return `[${value.map((item) => stableStringify(item)).join(',')}]`;
+	const record = value as Record<string, unknown>;
+	return `{${Object.keys(record)
+		.sort()
+		.map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
+		.join(',')}}`;
+}
+
+function hashValue(value: unknown): string {
+	const text = stableStringify(value);
+	let hash = 2166136261;
+	for (let i = 0; i < text.length; i++) {
+		hash ^= text.charCodeAt(i);
+		hash = Math.imul(hash, 16777619);
+	}
+	return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
 
 class PendingMessageQueue {
 	private messages: Message[] = [];
@@ -60,6 +110,8 @@ interface PreparedToolCall {
 	args: Record<string, unknown>;
 	blocked: boolean;
 	blockReason?: string;
+	blockedBy?: string;
+	argsTransformed?: boolean;
 }
 
 class AgentEventStream extends EventStream<AgentEvent, Message[]> {
@@ -100,6 +152,7 @@ export class Agent {
 	private convertToLlmFn?: (messages: Message[]) => Message[] | Promise<Message[]>;
 	private maxRetryDelayMs: number;
 	private retryCount = 0;
+	private provenanceConfig: ResolvedProvenanceConfig;
 	private onRetryHook?: (context: RetryContext) => RetryDecision | void;
 
 	constructor(
@@ -124,6 +177,7 @@ export class Agent {
 		this.followUpQueue = new PendingMessageQueue(config.followUpMode ?? 'one-at-a-time');
 		this.convertToLlmFn = config.convertToLlm;
 		this.maxRetryDelayMs = config.maxRetryDelayMs ?? 30000;
+		this.provenanceConfig = resolveProvenanceConfig(config.provenance);
 		this.onRetryHook = config.onRetry;
 		for (const tool of config.tools ?? []) {
 			this.tools.set(tool.name, tool);
@@ -273,10 +327,38 @@ export class Agent {
 				await emit({ type: 'turn_start' });
 			}
 			turns++;
-
 			let ctxMessages = this._messages;
+
 			if (this.transformContextFn) {
-				ctxMessages = await this.transformContextFn(ctxMessages, this.abortController!.signal);
+				const beforeHash = hashValue(ctxMessages);
+				const beforeMessageCount = ctxMessages.length;
+				try {
+					ctxMessages = await this.transformContextFn(ctxMessages, this.abortController!.signal);
+					const afterHash = hashValue(ctxMessages);
+					await this.emitAudit(
+						'context_transformed',
+						{
+							hook: 'transformContext',
+							beforeMessageCount,
+							afterMessageCount: ctxMessages.length,
+							beforeHash,
+							afterHash,
+							changed: beforeHash !== afterHash,
+						},
+						emit,
+					);
+				} catch (err) {
+					await this.emitAudit(
+						'hook_error',
+						{
+							hook: 'transformContext',
+							errorMessage: err instanceof Error ? err.message : String(err),
+							fallbackBehavior: 'aborted',
+						},
+						emit,
+					);
+					throw err;
+				}
 			}
 
 			const resolvedApiKey = this.getApiKeyFn
@@ -392,19 +474,71 @@ export class Agent {
 					this._streamingMessage = undefined;
 				}
 
-				if (this.abortController?.signal.aborted) throw lastError;
+				if (this.abortController?.signal.aborted) {
+					await this.emitAudit(
+						'retry_cancelled',
+						{ attempt: attempt + 1, errorMessage: lastError.message, reason: 'aborted' },
+						emit,
+					);
+					throw lastError;
+				}
 				if (!this.isRetryableError(err)) throw lastError;
 
 				if (attempt < maxRetries) {
 					let delay = Math.min(1000 * Math.pow(2, attempt), this.maxRetryDelayMs) + Math.random() * 1000;
+					let decidedBy: 'default' | 'onRetry' = 'default';
 
 					if (this.onRetryHook) {
-						const decision = this.onRetryHook({ error: lastError, attempt: attempt + 1, delay });
-						if (decision?.shouldRetry === false) throw lastError;
-						if (decision?.delay !== undefined) delay = decision.delay;
+						try {
+							const decision = this.onRetryHook({ error: lastError, attempt: attempt + 1, delay });
+							if (decision?.shouldRetry === false) {
+								await this.emitAudit(
+									'retry_cancelled',
+									{
+										attempt: attempt + 1,
+										errorMessage: lastError.message,
+										decidedBy: 'onRetry',
+										reason: 'hook_returned_false',
+									},
+									emit,
+								);
+								throw lastError;
+							}
+							if (decision?.delay !== undefined) delay = decision.delay;
+							decidedBy = 'onRetry';
+						} catch (hookErr) {
+							if (hookErr === lastError) throw hookErr;
+							await this.emitAudit(
+								'hook_error',
+								{
+									hook: 'onRetry',
+									errorMessage: hookErr instanceof Error ? hookErr.message : String(hookErr),
+									fallbackBehavior: 'default_retry',
+								},
+								emit,
+							);
+						}
 					}
 
+					await this.emitAudit(
+						'retry_scheduled',
+						{
+							attempt: attempt + 1,
+							maxRetries,
+							errorMessage: lastError.message,
+							delayMs: delay,
+							decidedBy,
+							willRetry: true,
+						},
+						emit,
+					);
 					await this.sleep(delay);
+				} else {
+					await this.emitAudit(
+						'retry_exhausted',
+						{ attempts: maxRetries + 1, errorMessage: lastError.message },
+						emit,
+					);
 				}
 			}
 		}
@@ -434,6 +568,15 @@ export class Agent {
 			}, ms);
 			signal?.addEventListener('abort', onAbort, { once: true });
 		});
+	}
+
+	private shouldAttachMessageProvenance(): boolean {
+		return this.provenanceConfig.enabled && this.provenanceConfig.messageProvenance;
+	}
+
+	private async emitAudit(eventType: string, details: Record<string, unknown>, emit: EmitFn): Promise<void> {
+		if (!this.provenanceConfig.enabled || !this.provenanceConfig.audit) return;
+		await emit({ type: 'audit', eventType, details, timestamp: Date.now() });
 	}
 
 	private async doStream(context: Context, opts: StreamOptions, emit: EmitFn): Promise<AssistantMessage> {
@@ -554,6 +697,7 @@ export class Agent {
 					args: toolCall.arguments,
 					blocked: true,
 					blockReason: `Unknown tool "${toolCall.name}"`,
+					blockedBy: 'toolRegistry',
 				});
 				continue;
 			}
@@ -569,11 +713,13 @@ export class Agent {
 						args,
 						blocked: true,
 						blockReason: `Argument validation failed: ${err instanceof Error ? err.message : String(err)}`,
+						blockedBy: 'prepareArguments',
 					});
 					continue;
 				}
 			}
 
+			let argsTransformed = false;
 			if (this.beforeToolCallHook) {
 				try {
 					const result = await this.beforeToolCallHook(
@@ -587,25 +733,51 @@ export class Agent {
 							args,
 							blocked: true,
 							blockReason: result.reason ?? 'Tool call blocked',
+							blockedBy: 'beforeToolCall',
 						});
 						continue;
 					}
 					if (result?.transform) {
+						const originalArgsHash = hashValue(args);
 						args = result.transform.modifiedArgs;
+						argsTransformed = true;
+						await this.emitAudit(
+							'tool_arguments_transformed',
+							{
+								toolCallId: toolCall.id,
+								toolName: toolCall.name,
+								transformedBy: 'beforeToolCall',
+								originalArgsHash,
+								transformedArgsHash: hashValue(args),
+							},
+							emit,
+						);
 					}
 				} catch (err) {
+					await this.emitAudit(
+						'hook_error',
+						{
+							hook: 'beforeToolCall',
+							toolCallId: toolCall.id,
+							toolName: toolCall.name,
+							errorMessage: err instanceof Error ? err.message : String(err),
+							fallbackBehavior: 'blocked',
+						},
+						emit,
+					);
 					prepared.push({
 						toolCall,
 						tool: null,
 						args,
 						blocked: true,
 						blockReason: `beforeToolCall hook error: ${err instanceof Error ? err.message : String(err)}`,
+						blockedBy: 'beforeToolCall',
 					});
 					continue;
 				}
 			}
 
-			prepared.push({ toolCall, tool, args, blocked: false });
+			prepared.push({ toolCall, tool, args, blocked: false, argsTransformed });
 		}
 
 		return prepared;
@@ -616,17 +788,23 @@ export class Agent {
 		assistantMessage: AssistantMessage,
 		emit: EmitFn,
 	): Promise<ToolResultMessage> {
-		const { toolCall, tool, args, blocked, blockReason } = prepared;
+		const { toolCall, tool, args, blocked, blockReason, blockedBy, argsTransformed } = prepared;
 
 		if (blocked) {
 			this._pendingToolCalls.delete(toolCall.id);
+			const reason = blockReason ?? 'Tool call blocked';
+			await this.emitAudit(
+				'tool_blocked',
+				{ toolCallId: toolCall.id, toolName: toolCall.name, blockedBy: blockedBy ?? 'unknown', blockReason: reason },
+				emit,
+			);
 			return this.finalizeToolCall(
 				toolCall,
-				{ content: [{ type: 'text', text: blockReason ?? 'Tool call blocked' }], isError: true },
+				{ content: [{ type: 'text', text: reason }], isError: true },
 				true,
 				assistantMessage,
 				emit,
-				{ blockedBy: 'beforeToolCall', blockReason: blockReason ?? 'Tool call blocked' },
+				this.shouldAttachMessageProvenance() ? { blockedBy: blockedBy ?? 'unknown', blockReason: reason } : undefined,
 			);
 		}
 
@@ -650,7 +828,10 @@ export class Agent {
 		}
 
 		this._pendingToolCalls.delete(toolCall.id);
-		return this.finalizeToolCall(toolCall, toolResult, toolResult.isError ?? false, assistantMessage, emit);
+		const provenance = this.shouldAttachMessageProvenance() && argsTransformed
+			? { transformedBy: 'beforeToolCall', hookDetails: { argumentsTransformed: true } }
+			: undefined;
+		return this.finalizeToolCall(toolCall, toolResult, toolResult.isError ?? false, assistantMessage, emit, provenance);
 	}
 
 	private async executeSingleToolCall(
@@ -672,6 +853,8 @@ export class Agent {
 		provenance?: ToolResultMessage['provenance'],
 	): Promise<ToolResultMessage> {
 		let wasOverridden = false;
+		const originalResultHash = hashValue({ content: result.content, isError });
+		const originalIsError = isError;
 		if (this.afterToolCallHook) {
 			try {
 				const override = await this.afterToolCallHook(
@@ -685,17 +868,41 @@ export class Agent {
 					}
 					if (override.isError !== undefined) isError = override.isError;
 				}
-			} catch {
-				// Hook errors should not break tool execution
+			} catch (err) {
+				await this.emitAudit(
+					'hook_error',
+					{
+						hook: 'afterToolCall',
+						toolCallId: toolCall.id,
+						toolName: toolCall.name,
+						errorMessage: err instanceof Error ? err.message : String(err),
+						fallbackBehavior: 'used_original_result',
+					},
+					emit,
+				);
 			}
 		}
 
 		if (wasOverridden) {
-			provenance = {
-				...provenance,
-				transformedBy: 'afterToolCall',
-				hookDetails: { ...provenance?.hookDetails, replaced: true },
-			};
+			await this.emitAudit(
+				'tool_result_replaced',
+				{
+					toolCallId: toolCall.id,
+					toolName: toolCall.name,
+					transformedBy: 'afterToolCall',
+					originalResultHash,
+					replacementResultHash: hashValue({ content: result.content, isError }),
+					isErrorChanged: originalIsError !== isError,
+				},
+				emit,
+			);
+			if (this.shouldAttachMessageProvenance()) {
+				provenance = {
+					...provenance,
+					transformedBy: 'afterToolCall',
+					hookDetails: { ...provenance?.hookDetails, replaced: true },
+				};
+			}
 		}
 
 		const msg: ToolResultMessage = {

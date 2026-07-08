@@ -12,7 +12,7 @@ pub mod session;
 pub mod tool;
 pub mod worker_pool;
 
-pub use agent::{Agent, AgentBuilder, AgentConfig, AgentHandle, ToolExecutionMode};
+pub use agent::{Agent, AgentBuilder, AgentConfig, AgentHandle, ProvenanceConfig, ProvenanceDetailLevel, ToolExecutionMode};
 pub use agent_registry::{AgentRegistry, DelegationResult, TaskConfig};
 pub use circuit_breaker::{
     CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError, CircuitState,
