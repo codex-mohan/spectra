@@ -193,6 +193,7 @@ spectra/
 
 ### Commit Messages
 - Keep messages concise and focused on the "why"
+- Use `code(type) message` for commits, where `type` is `fix`, `feat`, `chore`, or another accurate category such as `docs`, `test`, or `refactor`. Keep the message imperative, specific, and scoped to the user-visible change. Prefer one concise subject; avoid issue-free bookkeeping language unless the commit is purely maintenance.
 - Do NOT reference pi-mono, "pi-mono inspired", or similar in commit messages or code comments
 - Spectra is an independent project — credit external projects in PR descriptions if needed, not commits
 

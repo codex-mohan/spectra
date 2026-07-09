@@ -9,7 +9,7 @@ import { backgroundTasks } from '../services/background-tasks.js';
 import { runSubagent } from '@mohanscodex/spectra-agent';
 import { getSystemPrompt } from '../utils/platform.js';
 
-const DEFAULT_REPORTING = `Return a concise final report. Include the result, files changed or inspected, verification run or intentionally skipped, and any blockers.`;
+const DEFAULT_REPORTING = `Return a concise final report with: outcome, important details, work completed, checks performed or intentionally skipped, and blockers. Only mention files, code changes, or tests when they are relevant to the assignment.`;
 
 export interface StructuredTask {
 	id?: string;
@@ -125,7 +125,7 @@ Usage notes:
 1. Launch multiple agents concurrently whenever possible, to maximize performance
 2. Each agent invocation starts with a fresh context
 3. The agent's outputs should generally be trusted
-4. Clearly tell the agent whether you expect it to write code or just to do research
+4. State the expected scope clearly: research, writing, coding, command execution, analysis, or another concrete outcome
 5. Set background=true to run the agent in the background (returns immediately with a task_id)
 6. Pass task_id to resume or extend a previous task (running tasks queue additional work)`;
 }

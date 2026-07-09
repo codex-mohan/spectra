@@ -306,7 +306,7 @@ export class SessionStore {
 		const position = countResult.cnt;
 
 		const now = Date.now();
-		const updateTitle = position === 0 && message.role === 'user';
+		const updateTitle = position === 0 && message.role === 'user' && !row.parent_id;
 		const newTitle = updateTitle
 			? (typeof message.content === 'string' ? message.content.slice(0, 60) : 'User message')
 			: row.title;

@@ -145,24 +145,6 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 			let lastUpdate = 0;
 
 
-			const withShellMetadata = (result: ToolResult<ShellDetails>, wallTimeMs: number): ToolResult<ShellDetails> => {
-				const details = result.details;
-				const first = result.content[0];
-				if (!details || first?.type !== 'text') return result;
-				return {
-					...result,
-					content: [
-						{
-							...first,
-							text:
-								first.text +
-								`\n\n<shell_metadata>\nexit_code: ${details.exitCode}\nwall_time_ms: ${wallTimeMs}\ntimeout_ms: ${details.timeoutMs ?? effectiveTimeout}\n</shell_metadata>`,
-						},
-						...result.content.slice(1),
-					],
-				};
-			};
-
 			const finalize = (result: ToolResult<ShellDetails>) => {
 				if (resolved) return;
 				resolved = true;
@@ -171,8 +153,6 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 					const wallTimeMs = Date.now() - startTime;
 					result.details.wallTimeMs = wallTimeMs;
 					result.details.timeoutMs = effectiveTimeout;
-					resolve(withShellMetadata(result, wallTimeMs));
-					return;
 				}
 				resolve(result);
 			};
@@ -201,11 +181,11 @@ Be careful with destructive commands — seek permission for rm -rf, sudo, etc.`
 								content: [
 									{
 										type: 'text',
-										text:
-											truncated.text +
-											'\n\n<shell_metadata>\nshell tool terminated command after exceeding timeout ' +
-											effectiveTimeout +
-											' ms. If this command is expected to take longer, retry with a larger timeout value.\n</shell_metadata>',
+										text: [
+											truncated.text,
+											`Shell tool terminated command after exceeding timeout ${effectiveTimeout} ms.`,
+											'If this command is expected to take longer, retry with a larger timeout value.',
+										].filter(Boolean).join('\n\n'),
 									},
 								],
 								details: { exitCode: -1, command, truncated: truncated.cut },

@@ -630,7 +630,7 @@ Return ONLY the title text, nothing else.`;
 					if (ev.type === 'tool_execution_end') {
 						const args = toolArgsMap.current.get(ev.toolCallId) || {};
 						const resultDetails = (ev.result?.details as Record<string, unknown> | undefined) ?? {};
-						const toolOutput = (ev.result?.content?.[0]?.text || '').replace(/\n\n<shell_metadata>[\s\S]*?<\/shell_metadata>/, '').trim();
+						const toolOutput = (ev.result?.content?.[0]?.text || '').trim();
 						if (ev.isError) {
 							const firstLine =
 								toolOutput.split('\n').find((line: string) => line.trim().length > 0)?.trim() || 'Unknown error';
@@ -656,44 +656,44 @@ Return ONLY the title text, nothing else.`;
 							timestamp: Date.now(),
 						};
 						persistMessage(runSessionId, toolMsg);
-const tuiId = toolMsgMap.current.get(ev.toolCallId);
-				if (tuiId) {
-						const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
-						const wallTimeMs = typeof resultDetails.wallTimeMs === 'number' ? resultDetails.wallTimeMs : undefined;
-						const timeoutMs = typeof resultDetails.timeoutMs === 'number' ? resultDetails.timeoutMs : undefined;
-						const childSessionId = typeof resultDetails.childSessionId === 'string' ? resultDetails.childSessionId : undefined;
-						const isBackground = resultDetails.background === true ? true : undefined;
-						const todoState = ev.toolName === 'todo' && resultDetails.todoState && typeof resultDetails.todoState === 'object'
-							? resultDetails.todoState as any
-							: undefined;
-						sessionState.updateMessageIn(runSessionId, tuiId, {
-							content: toolOutput,
-							exitCode,
-							toolError: ev.isError || undefined,
-							wallTimeMs,
-							timeoutMs,
-							childSessionId,
-							background: isBackground,
-							todoState,
-						});
-					}
-				}
-				if (ev.type === 'agent_end') {
-					const errMsg = agent.errorMessage;
-					if (errMsg) {
-						sessionState.setStatusIn(runSessionId, errMsg);
-						if (currentTurnMsgIdRef.current) {
-							sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error' });
+						const tuiId = toolMsgMap.current.get(ev.toolCallId);
+						if (tuiId) {
+							const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
+							const wallTimeMs = typeof resultDetails.wallTimeMs === 'number' ? resultDetails.wallTimeMs : undefined;
+							const timeoutMs = typeof resultDetails.timeoutMs === 'number' ? resultDetails.timeoutMs : undefined;
+							const childSessionId = typeof resultDetails.childSessionId === 'string' ? resultDetails.childSessionId : undefined;
+							const isBackground = resultDetails.background === true ? true : undefined;
+							const todoState = ev.toolName === 'todo' && resultDetails.todoState && typeof resultDetails.todoState === 'object'
+								? resultDetails.todoState as any
+								: undefined;
+							sessionState.updateMessageIn(runSessionId, tuiId, {
+								content: toolOutput,
+								exitCode,
+								toolError: ev.isError || undefined,
+								wallTimeMs,
+								timeoutMs,
+								childSessionId,
+								background: isBackground,
+								todoState,
+							});
 						}
-						updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
-					} else {
-						sessionState.setStatusIn(runSessionId, 'Ready');
-						if (currentTurnMsgIdRef.current) {
-							sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'completed' });
-						}
-						updateLastAssistantMeta(runSessionId, { turnStatus: 'completed' });
 					}
-				}
+					if (ev.type === 'agent_end') {
+						const errMsg = agent.errorMessage;
+						if (errMsg) {
+							sessionState.setStatusIn(runSessionId, errMsg);
+							if (currentTurnMsgIdRef.current) {
+								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error' });
+							}
+							updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
+						} else {
+							sessionState.setStatusIn(runSessionId, 'Ready');
+							if (currentTurnMsgIdRef.current) {
+								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'completed' });
+							}
+							updateLastAssistantMeta(runSessionId, { turnStatus: 'completed' });
+						}
+					}
 			}
 			} catch (err) {
 				const message = err instanceof Error ? err.message : String(err);

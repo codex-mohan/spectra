@@ -38,6 +38,18 @@ describe('task tool prompt contract', () => {
 		expect(prompt).toContain('# Reporting\nReport by file path.');
 	});
 
+
+	it('uses a domain-neutral default report when no override is provided', () => {
+		const request = normalizeTaskArgs({
+			agent: 'general',
+			prompt: 'Write a greeting',
+		});
+
+		const prompt = buildTaskPrompt(request.tasks[0], request.context, request.reporting, undefined);
+
+		expect(prompt).toContain('# Reporting\nReturn a concise final report with: outcome, important details, work completed');
+		expect(prompt).toContain('Only mention files, code changes, or tests when they are relevant to the assignment.');
+	});
 	it('lets the caller override the agent reporting default', () => {
 		const request = normalizeTaskArgs({
 			agent: 'general',

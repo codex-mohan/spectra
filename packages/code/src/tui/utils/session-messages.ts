@@ -40,6 +40,17 @@ export function sdkMessagesToChatMessages(data: {
 		const meta = m.metadata as Record<string, unknown> | undefined;
 		return !meta?.hidden;
 	});
+
+	const toolArgsById = new Map<string, Record<string, unknown>>();
+	for (const m of visible) {
+		if (m.role !== 'assistant' || !Array.isArray(m.content)) continue;
+		for (const block of m.content) {
+			if (!block || typeof block !== 'object') continue;
+			const b = block as Record<string, unknown>;
+			if (b.type !== 'toolCall' || typeof b.id !== 'string') continue;
+			toolArgsById.set(b.id, isRecord(b.arguments) ? b.arguments : {});
+		}
+	}
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- interfaces with untyped SQLite storage
 	const messages: ChatMessage[] = visible.map((m: Record<string, unknown>) => {
 		const id = genId();
@@ -118,7 +129,12 @@ export function sdkMessagesToChatMessages(data: {
 			const contentArr = Array.isArray(m.content) ? m.content : [];
 			const toolOutput = (contentArr[0] as Record<string, unknown>)?.text as string || '';
 			const details = (m as Record<string, unknown>).details as Record<string, unknown> | undefined;
-			const args = (details?.args as Record<string, unknown>) || {};
+			const detailArgs = details?.args;
+			const args = isRecord(detailArgs)
+				? detailArgs
+				: typeof m.toolCallId === 'string'
+					? toolArgsById.get(m.toolCallId) || {}
+					: {};
 			const meta = `${m.toolName}(${JSON.stringify(args)})`;
 			return {
 				id,

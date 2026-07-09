@@ -58,4 +58,40 @@ describe('session message hydration', () => {
 		});
 		expect(converted.messages[0]).not.toHaveProperty('steeringStatus');
 	});
+
+	it('hydrates subagent tool result arguments from assistant tool calls', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [
+				{
+					role: 'assistant',
+					content: [
+						{
+							type: 'toolCall',
+							id: 'call-read',
+							name: 'read',
+							arguments: { path: 'crates/spectra-rs/src/circuit_breaker.rs' },
+						},
+					],
+					stopReason: 'toolUse',
+					timestamp: Date.now(),
+				},
+				{
+					role: 'toolResult',
+					toolCallId: 'call-read',
+					toolName: 'read',
+					content: [{ type: 'text', text: 'file contents' }],
+					isError: false,
+					timestamp: Date.now(),
+				},
+			],
+		});
+
+		expect(converted.messages[1]).toMatchObject({
+			role: 'tool',
+			meta: 'read({"path":"crates/spectra-rs/src/circuit_breaker.rs"})',
+			content: 'file contents',
+		});
+	});
 });

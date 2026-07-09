@@ -87,6 +87,15 @@ describe('Session Store (SQLite)', () => {
 		expect(children[0].id).toBe(child.id);
 	});
 
+	it('preserves child session titles when adding first prompt message', () => {
+		const parent = store.create({ title: 'Parent' });
+		const child = store.createChild(parent.id, { title: 'general: Random file summary' });
+
+		store.addMessage(child.id, { role: 'user', content: '# Assignment\nRead a random file', timestamp: Date.now() } as any);
+
+		expect(store.get(child.id)!.title).toBe('general: Random file summary');
+	});
+
 	it('lists top-level sessions without child sessions', () => {
 		const parent = store.create({ title: 'Parent' });
 		const child = store.createChild(parent.id, { title: 'Child' });
