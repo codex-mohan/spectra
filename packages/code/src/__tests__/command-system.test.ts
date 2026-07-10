@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { buildCommandRegistry, executeCommand, type CmdItem } from '../tui/command-types.js';
 import { createRegistry, dispatch, type CommandDefinition } from '../command/index.js';
+import { executeActions } from '../tui/command-action-executor.js';
 
 describe('executeCommand', () => {
 	test('passes source and args to command actions', async () => {
@@ -122,5 +123,42 @@ describe('command dispatcher', () => {
 			},
 		})).rejects.toThrow('command failed');
 		expect(afterStatus).toBe('error');
+	});
+});
+
+describe('command actions', () => {
+	test('normalizes dispatcher actions and applies them sequentially', async () => {
+		const definition: CommandDefinition = {
+			id: 'builtin:action-probe',
+			name: 'action-probe',
+			aliases: [],
+			title: 'Action probe',
+			description: 'returns application actions',
+			source: 'builtin',
+			execute: () => [
+				{ type: 'submit_prompt', text: 'Review this change' },
+				{ type: 'open_dialog', dialog: { type: 'usage' } },
+			],
+		};
+		const resolved = createRegistry([definition]).resolve('action-probe');
+		const dispatched = await dispatch(resolved!, {
+			source: 'slash',
+			args: '',
+			invocation: 'action-probe',
+		});
+		const observed: string[] = [];
+
+		const applied = await executeActions(dispatched.actions, {
+			onSubmitPrompt: async (payload) => {
+				observed.push(`prompt:${payload.text}:${payload.attachments.length}`);
+			},
+			onOpenDialog: (dialog) => {
+				observed.push(`dialog:${dialog.type}`);
+			},
+			onShowToast: () => {},
+		});
+
+		expect(observed).toEqual(['prompt:Review this change:0', 'dialog:usage']);
+		expect(applied.submitted).toBe(true);
 	});
 });

@@ -1,11 +1,12 @@
 // ---------------------------------------------------------------------------
-// Command dispatcher — lifecycle execution, effect application, legacy adapter.
+// Command dispatcher — lifecycle execution, action application, legacy adapter.
 // ---------------------------------------------------------------------------
 
 import type {
+	CommandAction,
 	CommandContext,
 	CommandDefinition,
-	CommandEffect,
+	CommandResult,
 	LegacyCmdItemLike,
 	ResolvedCommand,
 } from './types.js';
@@ -16,7 +17,7 @@ import type {
 
 export interface DispatcherResult {
 	readonly ok: boolean;
-	readonly effects: readonly CommandEffect[];
+	readonly actions: readonly CommandAction[];
 	readonly error?: unknown;
 }
 
@@ -39,12 +40,12 @@ export interface DispatcherHooks {
 }
 
 // ---------------------------------------------------------------------------
-// Effect normalisation
+// Action normalisation
 // ---------------------------------------------------------------------------
 
-function toEffects(value: CommandEffect[] | CommandEffect | void): CommandEffect[] {
+function toActions(value: CommandResult): readonly CommandAction[] {
 	if (value == null) return [];
-	return Array.isArray(value) ? value : [value];
+	return Array.isArray(value) ? value : [value as CommandAction];
 }
 
 // ---------------------------------------------------------------------------
@@ -56,7 +57,7 @@ function toEffects(value: CommandEffect[] | CommandEffect | void): CommandEffect
  *
  *   1. before hook (if provided) — throwing cancels execution
  *   2. definition.execute(ctx)
- *   3. normalise effects
+ *   3. normalise actions
  *   4. after hook (always runs, receives failure info)
  *
  * The dispatcher never swallows execution errors: the error is captured
@@ -72,9 +73,9 @@ export async function dispatch(
 	try {
 		if (hooks?.before) await hooks.before(resolved, ctx);
 		const execResult = await resolved.definition.execute(ctx);
-		result = { ok: true, effects: toEffects(execResult) };
+		result = { ok: true, actions: toActions(execResult) };
 	} catch (error) {
-		result = { ok: false, effects: [], error };
+		result = { ok: false, actions: [], error };
 	}
 
 	// Always run after hook — failures are observable, never swallowed.

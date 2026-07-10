@@ -40,7 +40,7 @@ import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/
 import { buildCmdItems } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
-import { type ArgCompletion, type CmdItem, buildCommandRegistry, dispatchCommand, type ResolvedCommand } from './command-types.js';
+import { type ArgCompletion, buildCommandRegistry, type ResolvedCommand } from './command-types.js';
 import { ArgAutocomplete } from './components/arg-autocomplete.js';
 import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
@@ -413,7 +413,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems), [cmdItems]);
 	const resolvedEntries = commandRegistry.entries;
 
-	const { handleSubmit, updateLastAssistantMeta } = useChatSubmit({
+	const { handleSubmit, executeResolvedCommand, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
 		sessionManager,
 		sessionState,
@@ -445,6 +445,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setInterruptKey,
 		setRevertPoint,
 		discardRevert,
+		setDialogStep,
 		promptHistoryService,
 	});
 
@@ -626,10 +627,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const execCmd = useCallback(
 		(item: ResolvedCommand) => {
-			void dispatchCommand(item, { source: 'palette', args: '' });
+			void executeResolvedCommand(item, { source: 'palette', args: '' });
 			setShowCmd(false);
 		},
-		[setShowCmd],
+		[executeResolvedCommand, setShowCmd],
 	);
 
 	// --- Keyboard ---

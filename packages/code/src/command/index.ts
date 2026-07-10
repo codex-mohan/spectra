@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 // Types
-export type { CommandSource, CommandSourceInfo, CommandEffect } from './types.js';
+export type { CommandSource, CommandSourceInfo, CommandAction, CommandResult } from './types.js';
 export type { CommandContext, ArgCompletion, CommandDefinition, ResolvedCommand, LegacyCmdItemLike } from './types.js';
 
 // Registry

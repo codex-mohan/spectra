@@ -20,8 +20,14 @@ export interface CommandContext {
 	readonly invocation: string;
 }
 
-/** Phase 1 commands execute existing handlers directly and cannot emit effects yet. */
-export type CommandEffect = never;
+/** Phase 2 plain command actions — concrete discriminated union. */
+export type CommandAction =
+	| { readonly type: 'submit_prompt'; readonly text: string }
+	| { readonly type: 'open_dialog'; readonly dialog: { readonly type: string; readonly [key: string]: unknown } }
+	| { readonly type: 'show_toast'; readonly message: string; readonly variant?: 'info' | 'success' | 'warn' | 'error' };
+
+/** A command handler may return void, a single action, or a readonly array of actions. */
+export type CommandResult = void | CommandAction | readonly CommandAction[];
 
 /** Argument completion entry for slash autocomplete. */
 export interface ArgCompletion {
@@ -68,11 +74,11 @@ export interface CommandDefinition {
 
 	/**
 	 * Execute the command.
-	 * Returns zero or more effects, or void for legacy commands.
+	 * Returns zero or more actions, or void for legacy commands.
 	 */
 	readonly execute: (
 		ctx: CommandContext,
-	) => CommandEffect[] | CommandEffect | void | Promise<CommandEffect[] | CommandEffect | void>;
+	) => CommandResult | Promise<CommandResult>;
 }
 
 // ---------------------------------------------------------------------------

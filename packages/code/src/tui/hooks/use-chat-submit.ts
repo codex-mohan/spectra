@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import type { Message, AssistantMessage, FileContent, TextContent, ToolResultMessage } from '@mohanscodex/spectra-ai';
 import type { PromptSubmitPayload } from '../prompt-bar.js';
@@ -12,7 +12,8 @@ import { genId, getMessageBlocks } from '../utils.js';
 import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import { parseSlashCommand, slashHead } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
-import { dispatchCommand, type CommandRegistry } from '../command-types.js';
+import { dispatchCommand, type CommandRegistry, type CommandRunContext, type DispatcherResult, type ResolvedCommand } from '../command-types.js';
+import { executeActions, type ActionContext, type ActionResult } from '../command-action-executor.js';
 import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
 import { getAuthKey } from '../utils/model-config.js';
 import type { useSessionState } from './use-session-state.js';
@@ -63,6 +64,7 @@ interface UseChatSubmitDeps {
 	setInterruptKey: (k: number) => void;
 	setRevertPoint: (id: string | null) => void;
 	discardRevert: () => void;
+	setDialogStep: (step: any) => void;
 	promptHistoryService: React.MutableRefObject<PromptHistoryService>;
 }
 
@@ -98,8 +100,9 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		setSubmitKey,
 		setInterruptKey,
 		setRevertPoint,
-		discardRevert,
-		promptHistoryService,
+	discardRevert,
+	setDialogStep,
+	promptHistoryService,
 	} = deps;
 
 interface QueuedSteeringDisplay {
@@ -216,30 +219,9 @@ Return ONLY the title text, nothing else.`;
 			// Title generation failed silently
 		}
 	}
-	const handleSubmit = useCallback(
+	const submitPrompt = useCallback(
 		async (payload: PromptSubmitPayload) => {
 			const { text: trimmed, attachments } = payload;
-			if (!trimmed && attachments.length === 0) return;
-
-			// Slash commands only work when there are no attachments. A partial slash token is UI
-			// state, not a prompt; never send it to the model.
-			if (attachments.length === 0 && trimmed.startsWith('/')) {
-				const parsed = parseSlashCommand(trimmed, commandRegistry.slashNames);
-				if (parsed.type === 'command') {
-					const resolved = commandRegistry.resolve(parsed.command.name);
-					if (resolved) {
-						await dispatchCommand(resolved, { source: 'slash', args: parsed.command.arguments });
-						setDraftText('');
-						setSlashSelected(0);
-						setSubmitKey((k) => k + 1);
-						return;
-					}
-				}
-				if (slashHead(trimmed)) {
-					showToast('Select a slash command with tab or enter before submitting', 'warn');
-					return;
-				}
-			}
 
 			const currentSessionId = sessionId.current || '';
 			if (currentSessionId && streamingSessionsRef.current.has(currentSessionId)) {
@@ -742,12 +724,12 @@ Return ONLY the title text, nothing else.`;
 
 			}
 		},
-		[
+	[
 			selectedModel,
 			provider,
 			selectedAgent,
 			thinkingEffort,
-			commandRegistry,
+			customProviders,
 			getOrCreateAgent,
 			revertPoint,
 			sessionState,
@@ -769,12 +751,68 @@ Return ONLY the title text, nothing else.`;
 		],
 	);
 
+	const actionCtx: ActionContext = useMemo(() => ({
+		onSubmitPrompt: submitPrompt,
+		onOpenDialog: (dialog) => setDialogStep(dialog),
+		onShowToast: showToast,
+	}), [submitPrompt, setDialogStep]);
+
+	const executeResolvedCommand = useCallback(
+		async (
+			resolved: ResolvedCommand,
+			ctx: CommandRunContext,
+		): Promise<{ dispatcher: DispatcherResult; action: ActionResult }> => {
+			const dispatcher = await dispatchCommand(resolved, ctx);
+			const action = dispatcher.actions.length > 0
+				? await executeActions(dispatcher.actions, actionCtx)
+				: { submitted: false as const };
+			return { dispatcher, action };
+		},
+		[actionCtx],
+	);
+
+	const handleSubmit = useCallback(
+		async (payload: PromptSubmitPayload) => {
+			const { text: trimmed, attachments } = payload;
+			if (!trimmed && attachments.length === 0) return;
+
+			// Slash commands only work when there are no attachments. A partial slash token is UI
+			// state, not a prompt; never send it to the model.
+			if (attachments.length === 0 && trimmed.startsWith('/')) {
+				const parsed = parseSlashCommand(trimmed, commandRegistry.slashNames);
+				if (parsed.type === 'command') {
+					const resolved = commandRegistry.resolve(parsed.command.name);
+					if (resolved) {
+						const { action } = await executeResolvedCommand(resolved, { source: 'slash', args: parsed.command.arguments });
+						// Only reset draft/submitKey if the command did NOT produce a submit_prompt action.
+						// submit_prompt actions are handled by submitPrompt which does its own reset.
+						if (!action.submitted) {
+							setDraftText('');
+							setSlashSelected(0);
+							setSubmitKey((k) => k + 1);
+						}
+						return;
+					}
+				}
+				if (slashHead(trimmed)) {
+					showToast('Select a slash command with tab or enter before submitting', 'warn');
+					return;
+				}
+			}
+
+			await submitPrompt(payload);
+		},
+		[commandRegistry, executeResolvedCommand, submitPrompt, setDraftText, setSlashSelected, setSubmitKey],
+	);
+
 	return {
 		shownToolCalls,
 		toolMsgMap,
 		toolArgsMap,
 		streamingIdRef,
 		handleSubmit,
+		submitPrompt,
+		executeResolvedCommand,
 		persistMessage,
 		updateLastAssistantMeta,
 	};

@@ -7,8 +7,9 @@ import {
 	type CommandDefinition,
 	type CommandSource,
 	type CommandSourceInfo,
-	type CommandEffect,
+	type CommandAction,
 	type ResolvedCommand,
+	type CommandResult,
 	type ArgCompletion as DomainArgCompletion,
 	adaptLegacyCmdItem,
 	createRegistry,
@@ -21,7 +22,7 @@ import {
 // Re-export domain types for TUI consumers
 // ---------------------------------------------------------------------------
 
-export type { CommandContext, CommandDefinition, CommandSource, CommandSourceInfo, CommandEffect, ArgCompletion as DomainArgCompletion } from '../command/index.js';
+export type { CommandContext, CommandDefinition, CommandSource, CommandSourceInfo, CommandAction, CommandResult, ArgCompletion as DomainArgCompletion } from '../command/index.js';
 export type { ResolvedCommand, RegistrySnapshot, DispatcherResult } from '../command/index.js';
 /** Alias for backward compat with TUI consumers */
 export type CommandRegistry = RegistrySnapshot;
