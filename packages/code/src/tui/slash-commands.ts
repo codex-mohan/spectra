@@ -34,7 +34,7 @@ export function slashQuery(text: string, cursor: number): string | undefined {
 	return head.name;
 }
 
-export function parseSlashCommand(text: string, commands: Set<string> | undefined): ParsedSlash {
+export function parseSlashCommand(text: string, commands: ReadonlySet<string> | undefined): ParsedSlash {
 	const head = slashHead(text);
 	if (!head || head.name.length === 0) return { type: 'none' };
 	if (!commands) return { type: 'none' };

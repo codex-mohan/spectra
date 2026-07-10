@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useEffect, type RefObject } from 'react';
 import { useKeyboard } from '@opentui/react';
 import type { CliRenderer } from '@opentui/core';
-import type { ArgCompletion, CmdItem } from '../command-types.js';
+import type { ArgCompletion, ResolvedCommand } from '../command-types.js';
 import type { ChatMessage } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { cycleEffort } from '../variant-cycle.js';
@@ -30,11 +30,11 @@ interface UseAppKeyboardDeps {
 	showCmd: boolean;
 	cmdFilter: string;
 	cmdSelected: number;
-	cmdFiltered: CmdItem[];
+	cmdFiltered: readonly ResolvedCommand[];
 
 	draftText: string;
 	slashActive: boolean;
-	slashFiltered: CmdItem[];
+	slashFiltered: readonly ResolvedCommand[];
 	slashSelected: number;
 	slashArgItems: ArgCompletion[];
 	slashArgActive: boolean;
@@ -66,7 +66,7 @@ interface UseAppKeyboardDeps {
 	updateMessage: (id: string, u: Partial<ChatMessage>) => void;
 	updateLastAssistantMeta: (sessionId: string, meta: Record<string, unknown>) => void;
 
-	execCmd: (item: any) => void;
+	execCmd: (item: ResolvedCommand) => void;
 	handleCycleVariant: () => void;
 }
 
@@ -212,7 +212,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			if (key.name === 'tab' || key.name === 'return' || key.name === 'enter') {
 				const item = slashFiltered[slashSelected];
 				if (item) {
-					const cmdName = item.slashName || item.id;
+					const cmdName = item.definition.name;
 					const newText = `/${cmdName} `;
 					promptBarRef.current?.setText(newText, newText.length);
 					setDraftText(newText);

@@ -579,21 +579,6 @@ export function buildCmdItems(opts: {
 			action: ({ args }) => runTodoCommand(args),
 		},
 		{
-			id: 'save',
-			label: 'Save Session',
-			desc: 'Explicitly save current session',
-			cat: 'Conversation',
-			slashName: 'save',
-			action: () => {
-				const sid = sessionIdRef.current;
-				if (!sid) {
-					showToast('No active session to save', 'warn');
-					return;
-				}
-				showToast('Session saved', 'success');
-			},
-		},
-		{
 			id: 'search',
 			label: 'Search Sessions',
 			desc: 'Search sessions by query',

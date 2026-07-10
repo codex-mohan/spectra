@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { c } from '../theme.js';
 import { getCenteredWindow } from '../utils/selection-window.js';
-import type { CmdItem } from '../command-types.js';
+import type { ResolvedCommand } from '../command-types.js';
+
 
 
 export interface CommandPaletteProps {
 	filter: string;
 	selected: number;
-	items: CmdItem[];
+	items: readonly ResolvedCommand[];
 	termWidth: number;
 	termHeight: number;
 }
@@ -28,15 +29,16 @@ export function CommandPalette(props: CommandPaletteProps) {
 		let prevCat = '';
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
-			if (item.cat && item.cat !== prevCat) {
+			const def = item.definition;
+			if (def.category && def.category !== prevCat) {
 				if (prevCat) {
 					r.push(<box key={`gap-${i}`} height={1} backgroundColor={c.bgCard} />);
 				}
-				prevCat = item.cat;
+				prevCat = def.category;
 				r.push(
 					<box key={`cat-${i}`} height={1} paddingLeft={2} backgroundColor={c.bgCard}>
 						<text fg={c.warn} attributes={1}>
-							{item.cat}
+							{def.category}
 						</text>
 					</box>,
 				);
@@ -45,8 +47,8 @@ export function CommandPalette(props: CommandPaletteProps) {
 			if (isSelected) selectedRowIndex = r.length;
 			r.push(
 				<box
-					key={item.id}
-					id={item.id}
+					key={def.id}
+					id={def.id}
 					height={1}
 					paddingLeft={2}
 					paddingRight={1}
@@ -56,10 +58,10 @@ export function CommandPalette(props: CommandPaletteProps) {
 					alignItems="center"
 				>
 					<text fg={isSelected ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1}>
-						{item.label}
+						{def.title}
 					</text>
 					<text fg={c.dim} flexShrink={0}>
-						{item.desc}
+						{def.description}
 					</text>
 				</box>,
 			);

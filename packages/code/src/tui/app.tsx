@@ -37,10 +37,10 @@ import { ToastContainer, showToast } from './components/toast.js';
 import { SubagentNav } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
 import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
-import { buildCmdItems, collectSlashNames } from './commands.js';
+import { buildCmdItems } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
-import { executeCommand, type ArgCompletion, type CmdItem } from './command-types.js';
+import { type ArgCompletion, type CmdItem, buildCommandRegistry, dispatchCommand, type ResolvedCommand } from './command-types.js';
 import { ArgAutocomplete } from './components/arg-autocomplete.js';
 import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
@@ -410,7 +410,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		],
 	);
 
-	const slashNames = useMemo(() => collectSlashNames(cmdItems), [cmdItems]);
+	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems), [cmdItems]);
+	const resolvedEntries = commandRegistry.entries;
 
 	const { handleSubmit, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
@@ -431,8 +432,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		selectedAgent,
 		customProviders,
 		thinkingEffort,
-		cmdItems,
-		slashNames,
+		commandRegistry,
 		setMessages,
 		setIsLoading,
 		setStatus,
@@ -562,26 +562,26 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const cmdFiltered = useMemo(() => {
 		const q = cmdFilter.toLowerCase();
 		return !q
-			? cmdItems
-			: cmdItems.filter(
-					(i) =>
-						i.label.toLowerCase().includes(q) ||
-						i.desc.toLowerCase().includes(q) ||
-						(i.cat && i.cat.toLowerCase().includes(q)),
+			? resolvedEntries
+			: resolvedEntries.filter(
+					(r) =>
+						r.definition.title.toLowerCase().includes(q) ||
+						r.definition.description.toLowerCase().includes(q) ||
+						(r.definition.category && r.definition.category.toLowerCase().includes(q)),
 				);
-	}, [cmdItems, cmdFilter]);
+	}, [resolvedEntries, cmdFilter]);
 
 	const slashFiltered = useMemo(() => {
 		const head = slashHead(draftText);
-		if (!head) return [] as typeof cmdItems;
+		if (!head) return [] as ResolvedCommand[];
 		const q = head.name.toLowerCase();
-		if (!q) return cmdItems;
-		return cmdItems.filter((item) => {
-			if (item.slashName && item.slashName.toLowerCase().includes(q)) return true;
-			if (item.slashAliases) return item.slashAliases.some((a) => a.toLowerCase().includes(q));
-			return false;
+		if (!q) return resolvedEntries;
+		return resolvedEntries.filter((resolved) => {
+			const definition = resolved.definition;
+			if (resolved.invocation.toLowerCase().includes(q)) return true;
+			return definition.aliases.some((alias) => alias.toLowerCase().includes(q));
 		});
-	}, [cmdItems, draftText]);
+	}, [resolvedEntries, draftText]);
 
 	const normalizeArgCompletion = useCallback((item: string | ArgCompletion): ArgCompletion => {
 		return typeof item === 'string' ? { value: item } : item;
@@ -597,25 +597,18 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			setSlashArgItems([]);
 			return;
 		}
-		const matched = cmdItems.find((item) => {
-			if (item.slashName === head.name) return true;
-			if (item.slashAliases?.includes(head.name)) return true;
-			return false;
-		});
-		if (!matched?.argCompleter) {
+		const matched = commandRegistry.resolve(head.name);
+		const completer = matched?.definition.argCompleter;
+		if (!completer) {
 			setSlashArgItems([]);
 			return;
 		}
-		const result = matched.argCompleter(head.arguments);
-		if (Array.isArray(result)) {
-			setSlashArgItems(result.map(normalizeArgCompletion));
-		} else {
-			result.then((items) => {
-				if (!cancelled) setSlashArgItems(items.map(normalizeArgCompletion));
-			});
-		}
+		const result = completer(head.arguments);
+		Promise.resolve(result).then((items) => {
+			if (!cancelled) setSlashArgItems(items.map(normalizeArgCompletion));
+		});
 		return () => { cancelled = true; };
-	}, [cmdItems, draftText, normalizeArgCompletion]);
+	}, [commandRegistry, draftText, normalizeArgCompletion]);
 
 	const currentSlashHead = slashHead(draftText);
 	const hasSlashArgumentInput = currentSlashHead !== undefined && draftText.length > currentSlashHead.end;
@@ -632,8 +625,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	}, [cmdSelected, cmdFiltered.length]);
 
 	const execCmd = useCallback(
-		(item: CmdItem) => {
-			void executeCommand(item, { source: 'palette', args: '' });
+		(item: ResolvedCommand) => {
+			void dispatchCommand(item, { source: 'palette', args: '' });
 			setShowCmd(false);
 		},
 		[setShowCmd],

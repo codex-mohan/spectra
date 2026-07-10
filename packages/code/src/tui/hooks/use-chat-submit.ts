@@ -12,7 +12,7 @@ import { genId, getMessageBlocks } from '../utils.js';
 import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import { parseSlashCommand, slashHead } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
-import { executeCommand, type CmdItem } from '../command-types.js';
+import { dispatchCommand, type CommandRegistry } from '../command-types.js';
 import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
 import { getAuthKey } from '../utils/model-config.js';
 import type { useSessionState } from './use-session-state.js';
@@ -50,8 +50,7 @@ interface UseChatSubmitDeps {
 	selectedAgent: string;
 	customProviders: Record<string, any>;
 	thinkingEffort: string | undefined;
-	cmdItems: CmdItem[];
-	slashNames: Set<string>;
+	commandRegistry: CommandRegistry;
 	setMessages: (fn: (prev: ChatMessage[]) => ChatMessage[]) => void;
 	setIsLoading: (v: boolean) => void;
 	setStatus: (s: string) => void;
@@ -87,8 +86,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		selectedAgent,
 		customProviders,
 		thinkingEffort,
-		cmdItems,
-		slashNames,
+	commandRegistry,
 		setMessages,
 		setIsLoading,
 		setStatus,
@@ -226,15 +224,11 @@ Return ONLY the title text, nothing else.`;
 			// Slash commands only work when there are no attachments. A partial slash token is UI
 			// state, not a prompt; never send it to the model.
 			if (attachments.length === 0 && trimmed.startsWith('/')) {
-				const parsed = parseSlashCommand(trimmed, slashNames);
+				const parsed = parseSlashCommand(trimmed, commandRegistry.slashNames);
 				if (parsed.type === 'command') {
-					const cmd = cmdItems.find((item) => {
-						if (item.slashName === parsed.command.name) return true;
-						if (item.slashAliases?.includes(parsed.command.name)) return true;
-						return false;
-					});
-					if (cmd) {
-						await executeCommand(cmd, { source: 'slash', args: parsed.command.arguments });
+					const resolved = commandRegistry.resolve(parsed.command.name);
+					if (resolved) {
+						await dispatchCommand(resolved, { source: 'slash', args: parsed.command.arguments });
 						setDraftText('');
 						setSlashSelected(0);
 						setSubmitKey((k) => k + 1);
@@ -752,10 +746,8 @@ Return ONLY the title text, nothing else.`;
 			selectedModel,
 			provider,
 			selectedAgent,
-			customProviders,
 			thinkingEffort,
-			cmdItems,
-			slashNames,
+			commandRegistry,
 			getOrCreateAgent,
 			revertPoint,
 			sessionState,

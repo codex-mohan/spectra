@@ -1,3 +1,35 @@
+// ---------------------------------------------------------------------------
+// TUI command types — legacy CmdItem + adapter bridge to command domain.
+// ---------------------------------------------------------------------------
+
+import {
+	type CommandContext,
+	type CommandDefinition,
+	type CommandSource,
+	type CommandSourceInfo,
+	type CommandEffect,
+	type ResolvedCommand,
+	type ArgCompletion as DomainArgCompletion,
+	adaptLegacyCmdItem,
+	createRegistry,
+	type RegistrySnapshot,
+	dispatch,
+	type DispatcherResult,
+} from '../command/index.js';
+
+// ---------------------------------------------------------------------------
+// Re-export domain types for TUI consumers
+// ---------------------------------------------------------------------------
+
+export type { CommandContext, CommandDefinition, CommandSource, CommandSourceInfo, CommandEffect, ArgCompletion as DomainArgCompletion } from '../command/index.js';
+export type { ResolvedCommand, RegistrySnapshot, DispatcherResult } from '../command/index.js';
+/** Alias for backward compat with TUI consumers */
+export type CommandRegistry = RegistrySnapshot;
+
+// ---------------------------------------------------------------------------
+// Legacy types — kept for backward compatibility with existing handlers
+// ---------------------------------------------------------------------------
+
 export interface ArgCompletion {
 	value: string;
 	desc?: string;
@@ -21,8 +53,43 @@ export interface CmdItem {
 	afterRun?: (ctx: CommandRunContext) => void | Promise<void>;
 }
 
+// ---------------------------------------------------------------------------
+// Legacy executor — preserved for any code that still calls it directly
+// ---------------------------------------------------------------------------
+
 export async function executeCommand(item: CmdItem, ctx: CommandRunContext): Promise<void> {
 	await item.beforeRun?.(ctx);
 	await item.action(ctx);
 	await item.afterRun?.(ctx);
+}
+
+// ---------------------------------------------------------------------------
+// Registry builder — adapts CmdItem[] → immutable RegistrySnapshot
+// ---------------------------------------------------------------------------
+
+/**
+ * Build an immutable RegistrySnapshot from legacy CmdItem output.
+ * Preserves original array order for first-match semantics.
+ * Collisions get stable :2, :3, … suffixes via createRegistry.
+ */
+export function buildCommandRegistry(items: CmdItem[]): RegistrySnapshot {
+	const definitions: CommandDefinition[] = items.map((item) => adaptLegacyCmdItem(item));
+	return createRegistry(definitions);
+}
+
+// ---------------------------------------------------------------------------
+// Dispatcher wrapper — thin adapter over command domain dispatch()
+// ---------------------------------------------------------------------------
+
+/**
+ * Centralized command dispatcher.
+ * Lifecycle: execute (which internally runs beforeRun → action → afterRun
+ * for legacy commands), with hook failure reporting.
+ */
+export async function dispatchCommand(
+	resolved: ResolvedCommand,
+	ctx: CommandRunContext,
+): Promise<DispatcherResult> {
+	const domainCtx: CommandContext = { source: ctx.source, args: ctx.args, invocation: resolved.invocation };
+	return dispatch(resolved, domainCtx);
 }

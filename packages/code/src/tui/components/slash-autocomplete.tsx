@@ -1,11 +1,11 @@
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
-import type { CmdItem } from '../command-types.js';
+import type { ResolvedCommand } from '../command-types.js';
 
 export interface SlashAutocompleteProps {
 	query: string;
 	selected: number;
-	items: CmdItem[];
+	items: readonly ResolvedCommand[];
 	termWidth: number;
 	termHeight: number;
 	route: 'home' | 'chat';
@@ -47,8 +47,8 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 					const isSel = actualIndex === selected;
 					return (
 						<box
-							key={item.id}
-							id={item.id}
+							key={item.definition.id}
+							id={item.definition.id}
 							height={1}
 							paddingLeft={1}
 							paddingRight={1}
@@ -58,10 +58,10 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 							alignItems="center"
 						>
 							<box flexDirection="row" gap={1}>
-								<text fg={isSel ? c.accent : c.dim}>/{item.slashName || item.id}</text>
-								{item.label && item.label !== (item.slashName || item.id) && <text fg={c.subtext}>{item.label}</text>}
+							<text fg={isSel ? c.accent : c.dim}>/{item.invocation}</text>
+							{item.definition.title && item.definition.title !== item.invocation && <text fg={c.subtext}>{item.definition.title}</text>}
 							</box>
-							<text fg={c.dim}>{item.desc}</text>
+							<text fg={c.dim}>{item.definition.description}</text>
 						</box>
 					);
 				})

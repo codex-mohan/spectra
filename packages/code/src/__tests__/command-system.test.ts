@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { executeCommand, type CmdItem } from '../tui/command-types.js';
+import { buildCommandRegistry, executeCommand, type CmdItem } from '../tui/command-types.js';
+import { createRegistry, dispatch, type CommandDefinition } from '../command/index.js';
 
 describe('executeCommand', () => {
 	test('passes source and args to command actions', async () => {
@@ -38,5 +39,88 @@ describe('executeCommand', () => {
 		await executeCommand(command, { source: 'palette', args: '' });
 
 		expect(order).toEqual(['before', 'action', 'after']);
+	});
+});
+
+describe('command registry', () => {
+	test('keeps aliases resolvable without duplicating menu entries', () => {
+		const commands: CmdItem[] = [
+			{
+				id: 'new',
+				label: 'New',
+				desc: 'start fresh',
+				slashName: 'new',
+				slashAliases: ['clear'],
+				action: () => {},
+			},
+			{
+				id: 'clear',
+				label: 'Clear',
+				desc: 'clear messages',
+				slashName: 'clear',
+				action: () => {},
+			},
+		];
+
+		const registry = buildCommandRegistry(commands);
+
+		expect(registry.entries.map((entry) => entry.invocation)).toEqual(['new', 'clear:2']);
+		expect(registry.resolve('clear')?.definition.id).toBe('builtin:new');
+		expect(registry.resolve('/CLEAR:2')?.definition.id).toBe('builtin:clear');
+		expect([...registry.slashNames]).toEqual(['new', 'clear', 'clear:2']);
+	});
+});
+
+describe('command dispatcher', () => {
+	test('runs domain hooks around command execution', async () => {
+		const order: string[] = [];
+		const definition: CommandDefinition = {
+			id: 'builtin:probe',
+			name: 'probe',
+			aliases: [],
+			title: 'Probe',
+			description: 'records order',
+			source: 'builtin',
+			execute: () => {
+				order.push('execute');
+			},
+		};
+		const registry = createRegistry([definition]);
+		const resolved = registry.resolve('probe');
+		expect(resolved).toBeDefined();
+
+		await dispatch(resolved!, { source: 'slash', args: 'value', invocation: 'probe' }, {
+			before: () => {
+				order.push('before');
+			},
+			after: (_command, _context, result) => {
+				order.push(result.ok ? 'after:ok' : 'after:error');
+			},
+		});
+
+		expect(order).toEqual(['before', 'execute', 'after:ok']);
+	});
+
+	test('reports command failures to the after hook and rethrows', async () => {
+		const definition: CommandDefinition = {
+			id: 'builtin:failure',
+			name: 'failure',
+			aliases: [],
+			title: 'Failure',
+			description: 'throws',
+			source: 'builtin',
+			execute: () => {
+				throw new Error('command failed');
+			},
+		};
+		const resolved = createRegistry([definition]).resolve('failure');
+		let afterStatus = '';
+
+		await expect(dispatch(resolved!, { source: 'palette', args: '', invocation: 'failure' }, {
+			after: (_command, _context, result) => {
+				afterStatus = result.ok ? 'ok' : 'error';
+			},
+		})).rejects.toThrow('command failed');
+		expect(afterStatus).toBe('error');
 	});
 });
