@@ -70,11 +70,18 @@ export async function executeCommand(item: CmdItem, ctx: CommandRunContext): Pro
 
 /**
  * Build an immutable RegistrySnapshot from legacy CmdItem output.
- * Preserves original array order for first-match semantics.
- * Collisions get stable :2, :3, … suffixes via createRegistry.
+ * When `templates` is provided, those definitions are placed first so
+ * project template names win primary invocation slots; adapted builtins
+ * fill the remaining slots and receive collision suffixes where needed.
  */
-export function buildCommandRegistry(items: CmdItem[]): RegistrySnapshot {
-	const definitions: CommandDefinition[] = items.map((item) => adaptLegacyCmdItem(item));
+export function buildCommandRegistry(
+	items: CmdItem[],
+	templates?: readonly CommandDefinition[],
+): RegistrySnapshot {
+	const builtinDefs: CommandDefinition[] = items.map((item) => adaptLegacyCmdItem(item));
+	const definitions: CommandDefinition[] = templates
+		? [...templates, ...builtinDefs]
+		: builtinDefs;
 	return createRegistry(definitions);
 }
 

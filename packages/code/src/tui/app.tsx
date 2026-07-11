@@ -40,7 +40,7 @@ import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/
 import { buildCmdItems } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
-import { type ArgCompletion, buildCommandRegistry, type ResolvedCommand } from './command-types.js';
+import { type ArgCompletion, type CommandDefinition, buildCommandRegistry, type ResolvedCommand } from './command-types.js';
 import { ArgAutocomplete } from './components/arg-autocomplete.js';
 import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
@@ -61,6 +61,7 @@ import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 import { backgroundTasks } from '../services/background-tasks.js';
+import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
 
 export function App({ renderer }: { renderer: CliRenderer }) {
 	const { width: termWidth, height: termHeight } = useTerminalDimensions();
@@ -212,6 +213,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		),
 	);
 
+	// --- Template commands (loaded async from .spectra/commands) ---
+	const [templateDefinitions, setTemplateDefinitions] = useState<readonly CommandDefinition[]>([]);
+	const shownDiagnosticsRef = useRef(new Set<string>());
+
 	// --- Derived ---
 	const provider = selectedProvider;
 	const hasModel = selectedModel !== null && selectedProvider !== null;
@@ -244,6 +249,27 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		checkForUpdate().then((version) => {
 			if (version) setUpdateVersion(version);
 		});
+	}, []);
+
+	// Load template definitions asynchronously — non-blocking, diagnostics shown once via toast.
+	useEffect(() => {
+		let stale = false;
+		loadTemplateDefinitions(process.cwd())
+			.then(({ templates, diagnostics }) => {
+				if (stale) return;
+				setTemplateDefinitions(templatesToCommands(templates, process.cwd()));
+				for (const d of diagnostics) {
+					const key = `${d.kind}:${d.sourcePath}:${d.message}`;
+					if (!shownDiagnosticsRef.current.has(key)) {
+						shownDiagnosticsRef.current.add(key);
+						showToast(`Template ${d.kind} (${d.sourcePath}): ${d.message}`, 'warn');
+					}
+				}
+			})
+			.catch((error) => {
+				if (!stale) showToast(`Template loading failed: ${error instanceof Error ? error.message : String(error)}`, 'error');
+			});
+		return () => { stale = true; };
 	}, []);
 
 	useEffect(() => {
@@ -410,7 +436,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		],
 	);
 
-	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems), [cmdItems]);
+	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems, templateDefinitions), [cmdItems, templateDefinitions]);
 	const resolvedEntries = commandRegistry.entries;
 
 	const { handleSubmit, executeResolvedCommand, updateLastAssistantMeta } = useChatSubmit({
