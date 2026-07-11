@@ -66,6 +66,21 @@ export const PROVIDER_META: Record<string, ProviderMeta> = {
 		popular: true,
 		apiKeyUrl: 'https://x.ai/api',
 	},
+	'github-copilot': {
+		name: 'GitHub Copilot',
+		desc: 'Copilot models via device OAuth',
+		popular: true,
+	},
+	digitalocean: {
+		name: 'DigitalOcean',
+		desc: 'GenAI inference via DO OAuth',
+		popular: false,
+	},
+	'snowflake-cortex': {
+		name: 'Snowflake Cortex',
+		desc: 'Cortex AI via OAuth',
+		popular: false,
+	},
 	deepseek: {
 		name: 'DeepSeek',
 		desc: 'DeepSeek models',

@@ -51,6 +51,16 @@ function wrapOpenAIProviderWithLiveModels(name: string, baseUrl: string): Provid
 		},
 	};
 }
+function wrapSnowflakeProvider(name: string): Provider {
+	const inner = createOpenAICompletionsProvider();
+	return {
+		name,
+		listModels: () => import('../models.js').then((m) => m.getProviderModels(name)),
+		stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
+			return inner.stream(model, context, options);
+		},
+	};
+}
 
 export function initProviders(): void {
 	registerProvider(createAnthropicProvider());
@@ -76,6 +86,10 @@ export function initProviders(): void {
 	registerProvider(wrapOpenAIProvider('huggingface', 'https://api-inference.huggingface.co/v1'));
 	registerProvider(wrapOpenAIProvider('nvidia', 'https://integrate.api.nvidia.com/v1'));
 	registerProvider(wrapOpenAIProvider('zai', 'https://api.z.ai/v1'));
+	// OAuth-authenticated providers
+	registerProvider(wrapOpenAIProvider('github-copilot', 'https://api.githubcopilot.com'));
+	registerProvider(wrapOpenAIProvider('digitalocean', 'https://inference.do-ai.run/v1'));
+	registerProvider(wrapSnowflakeProvider('snowflake-cortex'));
 
 	// Coding plan providers
 	registerProvider(wrapOpenAIProviderWithLiveModels('opencode-go', 'https://opencode.ai/zen/go/v1'));

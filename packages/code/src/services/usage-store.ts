@@ -4,6 +4,9 @@ import { join } from 'path';
 import { getGlobalDataDir } from '../utils/paths.js';
 import { readAll, write as writeCredential, type Credential } from './auth-store.js';
 import { refreshKimiCode, refreshCodexToken } from './provider-auth.js';
+import { refreshGitHubCopilotToken } from './github-copilot-auth.js';
+import { refreshXaiToken } from './xai-auth.js';
+import { refreshSnowflakeCortexToken } from './snowflake-cortex-auth.js';
 
 export type UsageUnit = 'usd' | 'tokens' | 'requests' | 'percent' | 'unknown';
 export type UsageStatus = 'ok' | 'warning' | 'exhausted' | 'unknown';
@@ -707,6 +710,36 @@ async function refreshedCredential(provider: string, credential: Credential | un
 	if (provider === 'openai-codex' && credential.type === 'oauth' && credential.expires <= nowMs + KIMI_REFRESH_SKEW_MS) {
 		try {
 			const refreshed = await refreshCodexToken(credential.refresh, signal);
+			const next = { ...refreshed, accountId: credential.accountId ?? refreshed.accountId };
+			writeCredential(provider, next);
+			return next;
+		} catch {
+			return credential;
+		}
+	}
+	if (provider === 'xai' && credential.type === 'oauth' && credential.refresh && credential.expires <= nowMs + KIMI_REFRESH_SKEW_MS) {
+		try {
+			const refreshed = await refreshXaiToken(credential.refresh, signal);
+			const next = { ...refreshed, accountId: credential.accountId ?? refreshed.accountId };
+			writeCredential(provider, next);
+			return next;
+		} catch {
+			return credential;
+		}
+	}
+	if (provider === 'github-copilot' && credential.type === 'oauth' && credential.refresh && credential.expires <= nowMs + KIMI_REFRESH_SKEW_MS) {
+		try {
+			const refreshed = await refreshGitHubCopilotToken(credential.refresh, signal);
+			const next = { ...refreshed, accountId: credential.accountId ?? refreshed.accountId };
+			writeCredential(provider, next);
+			return next;
+		} catch {
+			return credential;
+		}
+	}
+	if (provider === 'snowflake-cortex' && credential.type === 'oauth' && credential.refresh && credential.accountId && credential.expires <= nowMs + KIMI_REFRESH_SKEW_MS) {
+		try {
+			const refreshed = await refreshSnowflakeCortexToken(credential.accountId, credential.refresh, signal);
 			const next = { ...refreshed, accountId: credential.accountId ?? refreshed.accountId };
 			writeCredential(provider, next);
 			return next;

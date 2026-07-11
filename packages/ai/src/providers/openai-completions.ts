@@ -103,10 +103,11 @@ export function createOpenAICompletionsProvider() {
 						return;
 					}
 
-					const client = new OpenAI({
+				const client = new OpenAI({
 						apiKey,
 						baseURL: model.baseUrl,
 						dangerouslyAllowBrowser: true,
+						defaultHeaders: { ...model.headers, ...options?.headers },
 					});
 
 					const messages = convertMessages(model, context);

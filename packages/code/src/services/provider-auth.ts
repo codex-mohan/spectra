@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { randomUUID } from 'crypto';
+import { createHash, randomBytes, randomUUID } from 'crypto';
+import { createServer } from 'http';
 import { scheduler } from 'timers/promises';
 import { getGlobalDataDir } from '../utils/paths.js';
 import type { OauthCredential } from './auth-store.js';
@@ -37,15 +38,11 @@ interface TokenResponse {
 
 const CODEX_CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann';
 const CODEX_OAUTH_HOST = 'https://auth.openai.com';
-const CODEX_DEVICE_USERCODE_URL = `${CODEX_OAUTH_HOST}/api/accounts/deviceauth/usercode`;
-const CODEX_DEVICE_TOKEN_URL = `${CODEX_OAUTH_HOST}/api/accounts/deviceauth/token`;
-const CODEX_DEVICE_AUTH_URL = 'https://auth.openai.com/codex/device';
-const CODEX_DEVICE_REDIRECT_URI = 'https://auth.openai.com/deviceauth/callback';
+const CODEX_AUTHORIZE_URL = `${CODEX_OAUTH_HOST}/oauth/authorize`;
 const CODEX_TOKEN_URL = `${CODEX_OAUTH_HOST}/oauth/token`;
-const CODEX_POLL_INTERVAL_MS = 5000;
-const CODEX_POLL_SAFETY_MARGIN_MS = 3000;
-const CODEX_MAX_POLLS = 120;
-const CODEX_TOKEN_REQUEST_TIMEOUT_MS = 15_000;
+const CODEX_REDIRECT_URI = 'http://localhost:1455/auth/callback';
+const CODEX_SCOPE = 'openid profile email offline_access';
+const CODEX_CALLBACK_TIMEOUT_MS = 5 * 60 * 1000;
 const KIMI_CLIENT_ID = '17e5f671-d194-4dfb-9706-5516cb48c098';
 const KIMI_OAUTH_HOST = 'https://auth.kimi.com';
 const OAUTH_EXPIRY_SKEW_MS = 5 * 60 * 1000;
@@ -180,53 +177,94 @@ export async function refreshKimiCode(refreshToken: string, signal?: AbortSignal
 	return tokenToCredential(await response.json() as TokenResponse, refreshToken);
 }
 
-interface CodexDeviceInitResponse {
-	device_auth_id?: string;
-	user_code?: string;
-	interval?: string | number;
+interface CodexAuthorizationFlow {
+	verifier: string;
+	state: string;
+	url: string;
 }
 
-interface CodexDevicePollResponse {
-	authorization_code?: string;
-	code_verifier?: string;
+function base64UrlEncode(value: Buffer): string {
+	return value.toString('base64url');
 }
 
-export async function loginCodexDevice(callbacks: ProviderAuthCallbacks): Promise<OauthCredential> {
-	callbacks.onProgress('Initiating OpenAI Codex device authorization...');
-	const initResponse = await fetch(CODEX_DEVICE_USERCODE_URL, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ client_id: CODEX_CLIENT_ID }),
-		signal: callbacks.signal,
+export function createCodexAuthorizationFlow(): CodexAuthorizationFlow {
+	const verifier = base64UrlEncode(randomBytes(32));
+	const challenge = base64UrlEncode(createHash('sha256').update(verifier).digest());
+	const state = randomBytes(16).toString('hex');
+	const params = new URLSearchParams({
+		response_type: 'code',
+		client_id: CODEX_CLIENT_ID,
+		redirect_uri: CODEX_REDIRECT_URI,
+		scope: CODEX_SCOPE,
+		code_challenge: challenge,
+		code_challenge_method: 'S256',
+		state,
+		id_token_add_organizations: 'true',
+		codex_cli_simplified_flow: 'true',
+		originator: 'spectra',
 	});
-	if (!initResponse.ok) throw new Error(`Codex device authorization failed: ${initResponse.status}`);
-	const initData = (await initResponse.json()) as CodexDeviceInitResponse;
-	if (!initData.device_auth_id || !initData.user_code) {
-		throw new Error('Codex device authorization response missing required fields');
-	}
-	const pollIntervalMs =
-		((typeof initData.interval === 'number'
-			? initData.interval
-			: parseInt(String(initData.interval ?? '5'), 10) || 5) *
-			1000) +
-		CODEX_POLL_SAFETY_MARGIN_MS;
-	callbacks.onAuth({ url: CODEX_DEVICE_AUTH_URL, instructions: `Open this URL and enter code: ${initData.user_code}` });
-	callbacks.onProgress(`Waiting for Codex authorization (code: ${initData.user_code})...`);
+	return { verifier, state, url: `${CODEX_AUTHORIZE_URL}?${params}` };
+}
 
-	for (let poll = 0; poll < CODEX_MAX_POLLS; poll++) {
-		await scheduler.wait(poll === 0 ? Math.min(pollIntervalMs, CODEX_POLL_INTERVAL_MS) : pollIntervalMs, { signal: callbacks.signal });
-		const pollResponse = await fetch(CODEX_DEVICE_TOKEN_URL, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ device_auth_id: initData.device_auth_id, user_code: initData.user_code }),
-			signal: AbortSignal.timeout(CODEX_TOKEN_REQUEST_TIMEOUT_MS),
-		});
-		if (pollResponse.status === 403 || pollResponse.status === 404) continue;
-		if (!pollResponse.ok) throw new Error(`Codex device token polling failed: ${pollResponse.status}`);
-		const pollData = (await pollResponse.json()) as CodexDevicePollResponse;
-		if (!pollData.authorization_code || !pollData.code_verifier) {
-			throw new Error('Codex device token response missing authorization_code or code_verifier');
+function startCodexCallbackServer(state: string) {
+	let resolveCode: (code: string) => void;
+	let rejectCode: (error: Error) => void;
+	const code = new Promise<string>((resolve, reject) => {
+		resolveCode = resolve;
+		rejectCode = reject;
+	});
+	const server = createServer((request, response) => {
+		const callback = new URL(request.url ?? '/', CODEX_REDIRECT_URI);
+		if (callback.pathname !== '/auth/callback') {
+			response.writeHead(404).end('Not found');
+			return;
 		}
+		if (callback.searchParams.get('state') !== state) {
+			response.writeHead(400).end('Invalid OAuth state. Return to Spectra and try again.');
+			return;
+		}
+		const authorizationCode = callback.searchParams.get('code');
+		if (!authorizationCode) {
+			const error = callback.searchParams.get('error');
+			response.writeHead(400).end(error ? `OpenAI authorization failed: ${error}` : 'Missing authorization code.');
+			rejectCode(new Error(error ? `OpenAI authorization failed: ${error}` : 'OpenAI callback missing authorization code'));
+			return;
+		}
+		response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end('<!doctype html><title>Spectra</title><p>OpenAI authorization completed. You can return to Spectra.</p>');
+		resolveCode(authorizationCode);
+	});
+	const listening = new Promise<void>((resolve, reject) => {
+		server.once('error', reject);
+		server.listen(1455, '127.0.0.1', () => {
+			server.off('error', reject);
+			resolve();
+		});
+	});
+	return {
+		listening,
+		waitForCode: (signal?: AbortSignal) => new Promise<string>((resolve, reject) => {
+			const timer = setTimeout(() => reject(new Error('OpenAI authorization timed out')), CODEX_CALLBACK_TIMEOUT_MS);
+			const abort = () => reject(new Error('Login cancelled'));
+			signal?.addEventListener('abort', abort, { once: true });
+			code.then(resolve, reject).finally(() => {
+				clearTimeout(timer);
+				signal?.removeEventListener('abort', abort);
+			});
+		}),
+		close: () => {
+			if (server.listening) server.close();
+		},
+	};
+}
+
+export async function loginCodex(callbacks: ProviderAuthCallbacks): Promise<OauthCredential> {
+	const flow = createCodexAuthorizationFlow();
+	const callbackServer = startCodexCallbackServer(flow.state);
+	try {
+		await callbackServer.listening;
+		callbacks.onAuth({ url: flow.url, instructions: 'Open this URL to authorize Spectra with OpenAI.' });
+		callbacks.onProgress('Waiting for OpenAI browser authorization...');
+		const code = await callbackServer.waitForCode(callbacks.signal);
 		callbacks.onProgress('Exchanging authorization code for tokens...');
 		const tokenResponse = await fetch(CODEX_TOKEN_URL, {
 			method: 'POST',
@@ -234,16 +272,17 @@ export async function loginCodexDevice(callbacks: ProviderAuthCallbacks): Promis
 			body: new URLSearchParams({
 				grant_type: 'authorization_code',
 				client_id: CODEX_CLIENT_ID,
-				code: pollData.authorization_code,
-				code_verifier: pollData.code_verifier,
-				redirect_uri: CODEX_DEVICE_REDIRECT_URI,
+				code,
+				code_verifier: flow.verifier,
+				redirect_uri: CODEX_REDIRECT_URI,
 			}),
-			signal: AbortSignal.timeout(CODEX_TOKEN_REQUEST_TIMEOUT_MS),
+			signal: callbacks.signal,
 		});
 		if (!tokenResponse.ok) throw new Error(`Codex token exchange failed: ${tokenResponse.status}`);
-		return codexTokenToCredential(await tokenResponse.json() as TokenResponse, undefined);
+		return codexTokenToCredential(await tokenResponse.json() as TokenResponse);
+	} finally {
+		callbackServer.close();
 	}
-	throw new Error('Codex device authorization timed out');
 }
 
 export async function refreshCodexToken(refreshToken: string, signal?: AbortSignal): Promise<OauthCredential> {

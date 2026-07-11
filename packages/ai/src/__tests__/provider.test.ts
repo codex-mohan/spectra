@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerProvider, getProvider, listProviders, stream } from '../registry.js';
 import { createAnthropicProvider } from '../providers/anthropic.js';
 import type { Model, Context } from '../types.js';
+import '../providers/register-builtins.js';
 
 describe('Provider Registry', () => {
 	beforeEach(() => {
@@ -24,6 +25,12 @@ describe('Provider Registry', () => {
 		expect(provider).toBeUndefined();
 	});
 });
+
+	it('registers OAuth-backed OpenAI-compatible providers', () => {
+		for (const provider of ['github-copilot', 'xai', 'digitalocean', 'snowflake-cortex']) {
+			expect(getProvider(provider)).toBeDefined();
+		}
+	});
 
 describe('Anthropic Provider', () => {
 	it('should create provider with correct name', () => {

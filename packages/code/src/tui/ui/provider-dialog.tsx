@@ -4,7 +4,12 @@ import { write, type ApiCredential } from '../../services/auth-store.js';
 import { listProviders, getModels } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { PROVIDER_META, resolveMetaKey, getApiKeyDesc } from '../utils/provider-meta.js';
-import { loginKimiCode, loginCodexDevice, type AuthInfo } from '../../services/provider-auth.js';
+import { loginKimiCode, loginCodex, type AuthInfo } from '../../services/provider-auth.js';
+import type { ProviderAuthCallbacks } from '../../services/provider-auth.js';
+import { loginGitHubCopilot } from '../../services/github-copilot-auth.js';
+import { loginXai } from '../../services/xai-auth.js';
+import { loginDigitalOcean } from '../../services/digitalocean-auth.js';
+import { loginSnowflakeCortex } from '../../services/snowflake-cortex-auth.js';
 
 interface KeyEvent {
 	name: string;
@@ -214,10 +219,16 @@ const OPTIONAL_AUTH_PROVIDER_IDS: Record<string, string> = {
 	sglang: 'sglang-local',
 };
 
-const OAUTH_PROVIDER_IDS: Record<string, 'kimi' | 'codex'> = {
+type OAuthLoginType = 'kimi' | 'codex' | 'github-copilot' | 'xai' | 'digitalocean' | 'snowflake';
+
+const OAUTH_PROVIDER_IDS: Record<string, OAuthLoginType> = {
 	'kimi-code': 'kimi',
 	'kimi-coding-plan': 'kimi',
 	'openai-codex': 'codex',
+	'github-copilot': 'github-copilot',
+	xai: 'xai',
+	digitalocean: 'digitalocean',
+	'snowflake-cortex': 'snowflake',
 };
 
 // ── API key input ──
@@ -309,13 +320,15 @@ function ApiKeyDialog(props: {
 function OAuthLoginDialog(props: {
 	providerName: string;
 	providerId: string;
+	loginType: OAuthLoginType;
+	account?: string;
 	onSuccess: () => void;
 	onCancel: () => void;
 	termWidth: number;
 	termHeight: number;
 	registerHandler: (fn: KeyHandler | null) => void;
 }) {
-	const { providerName, providerId, onSuccess, onCancel, termWidth, termHeight, registerHandler } = props;
+	const { providerName, providerId, loginType, account, onSuccess, onCancel, termWidth, termHeight, registerHandler } = props;
 	const mw = Math.min(72, termWidth - 4);
 	const mh = 14;
 	const ml = Math.floor((termWidth - mw) / 2);
@@ -335,18 +348,29 @@ function OAuthLoginDialog(props: {
 	useEffect(() => {
 		if (startedRef.current) return;
 		startedRef.current = true;
-		const loginFn = OAUTH_PROVIDER_IDS[providerId] === 'codex' ? loginCodexDevice : loginKimiCode;
-		loginFn({
+		const callbacks: ProviderAuthCallbacks = {
 			onAuth: setAuthInfo,
 			onProgress: setStatus,
-		}).then((credential) => {
+		};
+		const loginFn = loginType === 'github-copilot'
+			? () => loginGitHubCopilot(callbacks)
+			: loginType === 'xai'
+			? () => loginXai(callbacks)
+			: loginType === 'digitalocean'
+			? () => loginDigitalOcean(callbacks)
+			: loginType === 'snowflake'
+			? () => loginSnowflakeCortex(callbacks, account!)
+			: loginType === 'codex'
+			? () => loginCodex(callbacks)
+			: () => loginKimiCode(callbacks);
+		loginFn().then((credential) => {
 			write(providerId, credential);
 			setStatus('Saved');
 			setTimeout(onSuccess, 400);
 		}).catch((error: unknown) => {
 			setErr(error instanceof Error ? error.message : String(error));
 		});
-	}, [onSuccess, providerId]);
+	}, [onSuccess, providerId, loginType, account]);
 
 	return (
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
@@ -372,6 +396,65 @@ function OAuthLoginDialog(props: {
 				)}
 				<text fg={err ? c.error : c.dim}>{err || status}</text>
 				<text fg={c.dim}>esc cancel</text>
+			</box>
+		</box>
+	);
+}
+// ── Snowflake account input ──
+
+function SnowflakeAccountDialog(props: {
+	providerName: string;
+	onSubmit: (account: string) => void;
+	onCancel: () => void;
+	termWidth: number;
+	termHeight: number;
+	registerHandler: (fn: KeyHandler | null) => void;
+}) {
+	const { providerName, onSubmit, onCancel, termWidth, termHeight, registerHandler } = props;
+	const mw = Math.min(64, termWidth - 4);
+	const ml = Math.floor((termWidth - mw) / 2);
+	const mh = 10;
+	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
+
+	useEffect(() => {
+		registerHandler((key) => {
+			if (key.name === 'escape') onCancel();
+		});
+		return () => registerHandler(null);
+	}, [onCancel, registerHandler]);
+
+	return (
+		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
+			<box
+				position="absolute"
+				left={ml}
+				top={mt}
+				width={mw}
+				height={mh}
+				backgroundColor={c.bgCard}
+				padding={2}
+				flexDirection="column"
+				gap={1}
+			>
+				<text fg={c.accent} attributes={1}>
+					{providerName} — Snowflake Account
+				</text>
+				<text fg={c.dim}>Enter your Snowflake account identifier (e.g. xy12345.us-east-1)</text>
+				<box flexDirection="row" alignItems="center" gap={1}>
+					<text fg={c.accent}>›</text>
+					<box flexGrow={1}>
+						<input
+							key="snowflake-account-input"
+							placeholder="xy12345.us-east-1"
+							onSubmit={(v) => {
+								const val = String(v).trim();
+								if (val) onSubmit(val);
+							}}
+							focused={true}
+						/>
+					</box>
+				</box>
+				<text fg={c.dim}>enter confirm · esc cancel</text>
 			</box>
 		</box>
 	);
@@ -452,7 +535,8 @@ export interface ProviderDialogProps {
 type Step =
 	| { phase: 'provider-list' }
 	| { phase: 'api-key'; id: string; name: string }
-	| { phase: 'oauth-login'; id: string; name: string }
+	| { phase: 'snowflake-account'; id: string; name: string }
+	| { phase: 'oauth-login'; id: string; name: string; account?: string }
 	| { phase: 'model-select'; id: string; name: string }
 	| { phase: 'model-input'; id: string; name: string };
 
@@ -514,8 +598,27 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				termHeight={termHeight}
 				onSelect={(id, name) => {
 					const oauthKind = OAUTH_PROVIDER_IDS[id];
-					setStep({ phase: oauthKind ? 'oauth-login' : 'api-key', id, name });
+					if (oauthKind === 'snowflake') {
+						setStep({ phase: 'snowflake-account', id, name });
+					} else if (oauthKind) {
+						setStep({ phase: 'oauth-login', id, name });
+					} else {
+						setStep({ phase: 'api-key', id, name });
+					}
 				}}
+				onCancel={onClose}
+				registerHandler={registerHandler}
+			/>
+		);
+	}
+
+	if (step.phase === 'snowflake-account') {
+		return (
+			<SnowflakeAccountDialog
+				providerName={step.name}
+				termWidth={termWidth}
+				termHeight={termHeight}
+				onSubmit={(account) => setStep({ phase: 'oauth-login', id: step.id, name: step.name, account })}
 				onCancel={onClose}
 				registerHandler={registerHandler}
 			/>
@@ -527,6 +630,8 @@ export function ProviderDialog(props: ProviderDialogProps) {
 			<OAuthLoginDialog
 				providerName={step.name}
 				providerId={step.id}
+				loginType={OAUTH_PROVIDER_IDS[step.id]!}
+				account={step.account}
 				termWidth={termWidth}
 				termHeight={termHeight}
 				onSuccess={() => setStep({ phase: 'model-select', id: step.id, name: step.name })}

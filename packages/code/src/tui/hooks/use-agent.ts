@@ -3,6 +3,7 @@ import type { SecurityManager } from '../../security/index.js';
 import type { CustomProviderConfig, AgentConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
 import { getAuthKey } from '../utils/model-config.js';
+import { read as readCredential } from '../../services/auth-store.js';
 import { showToast } from '../components/toast.js';
 import { AGENT_DEFINITIONS } from '../../agents/index.js';
 import type { AgentRegistryConfig } from '../../agents/registry.js';
@@ -120,6 +121,26 @@ export function useAgent(deps: UseAgentDeps) {
 			initProviders();
 			const { createAllToolsWithSecurity } = await import('../../tools/index.js');
 			const customCfg = customProviders[provider];
+			const cred = readCredential(provider);
+			let resolvedBaseUrl = customCfg?.baseUrl;
+			let resolvedHeaders = customCfg?.headers;
+			if (!customCfg) {
+				if (provider === 'snowflake-cortex' && cred?.type === 'oauth' && cred.accountId) {
+					resolvedBaseUrl = `https://${cred.accountId}.snowflakecomputing.com/api/v2/cortex/v1`;
+					resolvedHeaders = { ...resolvedHeaders, 'X-Snowflake-Authorization-Token-Type': 'OAUTH' };
+				} else if (provider === 'github-copilot') {
+					resolvedHeaders = {
+						...resolvedHeaders,
+						'Copilot-Integration-Id': 'vscode-chat',
+						'Editor-Version': 'vscode/1.109.2',
+						'Editor-Plugin-Version': 'copilot-chat/0.37.5',
+						'User-Agent': 'GitHubCopilotChat/0.37.5',
+						'X-GitHub-Api-Version': '2025-10-01',
+						'x-initiator': 'user',
+						'Openai-Intent': 'conversation-agent',
+					};
+				}
+			}
 
 			const def = AGENT_DEFINITIONS[selectedAgent];
 
@@ -131,8 +152,8 @@ export function useAgent(deps: UseAgentDeps) {
 					name: selectedModel,
 					provider,
 					api: provider,
-					baseUrl: customCfg?.baseUrl,
-					headers: customCfg?.headers,
+					baseUrl: resolvedBaseUrl,
+					headers: resolvedHeaders,
 				},
 				getApiKey: (p: string) => getAuthKey(p),
 			};
@@ -175,8 +196,8 @@ export function useAgent(deps: UseAgentDeps) {
 					name: selectedModel,
 					provider,
 					api: provider,
-					baseUrl: customCfg?.baseUrl,
-					headers: customCfg?.headers,
+					baseUrl: resolvedBaseUrl,
+					headers: resolvedHeaders,
 				},
 				systemPrompt,
 				getApiKey: (p: string) => getAuthKey(p),
