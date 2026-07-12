@@ -1,4 +1,5 @@
 import { existsSync } from 'fs';
+import open from 'open';
 
 function resolveShell(): string {
 	if (process.platform !== 'win32') {
@@ -15,6 +16,19 @@ function resolveShell(): string {
 		if (existsSync(psPath)) return 'powershell.exe';
 	}
 	return process.env.COMSPEC || 'cmd.exe';
+}
+
+export function assertWebUrl(url: string): void {
+	const parsed = new URL(url);
+	if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+		throw new Error(`Cannot open non-web URL: ${url}`);
+	}
+}
+
+/** Opens a trusted HTTP(S) URL with the operating system's default browser. */
+export async function openBrowser(url: string): Promise<void> {
+	assertWebUrl(url);
+	await open(url);
 }
 
 export function getPlatformInfo(): {

@@ -10,6 +10,7 @@ import { loginGitHubCopilot } from '../../services/github-copilot-auth.js';
 import { loginXai } from '../../services/xai-auth.js';
 import { loginDigitalOcean } from '../../services/digitalocean-auth.js';
 import { loginSnowflakeCortex } from '../../services/snowflake-cortex-auth.js';
+import { openBrowser } from '../../utils/platform.js';
 
 interface KeyEvent {
 	name: string;
@@ -337,13 +338,23 @@ function OAuthLoginDialog(props: {
 	const [status, setStatus] = useState('Starting login...');
 	const [err, setErr] = useState('');
 	const startedRef = useRef(false);
+	const [browserError, setBrowserError] = useState('');
+
+	const launchBrowser = useCallback(() => {
+		if (!authInfo) return;
+		setBrowserError('');
+		void openBrowser(authInfo.url).catch((error: unknown) => {
+			setBrowserError(`Could not open browser: ${error instanceof Error ? error.message : String(error)}`);
+		});
+	}, [authInfo]);
 
 	useEffect(() => {
 		registerHandler((key) => {
 			if (key.name === 'escape') onCancel();
+			if (key.name === 'o') launchBrowser();
 		});
 		return () => registerHandler(null);
-	}, [onCancel, registerHandler]);
+	}, [launchBrowser, onCancel, registerHandler]);
 
 	useEffect(() => {
 		if (startedRef.current) return;
@@ -372,6 +383,10 @@ function OAuthLoginDialog(props: {
 		});
 	}, [onSuccess, providerId, loginType, account]);
 
+	useEffect(() => {
+		if (authInfo) launchBrowser();
+	}, [authInfo, launchBrowser]);
+
 	return (
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
 			<box
@@ -389,13 +404,13 @@ function OAuthLoginDialog(props: {
 				{authInfo ? (
 					<>
 						<text fg={c.text}>{authInfo.instructions ?? 'Open this authorization URL:'}</text>
-						<text fg={c.accent}>{authInfo.url}</text>
+						<text fg={c.accent} wrapMode="word"><a href={authInfo.url}>{authInfo.url}</a></text>
 					</>
 				) : (
 					<text fg={c.dim}>Requesting authorization URL...</text>
 				)}
-				<text fg={err ? c.error : c.dim}>{err || status}</text>
-				<text fg={c.dim}>esc cancel</text>
+				<text fg={err || browserError ? c.error : c.dim}>{err || browserError || status}</text>
+				<text fg={c.dim}>o open browser · click URL where supported · esc cancel</text>
 			</box>
 		</box>
 	);
