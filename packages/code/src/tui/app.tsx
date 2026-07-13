@@ -1254,11 +1254,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			)}
 			{dialogStep?.type === 'skills' && (
 				<SkillsDialog
+					defaultTab={dialogStep.defaultTab}
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}
-					registerHandler={(fn: any) => {
-						dialogKeyHandler.current = fn;
+					registerHandler={(fn) => {
+						dialogKeyHandler.current = fn as (key: unknown) => void;
 					}}
 				/>
 			)}

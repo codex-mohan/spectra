@@ -343,6 +343,130 @@ function MemoryToolView({ args, output, isError, marginTop }: { args: Record<str
 	);
 }
 
+const SKILL_COLOR = '#C4A0E0';
+
+/** Parse find_skills output into a structured list. */
+function parseFindSkillsOutput(output: string): { query: string; matches: { name: string; desc: string }[] } {
+	if (output.includes('No skills available') || output.includes('Provide a query')) {
+		return { query: '', matches: [] };
+	}
+	const qm = output.match(/query="([^"]*)"/);
+	const query = qm?.[1] ?? '';
+	const lines = output.split('\n').filter((l) => l.startsWith('- '));
+	const matches: { name: string; desc: string }[] = [];
+	for (const line of lines) {
+		const m = /^- ([^\s—]+)\s*—\s*(.+?)(?:\s*\(score:\s*[\d.]+\))?$/.exec(line.trim());
+		if (m) matches.push({ name: m[1], desc: m[2].replace(/\s*\[.*?\]\s*$/, '').trim() });
+	}
+	return { query, matches };
+}
+
+function SkillToolView({ args, output, isError, marginTop }: { args: Record<string, unknown>; output: string; isError: boolean; marginTop: number }) {
+	const name = String(args.name || '');
+	const skillArgs = String(args.args || '');
+	const borderColor = isError ? c.error : SKILL_COLOR;
+	const statusIcon = isError ? '✗' : '✓';
+	const preview = output
+		.replace(/<\/?skill_content[^>]*>/g, '')
+		.replace(/<\/?skill_files>/g, '')
+		.replace(/<[^>]+>/g, '')
+		.split('\n')
+		.map((l) => l.trim())
+		.find((l) => l.length > 0 && !l.startsWith('# Skill:') && !l.startsWith('Base directory')) ?? '';
+
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={marginTop}
+			gap={0}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={borderColor}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={borderColor}>◇</text>
+				<text fg={borderColor} attributes={1}>Skill</text>
+				<text fg={c.text}>{name}</text>
+				{skillArgs ? <text fg={c.dim}>· {skillArgs}</text> : null}
+				<text fg={isError ? c.error : SKILL_COLOR}> {statusIcon}</text>
+			</box>
+			{isError ? (
+				<box flexDirection="column" paddingLeft={2} gap={0}>
+					<text fg={c.error}>{output.slice(0, 120)}</text>
+				</box>
+			) : preview ? (
+				<box flexDirection="column" paddingLeft={2} gap={0}>
+					<text fg={c.dim}>{preview.slice(0, 100)}</text>
+					<text fg={c.dim}>(instructions loaded)</text>
+				</box>
+			) : (
+				<box flexDirection="column" paddingLeft={2} gap={0}>
+					<text fg={c.dim}>(instructions loaded)</text>
+				</box>
+			)}
+		</box>
+	);
+}
+
+function FindSkillsToolView({ args, output, isError, marginTop }: { args: Record<string, unknown>; output: string; isError: boolean; marginTop: number }) {
+	const { query, matches } = parseFindSkillsOutput(output);
+	const borderColor = isError ? c.error : SKILL_COLOR;
+	const statusIcon = isError ? '✗' : '✓';
+	const noMatches = output.includes('No skills matched');
+	const label = query ? `find "${query}"` : (args.all as boolean) ? 'catalog (all)' : 'catalog';
+
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={borderColor}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={borderColor}>◇</text>
+				<text fg={borderColor} attributes={1}>Skills</text>
+				<text fg={c.dim}>· {label}</text>
+				<text fg={isError ? c.error : SKILL_COLOR}> {statusIcon}</text>
+			</box>
+			<box flexDirection="column" paddingLeft={2} gap={0}>
+				{noMatches ? (
+					<text fg={c.dim}>No matching skills</text>
+				) : matches.length > 0 ? (
+					<>
+						{matches.slice(0, 8).map((m, i) => (
+							<box key={i} flexDirection="row" gap={1}>
+								<text fg={c.dim}>▸</text>
+								<text fg={c.text}>{m.name}</text>
+								<text fg={c.dim}>{m.desc.slice(0, 60)}</text>
+							</box>
+						))}
+						{matches.length > 8 && (
+							<text fg={c.dim}>… +{matches.length - 8} more</text>
+						)}
+					</>
+				) : (
+					<text fg={c.dim}>{output.slice(0, 120)}</text>
+				)}
+			</box>
+			{matches.length > 0 && (
+				<box flexDirection="row" paddingLeft={1} gap={1}>
+					<text fg={c.dim}>{matches.length} match{matches.length !== 1 ? 'es' : ''} · load with skill {"<name>"}</text>
+				</box>
+			)}
+		</box>
+	);
+}
+
 export function MessageView({
 	msg,
 	showThinking = true,
@@ -522,6 +646,12 @@ export function MessageView({
 		}
 		if (tName === 'memory') {
 			return <MemoryToolView args={argsObj} output={output} isError={toolError} marginTop={mt} />;
+		}
+		if (tName === 'skill') {
+			return <SkillToolView args={argsObj} output={output} isError={toolError} marginTop={mt} />;
+		}
+		if (tName === 'find_skills') {
+			return <FindSkillsToolView args={argsObj} output={output} isError={toolError} marginTop={mt} />;
 		}
 
 		// Reading tools: inline indicator only

@@ -246,7 +246,7 @@ export function buildCmdItems(opts: {
 			| { type: 'permissions' }
 			| { type: 'settings' }
 			| { type: 'memory' }
-			| { type: 'skills' }
+			| { type: 'skills'; defaultTab?: 'pending' | 'saved' }
 			| null,
 	) => void;
 	sessionIdRef: { current: string | null };
@@ -849,7 +849,7 @@ export function buildCmdItems(opts: {
 					const bundled = await discoverSkills();
 					const skills = [
 						...evolving.map((s) => ({ value: s.name, desc: s.description || 'saved skill' })),
-						...[...bundled.values()].map((s: any) => ({ value: s.name, desc: s.description || s.whenToUse || 'bundled skill' })),
+						...[...bundled.values()].map((s) => ({ value: s.name, desc: s.description || s.whenToUse || 'bundled skill' })),
 					];
 					const unique = new Map<string, { value: string; desc: string }>();
 					for (const item of [...builtins, ...skills]) unique.set(item.value, item);
@@ -858,8 +858,11 @@ export function buildCmdItems(opts: {
 					return builtins.filter((n) => !q || n.value.includes(q) || n.desc.includes(q));
 				}
 			},
-			action: () => {
-				setDialogStep({ type: 'skills' });
+			action: ({ args }) => {
+				const trimmed = args?.trim() ?? '';
+				// /skills browse → open saved tab; /skills pending or no args → pending tab
+				const defaultTab = trimmed === 'browse' ? 'saved' : 'pending';
+				setDialogStep({ type: 'skills', defaultTab });
 			},
 		},
 		// Display
