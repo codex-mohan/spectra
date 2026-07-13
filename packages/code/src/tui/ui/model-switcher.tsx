@@ -3,7 +3,8 @@ import { c } from '../theme.js';
 import { listProviders, getModels } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { readAll } from '../../services/auth-store.js';
-import { getProviderDisplayName } from '../utils/provider-meta.js';
+import { isCredentialConnected } from '../../services/provider-connection.js';
+import { getProviderDisplayName, resolveMetaKey } from '../utils/provider-meta.js';
 
 export interface ModelSwitcherProps {
 	providerId: string;
@@ -21,11 +22,8 @@ export interface ModelEntry {
 	providerName: string;
 }
 
-function isProviderConnected(providerId: string, customProviders?: Record<string, { apiKey?: string }>): boolean {
-	const cred = readAll()[providerId];
-	if (cred?.type === 'api' && !!cred.key) return true;
-	if (customProviders?.[providerId]?.apiKey) return true;
-	return false;
+export function isProviderConnected(providerId: string, customProviders?: Record<string, { apiKey?: string }>): boolean {
+	return isCredentialConnected(readAll()[providerId], customProviders?.[providerId]);
 }
 
 
@@ -57,7 +55,7 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
 		const builtinIds = listProviders();
 		const collected: ModelEntry[] = [];
 
-		const connectedBuiltins = builtinIds.filter((id) => isProviderConnected(id, customProviders));
+		const connectedBuiltins = builtinIds.filter((id) => isProviderConnected(resolveMetaKey(id), customProviders));
 		const connectedCustoms = Object.entries(customProviders).filter(([id]) => isProviderConnected(id, customProviders));
 
 		const promises = connectedBuiltins.map((id) =>

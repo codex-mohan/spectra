@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { write } from '../services/auth-store.js';
 import { PROVIDER_META } from '../tui/utils/provider-meta.js';
-import { createCodexAuthorizationFlow } from '../services/provider-auth.js';
+import { createCodexAuthorizationFlow, loginCodex, renderCallbackPage } from '../services/provider-auth.js';
 import { getAuthKey } from '../tui/utils/model-config.js';
 
 describe('provider auth keys', () => {
@@ -13,13 +13,13 @@ describe('provider auth keys', () => {
 
 	beforeEach(() => {
 		tmpDir = mkdtempSync(join(tmpdir(), 'spectra-auth-test-'));
-		previousDataHome = process.env.XDG_DATA_HOME;
-		process.env.XDG_DATA_HOME = tmpDir;
+		previousDataHome = process.env.SPECTRA_HOME;
+		process.env.SPECTRA_HOME = tmpDir;
 	});
 
 	afterEach(() => {
-		if (previousDataHome === undefined) delete process.env.XDG_DATA_HOME;
-		else process.env.XDG_DATA_HOME = previousDataHome;
+		if (previousDataHome === undefined) delete process.env.SPECTRA_HOME;
+		else process.env.SPECTRA_HOME = previousDataHome;
 		rmSync(tmpDir, { recursive: true, force: true });
 	});
 
@@ -57,6 +57,17 @@ describe('Codex OAuth authorization', () => {
 		expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/);
 		expect(flow.verifier).toMatch(/^[A-Za-z0-9_-]{43}$/);
 	});
+
+	it('does not start a callback server after cancellation', async () => {
+		const controller = new AbortController();
+		controller.abort();
+
+		await expect(loginCodex({
+			onAuth: () => {},
+			onProgress: () => {},
+			signal: controller.signal,
+		})).rejects.toThrow('Login cancelled');
+	});
 });
 
 describe('selected OAuth provider metadata', () => {
@@ -64,5 +75,18 @@ describe('selected OAuth provider metadata', () => {
 		for (const provider of ['github-copilot', 'xai', 'digitalocean', 'snowflake-cortex']) {
 			expect(PROVIDER_META[provider]).toBeDefined();
 		}
+	});
+});
+
+describe('OAuth callback pages', () => {
+	it('uses Spectra terminal styling and escapes callback text', () => {
+		const page = renderCallbackPage('<failed>', 'Unexpected <script>alert(1)</script>', 'error');
+
+		expect(page).toContain('linear-gradient(135deg,var(--bg),var(--card))');
+		expect(page).toContain('"Cascadia Code"');
+		expect(page).toContain('--accent:#6EC8D0');
+		expect(page).toContain('&lt;failed&gt;');
+		expect(page).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+		expect(page).not.toContain('<script>alert(1)</script>');
 	});
 });

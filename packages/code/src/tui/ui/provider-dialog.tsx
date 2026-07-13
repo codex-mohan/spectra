@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback, type ReactNode } from 'react';
 import { c } from '../theme.js';
-import { write, type ApiCredential } from '../../services/auth-store.js';
+import { write, readAll, type ApiCredential } from '../../services/auth-store.js';
+import { isCredentialConnected } from '../../services/provider-connection.js';
 import { listProviders, getModels } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { PROVIDER_META, resolveMetaKey, getApiKeyDesc } from '../utils/provider-meta.js';
@@ -339,6 +340,8 @@ function OAuthLoginDialog(props: {
 	const [err, setErr] = useState('');
 	const startedRef = useRef(false);
 	const [browserError, setBrowserError] = useState('');
+	const abortControllerRef = useRef<AbortController | null>(null);
+	const cancelRequestedRef = useRef(false);
 
 	const launchBrowser = useCallback(() => {
 		if (!authInfo) return;
@@ -348,20 +351,36 @@ function OAuthLoginDialog(props: {
 		});
 	}, [authInfo]);
 
+	const cancelLogin = useCallback(() => {
+		if (!abortControllerRef.current) {
+			onCancel();
+			return;
+		}
+		cancelRequestedRef.current = true;
+		setStatus('Cancelling login...');
+		abortControllerRef.current.abort();
+	}, [onCancel]);
+
 	useEffect(() => {
 		registerHandler((key) => {
-			if (key.name === 'escape') onCancel();
+			if (key.name === 'escape') cancelLogin();
 			if (key.name === 'o') launchBrowser();
 		});
-		return () => registerHandler(null);
-	}, [launchBrowser, onCancel, registerHandler]);
+		return () => {
+			abortControllerRef.current?.abort();
+			registerHandler(null);
+		};
+	}, [cancelLogin, launchBrowser, registerHandler]);
 
 	useEffect(() => {
 		if (startedRef.current) return;
+		const abortController = new AbortController();
+		abortControllerRef.current = abortController;
 		startedRef.current = true;
 		const callbacks: ProviderAuthCallbacks = {
 			onAuth: setAuthInfo,
 			onProgress: setStatus,
+			signal: abortController.signal,
 		};
 		const loginFn = loginType === 'github-copilot'
 			? () => loginGitHubCopilot(callbacks)
@@ -379,7 +398,10 @@ function OAuthLoginDialog(props: {
 			setStatus('Saved');
 			setTimeout(onSuccess, 400);
 		}).catch((error: unknown) => {
-			setErr(error instanceof Error ? error.message : String(error));
+			if (!abortController.signal.aborted) setErr(error instanceof Error ? error.message : String(error));
+		}).finally(() => {
+			if (abortControllerRef.current === abortController) abortControllerRef.current = null;
+			if (cancelRequestedRef.current) onCancel();
 		});
 	}, [onSuccess, providerId, loginType, account]);
 
@@ -410,7 +432,7 @@ function OAuthLoginDialog(props: {
 					<text fg={c.dim}>Requesting authorization URL...</text>
 				)}
 				<text fg={err || browserError ? c.error : c.dim}>{err || browserError || status}</text>
-				<text fg={c.dim}>o open browser · click URL where supported · esc cancel</text>
+				<text fg={c.dim}>o open browser · click URL where supported · esc cancel login</text>
 			</box>
 		</box>
 	);
@@ -570,6 +592,9 @@ export function ProviderDialog(props: ProviderDialogProps) {
 	if (step.phase === 'provider-list') {
 		const cfg = loadConfig();
 		const customProviders = cfg.providers || {};
+		const allCreds = readAll();
+
+		const isConnected = (id: string) => isCredentialConnected(allCreds[id]);
 
 		// Build the builtin list from the registry, resolving each registry ID to
 		// a canonical metadata key. Deduplicate so that `openai-completions` and
@@ -586,7 +611,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				acc.push({
 					id: metaKey,
 					name: meta.name,
-					desc: meta.desc,
+					desc: isConnected(metaKey) ? 'connected · select to update' : meta.desc,
 					cat: meta.popular ? 'Popular' : 'Providers',
 				});
 				return acc;
@@ -597,10 +622,10 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				return a.cat === 'Popular' ? -1 : 1;
 			});
 
-		const customItems = Object.entries(customProviders).map(([id, cfg]) => ({
+		const customItems = Object.entries(customProviders).map(([id, pcfg]) => ({
 			id,
-			name: cfg.name || id,
-			desc: cfg.baseUrl,
+			name: pcfg.name || id,
+			desc: isCredentialConnected(allCreds[id], pcfg) ? 'connected · select to update' : (pcfg.baseUrl ?? ''),
 			cat: 'Custom',
 		}));
 
@@ -649,7 +674,14 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				account={step.account}
 				termWidth={termWidth}
 				termHeight={termHeight}
-				onSuccess={() => setStep({ phase: 'model-select', id: step.id, name: step.name })}
+				onSuccess={() => {
+					getModels(step.id).then((m) => {
+						setModels(m);
+						setStep({ phase: 'model-select', id: step.id, name: step.name });
+					}).catch(() => {
+						setStep({ phase: 'model-select', id: step.id, name: step.name });
+					});
+				}}
 				onCancel={onClose}
 				registerHandler={registerHandler}
 			/>
@@ -701,6 +733,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 		const customCfg = cfg.providers?.[step.id];
 		const metaKey = resolveMetaKey(step.id);
 		const providerMeta = PROVIDER_META[metaKey];
+		const isOauthProvider = OAUTH_PROVIDER_IDS[step.id] !== undefined;
 
 		let items: { id: string; name: string; desc: string; cat: string }[];
 		if (models && models.length > 0) {
@@ -717,8 +750,19 @@ export function ProviderDialog(props: ProviderDialogProps) {
 		} else if (providerMeta?.defaultModels && providerMeta.defaultModels.length > 0) {
 			// Curated fallback list from provider-meta (e.g. opencode-zen).
 			items = providerMeta.defaultModels.map((m) => ({ id: m.id, name: m.name, desc: '', cat: 'Models' }));
+		} else if (isOauthProvider) {
+			return (
+				<SelectDialog
+					items={[]}
+					placeholder={`${step.name} models are unavailable`}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onSelect={() => {}}
+					onCancel={onClose}
+					registerHandler={registerHandler}
+				/>
+			);
 		} else {
-			// Nothing known — route to free-form model ID input.
 			return (
 				<ModelInputDialog
 					providerName={step.name}
@@ -734,13 +778,11 @@ export function ProviderDialog(props: ProviderDialogProps) {
 			);
 		}
 
-		// Append an "Enter manually" option at the bottom of any model list
-		// so users can always type a custom/newer model ID.
-		const manualEntry = { id: '__manual__', name: 'Enter model ID manually…', desc: '', cat: '' };
+		const manualEntry = isOauthProvider ? [] : [{ id: '__manual__', name: 'Enter model ID manually…', desc: '', cat: '' }];
 
 		return (
 			<SelectDialog
-				items={[...items, manualEntry]}
+				items={[...items, ...manualEntry]}
 				placeholder="Search models..."
 				termWidth={termWidth}
 				termHeight={termHeight}

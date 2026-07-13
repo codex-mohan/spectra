@@ -18,15 +18,15 @@ describe('usage store', () => {
 
 	beforeEach(() => {
 		tmpDir = mkdtempSync(join(tmpdir(), 'spectra-usage-test-'));
-		previousDataHome = process.env.XDG_DATA_HOME;
+		previousDataHome = process.env.SPECTRA_HOME;
 		previousFetch = globalThis.fetch;
-		process.env.XDG_DATA_HOME = tmpDir;
+		process.env.SPECTRA_HOME = tmpDir;
 	});
 
 	afterEach(() => {
 		globalThis.fetch = previousFetch;
-		if (previousDataHome === undefined) delete process.env.XDG_DATA_HOME;
-		else process.env.XDG_DATA_HOME = previousDataHome;
+		if (previousDataHome === undefined) delete process.env.SPECTRA_HOME;
+		else process.env.SPECTRA_HOME = previousDataHome;
 		rmSync(tmpDir, { recursive: true, force: true });
 	});
 
