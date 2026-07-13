@@ -112,6 +112,37 @@ describe('Skill discovery — nested directories', () => {
 	});
 });
 
+describe('Skill discovery — compatible directories', () => {
+	let tmpDir: string;
+
+	beforeEach(() => {
+		tmpDir = mkdtempSync(join(tmpdir(), 'spectra-skill-paths-'));
+	});
+
+	afterEach(() => {
+		rmSync(tmpDir, { recursive: true, force: true });
+	});
+
+	it('loads compatible skills while project .spectra wins collisions', async () => {
+		const homeDir = join(tmpDir, 'home');
+		const projectRoot = join(tmpDir, 'project');
+		const sources = [
+			[join(homeDir, '.claude', 'skills', 'shared'), 'home claude'],
+			[join(projectRoot, '.agents', 'skills', 'shared'), 'project agents'],
+			[join(projectRoot, '.spectra', 'skills', 'shared'), 'project spectra'],
+		] as const;
+		for (const [directory, description] of sources) {
+			mkdirSync(directory, { recursive: true });
+			writeFileSync(join(directory, 'SKILL.md'), `---\nname: Shared Skill\ndescription: ${description}\n---\n\n# Shared`);
+		}
+
+		const { discoverSkills } = await import('../skill.js');
+		const skills = await discoverSkills({ homeDir, projectRoot });
+
+		expect(skills.get('Shared Skill')?.description).toBe('project spectra');
+	});
+});
+
 describe('Skill tag extraction', () => {
 	let tmpDir: string;
 

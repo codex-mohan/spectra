@@ -355,21 +355,22 @@ export async function discoverSkills(options: SkillDiscoveryOptions = {}): Promi
 
 	const searchPaths: string[] = [];
 
-	// Project-level: .claude/skills/ and .agents/skills/
-	searchPaths.push(
-		path.join(projectRoot, '.claude', 'skills'),
-		path.join(projectRoot, '.agents', 'skills'),
-	);
-
-	// User-level: ~/.claude/skills/ and ~/.agents/skills/
+	// User-level compatibility sources are the lowest-precedence authored skills.
 	if (homeDir) {
 		searchPaths.push(
 			path.join(homeDir, '.claude', 'skills'),
 			path.join(homeDir, '.agents', 'skills'),
+			path.join(homeDir, '.spectra', 'skills'),
 		);
 	}
 
-	// Custom paths
+	// Project-native Spectra skills win over compatible project sources.
+	searchPaths.push(
+		path.join(projectRoot, '.claude', 'skills'),
+		path.join(projectRoot, '.agents', 'skills'),
+		path.join(projectRoot, '.spectra', 'skills'),
+	);
+
 	if (options.customPaths) {
 		searchPaths.push(...options.customPaths);
 	}
