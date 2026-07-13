@@ -3,7 +3,7 @@ import { join, resolve } from 'path';
 import { z } from 'zod';
 import { defineTool } from '@mohanscodex/spectra-agent';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
-import { getGlobalConfigDir, discoverConfigDirs } from '../../utils/paths.js';
+import { getGlobalConfigDir, discoverCompatibilityDirs } from '../../utils/paths.js';
 
 export interface CustomToolModule {
 	description: string;
@@ -20,7 +20,7 @@ export interface CustomToolContext {
 function findToolDirs(startDir: string): string[] {
 	const dirs: string[] = [];
 
-	const configDirs = discoverConfigDirs(startDir);
+	const configDirs = discoverCompatibilityDirs(startDir);
 	for (const d of configDirs) {
 		const toolsDir = join(d.path, 'tools');
 		if (existsSync(toolsDir) && statSync(toolsDir).isDirectory()) {

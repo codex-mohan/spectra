@@ -1,53 +1,26 @@
 import { homedir } from 'os';
-import { sep, join, resolve } from 'path';
+import { dirname, join, resolve } from 'path';
 import { existsSync, readdirSync, statSync } from 'fs';
 
+export function getSpectraHomeDir(): string {
+	const override = process.env.SPECTRA_HOME?.trim();
+	return override ? resolve(override) : join(homedir(), '.spectra');
+}
+
 export function getGlobalConfigDir(): string {
-	const xdg = process.env.XDG_CONFIG_HOME;
-	if (xdg) return join(xdg, 'spectra');
-	const home = homedir();
-	if (process.platform === 'win32') {
-		const appData = process.env.APPDATA;
-		if (appData) return join(appData, 'spectra');
-		return join(home, 'AppData', 'Roaming', 'spectra');
-	}
-	return join(home, '.config', 'spectra');
+	return getSpectraHomeDir();
 }
 
 export function getGlobalDataDir(): string {
-	const xdg = process.env.XDG_DATA_HOME;
-	if (xdg) return join(xdg, 'spectra');
-	const home = homedir();
-	if (process.platform === 'win32') {
-		const localAppData = process.env.LOCALAPPDATA;
-		if (localAppData) return join(localAppData, 'spectra');
-		return join(home, 'AppData', 'Local', 'spectra');
-	}
-	return join(home, '.local', 'share', 'spectra');
+	return getSpectraHomeDir();
 }
 
 export function getGlobalCacheDir(): string {
-	const xdg = process.env.XDG_CACHE_HOME;
-	if (xdg) return join(xdg, 'spectra');
-	const home = homedir();
-	if (process.platform === 'win32') {
-		const localAppData = process.env.LOCALAPPDATA;
-		if (localAppData) return join(localAppData, 'spectra', 'cache');
-		return join(home, 'AppData', 'Local', 'spectra', 'cache');
-	}
-	return join(home, '.cache', 'spectra');
+	return join(getSpectraHomeDir(), 'cache');
 }
 
 export function getGlobalStateDir(): string {
-	const xdg = process.env.XDG_STATE_HOME;
-	if (xdg) return join(xdg, 'spectra');
-	const home = homedir();
-	if (process.platform === 'win32') {
-		const localAppData = process.env.LOCALAPPDATA;
-		if (localAppData) return join(localAppData, 'spectra', 'state');
-		return join(home, 'AppData', 'Local', 'spectra', 'state');
-	}
-	return join(home, '.local', 'state', 'spectra');
+	return join(getSpectraHomeDir(), 'state');
 }
 
 export interface DiscoveredDir {
@@ -55,34 +28,49 @@ export interface DiscoveredDir {
 	base: string;
 }
 
+function ancestorDirs(startDir: string): string[] {
+	const dirs: string[] = [];
+	const home = resolve(homedir());
+	let current = resolve(startDir);
+	while (true) {
+		dirs.push(current);
+		if (current === home) break;
+		const parent = dirname(current);
+		if (parent === current) break;
+		current = parent;
+	}
+	return dirs.reverse();
+}
+
+function appendExistingDir(dirs: DiscoveredDir[], candidate: string, base: string): void {
+	if (!existsSync(candidate) || dirs.some((entry) => entry.path === candidate)) return;
+	dirs.push({ path: candidate, base });
+}
+
+/** Spectra application configuration only: global first, then project layers from root to cwd. */
 export function discoverConfigDirs(startDir: string): DiscoveredDir[] {
 	const dirs: DiscoveredDir[] = [];
 	const global = getGlobalConfigDir();
-	if (existsSync(global)) dirs.push({ path: global, base: global });
+	appendExistingDir(dirs, global, global);
+	const home = resolve(homedir());
+	for (const base of ancestorDirs(startDir)) {
+		if (base !== home) appendExistingDir(dirs, join(base, '.spectra'), base);
+	}
+	return dirs;
+}
 
-	const home = homedir();
-	const targets = ['.spectra', '.opencode', '.claude', '.agents'];
-
-	let current = resolve(startDir);
-	const parts = current.split(sep);
-	for (let i = parts.length; i >= 1; i--) {
-		const dir = parts.slice(0, i).join(sep);
-		for (const target of targets) {
-			const candidate = join(dir, target);
-			if (existsSync(candidate)) {
-				if (!dirs.some((d) => d.path === candidate)) {
-					dirs.push({ path: candidate, base: dir });
-				}
-			}
+/** Compatible instruction/tool assets. Foreign directories are never application config sources. */
+export function discoverCompatibilityDirs(startDir: string): DiscoveredDir[] {
+	const dirs: DiscoveredDir[] = [];
+	const global = getGlobalConfigDir();
+	appendExistingDir(dirs, global, global);
+	const home = resolve(homedir());
+	for (const base of ancestorDirs(startDir)) {
+		for (const target of ['.spectra', '.opencode', '.claude', '.agents']) {
+			if (base === home && target === '.spectra') continue;
+			appendExistingDir(dirs, join(base, target), base);
 		}
-		if (dir === home) break;
 	}
-
-	const homeDot = join(home, '.spectra');
-	if (existsSync(homeDot) && !dirs.some((d) => d.path === homeDot)) {
-		dirs.push({ path: homeDot, base: home });
-	}
-
 	return dirs;
 }
 
@@ -90,20 +78,16 @@ export function discoverInstructionFiles(startDir: string): string[] {
 	const files: string[] = [];
 	const names = ['AGENTS.md', 'CLAUDE.md', 'SPECTRA.md', 'INSTRUCTIONS.md'];
 
-	let current = resolve(startDir);
-	const parts = current.split(sep);
-	for (let i = parts.length; i >= 1; i--) {
-		const dir = parts.slice(0, i).join(sep);
+	for (const dir of ancestorDirs(startDir)) {
 		for (const name of names) {
 			const candidate = join(dir, name);
 			if (existsSync(candidate) && !files.includes(candidate)) {
 				files.push(candidate);
 			}
 		}
-		if (dir === homedir()) break;
 	}
 
-	const dirs = discoverConfigDirs(startDir);
+	const dirs = discoverCompatibilityDirs(startDir);
 	for (const d of dirs) {
 		const instructionsDir = join(d.path, 'instructions');
 		if (existsSync(instructionsDir) && statSync(instructionsDir).isDirectory()) {

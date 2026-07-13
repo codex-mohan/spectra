@@ -1,7 +1,6 @@
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { getGlobalConfigDir, discoverConfigDirs, type DiscoveredDir } from '../utils/paths.js';
-import { getPlatformInfo } from '../utils/platform.js';
+import { getGlobalConfigDir, discoverConfigDirs } from '../utils/paths.js';
 
 export interface CustomProviderConfig {
 	name: string;
@@ -20,7 +19,6 @@ export interface SpectraConfig {
 	provider?: string;
 	apiKey?: string;
 	agent?: string;
-	agents?: Record<string, AgentConfig>;
 	theme?: 'dark' | 'light';
 	mcp?: McpConfig[];
 	plugins?: PluginConfig[];
@@ -44,16 +42,6 @@ export interface SkillsConfig {
 	confirmBeforeSave?: boolean;
 }
 
-export interface AgentConfig {
-	name: string;
-	description: string;
-	model?: string;
-	systemPrompt?: string;
-	hidden?: boolean;
-	color?: string;
-	tools?: string[];
-	maxTurns?: number;
-}
 
 export interface McpConfig {
 	name: string;
@@ -79,54 +67,74 @@ export interface PermissionRule {
 	timeout?: number;
 }
 
-const configFiles = ['spectra.json', 'spectra.jsonc', 'config.json', 'opencode.json', 'opencode.jsonc'];
+const configFiles = ['spectra.json', 'spectra.jsonc', 'config.json', 'config.jsonc'];
+const mergeByNameFields = new Set(['mcp', 'plugins', 'permissions']);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeNamedEntries(target: unknown[], source: unknown[]): unknown[] {
+	const result = [...target];
+	for (const entry of source) {
+		if (!isRecord(entry) || typeof entry.name !== 'string') {
+			result.push(entry);
+			continue;
+		}
+		const index = result.findIndex((candidate) => isRecord(candidate) && candidate.name === entry.name);
+		if (index === -1) result.push(entry);
+		else result[index] = mergeRecords(result[index] as Record<string, unknown>, entry);
+	}
+	return result;
+}
+
+function mergeRecords(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+	const result = { ...target };
+	for (const [key, value] of Object.entries(source)) {
+		const previous = result[key];
+		if (isRecord(previous) && isRecord(value)) {
+			result[key] = mergeRecords(previous, value);
+		} else if (Array.isArray(previous) && Array.isArray(value) && mergeByNameFields.has(key)) {
+			result[key] = mergeNamedEntries(previous, value);
+		} else {
+			result[key] = value;
+		}
+	}
+	return result;
+}
+
+function mergeConfig(target: SpectraConfig, source: unknown): SpectraConfig {
+	return isRecord(source) ? mergeRecords(target as Record<string, unknown>, source) as SpectraConfig : target;
+}
 
 export function loadConfig(cwd?: string): SpectraConfig {
-	const cfg: SpectraConfig = {};
+	let cfg: SpectraConfig = {};
+	const projectDir = cwd || process.cwd();
+
+	for (const { path: dirPath } of discoverConfigDirs(projectDir)) {
+		for (const name of configFiles) {
+			const filePath = join(dirPath, name);
+			if (!existsSync(filePath)) continue;
+			try {
+				cfg = mergeConfig(cfg, safeJsonParse(readFileSync(filePath, 'utf-8')));
+			} catch {}
+		}
+	}
 
 	const envConfig = process.env.SPECTRA_CONFIG;
 	if (envConfig) {
 		try {
-			const parsed = JSON.parse(envConfig);
-			Object.assign(cfg, parsed);
+			cfg = mergeConfig(cfg, safeJsonParse(envConfig));
 		} catch {}
-	}
-
-	const projectDir = cwd || process.cwd();
-	const dirs = discoverConfigDirs(projectDir);
-
-	for (const { path: dirPath } of dirs) {
-		for (const name of configFiles) {
-			const filePath = join(dirPath, name);
-			if (existsSync(filePath)) {
-				try {
-					const content = readFileSync(filePath, 'utf-8');
-					Object.assign(cfg, safeJsonParse(content) as SpectraConfig);
-				} catch {}
-			}
-		}
-	}
-
-	const globalDir = getGlobalConfigDir();
-	if (!dirs.some((d) => d.path === globalDir)) {
-		for (const name of configFiles) {
-			const filePath = join(globalDir, name);
-			if (existsSync(filePath)) {
-				try {
-					const content = readFileSync(filePath, 'utf-8');
-					Object.assign(cfg, safeJsonParse(content) as SpectraConfig);
-				} catch {}
-			}
-		}
 	}
 
 	const envProvider = process.env.SPECTRA_PROVIDER;
 	const envModel = process.env.SPECTRA_MODEL;
 	const envKey = process.env.SPECTRA_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY;
 
-	if (envProvider && !cfg.provider) cfg.provider = envProvider;
-	if (envModel && !cfg.model) cfg.model = envModel;
-	if (envKey && !cfg.apiKey) cfg.apiKey = envKey;
+	if (envProvider) cfg.provider = envProvider;
+	if (envModel) cfg.model = envModel;
+	if (envKey) cfg.apiKey = envKey;
 
 	return cfg;
 }

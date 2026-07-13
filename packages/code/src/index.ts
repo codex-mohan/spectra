@@ -6,7 +6,7 @@ export async function launchTui(options?: import('./tui/index.js').TuiOptions): 
 export { loadConfig } from './services/config.js';
 export { loadContext } from './services/context.js';
 export { SessionStore } from './services/session-store.js';
-export type { SpectraConfig, AgentConfig, McpConfig } from './services/config.js';
+export type { SpectraConfig, McpConfig } from './services/config.js';
 export {
 	connectServer,
 	disconnectServer,
