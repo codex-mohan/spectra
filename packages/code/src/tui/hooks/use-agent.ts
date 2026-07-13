@@ -1,11 +1,11 @@
 import { useRef, useCallback } from 'react';
 import type { SecurityManager } from '../../security/index.js';
-import type { CustomProviderConfig, AgentConfig } from '../../services/config.js';
+import type { CustomProviderConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
 import { getAuthKey } from '../utils/model-config.js';
 import { read as readCredential } from '../../services/auth-store.js';
 import { showToast } from '../components/toast.js';
-import { AGENT_DEFINITIONS } from '../../agents/index.js';
+import { getAgentDefinition } from '../../agents/index.js';
 import type { AgentRegistryConfig } from '../../agents/registry.js';
 import { createSecurityManager } from '../../security/index.js';
 import type { PermissionRequest, PermissionConfig, SecurityConfig } from '../../security/types.js';
@@ -39,16 +39,15 @@ const RUNTIME_KNOWLEDGE_POLICY = `## Runtime knowledge policy
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
 	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig };
-	agentsConfig?: Record<string, AgentConfig>;
 	enqueuePermission: (req: PermissionRequest) => void;
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionId: React.MutableRefObject<string | null>;
 }
 export function useAgent(deps: UseAgentDeps) {
-	const { securityRef, securityConfig, agentsConfig, enqueuePermission, sessionStore, sessionId } = deps;
+	const { securityRef, securityConfig, enqueuePermission, sessionStore, sessionId } = deps;
 
 	// Per-session agent Map — like opencode's Map<SessionID, Runner>
-	const agentsMapRef = useRef(new Map<string, any>());
+	const agentsMapRef = useRef(new Map<string, { reset: () => void; restoreHistory: (m: Message[]) => void; abort?: () => void }>());
 	const lastAgentRef = useRef<string | null>(null);
 
 	const initSecurityManager = useCallback(
@@ -72,7 +71,7 @@ export function useAgent(deps: UseAgentDeps) {
 							if (!entry || typeof entry === 'string') {
 								permission[rule.permission] = { [rule.pattern]: 'allow' };
 							} else if (typeof entry === 'object') {
-								(entry as Record<string, string>)[rule.pattern] = 'allow';
+								if (entry && typeof entry === 'object' && !Array.isArray(entry)) { (entry as Record<string, string>)[rule.pattern] = 'allow'; }
 							}
 						}
 						existing.permission = permission as typeof existing.permission;
@@ -142,7 +141,7 @@ export function useAgent(deps: UseAgentDeps) {
 				}
 			}
 
-			const def = AGENT_DEFINITIONS[selectedAgent];
+			const def = getAgentDefinition(selectedAgent);
 
 			const manager = initSecurityManager(process.cwd());
 
@@ -202,7 +201,7 @@ export function useAgent(deps: UseAgentDeps) {
 				systemPrompt,
 				getApiKey: (p: string) => getAuthKey(p),
 				tools: agentTools,
-				maxTurns: agentsConfig?.[selectedAgent]?.maxTurns ?? def?.maxTurns,
+				maxTurns: def?.maxTurns,
 				streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 				transformContext,
 			});
@@ -250,7 +249,7 @@ export function useAgent(deps: UseAgentDeps) {
 	const abortSession = useCallback((sessionId: string) => {
 		for (const [key, agent] of agentsMapRef.current.entries()) {
 			if (key.startsWith(`${sessionId}:`)) {
-				agent.abort();
+				agent.abort?.();
 				return;
 			}
 		}
@@ -291,7 +290,6 @@ export function useAgent(deps: UseAgentDeps) {
 
 export function createSessionSecurityManager(
 	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
-	agentsConfig: Record<string, AgentConfig> | undefined,
 	enqueuePermission: (req: PermissionRequest) => void,
 ): SecurityManager {
 	const manager = createSecurityManager({
@@ -311,7 +309,7 @@ export function createSessionSecurityManager(
 					if (!entry || typeof entry === 'string') {
 						permission[rule.permission] = { [rule.pattern]: 'allow' };
 					} else if (typeof entry === 'object') {
-						(entry as Record<string, string>)[rule.pattern] = 'allow';
+						if (entry && typeof entry === 'object' && !Array.isArray(entry)) { (entry as Record<string, string>)[rule.pattern] = 'allow'; }
 					}
 				}
 				existing.permission = permission as typeof existing.permission;
@@ -327,7 +325,6 @@ export function createSessionSecurityManager(
 
 export function createSessionFactory(
 	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
-	agentsConfig: Record<string, AgentConfig> | undefined,
 	enqueuePermission: (req: PermissionRequest) => void,
 ) {
 	return async (
@@ -345,7 +342,7 @@ export function createSessionFactory(
 		const { createAllToolsWithSecurity } = await import('../../tools/index.js');
 		const customCfg = customProviders[provider];
 
-		const def = AGENT_DEFINITIONS[agentName];
+		const def = getAgentDefinition(agentName);
 
 		const agentConfig: AgentRegistryConfig = {
 			model: {
@@ -395,7 +392,7 @@ export function createSessionFactory(
 			},
 			systemPrompt,
 			getApiKey: (p: string) => getAuthKey(p),
-			maxTurns: agentsConfig?.[agentName]?.maxTurns ?? def?.maxTurns,
+			maxTurns: def?.maxTurns,
 			streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 		});
 

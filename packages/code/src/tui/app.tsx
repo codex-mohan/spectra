@@ -48,7 +48,9 @@ import { setTerminalTitle, formatSessionTitle } from './utils/terminal-title.js'
 import { loadConfig, type CustomProviderConfig } from '../services/config.js';
 import { registerAllCustomProviders } from '../services/custom-providers.js';
 import { PermissionDialog } from './ui/permission-dialog.js';
-import { AGENTS, PLACEHOLDERS } from './app-constants.js';
+import { PLACEHOLDERS } from './app-constants.js';
+import { getBuiltinCatalog, loadAgentCatalog, type AgentCatalog } from '../agents/index.js';
+import { resolveAgentAccentColor } from './utils/agent-color.js';
 
 import { loadSavedConfig, saveModelConfig, fmtCtx, lookupContextWindow } from './utils/model-config.js';
 import { sdkMessagesToChatMessages } from './utils/session-messages.js';
@@ -200,26 +202,40 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		const cfg = loadConfig();
 		return { permission: cfg.permission, security: cfg.security };
 	});
-	const [agentsConfig] = useState(() => {
-		const cfg = loadConfig();
-		return cfg.agents ?? {};
-	});
+	const [agentCatalog, setAgentCatalog] = useState<AgentCatalog>(() => getBuiltinCatalog());
 
 	const sessionManager = useRef<SessionManager>(
 		new SessionManager(
 			sessionStore.current,
-			createSessionFactory(securityConfig, agentsConfig, () => {}),
-			() => createSessionSecurityManager(securityConfig, agentsConfig, () => {}),
+			createSessionFactory(securityConfig, () => {}),
+			() => createSessionSecurityManager(securityConfig, () => {}),
 		),
 	);
 
 	// --- Template commands (loaded async from .spectra/commands) ---
 	const [templateDefinitions, setTemplateDefinitions] = useState<readonly CommandDefinition[]>([]);
 	const shownDiagnosticsRef = useRef(new Set<string>());
+	const agentDiagShownRef = useRef(new Set<string>());
+
+	useEffect(() => {
+		let cancelled = false;
+		loadAgentCatalog(process.cwd()).then((catalog) => {
+			if (cancelled) return;
+			setAgentCatalog(catalog);
+			for (const d of catalog.diagnostics) {
+				const key = `${d.sourcePath}:${d.message}`;
+				if (agentDiagShownRef.current.has(key)) continue;
+				agentDiagShownRef.current.add(key);
+				showToast(d.message, 'warn');
+			}
+		}).catch(() => {});
+		return () => { cancelled = true; };
+	}, []);
 
 	// --- Derived ---
 	const provider = selectedProvider;
 	const hasModel = selectedModel !== null && selectedProvider !== null;
+	const agentAccentColor = resolveAgentAccentColor(agentCatalog.definitions[selectedAgent]?.color);
 	const mcpCount = 0;
 	const customProviderCount = Object.keys(customProviders).length;
 
@@ -330,7 +346,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const { agentsMapRef, lastAgentRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent, resetAgentForModelSwitch } = useAgent({
 		securityRef,
 		securityConfig,
-		agentsConfig,
 		enqueuePermission,
 		sessionStore,
 		sessionId,
@@ -393,6 +408,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				onCycleVariant: handleCycleVariant,
 				currentEffort: thinkingEffort,
 				selectedAgent,
+				agentCatalog,
 				onSecurityReset: () => {
 					securityRef.current?.getReadTracker().reset();
 					securityRef.current?.getDoomLoop().reset();
@@ -415,6 +431,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			handleCycleVariant,
 			thinkingEffort,
 			selectedAgent,
+			agentCatalog,
 			sessionStore,
 			sessionId,
 			setRoute,
@@ -688,6 +705,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		promptHistoryService,
 		interruptKey,
 		selectedAgent,
+		primaryAgents: agentCatalog.primary,
 		thinkingEffort,
 		provider,
 		securityRef,
@@ -711,6 +729,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		updateLastAssistantMeta,
 		execCmd,
 		handleCycleVariant,
+		onAgentCycled: resetAgentForModelSwitch,
 	});
 
 	// --- JSX ---
@@ -730,6 +749,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							onSubmit={handleSubmit}
 							hasModel={hasModel}
 							agent={selectedAgent}
+							accentColor={agentAccentColor}
 							model={selectedModel || ''}
 							provider={provider || ''}
 							thinkingEffort={thinkingEffort}
@@ -771,7 +791,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						<box flexDirection="row" gap={4} alignItems="center">
 							{[
 								{ icon: '◈', label: `${sessionStore.current.list(process.cwd()).length} sessions` },
-								{ icon: '◉', label: '3 agents' },
+								{ icon: '◉', label: `${agentCatalog.primary.length} agents` },
 								{ icon: '◆', label: '7 tools' },
 								{ icon: '⬢', label: `${mcpCount} MCP` },
 							].map((s) => (
@@ -843,6 +863,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								onSubmit={handleSubmit}
 								hasModel={hasModel}
 								agent={selectedAgent}
+								accentColor={agentAccentColor}
 								model={selectedModel || ''}
 								provider={provider || ''}
 								thinkingEffort={thinkingEffort}
@@ -1127,6 +1148,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			{dialogStep?.type === 'switch-agent' && (
 				<AgentSwitcher
 					currentAgent={selectedAgent}
+					primaryAgents={agentCatalog.primary}
+					definitions={agentCatalog.definitions}
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onAgentSelected={(agent) => {

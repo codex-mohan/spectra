@@ -9,7 +9,7 @@ import type { SnapshotManager } from '../../services/snapshot-manager.js';
 import type { Patch } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { genId, getMessageBlocks } from '../utils.js';
-import { AGENT_DEFINITIONS } from '../../agents/index.js';
+import { getAgentDefinition } from '../../agents/index.js';
 import { parseSlashCommand, slashHead } from '../slash-commands.js';
 import { showToast } from '../components/toast.js';
 import { dispatchCommand, type CommandRegistry, type CommandRunContext, type DispatcherResult, type ResolvedCommand } from '../command-types.js';
@@ -165,7 +165,7 @@ interface QueuedSteeringDisplay {
 		titleGeneratedRef.current = true;
 
 		try {
-			const titleDef = AGENT_DEFINITIONS['title'];
+			const titleDef = getAgentDefinition('title');
 			let modelId = titleDef?.model?.id ?? deps.selectedModel;
 			let prov = titleDef?.model?.provider ?? deps.provider;
 			if (!modelId || !prov) return;
@@ -369,8 +369,8 @@ Return ONLY the title text, nothing else.`;
 				let promptInputText = trimmed;
 				const prevAgent = lastAgentRef.current;
 				if (prevAgent && prevAgent !== selectedAgent) {
-					const def = AGENT_DEFINITIONS[selectedAgent];
-					const prevDef = AGENT_DEFINITIONS[prevAgent];
+					const def = getAgentDefinition(selectedAgent);
+					const prevDef = getAgentDefinition(prevAgent);
 					if (prevDef?.mode === 'primary' && def?.mode === 'primary') {
 						if (prevAgent === 'plan' && selectedAgent !== 'plan') {
 							promptInputText = `<system-reminder>\nYou are now in ${selectedAgent} mode. The previous agent was in plan mode — a plan may have been created. Execute on it if one exists.\n</system-reminder>\n\n${trimmed}`;

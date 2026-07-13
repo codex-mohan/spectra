@@ -5,7 +5,8 @@ export const generalAgent: AgentDefinition = {
 	mode: 'subagent',
 	description:
 		'General-purpose subagent with full tool access. Use for executing commands, reading/writing files, and completing complex delegated tasks.',
-	blockedTools: [],
+	disallowedTools: [],
+	color: 'blue',
 	temperature: 0,
 	prompt: `## Mode: General
 

@@ -97,12 +97,13 @@ describe('ACP Protocol', () => {
 			expect(acpReadAll).toBe(tuiReadAll);
 		});
 
-		it('shares the same agent definitions', async () => {
-			const { AGENT_DEFINITIONS: tuiDefs } = await import('../agents/index.js');
-
-			const { AGENT_DEFINITIONS: acpDefs } = await import('../agents/index.js');
+		it('shares the same builtin agent definitions', async () => {
+			const { BUILTIN_AGENT_DEFINITIONS: tuiDefs } = await import('../agents/index.js');
+			const { BUILTIN_AGENT_DEFINITIONS: acpDefs } = await import('../agents/index.js');
 			expect(acpDefs).toBe(tuiDefs);
-			expect(Object.keys(acpDefs)).toEqual(['build', 'plan', 'debug', 'explore', 'general', 'title', 'skill-synth']);
+			expect(Object.keys(acpDefs).sort()).toEqual(
+				['build', 'debug', 'explore', 'general', 'plan', 'skill-synth', 'title'].sort(),
+			);
 		});
 
 		it('session/new creates a real Agent with tools registered', async () => {

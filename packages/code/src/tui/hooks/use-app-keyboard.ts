@@ -5,8 +5,9 @@ import type { ArgCompletion, ResolvedCommand } from '../command-types.js';
 import type { ChatMessage } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
 import { cycleEffort } from '../variant-cycle.js';
-import { AGENTS } from '../app-constants.js';
 import { slashHead } from '../slash-commands.js';
+import { titlecase } from '../utils.js';
+import { showToast } from '../components/toast.js';
 
 const INTERRUPT_CONFIRM_MS = 3000;
 
@@ -43,6 +44,7 @@ interface UseAppKeyboardDeps {
 
 	interruptKey: number;
 	selectedAgent: string;
+	primaryAgents: string[];
 	thinkingEffort: string | undefined;
 	provider: string | null;
 
@@ -68,6 +70,8 @@ interface UseAppKeyboardDeps {
 
 	execCmd: (item: ResolvedCommand) => void;
 	handleCycleVariant: () => void;
+	/** Called after Tab cycles the agent (e.g. rebuild session agent). */
+	onAgentCycled?: () => void;
 }
 
 export function useAppKeyboard(deps: UseAppKeyboardDeps) {
@@ -100,6 +104,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		fileAtActive,
 		interruptKey,
 		selectedAgent,
+		primaryAgents,
 		thinkingEffort,
 		provider,
 		securityRef,
@@ -122,6 +127,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		updateLastAssistantMeta,
 		execCmd,
 		handleCycleVariant,
+		onAgentCycled,
 	} = deps;
 
 	const lastCursorRef = useRef<number>(-1);
@@ -308,9 +314,16 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		}
 		if (key.name === 'tab') {
 			if (fileAtActive) return;
-			setSelectedAgent((p) => AGENTS[(AGENTS.indexOf(p) + 1) % AGENTS.length]);
-			securityRef.current?.getReadTracker().reset();
-			securityRef.current?.getDoomLoop().reset();
+			const list = primaryAgents.length ? primaryAgents : ['build'];
+			setSelectedAgent((p) => {
+				const idx = list.indexOf(p);
+				const next = list[(idx >= 0 ? idx + 1 : 0) % list.length];
+				showToast(`Switched to ${titlecase(next)} agent`, 'info');
+				return next;
+			});
+			onAgentCycled?.();
+			securityRef.current?.getReadTracker()?.reset();
+			securityRef.current?.getDoomLoop()?.reset();
 			return;
 		}
 		if (key.ctrl && key.name === 'p') {

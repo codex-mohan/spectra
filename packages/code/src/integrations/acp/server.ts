@@ -5,7 +5,7 @@ import type { Message, AssistantMessage, AssistantMessageEvent } from '@mohansco
 import { loadContext } from '../../services/context.js';
 import { loadConfig } from '../../services/config.js';
 import { AgentRegistry } from '../../agents/registry.js';
-import { AGENT_DEFINITIONS, filterToolsByAgent } from '../../agents/index.js';
+import { loadAgentCatalog, filterToolsByAgent } from '../../agents/index.js';
 import { createAllToolsWithExtensions } from '../../tools/index.js';
 import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
@@ -106,8 +106,9 @@ export class ACPAdapter {
 			await initProviders();
 
 			const config = loadConfig();
+			const catalog = await loadAgentCatalog();
 			const agentName = config.agent || 'build';
-			const def = AGENT_DEFINITIONS[agentName];
+			const def = catalog.definitions[agentName];
 			if (!def) {
 				error(req.id!, -32603, `Unknown agent: ${agentName}`);
 				return;
@@ -122,7 +123,7 @@ export class ACPAdapter {
 			}
 
 			const toolResult = await createAllToolsWithExtensions();
-			const agentTools = def ? filterToolsByAgent(toolResult.all, agentName) : toolResult.all;
+			const agentTools = def ? filterToolsByAgent(toolResult.all, agentName, catalog) : toolResult.all;
 			const context = loadContext();
 
 			const { loadMemorySnapshot } = await import('../../services/memory.js');

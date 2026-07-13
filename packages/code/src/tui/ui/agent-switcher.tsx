@@ -1,22 +1,25 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { c } from '../theme.js';
-import { AGENT_DEFINITIONS, PRIMARY_AGENTS } from '../../agents/index.js';
+import { resolveAgentAccentColor } from '../utils/agent-color.js';
+import type { AgentDefinition } from '../../agents/index.js';
 import { titlecase } from '../utils.js';
 
 export interface AgentSwitcherProps {
 	currentAgent: string;
+	primaryAgents: string[];
+	definitions: Record<string, AgentDefinition>;
 	termWidth: number;
 	termHeight: number;
 	onAgentSelected: (agent: string) => void;
 	onClose: () => void;
-	registerHandler: (fn: ((key: any) => void) | null) => void;
+	registerHandler: (fn: ((key: unknown) => void) | null) => void;
 }
 
 export function AgentSwitcher(props: AgentSwitcherProps) {
-	const { currentAgent, termWidth, termHeight, onAgentSelected, onClose, registerHandler } = props;
+	const { currentAgent, primaryAgents, definitions, termWidth, termHeight, onAgentSelected, onClose, registerHandler } = props;
 	const [filter, setFilter] = useState('');
 	const [sel, setSel] = useState(0);
-	const scrollRef = useRef<any>(null);
+	const scrollRef = useRef<{ scrollChildIntoView?: (id: string) => void } | null>(null);
 
 	const mw = Math.min(56, termWidth - 4);
 	const ml = Math.floor((termWidth - mw) / 2);
@@ -26,11 +29,11 @@ export function AgentSwitcher(props: AgentSwitcherProps) {
 	const listH = mh - 6;
 
 	const items = useMemo(() => {
-		return PRIMARY_AGENTS.map((name) => ({
+		return primaryAgents.map((name) => ({
 			name,
-			def: AGENT_DEFINITIONS[name],
+			def: definitions[name],
 		}));
-	}, []);
+	}, [primaryAgents, definitions]);
 
 	const filtered = useMemo(() => {
 		if (!filter) return items.map((i, idx) => ({ ...i, idx }));
@@ -41,7 +44,10 @@ export function AgentSwitcher(props: AgentSwitcherProps) {
 	}, [items, filter]);
 
 	useEffect(() => {
-		registerHandler((key: any) => {
+		registerHandler((rawKey: unknown) => {
+			const key = rawKey && typeof rawKey === 'object' && 'name' in rawKey
+				? (rawKey as { name?: string })
+				: {};
 			if (key.name === 'up') {
 				setSel((s) => Math.max(0, s - 1));
 				return;
@@ -132,7 +138,7 @@ export function AgentSwitcher(props: AgentSwitcherProps) {
 										backgroundColor={isSelected ? c.bgSelect : c.bgCard}
 									>
 										<box flexDirection="row" alignItems="center" gap={1}>
-											<text fg={isCurrent ? c.accent : c.dim}>{isCurrent ? '●' : ' '}</text>
+											<text fg={resolveAgentAccentColor(item.def?.color)}>{isCurrent ? '●' : '○'}</text>
 											<text fg={isSelected ? c.accent : isCurrent ? c.text : c.dim}>
 												{titlecase(item.name)}
 											</text>

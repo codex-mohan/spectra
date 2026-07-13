@@ -6,7 +6,7 @@ import { calculateCost, formatCost, formatTokens, isFreeModel, type Message } fr
 import { lookupContextWindow } from './utils/model-config.js';
 import { showToast } from './components/toast.js';
 import { backgroundTasks } from '../services/background-tasks.js';
-import { AGENT_DEFINITIONS, PRIMARY_AGENTS } from '../agents/index.js';
+import type { AgentCatalog } from '../agents/index.js';
 import type { TodoPhase, TodoState, TodoStatus, TodoTask } from './types.js';
 import { genId } from './utils.js';
 
@@ -253,6 +253,7 @@ export function buildCmdItems(opts: {
 	onCycleVariant: () => void;
 	currentEffort?: string;
 	selectedAgent: string;
+	agentCatalog: AgentCatalog;
 	onSecurityReset?: () => void;
 	tokenUsage?: { input: number; output: number };
 	elapsedMs?: number | null;
@@ -285,6 +286,7 @@ export function buildCmdItems(opts: {
 		setDialogStep,
 		currentEffort,
 		selectedAgent,
+		agentCatalog,
 		onSecurityReset,
 		tokenUsage,
 		elapsedMs,
@@ -723,9 +725,9 @@ export function buildCmdItems(opts: {
 			slashAliases: ['agents', 'switch-agent'],
 			argCompleter: (args: string) => {
 				const q = args.trim().toLowerCase();
-				const agents = PRIMARY_AGENTS.map((name) => ({
+				const agents = agentCatalog.primary.map((name) => ({
 					value: name,
-					desc: AGENT_DEFINITIONS[name]?.description || 'agent mode',
+					desc: agentCatalog.definitions[name]?.description || 'agent mode',
 				}));
 				return agents.filter((a) => a.value.includes(q) || a.desc.includes(q));
 			},
@@ -735,7 +737,7 @@ export function buildCmdItems(opts: {
 					setDialogStep({ type: 'switch-agent' });
 					return;
 				}
-				if (!PRIMARY_AGENTS.includes(agent)) {
+				if (!agentCatalog.primary.includes(agent)) {
 					showToast(`Unknown agent mode: ${agent}`, 'warn');
 					return;
 				}

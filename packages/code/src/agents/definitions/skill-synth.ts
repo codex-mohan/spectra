@@ -4,7 +4,7 @@ export const skillSynthAgent: AgentDefinition = {
 	name: 'skill-synth',
 	mode: 'primary',
 	description: 'Hidden system agent that judges whether sessions should become reusable skills.',
-	blockedTools: ['read', 'write', 'edit', 'bash', 'glob', 'grep', 'web_fetch', 'task', 'find_skills', 'skill', 'memory'],
+	disallowedTools: ['read', 'write', 'edit', 'bash', 'glob', 'grep', 'web_fetch', 'task', 'find_skills', 'skill', 'memory'],
 	maxTurns: 1,
 	temperature: 0,
 	hidden: true,

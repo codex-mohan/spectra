@@ -5,7 +5,9 @@ export const exploreAgent: AgentDefinition = {
 	mode: 'subagent',
 	description:
 		'Fast, read-only codebase explorer. Use for file search, code navigation, and answering questions about the codebase.',
-	blockedTools: ['write', 'edit', 'bash'],
+	disallowedTools: ['write', 'edit', 'bash'],
+	readSummarize: true,
+	color: 'purple',
 	temperature: 0,
 	prompt: `## Mode: Explore
 

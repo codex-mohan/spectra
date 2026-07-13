@@ -5,7 +5,8 @@ export const buildAgent: AgentDefinition = {
 	mode: 'primary',
 	description:
 		'Full development agent with all tools enabled. Use for implementation, editing, and running commands.',
-	blockedTools: [],
+	disallowedTools: [],
+	color: 'accent',
 	temperature: 0,
 	prompt: `## Mode: Build
 

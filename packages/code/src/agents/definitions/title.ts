@@ -4,7 +4,7 @@ export const titleAgent: AgentDefinition = {
 	name: 'title',
 	mode: 'primary',
 	description: 'Hidden system agent that generates short session titles.',
-	blockedTools: ['write', 'edit', 'bash', 'glob', 'grep', 'web_fetch', 'task', 'find_skills', 'skill'],
+	disallowedTools: ['write', 'edit', 'bash', 'glob', 'grep', 'web_fetch', 'task', 'find_skills', 'skill'],
 	maxTurns: 1,
 	temperature: 0,
 	hidden: true,

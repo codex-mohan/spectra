@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { SpectraTool } from './types.js';
 import { textResult, errorResult } from './utils.js';
-import { AGENT_DEFINITIONS, SUBAGENTS, filterToolsByAgent } from '../agents/index.js';
+import { getAgentDefinition, getSubagents, filterToolsByAgent } from '../agents/index.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
 import type { SecurityManager } from '../security/index.js';
 import type { SessionStore } from '../services/session-store.js';
@@ -111,9 +111,10 @@ function combineTaskPrompts(tasks: NormalizedTask[], context: string | undefined
 
 
 function descriptionForTaskTool(): string {
-	const subagentList = SUBAGENTS.map((name) => {
-		const def = AGENT_DEFINITIONS[name];
-		return `- **${name}**: ${def.description}`;
+	const subagents = getSubagents();
+	const subagentList = subagents.map((name) => {
+		const def = getAgentDefinition(name);
+		return `- **${name}**: ${def?.description ?? ''}`;
 	}).join('\n');
 
 	return `Launch a new agent to handle complex, multistep tasks autonomously.
@@ -169,17 +170,17 @@ export function createTaskTool(
 			const background = request.background;
 			const task_id = request.taskId;
 
-			const def = AGENT_DEFINITIONS[request.agent];
+			const def = getAgentDefinition(request.agent);
 			if (!def) {
-				const available = SUBAGENTS.join(', ');
+				const available = getSubagents().join(', ');
 				return errorResult(`Unknown subagent "${subagent_type}". Available: ${available}`);
 			}
-			if (def.mode !== 'subagent') {
+			if (def.mode === 'primary') {
 				return errorResult(
-					`"${subagent_type}" is a primary agent, not a subagent. Available subagents: ${SUBAGENTS.join(', ')}`,
+					`"${subagent_type}" is a primary agent, not a subagent. Available subagents: ${getSubagents().join(', ')}`,
 				);
 			}
-			const prompt = combineTaskPrompts(request.tasks, request.context, request.reporting, (def as { reporting?: string }).reporting);
+			const prompt = combineTaskPrompts(request.tasks, request.context, request.reporting, def.reporting);
 
 
 			try {

@@ -1,7 +1,7 @@
 import { stream } from '@mohanscodex/spectra-ai';
 import type { Message } from '@mohanscodex/spectra-ai';
 import type { Skill } from '@mohanscodex/spectra-agent';
-import { AGENT_DEFINITIONS } from '../agents/index.js';
+import { getAgentDefinition } from '../agents/index.js';
 
 export interface SessionTrace {
 	messages: Message[];
@@ -40,7 +40,7 @@ export async function synthesizeSkillWithAgent(
 	existingSkills: Skill[],
 	options: SkillSynthesisOptions,
 ): Promise<SkillSynthesisCandidate | null> {
-	const def = AGENT_DEFINITIONS['skill-synth'];
+	const def = getAgentDefinition('skill-synth');
 	let modelId = def?.model?.id ?? options.model;
 	let provider = def?.model?.provider ?? options.provider;
 	if (!modelId || !provider) return null;

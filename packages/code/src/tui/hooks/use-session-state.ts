@@ -17,6 +17,12 @@ export interface SessionViewState {
 	thinkingEffort: string | undefined;
 }
 
+/** UI prefs that must work before any chat session exists (home screen). */
+export type SessionPrefs = Pick<
+	SessionViewState,
+	'selectedAgent' | 'selectedModel' | 'selectedProvider' | 'thinkingEffort'
+>;
+
 const DEFAULT_STATE: SessionViewState = {
 	messages: [],
 	pendingSteering: [],
@@ -33,28 +39,67 @@ const DEFAULT_STATE: SessionViewState = {
 	thinkingEffort: undefined,
 };
 
+const DEFAULT_PREFS: SessionPrefs = {
+	selectedAgent: DEFAULT_STATE.selectedAgent,
+	selectedModel: DEFAULT_STATE.selectedModel,
+	selectedProvider: DEFAULT_STATE.selectedProvider,
+	thinkingEffort: DEFAULT_STATE.thinkingEffort,
+};
+
+function prefsFromState(state: SessionViewState): SessionPrefs {
+	return {
+		selectedAgent: state.selectedAgent,
+		selectedModel: state.selectedModel,
+		selectedProvider: state.selectedProvider,
+		thinkingEffort: state.thinkingEffort,
+	};
+}
+
 export function useSessionState() {
 	const activeIdRef = useRef<string | null>(null);
 	const [, forceRender] = useState(0);
 	const sessionsRef = useRef(new Map<string, SessionViewState>());
+	/** Survives home screen (no active session) so Tab / agent menu work. */
+	const preSessionPrefsRef = useRef<SessionPrefs>({ ...DEFAULT_PREFS });
 
 	function getState(sessionId: string | null): SessionViewState {
-		if (!sessionId) return DEFAULT_STATE;
-		return sessionsRef.current.get(sessionId) || DEFAULT_STATE;
+		if (!sessionId) {
+			return { ...DEFAULT_STATE, ...preSessionPrefsRef.current };
+		}
+		return sessionsRef.current.get(sessionId) || { ...DEFAULT_STATE, ...preSessionPrefsRef.current };
 	}
 
 	function set(sessionId: string, patch: Partial<SessionViewState>) {
 		const current = getState(sessionId);
-		sessionsRef.current.set(sessionId, { ...current, ...patch });
+		const next = { ...current, ...patch };
+		sessionsRef.current.set(sessionId, next);
+		// Keep pre-session prefs in sync so returning home preserves agent/model.
+		if (
+			patch.selectedAgent !== undefined ||
+			patch.selectedModel !== undefined ||
+			patch.selectedProvider !== undefined ||
+			patch.thinkingEffort !== undefined
+		) {
+			preSessionPrefsRef.current = prefsFromState(next);
+		}
 		forceRender((n) => n + 1);
 	}
 
 	function switchSession(newSessionId: string | null) {
+		// Leaving a session: remember its prefs for the next home/new session.
+		if (activeIdRef.current) {
+			const current = sessionsRef.current.get(activeIdRef.current);
+			if (current) preSessionPrefsRef.current = prefsFromState(current);
+		}
 		activeIdRef.current = newSessionId;
+		// Entering a session that has no map entry yet: seed with pre-session prefs.
+		if (newSessionId && !sessionsRef.current.has(newSessionId)) {
+			sessionsRef.current.set(newSessionId, { ...DEFAULT_STATE, ...preSessionPrefsRef.current });
+		}
 		forceRender((n) => n + 1);
 	}
 
-	// --- Per-session mutations (target specific session, not active) ---
+	// --- Per-session mutations ---
 
 	function addMessageTo(sessionId: string, msg: ChatMessage) {
 		const current = getState(sessionId);
@@ -105,7 +150,10 @@ export function useSessionState() {
 		set(sessionId, { status: value });
 	}
 
-	function setTokenUsageIn(sessionId: string, fn: (prev: { input: number; output: number }) => { input: number; output: number }) {
+	function setTokenUsageIn(
+		sessionId: string,
+		fn: (prev: { input: number; output: number }) => { input: number; output: number },
+	) {
 		const current = getState(sessionId);
 		set(sessionId, { tokenUsage: fn(current.tokenUsage) });
 	}
@@ -123,11 +171,23 @@ export function useSessionState() {
 		set(sessionId, { costSoFar: current.costSoFar + amount });
 	}
 
-	// --- Active-session setters (for UI-driven changes like model switch) ---
-
+	/**
+	 * UI prefs for the active session, or pre-session prefs when on home
+	 * (no active session yet). This is what makes Tab / agent menu work
+	 * before the first message creates a session.
+	 */
 	function setActive(patch: Partial<SessionViewState>) {
 		const id = activeIdRef.current;
-		if (!id) return;
+		if (!id) {
+			const nextPrefs = { ...preSessionPrefsRef.current };
+			if (patch.selectedAgent !== undefined) nextPrefs.selectedAgent = patch.selectedAgent;
+			if (patch.selectedModel !== undefined) nextPrefs.selectedModel = patch.selectedModel;
+			if (patch.selectedProvider !== undefined) nextPrefs.selectedProvider = patch.selectedProvider;
+			if (patch.thinkingEffort !== undefined) nextPrefs.thinkingEffort = patch.thinkingEffort;
+			preSessionPrefsRef.current = nextPrefs;
+			forceRender((n) => n + 1);
+			return;
+		}
 		set(id, patch);
 	}
 
@@ -138,7 +198,6 @@ export function useSessionState() {
 		set,
 		setActive,
 
-		// Per-session mutations (for streaming loops)
 		addMessageTo,
 		updateMessageIn,
 		setMessagesIn,
@@ -154,7 +213,6 @@ export function useSessionState() {
 		setTokPerSecIn,
 		addCostIn,
 
-		// Convenience: active session state for rendering
 		get activeState() {
 			return getState(activeIdRef.current);
 		},

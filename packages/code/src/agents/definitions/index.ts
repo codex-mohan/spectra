@@ -7,7 +7,8 @@ import { generalAgent } from './general.js';
 import { titleAgent } from './title.js';
 import { skillSynthAgent } from './skill-synth.js';
 
-export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
+/** Built-in agents only. Prefer loadAgentCatalog() for the full merged set. */
+export const BUILTIN_AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
 	[buildAgent.name]: buildAgent,
 	[planAgent.name]: planAgent,
 	[debugAgent.name]: debugAgent,
@@ -16,11 +17,3 @@ export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
 	[titleAgent.name]: titleAgent,
 	[skillSynthAgent.name]: skillSynthAgent,
 };
-
-export const PRIMARY_AGENTS = Object.values(AGENT_DEFINITIONS)
-	.filter((d) => d.mode === 'primary' && !d.hidden)
-	.map((d) => d.name);
-
-export const SUBAGENTS = Object.values(AGENT_DEFINITIONS)
-	.filter((d) => d.mode === 'subagent' && !d.hidden)
-	.map((d) => d.name);
