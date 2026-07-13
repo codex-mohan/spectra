@@ -5,6 +5,7 @@ import { c } from './theme.js';
 import { titlecase } from './utils.js';
 import { formatAttachmentBadge, formatAttachmentMetadata, getFileVisual } from './utils/file-visuals.js';
 import { readLocalAttachment, readClipboardAttachment, readPastedBytesAttachment, resolvePastedFilePath } from './utils/local-attachment.js';
+import { resolvePromptBarWidths } from './prompt-layout.js';
 
 const COMPACT_THRESHOLD = 250;
 const ATTACHMENT_EXTMARK_TYPE = 'prompt-attachment';
@@ -44,6 +45,8 @@ export interface PromptBarProps {
 	elapsedMs?: number | null;
 	tokenUsage?: { input: number; output: number };
 	focused?: boolean;
+	/** Left strip color for the active agent. */
+	accentColor?: string;
 	onTextChange?: (text: string) => void;
 	onGetTextarea?: (ref: unknown) => void;
 	onPositionChange?: (pos: { top: number; left: number; width: number }) => void;
@@ -146,7 +149,7 @@ export function PromptBar(props: PromptBarProps) {
 	const {
 		isLoading, inputKey, placeholder, onSubmit, hasModel,
 		agent, model, provider, thinkingEffort, initialValue, width,
-		elapsedMs, tokenUsage, focused = true,
+		elapsedMs, tokenUsage, focused = true, accentColor,
 		onTextChange, onGetTextarea, onPositionChange, onGetPromptBar,
 	} = props;
 
@@ -301,12 +304,13 @@ export function PromptBar(props: PromptBarProps) {
 		}
 	}, [addAttachment]);
 
-	const bodyWidth = typeof width === 'number' ? Math.max(0, width - 1) : width ?? 'auto';
+	const { rootWidth, bodyWidth } = resolvePromptBarWidths(width);
+	const barColor = accentColor ?? c.accent;
 
 	if (!hasModel && !isLoading) {
 		return (
-			<box flexDirection="row">
-				<box width={1} backgroundColor={c.accent} height={'auto'} />
+			<box flexDirection="row" width={rootWidth}>
+				<box width={1} backgroundColor={barColor} height={'auto'} />
 				<box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} width={bodyWidth}>
 					<text fg={c.warn}>●</text>
 					<text fg={c.dim}> Connect a provider to get started — </text>
@@ -318,9 +322,9 @@ export function PromptBar(props: PromptBarProps) {
 	}
 
 	return (
-		<box flexDirection="column" ref={(r: unknown) => { boxRef.current = r; }}>
-			<box flexDirection="row">
-				<box width={1} backgroundColor={c.accent} height={'auto'} />
+		<box flexDirection="column" width={rootWidth} ref={(r: unknown) => { boxRef.current = r; }}>
+			<box flexDirection="row" width={'100%'}>
+				<box width={1} backgroundColor={barColor} height={'auto'} />
 				<box flexDirection="row" alignItems="center" backgroundColor={c.bgBar} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} width={bodyWidth}>
 					<box flexDirection="column" flexGrow={1} paddingLeft={2}>
 						{showHint && (
@@ -353,7 +357,7 @@ export function PromptBar(props: PromptBarProps) {
 						<box height={1} />
 						<box flexDirection="row" justifyContent="space-between" alignItems="center" height={1}>
 							<box flexDirection="row" gap={2} alignItems="center">
-								<text fg={c.accent}>{titlecase(agent)}</text>
+								<text fg={barColor}>{titlecase(agent)}</text>
 								<text fg={c.dim}>{model}</text>
 								<text fg={c.subtext}>{provider}</text>
 								{thinkingEffort && thinkingEffort !== 'none' && <text fg={c.warn}>{thinkingEffort}</text>}

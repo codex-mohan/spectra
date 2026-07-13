@@ -106,7 +106,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 					)}
 				</box>
 				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
-					<text fg={c.dim}>
+					<text fg={c.dim} height={1}>
 						{'\u2191\u2193'} navigate · {'\u23CE'} select · esc close
 					</text>
 				</box>
