@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { registerProvider, getProvider, listProviders, stream } from '../registry.js';
+import { registerProvider, getProvider, listProviders, stream, getModels } from '../registry.js';
 import { createAnthropicProvider } from '../providers/anthropic.js';
 import type { Model, Context } from '../types.js';
 import '../providers/register-builtins.js';
@@ -31,6 +31,27 @@ describe('Provider Registry', () => {
 			expect(getProvider(provider)).toBeDefined();
 		}
 	});
+
+describe('openai-codex model catalog', () => {
+	it('should have openai-codex registered as a provider', () => {
+		const provider = getProvider('openai-codex');
+		expect(provider).toBeDefined();
+		expect(provider?.name).toBe('openai-codex');
+	});
+
+	it('should return a non-empty model list for openai-codex', async () => {
+		const models = await getModels('openai-codex');
+		expect(models.length).toBeGreaterThan(0);
+	});
+
+	it('should include codex models in the catalog', async () => {
+		const models = await getModels('openai-codex');
+		const codexModels = models.filter((m) => m.id.includes('codex'));
+		expect(codexModels.length).toBeGreaterThan(0);
+	});
+
+
+});
 
 describe('Anthropic Provider', () => {
 	it('should create provider with correct name', () => {

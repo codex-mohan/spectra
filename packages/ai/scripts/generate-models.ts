@@ -13,6 +13,22 @@ interface FetchModel {
 	contextWindow?: number;
 }
 
+// ChatGPT subscription models are not exposed through models.dev, but are
+// available through the OpenAI Codex OAuth provider.
+const CODEX_MODELS: readonly FetchModel[] = [
+	{ id: 'gpt-4.1', name: 'GPT-4.1', contextWindow: 1_047_576 },
+	{ id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', contextWindow: 1_047_576 },
+	{ id: 'gpt-4.1-nano', name: 'GPT-4.1 nano', contextWindow: 1_047_576 },
+	{ id: 'gpt-5-codex', name: 'GPT-5-Codex', contextWindow: 400_000 },
+	{ id: 'gpt-5.1-codex', name: 'GPT-5.1 Codex', contextWindow: 400_000 },
+	{ id: 'gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max', contextWindow: 400_000 },
+	{ id: 'gpt-5.1-codex-mini', name: 'GPT-5.1 Codex mini', contextWindow: 400_000 },
+	{ id: 'gpt-5.2-codex', name: 'GPT-5.2 Codex', contextWindow: 400_000 },
+	{ id: 'gpt-5.3-codex', name: 'GPT-5.3 Codex', contextWindow: 400_000 },
+	{ id: 'gpt-5.3-codex-spark', name: 'GPT-5.3 Codex Spark', contextWindow: 128_000 },
+	{ id: 'o4-mini', name: 'o4-mini', contextWindow: 200_000 },
+];
+
 async function fetchOpenRouterModels(): Promise<FetchModel[]> {
 	try {
 		const res = await fetch('https://openrouter.ai/api/v1/models', { signal: AbortSignal.timeout(10000) });
@@ -68,6 +84,10 @@ async function main() {
 	// Process OpenRouter models — all belong under "openrouter"
 	for (const m of orModels) {
 		addModel('openrouter', m.id, m.name);
+	}
+
+	for (const model of CODEX_MODELS) {
+		addModel('openai-codex', model.id, model.name, model.contextWindow);
 	}
 
 	// Sort and convert to plain objects

@@ -939,6 +939,33 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 150000
     }
   ],
+  "ai-router": [
+    {
+      "id": "gpt-5.4",
+      "name": "GPT-5.4",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.5",
+      "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "contextWindow": 1050000
+    }
+  ],
   "aihubmix": [
     {
       "id": "claude-opus-4-6",
@@ -2652,6 +2679,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 202752
     },
     {
+      "id": "zai-org/GLM-5.2-FP8",
+      "name": "GLM-5.2",
+      "contextWindow": 202752
+    },
+    {
       "id": "moonshotai/kimi-k2.6",
       "name": "Kimi K2.6",
       "contextWindow": 262144
@@ -3805,6 +3837,18 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 32000
     }
   ],
+  "blueclaw": [
+    {
+      "id": "Qwen3.6-27B",
+      "name": "Qwen3.6 27B",
+      "contextWindow": 196608
+    },
+    {
+      "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+      "name": "Qwen3.6 35B A3B FP8",
+      "contextWindow": 131072
+    }
+  ],
   "cerebras": [
     {
       "id": "gemma-4-31b",
@@ -4782,6 +4826,21 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1050000
     },
     {
+      "id": "openai/gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "contextWindow": 1050000
+    },
+    {
       "id": "tencent/hy3-preview",
       "name": "Hy3 preview",
       "contextWindow": 256000
@@ -4840,6 +4899,53 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen/qwen3.7-plus",
       "name": "Qwen3.7 Plus",
       "contextWindow": 1000000
+    }
+  ],
+  "daoxe": [
+    {
+      "id": "claude-haiku-4-5-20251001",
+      "name": "Claude Haiku 4.5",
+      "contextWindow": 200000
+    },
+    {
+      "id": "claude-opus-4-8",
+      "name": "Claude Opus 4.8",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "gemini-3.1-pro-preview",
+      "name": "Gemini 3.1 Pro Preview",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "gpt-5.4",
+      "name": "GPT-5.4",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.5",
+      "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "grok-4.3",
+      "name": "Grok 4.3",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "grok-4.5",
+      "name": "Grok 4.5",
+      "contextWindow": 500000
+    },
+    {
+      "id": "kimi-k2.5",
+      "name": "Kimi K2.5",
+      "contextWindow": 262144
     }
   ],
   "databricks": [
@@ -5569,7 +5675,39 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 204800
     }
   ],
+  "ebcloud": [
+    {
+      "id": "DeepSeek-V4-Flash",
+      "name": "DeepSeek V4 Flash",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "DeepSeek-V4-Pro",
+      "name": "DeepSeek V4 Pro",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "GLM-5.1",
+      "name": "GLM-5.1",
+      "contextWindow": 200000
+    },
+    {
+      "id": "Kimi-K2.6",
+      "name": "Kimi K2.6",
+      "contextWindow": 262144
+    }
+  ],
   "empiriolabs": [
+    {
+      "id": "deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "contextWindow": 1000000
+    },
     {
       "id": "fugu-ultra",
       "name": "Fugu Ultra",
@@ -5616,8 +5754,23 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 256000
     },
     {
+      "id": "mimo-v2-5",
+      "name": "MiMo V2.5",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "mimo-v2-5-pro",
+      "name": "MiMo V2.5 Pro",
+      "contextWindow": 1000000
+    },
+    {
       "id": "minimax-m2-7",
       "name": "MiniMax M2.7",
+      "contextWindow": 200000
+    },
+    {
+      "id": "minimax-m2-7-highspeed",
+      "name": "MiniMax M2.7 Highspeed",
       "contextWindow": 200000
     },
     {
@@ -5629,6 +5782,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "muse-spark-1-1",
       "name": "Muse Spark 1.1",
       "contextWindow": 1000000
+    },
+    {
+      "id": "qwen3-max",
+      "name": "Qwen3 Max",
+      "contextWindow": 256000
     },
     {
       "id": "qwen3-5-122b-a10b",
@@ -5674,6 +5832,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen3-6-flash",
       "name": "Qwen3.6 Flash",
       "contextWindow": 1000000
+    },
+    {
+      "id": "qwen3-6-max-preview",
+      "name": "Qwen3.6 Max Preview",
+      "contextWindow": 256000
     },
     {
       "id": "qwen3-6-plus",
@@ -7483,19 +7646,49 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "hpc-ai": [
     {
+      "id": "anthropic/claude-opus-4.7",
+      "name": "Claude Opus 4.7",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "deepseek/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "deepseek/deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "contextWindow": 1002000
+    },
+    {
       "id": "zai-org/glm-5.1",
       "name": "GLM 5.1",
       "contextWindow": 202000
     },
     {
+      "id": "zai-org/glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "openai/gpt-5.5",
+      "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
       "id": "moonshotai/kimi-k2.5",
       "name": "Kimi K2.5",
-      "contextWindow": 262144
+      "contextWindow": 256000
+    },
+    {
+      "id": "moonshotai/kimi-k2.7-code",
+      "name": "Kimi K2.7 Code",
+      "contextWindow": 256000
     },
     {
       "id": "minimax/minimax-m2.5",
-      "name": "MiniMax M2.5",
-      "contextWindow": 1000000
+      "name": "MiniMax-M2.5",
+      "contextWindow": 196000
     }
   ],
   "huggingface": [
@@ -7896,6 +8089,38 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen/qwen-2.5-7b-vision-instruct",
       "name": "Qwen 2.5 7B Vision Instruct",
       "contextWindow": 125000
+    }
+  ],
+  "inferx": [
+    {
+      "id": "google/gemma-4-31b-it-fp8",
+      "name": "Gemma 4 31B IT FP8",
+      "contextWindow": 262144
+    },
+    {
+      "id": "qwen/qwen3-coder-next-fp8",
+      "name": "Qwen3 Coder Next FP8",
+      "contextWindow": 256144
+    },
+    {
+      "id": "qwen/qwen3-coder-next-fp8-1m",
+      "name": "Qwen3 Coder Next FP8 1M",
+      "contextWindow": 1024000
+    },
+    {
+      "id": "qwen/qwen3.5-122b-a10b-nvfp4",
+      "name": "Qwen3.5 122B A10B NVFP4",
+      "contextWindow": 256144
+    },
+    {
+      "id": "qwen/qwen3.6-27b-fp8",
+      "name": "Qwen3.6 27B FP8",
+      "contextWindow": 262144
+    },
+    {
+      "id": "qwen/qwen3.6-35b-a3b-fp8",
+      "name": "Qwen3.6 35B A3B FP8",
+      "contextWindow": 262000
     }
   ],
   "io-net": [
@@ -10256,16 +10481,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 131072
     },
     {
-      "id": "mimo-v2-omni",
-      "name": "MiMo-V2-Omni",
-      "contextWindow": 256000
-    },
-    {
-      "id": "mimo-v2-pro",
-      "name": "MiMo-V2-Pro",
-      "contextWindow": 1000000
-    },
-    {
       "id": "mimo-v2.5",
       "name": "MiMo-V2.5",
       "contextWindow": 1000000
@@ -10637,6 +10852,13 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "lucidquery-nexus-coder",
       "name": "LucidQuery Nexus Coder",
       "contextWindow": 250000
+    }
+  ],
+  "lynkr": [
+    {
+      "id": "lynkr-auto",
+      "name": "Lynkr Auto (complexity routing)",
+      "contextWindow": 128000
     }
   ],
   "meganova": [
@@ -14317,6 +14539,63 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 200000
     }
   ],
+  "openai-codex": [
+    {
+      "id": "gpt-4.1",
+      "name": "GPT-4.1",
+      "contextWindow": 1047576
+    },
+    {
+      "id": "gpt-4.1-mini",
+      "name": "GPT-4.1 mini",
+      "contextWindow": 1047576
+    },
+    {
+      "id": "gpt-4.1-nano",
+      "name": "GPT-4.1 nano",
+      "contextWindow": 1047576
+    },
+    {
+      "id": "gpt-5-codex",
+      "name": "GPT-5-Codex",
+      "contextWindow": 400000
+    },
+    {
+      "id": "gpt-5.1-codex",
+      "name": "GPT-5.1 Codex",
+      "contextWindow": 400000
+    },
+    {
+      "id": "gpt-5.1-codex-max",
+      "name": "GPT-5.1 Codex Max",
+      "contextWindow": 400000
+    },
+    {
+      "id": "gpt-5.1-codex-mini",
+      "name": "GPT-5.1 Codex mini",
+      "contextWindow": 400000
+    },
+    {
+      "id": "gpt-5.2-codex",
+      "name": "GPT-5.2 Codex",
+      "contextWindow": 400000
+    },
+    {
+      "id": "gpt-5.3-codex",
+      "name": "GPT-5.3 Codex",
+      "contextWindow": 400000
+    },
+    {
+      "id": "gpt-5.3-codex-spark",
+      "name": "GPT-5.3 Codex Spark",
+      "contextWindow": 128000
+    },
+    {
+      "id": "o4-mini",
+      "name": "o4-mini",
+      "contextWindow": 200000
+    }
+  ],
   "opencode": [
     {
       "id": "big-pickle",
@@ -15105,7 +15384,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "z-ai/glm-4.6",
       "name": "GLM-4.6",
-      "contextWindow": 202752
+      "contextWindow": 200000
     },
     {
       "id": "z-ai/glm-4.6v",
@@ -15689,7 +15968,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     },
     {
       "id": "google/gemini-3-pro-image",
-      "name": "Nano Banana Pro (Gemini 3 Pro Image)",
+      "name": "Nano Banana Pro",
       "contextWindow": 65536
     },
     {
@@ -19409,6 +19688,45 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 256000
     }
   ],
+  "stepfun-ai-step-plan": [
+    {
+      "id": "step-3.5-flash",
+      "name": "Step 3.5 Flash",
+      "contextWindow": 256000
+    },
+    {
+      "id": "step-3.5-flash-2603",
+      "name": "Step 3.5 Flash 2603",
+      "contextWindow": 256000
+    },
+    {
+      "id": "step-3.7-flash",
+      "name": "Step 3.7 Flash",
+      "contextWindow": 256000
+    }
+  ],
+  "stepfun-step-plan": [
+    {
+      "id": "step-3.5-flash",
+      "name": "Step 3.5 Flash",
+      "contextWindow": 256000
+    },
+    {
+      "id": "step-3.5-flash-2603",
+      "name": "Step 3.5 Flash 2603",
+      "contextWindow": 256000
+    },
+    {
+      "id": "step-3.7-flash",
+      "name": "Step 3.7 Flash",
+      "contextWindow": 256000
+    },
+    {
+      "id": "step-router-v1",
+      "name": "Step Router v1",
+      "contextWindow": 256000
+    }
+  ],
   "subconscious": [
     {
       "id": "subconscious/glm-5.2",
@@ -21380,6 +21698,21 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
+      "id": "gpt-5.6-luna",
+      "name": "GPT 5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "name": "GPT 5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "name": "GPT 5.6 Terra",
+      "contextWindow": 1050000
+    },
+    {
       "id": "gpt-5-mini",
       "name": "GPT-5 Mini",
       "contextWindow": 272000
@@ -21479,16 +21812,6 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "wafer.ai": [
     {
-      "id": "deepseek-v4-flash",
-      "name": "DeepSeek V4 Flash",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
       "id": "GLM-5.1",
       "name": "GLM-5.1",
       "contextWindow": 202752
@@ -21499,24 +21822,19 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1048576
     },
     {
+      "id": "glm5.2-fast",
+      "name": "GLM5.2-Fast",
+      "contextWindow": 1048576
+    },
+    {
       "id": "Kimi-K2.6",
-      "name": "Kimi-K2.6",
+      "name": "Kimi K2.6",
       "contextWindow": 262144
     },
     {
-      "id": "Qwen3.5-397B-A17B",
-      "name": "Qwen3.5-397B-A17B",
-      "contextWindow": 262144
-    },
-    {
-      "id": "Qwen3.6-35B-A3B",
-      "name": "Qwen3.6-35B-A3B",
-      "contextWindow": 256000
-    },
-    {
-      "id": "qwen3.7-max",
-      "name": "Qwen3.7-Max",
-      "contextWindow": 256000
+      "id": "MiniMax-M3",
+      "name": "MiniMax-M3",
+      "contextWindow": 1048576
     }
   ],
   "wandb": [
@@ -22263,6 +22581,21 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1050000
     },
     {
+      "id": "openai/gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "contextWindow": 1050000
+    },
+    {
       "id": "x-ai/grok-4",
       "name": "Grok 4",
       "contextWindow": 256000
@@ -22296,6 +22629,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "x-ai/grok-4.3",
       "name": "Grok 4.3",
       "contextWindow": 1000000
+    },
+    {
+      "id": "x-ai/grok-4.5",
+      "name": "Grok 4.5",
+      "contextWindow": 500000
     },
     {
       "id": "x-ai/grok-build-0.1",
