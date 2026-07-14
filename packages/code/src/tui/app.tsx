@@ -1259,7 +1259,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}
 					registerHandler={(fn) => {
-						dialogKeyHandler.current = fn as (key: unknown) => void;
+						dialogKeyHandler.current = fn;
 					}}
 				/>
 			)}

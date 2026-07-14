@@ -10,7 +10,7 @@ import { memoryTool } from './memory.js';
 import { createTaskTool } from './task.js';
 import { createTodoTool } from './todo.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
-import { defineTool, discoverSkills, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
+import { defineTool, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
 import type { Skill } from '@mohanscodex/spectra-agent';
 import { textResult } from './utils.js';
 import { listConnectedServers } from '../integrations/mcp/index.js';
@@ -19,7 +19,8 @@ import { loadCustomTools } from '../integrations/custom-tools/index.js';
 import type { SecurityManager } from '../security/index.js';
 import { PermissionDeniedError } from '../security/index.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
-import { loadAllEvolvingSkills, incrementUseCount, getEvolvingSkillId } from '../services/skill-store.js';
+import { incrementUseCount, getEvolvingSkillId } from '../services/skill-store.js';
+import { loadAllSkills } from '../services/skill-catalog.js';
 import type { SessionStore } from '../services/session-store.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -246,26 +247,7 @@ export async function discoverAndCreateSkillTools(): Promise<{
 	skills: Map<string, Skill>;
 	tools: AgentTool[];
 }> {
-	// Resolve bundled skills directory relative to this package
-	const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
-	const bundledSkillsDir = resolve(packageRoot, 'skills');
-
-	// 1. Load bundled skills (lowest precedence)
-	const bundled = await discoverSkills({ customPaths: [bundledSkillsDir] });
-
-	// 2. Load evolving/learned skills (middle precedence)
-	const evolving = await loadAllEvolvingSkills();
-	const evolvingMap = new Map<string, Skill>();
-	for (const skill of evolving) evolvingMap.set(skill.name, skill);
-
-	// 3. Load user/project skills (highest precedence)
-	const user = await discoverSkills();
-
-	// 4. Merge: bundled → evolving → user (user wins on collision)
-	const skills = new Map<string, Skill>();
-	for (const [name, skill] of bundled) skills.set(name, skill);
-	for (const [name, skill] of evolvingMap) skills.set(name, skill);
-	for (const [name, skill] of user) skills.set(name, skill);
+	const skills = await loadAllSkills();
 
 	const tools: AgentTool[] = [];
 	if (skills.size > 0) {

@@ -246,7 +246,7 @@ export function buildCmdItems(opts: {
 			| { type: 'permissions' }
 			| { type: 'settings' }
 			| { type: 'memory' }
-			| { type: 'skills'; defaultTab?: 'pending' | 'saved' }
+			| { type: 'skills'; defaultTab?: 'pending' | 'all' }
 			| null,
 	) => void;
 	sessionIdRef: { current: string | null };
@@ -861,7 +861,7 @@ export function buildCmdItems(opts: {
 			action: ({ args }) => {
 				const trimmed = args?.trim() ?? '';
 				// /skills browse → open saved tab; /skills pending or no args → pending tab
-				const defaultTab = trimmed === 'browse' ? 'saved' : 'pending';
+				const defaultTab = trimmed === 'browse' ? 'all' : 'pending';
 				setDialogStep({ type: 'skills', defaultTab });
 			},
 		},
