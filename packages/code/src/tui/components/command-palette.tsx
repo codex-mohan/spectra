@@ -21,7 +21,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 	const mh = Math.min(22, termHeight - 4);
 	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
 	const innerW = mw - 4;
-	const listH = mh - 5;
+	const listH = mh - 6;
 
 	const { rows, selectedRowIndex } = useMemo(() => {
 		const r: any[] = [];
@@ -105,10 +105,8 @@ export function CommandPalette(props: CommandPaletteProps) {
 						visibleRows
 					)}
 				</box>
-				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center">
-					<text fg={c.dim} height={1}>
-						{'\u2191\u2193'} navigate · {'\u23CE'} select · esc close
-					</text>
+        <box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center" height={1}>
+          <text fg={c.dim} height={1}> {'\u2191\u2193'} navigate · {'\u23CE'} select · esc close</text>
 				</box>
 			</box>
 		</box>
