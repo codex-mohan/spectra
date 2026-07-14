@@ -444,10 +444,10 @@ function FindSkillsToolView({ args, output, isError, marginTop }: { args: Record
 				) : matches.length > 0 ? (
 					<>
 						{matches.slice(0, 8).map((m, i) => (
-							<box key={i} flexDirection="row" gap={1}>
-								<text fg={c.dim}>▸</text>
-								<text fg={c.text}>{m.name}</text>
-								<text fg={c.dim}>{m.desc.slice(0, 60)}</text>
+							<box key={i} flexDirection="row" gap={1} overflow="hidden">
+								<text fg={c.dim} flexShrink={0}>▸</text>
+								<text fg={c.text} flexShrink={0}>{m.name}</text>
+								<text fg={c.dim} overflow="hidden" wrapMode="none" truncate flexShrink={1}>{m.desc}</text>
 							</box>
 						))}
 						{matches.length > 8 && (

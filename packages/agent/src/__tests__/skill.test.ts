@@ -25,6 +25,18 @@ describe('Skill frontmatter parsing', () => {
 		expect(skills.get('Test Skill')!.description).toBe('A test skill');
 	});
 
+	it('removes matching quotes from names and descriptions', async () => {
+		const skillDir = join(tmpDir, 'quoted-skill');
+		mkdirSync(skillDir, { recursive: true });
+		writeFileSync(join(skillDir, 'SKILL.md'), `---\nname: "Quoted Skill"\ndescription: 'Quoted description'\n---\n\n# Body`);
+
+		const { discoverSkills } = await import('../skill.js');
+		const skills = await discoverSkills({ customPaths: [tmpDir] });
+
+		expect(skills.has('Quoted Skill')).toBe(true);
+		expect(skills.get('Quoted Skill')!.description).toBe('Quoted description');
+	});
+
 	it('parses CRLF line endings', async () => {
 		const skillDir = join(tmpDir, 'crlf-skill');
 		mkdirSync(skillDir, { recursive: true });

@@ -5,6 +5,7 @@ import { saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
 import { loadAllSkills, invalidateSkillCatalog } from '../../services/skill-catalog.js';
 import { showToast } from '../components/toast.js';
 import type { Skill } from '@mohanscodex/spectra-agent';
+import { getCenteredWindow } from '../utils/selection-window.js';
 
 type Tab = 'pending' | 'all';
 
@@ -96,11 +97,16 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler, 
 		registerHandler?.(handler);
 	}, [onClose, registerHandler, tab, pending, allSkills, selectedIdx]);
 
+
 	const mw = Math.min(70, termWidth - 4);
 	const ml = Math.floor((termWidth - mw) / 2);
 	const mh = Math.min(22, termHeight - 2);
 	const mt = Math.max(0, Math.floor((termHeight - mh) / 3));
 	const innerW = mw - 4;
+	const listH = Math.max(1, mh - 6);
+	const itemCount = tab === 'pending' ? pending.length : allSkills.length;
+	const selectedUsesDescriptionRow = tab === 'pending' && Boolean(pending[selectedIdx]?.description);
+	const visibleWindow = getCenteredWindow(itemCount, selectedIdx, listH - (selectedUsesDescriptionRow ? 1 : 0));
 
 	return (
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
@@ -120,34 +126,49 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler, 
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>
-				<box flexDirection="column" paddingX={2} gap={0} flexGrow={1}>
+				<box height={listH} paddingX={2} flexDirection="column" overflow="hidden">
 					{tab === 'pending' ? (
 						pending.length === 0 ? (
 							<text fg={c.dim}>No pending skills.</text>
 						) : (
-							pending.map((skill, i) => (
-								<box key={skill.id} flexDirection="column">
-									<text fg={i === selectedIdx ? c.accent : c.text}>
-										{i === selectedIdx ? '▸ ' : '  '}{skill.name}
-									</text>
-									{i === selectedIdx && skill.description && (
-										<text fg={c.dim}>  {skill.description.slice(0, innerW - 4)}</text>
-									)}
-								</box>
-							))
+							pending.slice(visibleWindow.start, visibleWindow.end).map((skill, offset) => {
+								const i = visibleWindow.start + offset;
+								return (
+									<box key={skill.id} flexDirection="column" overflow="hidden">
+										<text fg={i === selectedIdx ? c.accent : c.text} overflow="hidden" wrapMode="none" truncate>
+											{i === selectedIdx ? '▸ ' : '  '}{skill.name}
+										</text>
+										{i === selectedIdx && skill.description && (
+											<text fg={c.dim} overflow="hidden" wrapMode="none" truncate>
+												  {skill.description}
+											</text>
+										)}
+									</box>
+								);
+							})
 						)
 					) : (
 						allSkills.length === 0 ? (
 							<text fg={c.dim}>No skills found.</text>
 						) : (
-							allSkills.map((skill, i) => (
-								<box key={skill.name + skill.location} flexDirection="row" gap={1}>
-									<text fg={i === selectedIdx ? c.accent : c.text}>
-										{i === selectedIdx ? '▸ ' : '  '}{skill.name}
+							allSkills.slice(visibleWindow.start, visibleWindow.end).map((skill, offset) => {
+								const i = visibleWindow.start + offset;
+								return (
+									<text
+										key={skill.name + skill.location}
+										width="100%"
+										height={1}
+										overflow="hidden"
+										wrapMode="none"
+										truncate
+									>
+										<span fg={i === selectedIdx ? c.accent : c.text}>
+											{i === selectedIdx ? '▸ ' : '  '}{skill.name}
+										</span>
+										<span fg={c.dim}> {skill.description || skill.whenToUse || ''}</span>
 									</text>
-									<text fg={c.dim}>{(skill.description || skill.whenToUse || '').slice(0, Math.max(0, innerW - skill.name.length - 6))}</text>
-								</box>
-							))
+								);
+							})
 						)
 					)}
 				</box>

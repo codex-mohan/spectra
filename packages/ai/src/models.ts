@@ -2462,6 +2462,21 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 272000
     },
     {
+      "id": "openai.gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 272000
+    },
+    {
+      "id": "openai.gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 272000
+    },
+    {
+      "id": "openai.gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "contextWindow": 272000
+    },
+    {
       "id": "openai.gpt-oss-120b-1:0",
       "name": "gpt-oss-120b",
       "contextWindow": 128000
@@ -2674,9 +2689,19 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "ambient": [
     {
+      "id": "ambient/large",
+      "name": "Ambient Large",
+      "contextWindow": 101376
+    },
+    {
       "id": "zai-org/GLM-5.1-FP8",
       "name": "GLM 5.1",
       "contextWindow": 202752
+    },
+    {
+      "id": "z-ai/glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 101376
     },
     {
       "id": "zai-org/GLM-5.2-FP8",
@@ -3094,6 +3119,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 128000
     },
     {
+      "id": "gpt-chat-latest",
+      "name": "GPT Chat Latest",
+      "contextWindow": 128000
+    },
+    {
       "id": "gpt-4",
       "name": "GPT-4",
       "contextWindow": 8192
@@ -3236,6 +3266,21 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gpt-5.5",
       "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
       "contextWindow": 1050000
     },
     {
@@ -3461,6 +3506,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 128000
     },
     {
+      "id": "gpt-chat-latest",
+      "name": "GPT Chat Latest",
+      "contextWindow": 128000
+    },
+    {
       "id": "gpt-4",
       "name": "GPT-4",
       "contextWindow": 8192
@@ -3593,6 +3643,21 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "gpt-5.5",
       "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
       "contextWindow": 1050000
     },
     {
@@ -4111,6 +4176,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
+      "id": "workers-ai/@cf/zai-org/glm-5.2",
+      "name": "Glm 5.2",
+      "contextWindow": 262144
+    },
+    {
       "id": "workers-ai/@cf/zai-org/glm-4.7-flash",
       "name": "GLM-4.7-Flash",
       "contextWindow": 131072
@@ -4168,6 +4238,21 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "openai/gpt-5.5",
       "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai/gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
       "contextWindow": 1050000
     },
     {
@@ -4843,7 +4928,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "tencent/hy3-preview",
       "name": "Hy3 preview",
-      "contextWindow": 256000
+      "contextWindow": 262144
     },
     {
       "id": "moonshot/kimi-k2.5",
@@ -5077,6 +5162,21 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "databricks-gpt-5-5",
       "name": "GPT-5.5",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "databricks-gpt-5-6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 400000
+    },
+    {
+      "id": "databricks-gpt-5-6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "databricks-gpt-5-6-terra",
+      "name": "GPT-5.6 Terra",
       "contextWindow": 1050000
     },
     {
@@ -5777,6 +5877,16 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "minimax-m3",
       "name": "MiniMax M3",
       "contextWindow": 1000000
+    },
+    {
+      "id": "mistral-medium-3",
+      "name": "Mistral Medium 3",
+      "contextWindow": 130000
+    },
+    {
+      "id": "mistral-small-4",
+      "name": "Mistral Small 4",
+      "contextWindow": 256000
     },
     {
       "id": "muse-spark-1-1",
@@ -6864,6 +6974,21 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "duo-chat-gpt-5-5",
       "name": "Agentic Chat (GPT-5.5)",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "duo-chat-gpt-5-6-luna",
+      "name": "Agentic Chat (GPT-5.6 Luna)",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "duo-chat-gpt-5-6-sol",
+      "name": "Agentic Chat (GPT-5.6 Sol)",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "duo-chat-gpt-5-6-terra",
+      "name": "Agentic Chat (GPT-5.6 Terra)",
       "contextWindow": 1050000
     }
   ],
@@ -10606,24 +10731,9 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "qwen-turbo",
-      "name": "Qwen Turbo",
-      "contextWindow": 1000000
-    },
-    {
       "id": "qwen-omni-turbo",
       "name": "Qwen-Omni Turbo",
       "contextWindow": 32768
-    },
-    {
-      "id": "qwen-vl-max",
-      "name": "Qwen-VL Max",
-      "contextWindow": 131072
-    },
-    {
-      "id": "qwen-vl-plus",
-      "name": "Qwen-VL Plus",
-      "contextWindow": 131072
     },
     {
       "id": "qwen2-5-vl-32b-instruct",
@@ -10774,11 +10884,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "qwen3.7-plus",
       "name": "Qwen3.7 Plus",
       "contextWindow": 1000000
-    },
-    {
-      "id": "qwq-plus",
-      "name": "QwQ Plus",
-      "contextWindow": 131072
     },
     {
       "id": "seed-1-6-250615",
@@ -15777,6 +15882,14 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 262144
     },
     {
+      "id": "kwaipilot/kat-coder-air-v2.5",
+      "name": "Kwaipilot: KAT-Coder-Air V2.5"
+    },
+    {
+      "id": "kwaipilot/kat-coder-pro-v2.5",
+      "name": "Kwaipilot: KAT-Coder-Pro V2.5"
+    },
+    {
       "id": "poolside/laguna-m.1",
       "name": "Laguna M.1",
       "contextWindow": 262144
@@ -19597,6 +19710,21 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1050000
     },
     {
+      "id": "openai-gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai-gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "contextWindow": 1050000
+    },
+    {
+      "id": "openai-gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "contextWindow": 1050000
+    },
+    {
       "id": "snowflake-llama3.3-70b",
       "name": "Llama-3.3-70B-Instruct",
       "contextWindow": 128000
@@ -20863,7 +20991,7 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "deepseek/deepseek-v3.1",
       "name": "DeepSeek-V3.1",
-      "contextWindow": 128000
+      "contextWindow": 163840
     },
     {
       "id": "mistral/devstral-2",

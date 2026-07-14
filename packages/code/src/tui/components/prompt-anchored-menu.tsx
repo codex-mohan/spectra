@@ -64,7 +64,7 @@ export function PromptAnchoredMenu({
 			<box height={listHeight} flexDirection="column">
 				{children({ listHeight, visibleWindow })}
 			</box>
-			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between">
+			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="center" alignItems="center" gap={1}>
 				{footerLeft}
 				{footerRight}
 			</box>

@@ -60,7 +60,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 					<text fg={isSelected ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1}>
 						{def.title}
 					</text>
-					<text fg={c.dim} flexShrink={0}>
+					<text fg={c.dim} overflow="hidden" wrapMode="none" truncate flexShrink={1} marginLeft={1}>
 						{def.description}
 					</text>
 				</box>,

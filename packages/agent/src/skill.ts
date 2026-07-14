@@ -87,6 +87,18 @@ async function readDirRecursive(dir: string): Promise<string[]> {
 	return results;
 }
 
+function stripMatchingQuotes(value: string): string {
+	const trimmed = value.trim();
+	if (trimmed.length >= 2) {
+		const first = trimmed[0];
+		const last = trimmed[trimmed.length - 1];
+		if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+			return trimmed.slice(1, -1);
+		}
+	}
+	return trimmed;
+}
+
 function parseSkillFrontmatter(content: string): SkillMetadata {
 	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 	if (!match) return { name: '' };
@@ -99,7 +111,7 @@ function parseSkillFrontmatter(content: string): SkillMetadata {
 		if (colonIdx === -1) continue;
 
 		const key = line.slice(0, colonIdx).trim();
-		const value = line.slice(colonIdx + 1).trim();
+		const value = stripMatchingQuotes(line.slice(colonIdx + 1));
 
 		switch (key) {
 			case 'name':

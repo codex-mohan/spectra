@@ -61,7 +61,11 @@ export function ArgAutocomplete(props: ArgAutocompleteProps) {
 							alignItems="center"
 						>
 							<text fg={isSel ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1}>{item.value}</text>
-							{item.desc && <text fg={c.dim} flexShrink={0}>{item.desc}</text>}
+							{item.desc && (
+								<text fg={c.dim} overflow="hidden" wrapMode="none" truncate flexShrink={1} marginLeft={1}>
+									{item.desc}
+								</text>
+							)}
 						</box>
 					);
 				});

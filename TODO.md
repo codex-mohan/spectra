@@ -540,6 +540,7 @@ Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 **Tool parity candidates:**
 - [ ] Tool registry: separate always-on tools from gated/hidden tools, with settings-based activation
 - [ ] Tool discovery: BM25 search over hidden tools so agents can activate specialized tools mid-session
+- [ ] Cross-harness MCP discovery: load and normalize MCP server definitions from project/user `.codex`, `.claude`, `.opencode`, and other supported harness/app config locations; merge by server name with explicit Spectra precedence, preserve source provenance, and never modify foreign configuration files
 - [ ] Code intelligence: add LSP tool support for diagnostics, references, rename, code actions, symbols, hover, and definitions
 - [ ] Debugger integration: add DAP tool support for launch/attach, breakpoints, stepping, stack, scopes, variables, and evaluation
 - [ ] Browser automation: add Puppeteer/CDP tab control for web and desktop-app automation
