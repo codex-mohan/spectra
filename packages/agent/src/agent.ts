@@ -6,8 +6,9 @@ import type {
 	AssistantMessage,
 	ToolCall,
 	ToolResultMessage,
+	ProviderErrorDetails,
 } from '@mohanscodex/spectra-ai';
-import { stream, EventStream } from '@mohanscodex/spectra-ai';
+import { normalizeProviderError, stream, EventStream } from '@mohanscodex/spectra-ai';
 import type {
 	AgentTool,
 	ToolResult,
@@ -18,12 +19,23 @@ import type {
 	AgentEvent,
 	AgentEventListener,
 	AgentConfig,
+	AgentRuntimeConfig,
+	BeforeModelCallContext,
 	RetryContext,
 	RetryDecision,
+	AgentQueueMode,
 } from './types.js';
 
 type EmitFn = (event: AgentEvent) => void | Promise<void>;
-type QueueMode = 'all' | 'one-at-a-time';
+
+function providerFailureFrom(message: AssistantMessage): ProviderErrorDetails | undefined {
+	const error = message.metadata?.error;
+	if (!error || typeof error !== 'object') return undefined;
+	const details = error as Partial<ProviderErrorDetails>;
+	return typeof details.message === 'string' && typeof details.kind === 'string' && typeof details.retryable === 'boolean'
+		? details as ProviderErrorDetails
+		: undefined;
+}
 type ResolvedProvenanceConfig = {
 	enabled: boolean;
 	audit: boolean;
@@ -77,7 +89,7 @@ function hashValue(value: unknown): string {
 
 class PendingMessageQueue {
 	private messages: Message[] = [];
-	constructor(public mode: QueueMode) {}
+	constructor(public mode: AgentQueueMode) {}
 
 	enqueue(message: Message): void {
 		this.messages.push(message);
@@ -145,6 +157,7 @@ export class Agent {
 	private beforeToolCallHook?: AgentConfig['beforeToolCall'];
 	private afterToolCallHook?: AgentConfig['afterToolCall'];
 	private transformContextFn?: AgentConfig['transformContext'];
+	private beforeModelCallHook?: AgentConfig['beforeModelCall'];
 	private getApiKeyFn?: AgentConfig['getApiKey'];
 	private streamOptions?: StreamOptions;
 	private steeringQueue: PendingMessageQueue;
@@ -155,15 +168,7 @@ export class Agent {
 	private provenanceConfig: ResolvedProvenanceConfig;
 	private onRetryHook?: (context: RetryContext) => RetryDecision | void;
 
-	constructor(
-		config: AgentConfig & {
-			streamOptions?: StreamOptions;
-			steeringMode?: QueueMode;
-			followUpMode?: QueueMode;
-			convertToLlm?: (messages: Message[]) => Message[] | Promise<Message[]>;
-			maxRetryDelayMs?: number;
-		},
-	) {
+	constructor(config: AgentConfig) {
 		this.model = config.model;
 		this.systemPrompt = config.systemPrompt;
 		this.maxTurns = config.maxTurns;
@@ -171,6 +176,7 @@ export class Agent {
 		this.beforeToolCallHook = config.beforeToolCall;
 		this.afterToolCallHook = config.afterToolCall;
 		this.transformContextFn = config.transformContext;
+		this.beforeModelCallHook = config.beforeModelCall;
 		this.getApiKeyFn = config.getApiKey;
 		this.streamOptions = config.streamOptions;
 		this.steeringQueue = new PendingMessageQueue(config.steeringMode ?? 'one-at-a-time');
@@ -179,9 +185,7 @@ export class Agent {
 		this.maxRetryDelayMs = config.maxRetryDelayMs ?? 30000;
 		this.provenanceConfig = resolveProvenanceConfig(config.provenance);
 		this.onRetryHook = config.onRetry;
-		for (const tool of config.tools ?? []) {
-			this.tools.set(tool.name, tool);
-		}
+		this.replaceRuntimeConfig(config);
 	}
 
 	get messages(): Message[] {
@@ -209,6 +213,13 @@ export class Agent {
 
 	registerTool(tool: AgentTool): void {
 		this.tools.set(tool.name, tool);
+	}
+
+	configure(config: AgentRuntimeConfig): void {
+		if (this._isStreaming) {
+			throw new Error('Cannot configure an agent while it is processing a prompt');
+		}
+		this.replaceRuntimeConfig(config);
 	}
 
 	subscribe(listener: AgentEventListener): () => void {
@@ -327,7 +338,7 @@ export class Agent {
 				await emit({ type: 'turn_start' });
 			}
 			turns++;
-			let ctxMessages = this._messages;
+			let ctxMessages = [...this._messages];
 
 			if (this.transformContextFn) {
 				const beforeHash = hashValue(ctxMessages);
@@ -361,11 +372,38 @@ export class Agent {
 				}
 			}
 
+			let context = this.buildContext(ctxMessages);
+			if (this.beforeModelCallHook) {
+				const beforeHash = hashValue(context);
+				try {
+					const result = await this.beforeModelCallHook(
+						this.createBeforeModelCallContext(context, turns),
+						this.abortController!.signal,
+					);
+					if (result?.messages !== undefined) context.messages = [...result.messages];
+					const afterHash = hashValue(context);
+					await this.emitAudit(
+						'context_prepared',
+						{ hook: 'beforeModelCall', iteration: turns, beforeHash, afterHash, changed: beforeHash !== afterHash },
+						emit,
+					);
+				} catch (err) {
+					await this.emitAudit(
+						'hook_error',
+						{
+							hook: 'beforeModelCall',
+							errorMessage: err instanceof Error ? err.message : String(err),
+							fallbackBehavior: 'aborted',
+						},
+						emit,
+					);
+					throw err;
+				}
+			}
+
 			const resolvedApiKey = this.getApiKeyFn
 				? await this.getApiKeyFn(this.model.provider)
 				: this.streamOptions?.apiKey;
-
-			const context = this.buildContext(ctxMessages);
 			const opts = { ...this.streamOptions, apiKey: resolvedApiKey, signal: this.abortController?.signal };
 
 			let assistantMessage: AssistantMessage;
@@ -381,9 +419,11 @@ export class Agent {
 				return;
 			}
 
-			// Note: streamAssistantResponse already manages adding the assistant message to _messages
-			// and emits message_start/message_end events, so we don't duplicate here
-
+			if (assistantMessage.stopReason === 'error' || assistantMessage.stopReason === 'aborted') {
+				this._errorMessage = assistantMessage.errorMessage ?? providerFailureFrom(assistantMessage)?.message ?? 'Model request failed';
+				await emit({ type: 'agent_end', messages: this._messages });
+				return;
+			}
 			const toolCalls = assistantMessage.content.filter((c): c is ToolCall => c.type === 'toolCall');
 
 			if (toolCalls.length === 0) {
@@ -926,6 +966,29 @@ export class Agent {
 		return msg;
 	}
 
+	private replaceRuntimeConfig(config: AgentRuntimeConfig): void {
+		const tools = new Map<string, AgentTool>();
+		for (const tool of config.tools ?? []) {
+			tools.set(tool.name, tool);
+		}
+		this.model = config.model;
+		this.systemPrompt = config.systemPrompt;
+		this.maxTurns = config.maxTurns;
+		this.toolExecution = config.toolExecution ?? 'parallel';
+		this.streamOptions = config.streamOptions;
+		this.tools = tools;
+	}
+
+	private createBeforeModelCallContext(context: Context, iteration: number): BeforeModelCallContext {
+		return {
+			model: this.model,
+			systemPrompt: context.systemPrompt,
+			messages: [...context.messages],
+			tools: [...(context.tools ?? [])],
+			iteration,
+		};
+	}
+
 	private buildContext(messages?: Message[]): Context {
 		const toolDefs = Array.from(this.tools.values()).map((t) => ({
 			name: t.name,
@@ -940,15 +1003,17 @@ export class Agent {
 	}
 
 	private createErrorMessage(err: unknown): AssistantMessage {
+		const details = normalizeProviderError(err, { aborted: this.abortController?.signal.aborted === true });
 		return {
 			role: 'assistant',
 			content: [],
 			provider: this.model.provider,
 			model: this.model.id,
 			usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
-			stopReason: 'error',
-			errorMessage: err instanceof Error ? err.message : String(err),
+			stopReason: details.kind === 'aborted' ? 'aborted' : 'error',
+			errorMessage: details.message,
 			timestamp: Date.now(),
+			metadata: { error: details },
 		};
 	}
 

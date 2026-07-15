@@ -14,7 +14,7 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
-import { sanitizeSurrogates, parseStreamingJson } from './shared.js';
+import { normalizeProviderError, parseStreamingJson, sanitizeSurrogates } from './shared.js';
 
 const LOCAL_NO_AUTH_PROVIDERS: Record<string, string> = {
 	ollama: 'ollama-local',
@@ -295,10 +295,9 @@ export function createOpenAICompletionsProvider() {
 					stream.end();
 				} catch (error) {
 					output.stopReason = options?.signal?.aborted ? 'aborted' : 'error';
-					output.errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
-					// Some providers via OpenRouter give additional information in this field.
-					const rawMetadata = (error as any)?.error?.metadata?.raw;
-					if (rawMetadata) output.errorMessage += `\n${rawMetadata}`;
+					const details = normalizeProviderError(error, { aborted: output.stopReason === 'aborted' });
+					output.errorMessage = details.message;
+					output.metadata = { ...output.metadata, error: details };
 					stream.push({ type: 'error', reason: output.stopReason, error: output });
 					stream.end();
 				}
@@ -377,8 +376,9 @@ function maybeAddOpenRouterAnthropicCacheControl(
 function convertMessages(model: Model, context: Context): ChatCompletionMessageParam[] {
 	const params: ChatCompletionMessageParam[] = [];
 
-	if (context.systemPrompt) {
-		params.push({ role: 'system', content: sanitizeSurrogates(context.systemPrompt) });
+	const systemText = context.systemPrompt ?? '';
+	if (systemText) {
+		params.push({ role: 'system', content: sanitizeSurrogates(systemText) });
 	}
 
 	for (const msg of context.messages) {

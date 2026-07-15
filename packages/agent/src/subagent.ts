@@ -48,6 +48,7 @@ export async function runSubagent(config: SubagentConfig, prompt: string): Promi
 		beforeToolCall: config.beforeToolCall,
 		afterToolCall: config.afterToolCall,
 		transformContext: config.transformContext,
+		beforeModelCall: config.beforeModelCall,
 		getApiKey: config.getApiKey,
 		onRetry: config.onRetry,
 		streamOptions: config.streamOptions,

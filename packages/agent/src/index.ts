@@ -37,6 +37,10 @@ export type {
 	RetryContext,
 	RetryDecision,
 	ProvenanceConfig,
+	AgentQueueMode,
+	AgentRuntimeConfig,
+	BeforeModelCallContext,
+	BeforeModelCallResult,
 	ProvenanceDetailLevel,
 } from './types.js';
 export type { SubagentConfig, SubagentResult, SubagentBudget } from './subagent.js';

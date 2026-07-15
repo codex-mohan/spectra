@@ -8,6 +8,8 @@ import type {
 	ImageContent,
 	Model,
 	Context,
+	StreamOptions,
+	Tool,
 } from '@mohanscodex/spectra-ai';
 
 export type { Context } from '@mohanscodex/spectra-ai';
@@ -36,6 +38,8 @@ export interface ToolResult<TDetails = unknown> {
 export type ToolUpdateCallback<TDetails = unknown> = (partial: ToolResult<TDetails>) => void;
 
 export type ToolExecutionMode = 'sequential' | 'parallel';
+
+export type AgentQueueMode = 'all' | 'one-at-a-time';
 
 export interface BeforeToolCallContext {
 	assistantMessage: AssistantMessage;
@@ -117,16 +121,43 @@ export interface RetryDecision {
 	delay?: number;
 }
 
+
+export interface AgentRuntimeConfig {
+	model: Model;
+	systemPrompt?: string;
+	tools?: readonly AgentTool[];
+	maxTurns?: number;
+	toolExecution?: ToolExecutionMode;
+	streamOptions?: StreamOptions;
+}
+
+export interface BeforeModelCallContext {
+	readonly model: Model;
+	readonly systemPrompt?: string;
+	readonly messages: readonly Message[];
+	readonly tools: readonly Tool[];
+	readonly iteration: number;
+}
+
+export interface BeforeModelCallResult {
+	messages?: Message[];
+}
 export interface AgentConfig {
 	model: Model;
 	systemPrompt?: string;
-	tools?: AgentTool[];
+	tools?: readonly AgentTool[];
 	maxTurns?: number;
 	toolExecution?: ToolExecutionMode;
 	beforeToolCall?: (context: BeforeToolCallContext, signal?: AbortSignal) => Promise<BeforeToolCallResult | undefined>;
 	afterToolCall?: (context: AfterToolCallContext, signal?: AbortSignal) => Promise<AfterToolCallResult | undefined>;
 	transformContext?: (messages: Message[], signal?: AbortSignal) => Promise<Message[]>;
+	beforeModelCall?: (context: BeforeModelCallContext, signal?: AbortSignal) => Promise<BeforeModelCallResult | undefined>;
+	convertToLlm?: (messages: Message[]) => Message[] | Promise<Message[]>;
 	getApiKey?: (provider: string) => Promise<string | undefined> | string | undefined;
+	streamOptions?: StreamOptions;
+	steeringMode?: AgentQueueMode;
+	followUpMode?: AgentQueueMode;
+	maxRetryDelayMs?: number;
 	onRetry?: (context: RetryContext) => RetryDecision | void;
 	provenance?: boolean | ProvenanceConfig;
 }

@@ -32,8 +32,46 @@ const agent = new Agent({
 | `beforeToolCall` | `BeforeToolCallHook` | — | Called before each tool execution |
 | `afterToolCall` | `AfterToolCallHook` | — | Called after each tool execution |
 | `transformContext` | `TransformContextHook` | — | Transform messages before LLM call |
+| `beforeModelCall` | `BeforeModelCallHook` | — | Prepares request-only messages before each model iteration |
+| `convertToLlm` | `(messages) => Message[]` | — | Converts request messages immediately before provider streaming |
+| `streamOptions` | `StreamOptions` | — | Provider stream options such as thinking effort |
+| `steeringMode` / `followUpMode` | `AgentQueueMode` | `"all"` | Queuing behavior for steering and follow-ups |
 | `getApiKey` | `GetApiKeyHook` | — | Dynamic API key resolution |
 
+
+### Runtime Configuration
+
+Use `configure()` between runs to atomically replace the model, system prompt, tools, turn limit, execution mode, and stream options without discarding conversation history:
+
+```typescript
+agent.configure({
+  model: nextModel,
+  systemPrompt: "Use the new operating mode.",
+  tools: nextTools,
+  maxTurns: 20,
+  streamOptions: { thinkingEffort: "high" },
+});
+```
+
+`configure()` throws while `agent.isStreaming` is true. A single `run()` therefore keeps one fixed runtime configuration; queue a follow-up or wait for the current run to finish before reconfiguring.
+
+### Request-Time Context
+
+`beforeModelCall` can add request-only messages before each model iteration. Its result is not appended to `agent.messages`, and transport retries reuse the prepared request context. The configured system prompt remains stable for the complete run.
+
+```typescript
+const agent = new Agent({
+  model,
+  beforeModelCall: async ({ messages, iteration }) => ({
+    messages: [
+      ...messages,
+      { role: "user", content: `Request iteration: ${iteration}`, timestamp: Date.now() },
+    ],
+  }),
+});
+```
+
+Throwing from `beforeModelCall` aborts that request and emits an `audit` event with `eventType: "hook_error"`. The hook cannot alter the system prompt or registered tool set; use `configure()` between runs for those changes.
 ::: tip
 The `model` object requires four fields: `id` (model identifier), `name` (display name), `provider` (registry key), and `api` (API type within the provider).
 :::

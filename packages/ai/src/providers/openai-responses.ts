@@ -24,7 +24,7 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
-import { sanitizeSurrogates, parseStreamingJson } from './shared.js';
+import { normalizeProviderError, parseStreamingJson, sanitizeSurrogates } from './shared.js';
 
 function getEnvApiKey(provider: string): string | undefined {
 	const keys: Record<string, string | undefined> = {
@@ -281,7 +281,9 @@ export function createOpenAIResponsesProvider() {
 					stream.end();
 				} catch (error) {
 					output.stopReason = options?.signal?.aborted ? 'aborted' : 'error';
-					output.errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+					const details = normalizeProviderError(error, { aborted: output.stopReason === 'aborted' });
+					output.errorMessage = details.message;
+					output.metadata = { ...output.metadata, error: details };
 					stream.push({ type: 'error', reason: output.stopReason, error: output });
 					stream.end();
 				}
@@ -329,10 +331,11 @@ function isResponseErrorEvent(e: ResponseStreamEvent): e is ResponseErrorEvent {
 function convertResponsesMessages(model: Model, context: Context): unknown[] {
 	const messages: unknown[] = [];
 
-	if (context.systemPrompt) {
+	const systemText = context.systemPrompt ?? '';
+	if (systemText) {
 		messages.push({
 			role: model.reasoning ? 'developer' : 'system',
-			content: sanitizeSurrogates(context.systemPrompt),
+			content: sanitizeSurrogates(systemText),
 		});
 	}
 

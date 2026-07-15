@@ -69,6 +69,29 @@ export interface UserMessage {
 	metadata?: Record<string, unknown>;
 }
 
+export type ProviderErrorKind = 'api' | 'network' | 'timeout' | 'context_overflow' | 'auth' | 'configuration' | 'aborted' | 'unknown';
+
+/**
+ * Sanitized diagnostics for a failed provider request. This record is safe to persist in
+ * application metadata, but raw response data must never be replayed into LLM history.
+ */
+export interface ProviderErrorDetails {
+	kind: ProviderErrorKind;
+	message: string;
+	retryable: boolean;
+	statusCode?: number;
+	providerCode?: string;
+	retryAfterMs?: number;
+	responseHeaders?: Record<string, string>;
+	responseBody?: string;
+	responseBodyTruncated?: boolean;
+	metadata?: Record<string, string>;
+}
+
+export interface ProviderErrorMetadata {
+	error?: ProviderErrorDetails;
+}
+
 export interface AssistantMessage {
 	role: 'assistant';
 	content: (TextContent | ThinkingContent | ToolCall)[];
@@ -117,7 +140,7 @@ export interface Tool {
 }
 
 export interface Context {
-	systemPrompt?: string;
+	systemPrompt?: string | undefined;
 	messages: Message[];
 	tools?: Tool[];
 }

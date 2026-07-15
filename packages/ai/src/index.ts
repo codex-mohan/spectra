@@ -2,6 +2,7 @@ export { EventStream, AssistantMessageEventStream } from './event-stream.js';
 export { stream, complete, registerProvider, getProvider, listProviders, getModels } from './registry.js';
 export type { StreamFunction, Provider } from './registry.js';
 export { initProviders } from './providers/register-builtins.js';
+export { normalizeProviderError } from './providers/shared.js';
 export { getProviderModels } from './models.js';
 export type { ModelEntry } from './models.js';
 export {
@@ -21,6 +22,9 @@ export type {
 	ToolCall,
 	StopReason,
 	Usage,
+	ProviderErrorKind,
+	ProviderErrorDetails,
+	ProviderErrorMetadata,
 	UserMessage,
 	AssistantMessage,
 	ToolResultMessage,

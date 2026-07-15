@@ -20,7 +20,7 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
-import { sanitizeSurrogates } from './shared.js';
+import { normalizeProviderError, sanitizeSurrogates } from './shared.js';
 
 type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam | { type: 'document'; source: { type: 'base64'; media_type: 'application/pdf'; data: string } };
 type StreamBlock = (ThinkingContent | TextContent | ToolCall) & { index?: number; partialJson?: string };
@@ -314,8 +314,9 @@ export function createAnthropicProvider() {
 
 				const cacheControl = getCacheControl(model.baseUrl);
 
-				const systemBlocks = context.systemPrompt
-					? [{ type: 'text' as const, text: sanitizeSurrogates(context.systemPrompt), ...(cacheControl && { cache_control: cacheControl }) }]
+				const systemText = context.systemPrompt ?? '';
+				const systemBlocks = systemText
+					? [{ type: 'text' as const, text: sanitizeSurrogates(systemText), ...(cacheControl && { cache_control: cacheControl }) }]
 					: undefined;
 
 				applyCacheControl(messages, cacheControl);
@@ -481,7 +482,9 @@ export function createAnthropicProvider() {
 				} catch (error) {
 					cleanupOutputContent(output);
 					output.stopReason = options?.signal?.aborted ? 'aborted' : 'error';
-					output.errorMessage = error instanceof Error ? error.message : String(error);
+					const details = normalizeProviderError(error, { aborted: output.stopReason === 'aborted' });
+					output.errorMessage = details.message;
+					output.metadata = { ...output.metadata, error: details };
 					stream.push({ type: 'error', reason: output.stopReason, error: output });
 					stream.end();
 				}
