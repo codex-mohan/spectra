@@ -74,36 +74,74 @@ export function discoverCompatibilityDirs(startDir: string): DiscoveredDir[] {
 	return dirs;
 }
 
+export type InstructionSourceKind = 'spectra' | 'agents' | 'claude' | 'opencode' | 'standalone';
+
+export interface InstructionFileCandidate {
+	path: string;
+	scope: 'global' | 'project';
+	depth: number;
+	source: InstructionSourceKind;
+}
+
+const INSTRUCTION_NAMES = ['AGENTS.md', 'CLAUDE.md', 'SPECTRA.md', 'INSTRUCTIONS.md'] as const;
+const COMPATIBILITY_SOURCES: ReadonlyArray<{ directory: string; source: Exclude<InstructionSourceKind, 'standalone'> }> = [
+	{ directory: '.spectra', source: 'spectra' },
+	{ directory: '.agents', source: 'agents' },
+	{ directory: '.claude', source: 'claude' },
+	{ directory: '.opencode', source: 'opencode' },
+];
+
+function sourceForInstructionName(name: typeof INSTRUCTION_NAMES[number]): InstructionSourceKind {
+	if (name === 'SPECTRA.md') return 'spectra';
+	if (name === 'AGENTS.md') return 'agents';
+	if (name === 'CLAUDE.md') return 'claude';
+	return 'standalone';
+}
+
+function appendInstructionCandidates(
+	candidates: InstructionFileCandidate[],
+	dir: string,
+	scope: InstructionFileCandidate['scope'],
+	depth: number,
+	source: InstructionSourceKind,
+): void {
+	const instructionsDir = join(dir, 'instructions');
+	if (existsSync(instructionsDir) && statSync(instructionsDir).isDirectory()) {
+		for (const entry of readdirSync(instructionsDir).filter((entry) => entry.endsWith('.md')).sort()) {
+			candidates.push({ path: join(instructionsDir, entry), scope, depth, source });
+		}
+	}
+	for (const name of INSTRUCTION_NAMES) {
+		const path = join(dir, name);
+		if (existsSync(path)) candidates.push({ path, scope, depth, source });
+	}
+}
+
+export function discoverInstructionFileCandidates(startDir: string): InstructionFileCandidate[] {
+	const candidates: InstructionFileCandidate[] = [];
+	const global = getGlobalConfigDir();
+	appendInstructionCandidates(candidates, global, 'global', Number.MAX_SAFE_INTEGER, 'spectra');
+
+	const ancestors = ancestorDirs(startDir);
+	const home = resolve(homedir());
+	for (const [index, base] of ancestors.entries()) {
+		const depth = ancestors.length - index - 1;
+		for (const name of INSTRUCTION_NAMES) {
+			const path = join(base, name);
+			if (existsSync(path)) candidates.push({ path, scope: 'project', depth, source: sourceForInstructionName(name) });
+		}
+		for (const { directory, source } of COMPATIBILITY_SOURCES) {
+			if (base === home && directory === '.spectra') continue;
+			const compatibilityDir = join(base, directory);
+			if (existsSync(compatibilityDir)) {
+				appendInstructionCandidates(candidates, compatibilityDir, 'project', depth, source);
+			}
+		}
+	}
+
+	return candidates;
+}
+
 export function discoverInstructionFiles(startDir: string): string[] {
-	const files: string[] = [];
-	const names = ['AGENTS.md', 'CLAUDE.md', 'SPECTRA.md', 'INSTRUCTIONS.md'];
-
-	for (const dir of ancestorDirs(startDir)) {
-		for (const name of names) {
-			const candidate = join(dir, name);
-			if (existsSync(candidate) && !files.includes(candidate)) {
-				files.push(candidate);
-			}
-		}
-	}
-
-	const dirs = discoverCompatibilityDirs(startDir);
-	for (const d of dirs) {
-		const instructionsDir = join(d.path, 'instructions');
-		if (existsSync(instructionsDir) && statSync(instructionsDir).isDirectory()) {
-			for (const entry of readdirSync(instructionsDir)) {
-				if (entry.endsWith('.md')) {
-					files.push(join(instructionsDir, entry));
-				}
-			}
-		}
-		for (const name of names) {
-			const candidate = join(d.path, name);
-			if (existsSync(candidate) && !files.includes(candidate)) {
-				files.push(candidate);
-			}
-		}
-	}
-
-	return files;
+	return discoverInstructionFileCandidates(startDir).map((candidate) => candidate.path);
 }

@@ -94,4 +94,57 @@ describe('session message hydration', () => {
 			content: 'file contents',
 		});
 	});
+
+	it('uses persisted agent metadata instead of the session default for historical turns', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			agent: 'build',
+			messages: [
+				{
+					role: 'assistant',
+					content: [{ type: 'text', text: 'debug result' }],
+					stopReason: 'stop',
+					metadata: { agent: 'debug' },
+					timestamp: Date.now(),
+				},
+				{
+					role: 'toolResult',
+					toolCallId: 'call',
+					toolName: 'read',
+					content: [{ type: 'text', text: 'output' }],
+					isError: false,
+					metadata: { agent: 'debug' },
+					timestamp: Date.now(),
+				},
+			],
+		});
+
+		expect(converted.messages[0]?.agent).toBe('debug');
+		expect(converted.messages[1]?.agent).toBe('debug');
+	});
+
+	it('renders persisted provider failures instead of a blank assistant turn', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [{
+				role: 'assistant',
+				content: [],
+				provider: 'openai',
+				model: 'test-model',
+				usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
+				stopReason: 'error',
+				errorMessage: 'Request timed out',
+				metadata: { error: { kind: 'timeout', retryable: true, responseBody: 'retained for diagnostics' } },
+				timestamp: Date.now(),
+			}],
+		});
+
+		expect(converted.messages[0]).toMatchObject({
+			role: 'assistant',
+			content: '[error] Request timed out',
+			turnStatus: 'error',
+		});
+	});
 });

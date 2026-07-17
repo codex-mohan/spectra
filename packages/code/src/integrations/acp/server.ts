@@ -2,7 +2,7 @@ import { createInterface } from 'readline';
 import { Agent, type AgentEvent } from '@mohanscodex/spectra-agent';
 import { initProviders } from '@mohanscodex/spectra-ai';
 import type { Message, AssistantMessage, AssistantMessageEvent } from '@mohanscodex/spectra-ai';
-import { loadContext } from '../../services/context.js';
+import { loadContext, buildContextMessages, type ContextComposeOptions } from '../../services/context.js';
 import { loadConfig } from '../../services/config.js';
 import { AgentRegistry } from '../../agents/registry.js';
 import { loadAgentCatalog, filterToolsByAgent } from '../../agents/index.js';
@@ -11,6 +11,10 @@ import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
 
 const PKG_VERSION = '0.4.0';
+
+export function buildAcpSystemPrompt(cwd?: string, options: Omit<ContextComposeOptions, 'cwd'> = {}): string {
+	return loadContext(cwd, options).systemPrompt;
+}
 
 interface JsonRpcRequest {
 	jsonrpc: '2.0';
@@ -99,13 +103,15 @@ export class ACPAdapter {
 	}
 
 	private async onSessionNew(req: JsonRpcRequest): Promise<void> {
-		const params = req.params as { sessionId?: string } | undefined;
+		const params = req.params as { sessionId?: string; cwd?: string } | undefined;
 		const sessionId = params?.sessionId ?? crypto.randomUUID();
+		const requestCwd = params?.cwd || process.cwd();
 
 		try {
 			await initProviders();
 
-			const config = loadConfig();
+			const sessionStartedAt = new Date();
+			const config = loadConfig(requestCwd);
 			const catalog = await loadAgentCatalog();
 			const agentName = config.agent || 'build';
 			const def = catalog.definitions[agentName];
@@ -124,16 +130,18 @@ export class ACPAdapter {
 
 			const toolResult = await createAllToolsWithExtensions();
 			const agentTools = def ? filterToolsByAgent(toolResult.all, agentName, catalog) : toolResult.all;
-			const context = loadContext();
 
-			const { loadMemorySnapshot } = await import('../../services/memory.js');
-			const memorySnapshot = loadMemorySnapshot();
-
-			const systemPrompt = [context.systemPrompt, memorySnapshot, def.prompt].filter(Boolean).join('\n\n');
+			const systemPrompt = buildAcpSystemPrompt(requestCwd, {
+				model: modelId,
+				provider,
+				sessionStartedAt,
+				references: config.references,
+			});
 
 			const agent = new Agent({
 				model: { id: modelId, name: modelId, provider, api: provider },
 				systemPrompt,
+				contextMessages: buildContextMessages(def.prompt),
 				getApiKey: (p: string) => {
 					const cred = readAll()[p];
 					return cred?.type === 'api' ? cred.key : undefined;

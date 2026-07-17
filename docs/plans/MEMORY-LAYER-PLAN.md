@@ -1,7 +1,7 @@
 # Memory Layer + Skills Fix — Implementation Plan
 
 Reference: hermes-agent's bounded file-based memory (`MEMORY.md` + `USER.md`).
-No embeddings, no RAG, no graph, no vector DB. Bounded markdown + a tool + frozen-snapshot injection.
+No embeddings, no RAG, no graph, no vector DB. Bounded markdown with explicit tool access.
 
 ---
 
@@ -84,10 +84,10 @@ Two scopes, both bounded markdown, `§`-delimited entries:
 | `USER.md` | `{getGlobalDataDir()}/memory/USER.md` | User-global (user profile) | ~1375 |
 | `PROJECT.md` | `{cwd}/.spectra/memory/PROJECT.md` | Project-scoped | ~2200 |
 
-**Combining rule:** Global (`MEMORY.md` + `USER.md`) and project (`PROJECT.md`) are BOTH
-injected into the system prompt — **merged, not override**. On a conflict on the same
-topic, project-scoped takes precedence for that project (more specific wins). Global
-still loads for everything else. Same pattern as AGENTS.md.
+**Access rule:** Global (`MEMORY.md` + `USER.md`) and project (`PROJECT.md`) remain
+durable stores accessed through the `memory` tool. They are not eagerly copied into
+the stable system prompt. This keeps unrelated personal or project facts out of every
+request and avoids invalidating the provider's stable prompt prefix after memory writes.
 
 **Quality mechanisms (from hermes):**
 - Atomic writes: temp file + `fs.rename` (never partial state on disk)
@@ -96,17 +96,16 @@ still loads for everything else. Same pattern as AGENTS.md.
 - Char cap enforcement: reject writes that exceed cap, return current usage stats
 - External drift detection: before mutation, re-read file under lock; if content can't
   round-trip through the parser (external edit detected), refuse + save `.bak.<timestamp>`
-- Threat pattern scan on write AND on load (injection/exfiltration patterns) — blocked
-  entries replaced with `[BLOCKED: ...]` in the system prompt snapshot but kept on disk
-  for user inspection
+- Threat pattern scan on write and tool read (injection/exfiltration patterns); blocked
+  entries remain on disk for user inspection but are not returned as trusted context
 
 ### C.2 — `memory` tool (`packages/code/src/tools/memory.ts`)
 
 ```
 name: "memory"
-description: "Add, replace, remove, or read persistent memory entries. Memory is
-  loaded into context at the start of each session. Use 'memory' target for agent
-  notes, 'user' for user profile facts, 'project' for project-specific knowledge."
+description: "Add, replace, remove, or read persistent memory entries on demand. Use
+  'memory' for agent notes, 'user' for user profile facts, and 'project' for
+  project-specific knowledge."
 parameters: {
   target: "memory" | "user" | "project",
   action: "add" | "replace" | "remove" | "read" | "list",
@@ -121,42 +120,24 @@ parameters: {
 - Registered in `builtinTools` (`tools/index.ts:26-34`)
 - Available to `build`, `plan`, `debug` agents; NOT to `explore` (read-only subagent)
 
-### C.3 — Frozen-snapshot injection
+### C.3 — On-demand memory context
 
-Load `MEMORY.md` + `USER.md` + `PROJECT.md` once at agent creation, inject as a segment
-in the system-prompt array-join. **Writes persist to disk immediately but do NOT mutate
-the live system prompt until next session** (preserves prefix cache — hermes's frozen
-snapshot pattern).
+Memory files are not injected into the stable system prompt or loaded automatically at
+agent creation. Agents use the `memory` tool when the current task requires durable
+facts. Writes become visible to subsequent tool reads immediately without mutating the
+active request, canonical conversation history, or provider prompt prefix.
 
-**Injection sites** (same 3 as Part A, now using `loadContext()`):
-
-| File | Line | Change |
-|---|---|---|
-| `packages/code/src/tui/hooks/use-agent.ts` | 144 | Add memory segment to the array-join after `context.systemPrompt` |
-| `packages/code/src/tui/hooks/use-agent.ts` | 340 | Same (duplicate block B) |
-| `packages/code/src/integrations/acp/server.ts` | 136 | Same |
-
-Format injected:
-```
-<memory>
-## User Profile
-<USER.md content>
-
-## Memory
-<MEMORY.md content>
-
-## Project Context
-<PROJECT.md content>
-</memory>
-```
+Project instructions such as `AGENTS.md` remain stable system context. Agent-mode
+instructions use request-only `ContextMessage` values. Memory is intentionally separate
+from both layers.
 
 ### C.4 — Config schema (`packages/code/src/services/config.ts:17-33`)
 
 Add to `SpectraConfig`:
 ```ts
 memory?: {
-  enabled?: boolean;        // default true
-  projectScope?: boolean;   // default true — load .spectra/memory/PROJECT.md
+  enabled?: boolean;        // default true — expose memory tool access
+  projectScope?: boolean;   // default true — allow .spectra/memory/PROJECT.md access
 };
 skills?: {
   autoSynthesize?: boolean;     // default true — run synthesis at all

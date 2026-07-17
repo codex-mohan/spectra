@@ -104,6 +104,9 @@ export function sdkMessagesToChatMessages(data: {
 				if (b.type === 'toolCall') return { type: 'toolCall' as const, name: (b.name as string) || '', args: JSON.stringify(b.arguments || {}) };
 				return { type: 'text' as const, content: '' };
 			});
+			const isError = m.stopReason === 'error' || m.stopReason === 'aborted';
+			const errorMessage = typeof m.errorMessage === 'string' ? m.errorMessage : '';
+			if (isError && blocks.length === 0 && errorMessage) blocks.push({ type: 'text', content: `[error] ${errorMessage}` });
 			const textContent = blocks.filter((b) => b.type === 'text').map((b) => b.content).join('\n');
 			const metadata = (m.metadata || {}) as Record<string, unknown>;
 			const usage = m.usage as Record<string, unknown> | undefined;
@@ -117,12 +120,12 @@ export function sdkMessagesToChatMessages(data: {
 				id,
 				role: 'assistant' as const,
 				content: textContent,
+				turnStatus: (metadata.turnStatus as 'completed' | 'interrupted' | 'error' | undefined) ?? (isError ? 'error' : undefined),
 				blocks,
 				model: (m.model as string) || data.model,
-				turnStatus: metadata.turnStatus as 'completed' | 'interrupted' | 'error' | undefined,
 				turnDurationMs: metadata.turnDurationMs as number | undefined,
 				turnTokens,
-				agent: data.agent,
+				agent: typeof metadata.agent === 'string' ? metadata.agent : data.agent,
 			};
 		}
 		if (m.role === 'toolResult') {
@@ -136,12 +139,13 @@ export function sdkMessagesToChatMessages(data: {
 					? toolArgsById.get(m.toolCallId) || {}
 					: {};
 			const meta = `${m.toolName}(${JSON.stringify(args)})`;
+			const metadata = (m.metadata || {}) as Record<string, unknown>;
 			return {
 				id,
 				role: 'tool' as const,
 				content: toolOutput,
 				meta,
-				agent: data.agent,
+				agent: typeof metadata.agent === 'string' ? metadata.agent : data.agent,
 				toolError: m.isError === true,
 				exitCode: typeof details?.exitCode === 'number' ? details.exitCode : undefined,
 				wallTimeMs: typeof details?.wallTimeMs === 'number' ? details.wallTimeMs : undefined,

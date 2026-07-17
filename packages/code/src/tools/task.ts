@@ -2,14 +2,48 @@ import { z } from 'zod';
 import type { SpectraTool } from './types.js';
 import { textResult, errorResult } from './utils.js';
 import { getAgentDefinition, getSubagents, filterToolsByAgent } from '../agents/index.js';
+import type { AgentDefinition } from '../agents/types.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
 import type { SecurityManager } from '../security/index.js';
 import type { SessionStore } from '../services/session-store.js';
 import { backgroundTasks } from '../services/background-tasks.js';
-import { runSubagent } from '@mohanscodex/spectra-agent';
-import { getSystemPrompt } from '../utils/platform.js';
+import { loadContext, buildContextMessages, type ContextComposeOptions } from '../services/context.js';
+import { loadConfig, type ProjectReferenceConfig } from '../services/config.js';
+import { runSubagent, type SubagentConfig } from '@mohanscodex/spectra-agent';
+export function buildSubagentSystemPrompt(cwd?: string, options: Omit<ContextComposeOptions, 'cwd'> = {}): string {
+	return loadContext(cwd, options).systemPrompt;
+}
 
 const DEFAULT_REPORTING = `Return a concise final report with: outcome, important details, work completed, checks performed or intentionally skipped, and blockers. Only mention files, code changes, or tests when they are relevant to the assignment.`;
+
+interface SubagentContextOptions {
+	cwd: string;
+	sessionStartedAt?: Date;
+	references?: readonly ProjectReferenceConfig[];
+}
+
+function createSubagentConfig(
+	config: AgentRegistryConfig,
+	def: AgentDefinition,
+	tools: NonNullable<SubagentConfig['tools']>,
+	context: SubagentContextOptions,
+	signal?: AbortSignal,
+): SubagentConfig {
+	return {
+		model: config.model,
+		systemPrompt: buildSubagentSystemPrompt(context.cwd, {
+			model: config.model.id,
+			provider: config.model.provider,
+			sessionStartedAt: context.sessionStartedAt,
+			references: context.references,
+		}),
+		tools,
+		contextMessages: buildContextMessages(def.prompt),
+		...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
+		...(signal ? { signal } : {}),
+		getApiKey: config.getApiKey,
+	};
+}
 
 export interface StructuredTask {
 	id?: string;
@@ -190,6 +224,15 @@ export function createTaskTool(
 					const allTools = createAllToolsWithSecurity(security, config, sessionStore, parentId);
 					return filterToolsByAgent(allTools, subagent_type);
 				};
+				const configForSession = (tools: NonNullable<SubagentConfig['tools']>, signal?: AbortSignal, childSessionId?: string) => {
+					const session = childSessionId ? sessionStore?.get(childSessionId) : parentSessionId ? sessionStore?.get(parentSessionId) : undefined;
+					const cwd = session?.directory || process.cwd();
+					return createSubagentConfig(config, def, tools, {
+						cwd,
+						sessionStartedAt: session?.created ? new Date(session.created) : undefined,
+						references: loadConfig(cwd).references,
+					}, signal);
+				};
 
 				// ─── Phase 4/5: task_id handling (extend / resume) ─────────────────
 				if (task_id) {
@@ -216,14 +259,7 @@ export function createTaskTool(
 								});
 								const tools = buildSubTools(task_id);
 								const resumeResult = await runSubagent(
-									{
-										model: config.model,
-										systemPrompt: [getSystemPrompt(), def.prompt].filter(Boolean).join('\n\n'),
-										tools,
-										...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
-										signal: ctx.signal,
-										getApiKey: config.getApiKey,
-									} as any,
+									configForSession(tools, ctx.signal, task_id),
 									prompt,
 								);
 								for (const m of resumeResult.messages) sessionStore.addMessage(task_id, m);
@@ -256,14 +292,7 @@ export function createTaskTool(
 				const runAndPersist = async (childId: string) => {
 					const tools = buildSubTools(childId);
 					const result = await runSubagent(
-						{
-							model: config.model,
-							systemPrompt: [getSystemPrompt(), def.prompt].filter(Boolean).join('\n\n'),
-							tools,
-							...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
-							signal: ctx.signal,
-							getApiKey: config.getApiKey,
-						} as any,
+						configForSession(tools, ctx.signal, childId),
 						prompt,
 					);
 					if (sessionStore) {
@@ -299,13 +328,7 @@ export function createTaskTool(
 							for (const extPrompt of extensions) {
 								const extTools = buildSubTools(childId);
 								const extResult = await runSubagent(
-									{
-										model: config.model,
-										systemPrompt: [getSystemPrompt(), def.prompt].filter(Boolean).join('\n\n'),
-										tools: extTools,
-										...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
-										getApiKey: config.getApiKey,
-									} as any,
+									configForSession(extTools, undefined, childId),
 									extPrompt,
 								);
 								if (sessionStore) {
@@ -335,14 +358,7 @@ export function createTaskTool(
 					// No session available — run inline like the legacy path
 					const tools = buildSubTools(undefined);
 					const result = await runSubagent(
-						{
-							model: config.model,
-							systemPrompt: [getSystemPrompt(), def.prompt].filter(Boolean).join('\n\n'),
-							tools,
-							...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
-							signal: ctx.signal,
-							getApiKey: config.getApiKey,
-						} as any,
+						configForSession(tools, ctx.signal),
 						prompt,
 					);
 					const resultText = (result.text || '').trim();

@@ -373,7 +373,41 @@ function maybeAddOpenRouterAnthropicCacheControl(
 	}
 }
 
-function convertMessages(model: Model, context: Context): ChatCompletionMessageParam[] {
+/**
+ * Lower ContextMessages into Chat Completion messages to be inserted
+ * immediately before the latest user message.
+ * - `openai` / `openai-codex`: developer-role messages.
+ * - Other providers: a single tagged user-role message.
+ * Returns a new array; never mutates inputs.
+ */
+export function lowerOpenAICompletionsContextMessages(
+	contextMessages: readonly import('../types.js').ContextMessage[],
+	modelProvider: string,
+): ChatCompletionMessageParam[] {
+	if (contextMessages.length === 0) return [];
+
+	const isOpenAI = modelProvider === 'openai' || modelProvider === 'openai-codex';
+
+	if (isOpenAI) {
+		return contextMessages.map((cm) => ({
+			role: 'developer' as const,
+			content: sanitizeSurrogates(cm.content),
+		}));
+	}
+
+	// Other providers: tagged user message
+	const tag = contextMessages
+		.map((cm) => `<context>\n${sanitizeSurrogates(cm.content)}\n</context>`)
+		.join('\n');
+	return [{ role: 'user' as const, content: `\n\n${tag}\n\n` }];
+}
+
+export function convertMessages(model: Model, context: Context): ChatCompletionMessageParam[] {
+	const contextItems = lowerOpenAICompletionsContextMessages(
+		context.contextMessages ?? [],
+		model.provider,
+	);
+
 	const params: ChatCompletionMessageParam[] = [];
 
 	const systemText = context.systemPrompt ?? '';
@@ -456,6 +490,23 @@ function convertMessages(model: Model, context: Context): ChatCompletionMessageP
 				content: sanitizeSurrogates(textResult || '(no result)'),
 				tool_call_id: msg.toolCallId,
 			});
+		}
+	}
+
+	// Insert context items immediately before the latest user message
+	if (contextItems.length > 0) {
+		let lastUserIdx = -1;
+		for (let i = params.length - 1; i >= 0; i--) {
+			if (params[i].role === 'user') {
+				lastUserIdx = i;
+				break;
+			}
+		}
+		if (lastUserIdx >= 0) {
+			params.splice(lastUserIdx, 0, ...contextItems);
+		} else {
+			// No user message — context items go at the end after system
+			params.push(...contextItems);
 		}
 	}
 

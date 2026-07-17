@@ -8,12 +8,11 @@ import type {
 	ImageContent,
 	Model,
 	Context,
+	ContextMessage,
 	StreamOptions,
 	Tool,
 } from '@mohanscodex/spectra-ai';
-
-export type { Context } from '@mohanscodex/spectra-ai';
-
+export type { Context, ContextMessage } from '@mohanscodex/spectra-ai';
 export interface AgentTool<TDetails = unknown> {
 	name: string;
 	label?: string;
@@ -129,18 +128,19 @@ export interface AgentRuntimeConfig {
 	maxTurns?: number;
 	toolExecution?: ToolExecutionMode;
 	streamOptions?: StreamOptions;
+	contextMessages?: readonly ContextMessage[];
 }
-
 export interface BeforeModelCallContext {
 	readonly model: Model;
 	readonly systemPrompt?: string;
 	readonly messages: readonly Message[];
 	readonly tools: readonly Tool[];
 	readonly iteration: number;
+	readonly contextMessages?: readonly ContextMessage[];
 }
-
 export interface BeforeModelCallResult {
 	messages?: Message[];
+	contextMessages?: readonly ContextMessage[];
 }
 export interface AgentConfig {
 	model: Model;
@@ -160,4 +160,5 @@ export interface AgentConfig {
 	maxRetryDelayMs?: number;
 	onRetry?: (context: RetryContext) => RetryDecision | void;
 	provenance?: boolean | ProvenanceConfig;
+	contextMessages?: readonly ContextMessage[];
 }

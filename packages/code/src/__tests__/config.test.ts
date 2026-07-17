@@ -80,14 +80,20 @@ describe('Spectra config precedence', () => {
 			model: 'global-model',
 			providers: { global: { name: 'Global', baseUrl: 'https://global.test' } },
 			mcp: [{ name: 'shared', command: 'global' }],
+			references: [
+				{ name: 'shared', path: '../global-shared', description: 'global' },
+				{ name: 'global', path: '../global-only' },
+			],
 		});
 		writeJson(join(project, '.spectra', 'spectra.json'), {
 			providers: { project: { name: 'Project', baseUrl: 'https://project.test' } },
 			mcp: [{ name: 'project', command: 'project' }],
+			references: [{ name: 'project', path: '../project-reference' }],
 		});
 		writeJson(join(nested, '.spectra', 'config.jsonc'), {
 			model: 'nearest-model',
 			mcp: [{ name: 'shared', command: 'nearest' }],
+			references: [{ name: 'shared', path: '../nearest-shared', description: 'nearest' }],
 		});
 		writeJson(join(nested, '.claude', 'spectra.json'), { model: 'foreign-model' });
 		process.env.SPECTRA_CONFIG = JSON.stringify({ provider: 'env-content-provider' });
@@ -101,6 +107,11 @@ describe('Spectra config precedence', () => {
 		expect(config.mcp).toEqual([
 			{ name: 'shared', command: 'nearest' },
 			{ name: 'project', command: 'project' },
+		]);
+		expect(config.references).toEqual([
+			{ name: 'shared', path: '../nearest-shared', description: 'nearest' },
+			{ name: 'global', path: '../global-only' },
+			{ name: 'project', path: '../project-reference' },
 		]);
 	});
 });

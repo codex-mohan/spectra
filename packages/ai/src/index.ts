@@ -31,6 +31,7 @@ export type {
 	Message,
 	Tool,
 	Context,
+	ContextMessage,
 	AssistantMessageEvent,
 	StreamOptions,
 	Model,

@@ -26,6 +26,7 @@ const agent = new Agent({
 |---|---|---|---|
 | `model` | `Model` | required | LLM model configuration |
 | `systemPrompt` | `string` | — | System prompt for the agent |
+| `contextMessages` | `ContextMessage[]` | `[]` | Request-only developer context; never persisted in conversation history |
 | `tools` | `AgentTool[]` | `[]` | Registered tools |
 | `maxTurns` | `number` | unlimited | Max LLM turns before stopping |
 | `toolExecution` | `"parallel" \| "sequential"` | `"parallel"` | Tool execution strategy |
@@ -41,12 +42,13 @@ const agent = new Agent({
 
 ### Runtime Configuration
 
-Use `configure()` between runs to atomically replace the model, system prompt, tools, turn limit, execution mode, and stream options without discarding conversation history:
+Use `configure()` between runs to atomically replace the model, system prompt, request-only context messages, tools, turn limit, execution mode, and stream options without discarding conversation history:
 
 ```typescript
 agent.configure({
   model: nextModel,
   systemPrompt: "Use the new operating mode.",
+  contextMessages: [{ role: "developer", content: "Use plan mode for this turn." }],
   tools: nextTools,
   maxTurns: 20,
   streamOptions: { thinkingEffort: "high" },
@@ -57,21 +59,34 @@ agent.configure({
 
 ### Request-Time Context
 
-`beforeModelCall` can add request-only messages before each model iteration. Its result is not appended to `agent.messages`, and transport retries reuse the prepared request context. The configured system prompt remains stable for the complete run.
+Use `contextMessages` for agent modes, tenant policy, retrieved context, and other instructions that apply to a request but must not become durable conversation history. Spectra sends them on every model iteration in the run, including tool loops, without appending them to `agent.messages`:
 
 ```typescript
 const agent = new Agent({
   model,
-  beforeModelCall: async ({ messages, iteration }) => ({
-    messages: [
-      ...messages,
-      { role: "user", content: `Request iteration: ${iteration}`, timestamp: Date.now() },
-    ],
-  }),
+  systemPrompt: "Stable application and project instructions.",
+  contextMessages: [
+    { role: "developer", content: "Operate in read-only planning mode." },
+  ],
 });
 ```
 
-Throwing from `beforeModelCall` aborts that request and emits an `audit` event with `eventType: "hook_error"`. The hook cannot alter the system prompt or registered tool set; use `configure()` between runs for those changes.
+OpenAI transports receive native `developer` messages. Anthropic and OpenAI-compatible transports without developer-role support receive equivalent tagged context immediately before the latest user input. This placement preserves the longest stable prompt prefix when context changes between turns.
+
+`beforeModelCall` may replace `contextMessages` or the request message copy for one model iteration. Hook results are not persisted, and transport retries reuse the already-prepared request:
+
+```typescript
+const agent = new Agent({
+  model,
+  contextMessages: [{ role: "developer", content: "Default request context." }],
+  beforeModelCall: async ({ iteration }) => iteration === 1
+    ? { contextMessages: [{ role: "developer", content: "First-iteration context." }] }
+    : undefined,
+});
+```
+
+Throwing from `beforeModelCall` aborts that request and emits an `audit` event with `eventType: "hook_error"`. The hook cannot alter the stable system prompt or registered tool set; use `configure()` between runs for those changes.
+
 ::: tip
 The `model` object requires four fields: `id` (model identifier), `name` (display name), `provider` (registry key), and `api` (API type within the provider).
 :::

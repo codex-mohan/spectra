@@ -30,6 +30,14 @@ export interface SpectraConfig {
 	providers?: Record<string, CustomProviderConfig>;
 	memory?: MemoryConfig;
 	skills?: SkillsConfig;
+	references?: ProjectReferenceConfig[];
+}
+
+export interface ProjectReferenceConfig {
+	name: string;
+	path: string;
+	description?: string;
+	enabled?: boolean;
 }
 
 export interface MemoryConfig {
@@ -68,7 +76,7 @@ export interface PermissionRule {
 }
 
 const configFiles = ['spectra.json', 'spectra.jsonc', 'config.json', 'config.jsonc'];
-const mergeByNameFields = new Set(['mcp', 'plugins', 'permissions']);
+const mergeByNameFields = new Set(['mcp', 'plugins', 'permissions', 'references']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === 'object' && !Array.isArray(value);

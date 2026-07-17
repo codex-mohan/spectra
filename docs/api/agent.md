@@ -12,12 +12,14 @@ new Agent(config: AgentConfig)
 |--------|------|---------|-------------|
 | `model` | `Model` | required | LLM model configuration |
 | `systemPrompt` | `string` | undefined | System prompt |
+| `contextMessages` | `ContextMessage[]` | `[]` | Request-only developer context, excluded from conversation history |
 | `tools` | `AgentTool[]` | [] | Registered tools |
 | `maxTurns` | `number` | undefined | Max LLM turns (unlimited) |
 | `toolExecution` | `"parallel" \| "sequential"` | `"parallel"` | Tool execution strategy |
 | `beforeToolCall` | `BeforeToolCallHook` | undefined | Called before tool execution |
 | `afterToolCall` | `AfterToolCallHook` | undefined | Called after tool execution |
 | `transformContext` | `TransformContextHook` | undefined | Transform messages before LLM call |
+| `beforeModelCall` | `BeforeModelCallHook` | undefined | Replaces request-only messages or context before each model iteration |
 | `getApiKey` | `GetApiKeyHook` | undefined | Dynamic API key resolution |
 
 ## Methods

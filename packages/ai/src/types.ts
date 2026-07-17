@@ -139,10 +139,20 @@ export interface Tool {
 	};
 }
 
+/**
+ * A developer/context message that providers lower into their native format.
+ * These never enter canonical history (`Context.messages`) or the stable system prompt.
+ */
+export interface ContextMessage {
+	readonly role: 'developer';
+	readonly content: string;
+}
+
 export interface Context {
 	systemPrompt?: string | undefined;
 	messages: Message[];
 	tools?: Tool[];
+	contextMessages?: readonly ContextMessage[];
 }
 
 export type AssistantMessageEvent =

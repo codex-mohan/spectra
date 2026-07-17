@@ -1,4 +1,5 @@
 import { existsSync } from 'fs';
+import { dirname, resolve } from 'path';
 import open from 'open';
 
 function resolveShell(): string {
@@ -48,6 +49,54 @@ export function getPlatformInfo(): {
 	return { os, arch, shell, homeDir, hostname, cwd };
 }
 
+export interface EnvironmentPromptOptions {
+	model: string;
+	provider: string;
+	cwd?: string;
+	sessionStartedAt?: Date;
+	now?: Date;
+}
+
+export function getEnvironmentPrompt(options: EnvironmentPromptOptions): string {
+	const info = getPlatformInfo();
+	const cwd = resolve(options.cwd ?? info.cwd);
+	const gitRoot = findWorkspaceRoot(cwd);
+	const workspaceRoot = gitRoot ?? cwd;
+	const startedAt = options.sessionStartedAt ?? new Date();
+	const now = options.now ?? new Date();
+	return [
+		`You are powered by the model named ${options.model}. The exact model ID is ${options.provider}/${options.model}.`,
+		'Here is useful information about the environment you are running in:',
+		'<env>',
+		`  Working directory: ${cwd}`,
+		`  Workspace root folder: ${workspaceRoot}`,
+		`  Is directory a git repo: ${gitRoot === undefined ? 'no' : 'yes'}`,
+		`  Platform: ${info.os} (${info.arch})`,
+		`  Default shell: ${info.shell}`,
+		`  Home directory: ${info.homeDir}`,
+		`  Session began: ${startedAt.toISOString()}`,
+		`  Today's date: ${formatLocalDate(now)}`,
+		'</env>',
+	].join('\n');
+}
+
+function formatLocalDate(value: Date): string {
+	const year = value.getFullYear();
+	const month = String(value.getMonth() + 1).padStart(2, '0');
+	const day = String(value.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+function findWorkspaceRoot(cwd: string): string | undefined {
+	let current = cwd;
+	while (true) {
+		if (existsSync(resolve(current, '.git'))) return current;
+		const parent = dirname(current);
+		if (parent === current) return undefined;
+		current = parent;
+	}
+}
+
 export function getSystemPrompt(): string {
 	const info = getPlatformInfo();
 	const isWin = info.os === 'windows';
@@ -55,13 +104,6 @@ export function getSystemPrompt(): string {
 	return `You are Spectra Code, a deeply pragmatic, effective software engineer operating as an AI coding agent in the user's terminal.
 
 You collaborate with the user in the same workspace, taking engineering quality seriously. You communicate directly and efficiently — keep the user informed about ongoing actions without unnecessary detail. Build context by examining the codebase first, never making assumptions or jumping to conclusions. Think through the nuances of the code you encounter.
-
-## Environment
-- **Platform**: ${info.os} (${info.arch})
-- **Host**: ${info.hostname}
-- **Default Shell**: ${info.shell}
-- **Home Directory**: ${info.homeDir}
-- **Current Working Directory**: ${info.cwd}
 
 All file operations default to the working directory. Use relative paths where possible.
 

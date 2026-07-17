@@ -328,7 +328,22 @@ function isResponseErrorEvent(e: ResponseStreamEvent): e is ResponseErrorEvent {
 	return e.type === 'error';
 }
 
-function convertResponsesMessages(model: Model, context: Context): unknown[] {
+/**
+ * Lower ContextMessages into OpenAI Responses developer input items to be
+ * inserted immediately before the latest user input message. Returns a new
+ * array; never mutates the input.
+ */
+export function lowerOpenAIResponsesContextMessages(
+	contextMessages: readonly import('../types.js').ContextMessage[],
+): unknown[] {
+	if (contextMessages.length === 0) return [];
+	return contextMessages.map((cm) => ({
+		role: 'developer' as const,
+		content: sanitizeSurrogates(cm.content),
+	}));
+}
+
+export function convertResponsesMessages(model: Model, context: Context): unknown[] {
 	const messages: unknown[] = [];
 
 	const systemText = context.systemPrompt ?? '';
@@ -414,6 +429,25 @@ function convertResponsesMessages(model: Model, context: Context): unknown[] {
 				call_id: msg.toolCallId.split('|')[0] || msg.toolCallId,
 				output: sanitizeSurrogates(textResult || '(no result)'),
 			});
+		}
+	}
+
+	// Insert developer context messages immediately before the latest user input
+	const contextItems = lowerOpenAIResponsesContextMessages(context.contextMessages ?? []);
+	if (contextItems.length > 0) {
+		let lastUserIdx = -1;
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const m = messages[i] as Record<string, unknown>;
+			if (m.role === 'user') {
+				lastUserIdx = i;
+				break;
+			}
+		}
+		if (lastUserIdx >= 0) {
+			messages.splice(lastUserIdx, 0, ...contextItems);
+		} else {
+			// No user message — developer items go at the end after system
+			messages.push(...contextItems);
 		}
 	}
 

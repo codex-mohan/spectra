@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AssistantMessageEventStream, registerProvider } from '@mohanscodex/spectra-ai';
-import type { AssistantMessage, Context, Model } from '@mohanscodex/spectra-ai';
+import type { AssistantMessage, Context, ContextMessage, Model } from '@mohanscodex/spectra-ai';
 import { Agent } from '../agent.js';
 import { defineTool } from '../define-tool.js';
 import { z } from 'zod';
@@ -337,4 +337,165 @@ describe('Agent runtime configuration', () => {
 		expect(agent.errorMessage).toBe('Request timed out');
 		expect(failure.metadata?.error).toMatchObject({ kind: 'timeout', statusCode: 504 });
 	});
+});
+
+describe('contextMessages', () => {
+	it('reaches the provider on each model iteration including tool loops', async () => {
+		let call = 0;
+		const seenContextMessages: (readonly ContextMessage[] | undefined)[] = [];
+		const ctx: ContextMessage[] = [{ role: 'developer', content: 'global instructions' }];
+		registerProvider({
+			name: provider,
+			stream(currentModel, context) {
+				seenContextMessages.push(context.contextMessages);
+				const message = call++ === 0
+					? response(currentModel.id, [{ type: 'toolCall', id: 'tc-1', name: 'echo', arguments: {} }], 'toolUse')
+					: response(currentModel.id, [{ type: 'text', text: 'done' }]);
+				return completedStream(message);
+			},
+		});
+		const echo = defineTool({
+			name: 'echo',
+			description: 'echo',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text' as const, text: 'ok' }] }),
+		});
+		const agent = new Agent({
+			model: model('ctx-loop'),
+			tools: [echo],
+			contextMessages: ctx,
+		});
+
+		for await (const _event of agent.run('go')) {}
+
+		expect(seenContextMessages).toHaveLength(2);
+		expect(seenContextMessages[0]).toEqual(ctx);
+		expect(seenContextMessages[1]).toEqual(ctx);
+	});
+
+	it('beforeModelCall hook contextMessages are iteration-local and do not persist', async () => {
+		const original: ContextMessage[] = [{ role: 'developer', content: 'original' }];
+		const replaced: ContextMessage[] = [{ role: 'developer', content: 'replaced this iteration only' }];
+		let call = 0;
+		const seenContextMessages: (readonly ContextMessage[] | undefined)[] = [];
+		registerProvider({
+			name: provider,
+			stream(currentModel, context) {
+				seenContextMessages.push(context.contextMessages);
+				const message = call++ === 0
+					? response(currentModel.id, [{ type: 'toolCall', id: 'tc-1', name: 'echo', arguments: {} }], 'toolUse')
+					: response(currentModel.id, [{ type: 'text', text: 'done' }]);
+				return completedStream(message);
+			},
+		});
+		const echo = defineTool({
+			name: 'echo',
+			description: 'echo',
+			parameters: z.object({}),
+			execute: async () => ({ content: [{ type: 'text' as const, text: 'ok' }] }),
+		});
+		const agent = new Agent({
+			model: model('hook-local'),
+			tools: [echo],
+			contextMessages: original,
+			beforeModelCall: async (ctx) => {
+				// Replace only on the first iteration; return undefined on the second
+				if (ctx.iteration === 1) return { contextMessages: replaced };
+				return undefined;
+			},
+		});
+
+		for await (const _event of agent.run('go')) {}
+
+		// Iteration 1: hook replaced contextMessages
+		expect(seenContextMessages).toHaveLength(2);
+		expect(seenContextMessages[0]).toEqual(replaced);
+		// Iteration 2: hook returned undefined, configured contextMessages restored
+		expect(seenContextMessages[1]).toEqual(original);
+		// Hook's replacement did not mutate the configured array
+		expect(original).toEqual([{ role: 'developer', content: 'original' }]);
+	});
+
+	it('configure replaces contextMessages atomically between turns', async () => {
+		const first: ContextMessage[] = [{ role: 'developer', content: 'first' }];
+		const second: ContextMessage[] = [{ role: 'developer', content: 'second' }];
+		let call = 0;
+		const seenContextMessages: (readonly ContextMessage[] | undefined)[] = [];
+		registerProvider({
+			name: provider,
+			stream(currentModel, context) {
+				seenContextMessages.push(context.contextMessages);
+				const msg = call++ === 0
+					? response(currentModel.id, [{ type: 'text', text: 'waiting' }])
+					: response(currentModel.id, [{ type: 'text', text: 'done' }]);
+				return completedStream(msg);
+			},
+		});
+		const agent = new Agent({
+			model: model('configure-replace'),
+			contextMessages: first,
+		});
+
+		// First turn uses initial contextMessages
+		for await (const _event of agent.run('turn 1')) {}
+		// Replace between turns
+		agent.configure({ model: model('configure-replace'), contextMessages: second });
+		// Second turn uses replacement
+		for await (const _event of agent.run('turn 2')) {}
+
+		expect(seenContextMessages).toHaveLength(2);
+		expect(seenContextMessages[0]).toEqual(first);
+		expect(seenContextMessages[1]).toEqual(second);
+	});
+
+	it('never appears in agent.messages (canonical history)', async () => {
+		const ctx: ContextMessage[] = [{ role: 'developer', content: 'secret context' }];
+		registerProvider({
+			name: provider,
+			stream(currentModel) {
+				return completedStream(response(currentModel.id, [{ type: 'text', text: 'done' }]));
+			},
+		});
+		const agent = new Agent({
+			model: model('no-leak'),
+			contextMessages: ctx,
+		});
+
+		for await (const _event of agent.run('hello')) {}
+
+		// No message in canonical history should contain context content
+		const leaked = agent.messages.some(
+			(m) => typeof m.content === 'string' && m.content.includes('secret context'),
+		);
+		expect(leaked).toBe(false);
+		// Context messages have role 'developer'; no message in history has that role
+		const hasDeveloperRole = agent.messages.some((m) => (m as any).role === 'developer');
+		expect(hasDeveloperRole).toBe(false);
+	});
+	it('defensively deep-copies configured contextMessages so caller mutation is invisible', async () => {
+		const original: ContextMessage[] = [{ role: 'developer', content: 'original' }];
+		let seenByProvider: readonly ContextMessage[] | undefined;
+		registerProvider({
+			name: provider,
+			stream(currentModel, context) {
+				seenByProvider = context.contextMessages;
+				return completedStream(response(currentModel.id, [{ type: 'text', text: 'done' }]));
+			},
+		});
+		const agent = new Agent({
+			model: model('mutation-guard'),
+			contextMessages: original,
+		});
+
+		// Mutate the original array and its objects after construction
+		original.push({ role: 'developer', content: 'injected' });
+		(original[0] as any).content = 'tampered';
+
+		for await (const _event of agent.run('go')) {}
+
+		// Provider must see the original snapshot, not the mutated values
+		expect(seenByProvider).toEqual([{ role: 'developer', content: 'original' }]);
+		expect(seenByProvider).toHaveLength(1);
+	});
+
 });

@@ -16,6 +16,7 @@ import { dispatchCommand, type CommandRegistry, type CommandRunContext, type Dis
 import { executeActions, type ActionContext, type ActionResult } from '../command-action-executor.js';
 import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js';
 import { getAuthKey } from '../utils/model-config.js';
+import { captureTurnConfiguration, latestTurnConfiguration, readTurnConfiguration } from '../turn-config.js';
 import type { useSessionState } from './use-session-state.js';
 import { loadConfig } from '../../services/config.js';
 import { enqueuePendingSkill } from '../../services/pending-skills.js';
@@ -33,7 +34,6 @@ interface UseChatSubmitDeps {
 	sessionId: React.MutableRefObject<string | null>;
 	securityRef: React.MutableRefObject<any>;
 	snapshotManager: React.MutableRefObject<SnapshotManager>;
-	lastAgentRef: React.MutableRefObject<string | null>;
 	isStreamingRef: React.MutableRefObject<boolean>;
 	currentTurnStartRef: React.MutableRefObject<number | null>;
 	currentTurnMsgIdRef: React.MutableRefObject<string | null>;
@@ -45,12 +45,17 @@ interface UseChatSubmitDeps {
 		agent: string,
 		customProviders: any,
 		effort: string | undefined,
+		history?: Message[],
 	) => Promise<any>;
 	selectedModel: string | null;
+	selectedModelRef: React.MutableRefObject<string | null>;
 	provider: string | null;
+	selectedProviderRef: React.MutableRefObject<string | null>;
 	selectedAgent: string;
+	selectedAgentRef: React.MutableRefObject<string>;
 	customProviders: Record<string, any>;
 	thinkingEffort: string | undefined;
+	thinkingEffortRef: React.MutableRefObject<string | undefined>;
 	commandRegistry: CommandRegistry;
 	setMessages: (fn: (prev: ChatMessage[]) => ChatMessage[]) => void;
 	setIsLoading: (v: boolean) => void;
@@ -77,17 +82,20 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		sessionId,
 		securityRef,
 		snapshotManager,
-		lastAgentRef,
 		isStreamingRef,
 		currentTurnStartRef,
 		currentTurnMsgIdRef,
 		revertPoint,
-		getOrCreateAgent,
-		selectedModel,
-		provider,
-		selectedAgent,
-		customProviders,
-		thinkingEffort,
+	getOrCreateAgent,
+	selectedModel: renderedSelectedModel,
+	selectedModelRef,
+	provider: renderedProvider,
+	selectedProviderRef,
+	selectedAgent: renderedSelectedAgent,
+	selectedAgentRef,
+	customProviders,
+	thinkingEffort: renderedThinkingEffort,
+	thinkingEffortRef,
 	commandRegistry,
 		setMessages,
 		setIsLoading,
@@ -128,6 +136,7 @@ interface QueuedSteeringDisplay {
 		if (!targetSessionId) return;
 		sessionStore.current.addMessage(targetSessionId, sdkMsg);
 	}
+
 
 	function updatePersistedMessageMetadata(targetSessionId: string, sdkMsg: Message, metadata: Record<string, unknown>) {
 		if (!targetSessionId) return;
@@ -222,6 +231,13 @@ Return ONLY the title text, nothing else.`;
 	const submitPrompt = useCallback(
 		async (payload: PromptSubmitPayload) => {
 			const { text: trimmed, attachments } = payload;
+			const turn = captureTurnConfiguration({
+				agent: selectedAgentRef,
+				model: selectedModelRef,
+				provider: selectedProviderRef,
+				thinkingEffort: thinkingEffortRef,
+			});
+			const { agent: selectedAgent, model: selectedModel, provider, thinkingEffort } = turn;
 
 			const currentSessionId = sessionId.current || '';
 			if (currentSessionId && streamingSessionsRef.current.has(currentSessionId)) {
@@ -252,15 +268,22 @@ Return ONLY the title text, nothing else.`;
 							})),
 						]
 						: trimmed;
+					const activeTurn = latestTurnConfiguration(sessionStore.current.get(currentSessionId)?.messages ?? []) ?? {
+						agent: selectedAgent,
+						model: selectedModel,
+						provider,
+						thinkingEffort,
+					};
 					const userMsg: Message = {
 						role: 'user',
 						content: userContent,
 						timestamp: Date.now(),
+						metadata: { ...activeTurn },
 					};
 					const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
 					const steeringDisplayId = genId();
 					steeringMessagesRef.current.add(userMsg);
-					steeringDisplaysRef.current.set(userMsg, { id: steeringDisplayId, content: displayContent, attachments, model: selectedModel });
+					steeringDisplaysRef.current.set(userMsg, { id: steeringDisplayId, content: displayContent, attachments, model: activeTurn.model });
 					sessionState.addPendingSteeringTo(currentSessionId, { id: steeringDisplayId, content: displayContent });
 					agent.steer(userMsg);
 					if (trimmed) promptHistoryService.current.append(trimmed);
@@ -332,7 +355,13 @@ Return ONLY the title text, nothing else.`;
 				: trimmed;
 
 			const uid = genId();
-			const userMsg: Message = { role: 'user', content: userContent, timestamp: Date.now() };
+			const userMsg: Message = {
+				role: 'user',
+				content: userContent,
+				timestamp: Date.now(),
+				metadata: { agent: selectedAgent, model: selectedModel, provider, thinkingEffort },
+			};
+			const persistedTurn = readTurnConfiguration(userMsg);
 			const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
 			sessionState.addMessageTo(runSessionId, { id: uid, role: 'user', content: displayContent, attachments, model: selectedModel });
 			sessionState.setLoadingIn(runSessionId, true);
@@ -341,10 +370,17 @@ Return ONLY the title text, nothing else.`;
 			streamingSessionsRef.current.add(runSessionId);
 			isStreamingRef.current = true;
 			streamingIdRef.current = 'pending';
+			const historyBeforeTurn = [...(sessionStore.current.get(runSessionId)?.messages ?? [])];
 
 			persistMessage(runSessionId, userMsg);
 
 			const sess = sessionStore.current.get(runSessionId);
+			if (sess) {
+				sess.agent = persistedTurn.agent;
+				sess.model = persistedTurn.model;
+				sess.provider = persistedTurn.provider;
+				sessionStore.current.save(sess);
+			}
 			if (sess && sess.messages.length === 1) {
 				const titleText = displayContent.length > 60 ? displayContent.slice(0, 57) + '...' : displayContent;
 				sess.title = titleText;
@@ -359,28 +395,14 @@ Return ONLY the title text, nothing else.`;
 			try {
 				const agent = await getOrCreateAgent(
 					runSessionId,
-					selectedModel,
-					provider,
-					selectedAgent,
+					persistedTurn.model,
+					persistedTurn.provider,
+					persistedTurn.agent,
 					customProviders,
-					thinkingEffort,
+					persistedTurn.thinkingEffort,
+					historyBeforeTurn,
 				);
 
-				let promptInputText = trimmed;
-				const prevAgent = lastAgentRef.current;
-				if (prevAgent && prevAgent !== selectedAgent) {
-					const def = getAgentDefinition(selectedAgent);
-					const prevDef = getAgentDefinition(prevAgent);
-					if (prevDef?.mode === 'primary' && def?.mode === 'primary') {
-						if (prevAgent === 'plan' && selectedAgent !== 'plan') {
-							promptInputText = `<system-reminder>\nYou are now in ${selectedAgent} mode. The previous agent was in plan mode — a plan may have been created. Execute on it if one exists.\n</system-reminder>\n\n${trimmed}`;
-						} else if (selectedAgent === 'plan') {
-							promptInputText = `<system-reminder>\nPlan mode active. You are in read-only analysis mode — do NOT make edits, do NOT run destructive commands. Use read, glob, grep, and web_fetch only. When done, call plan_exit so the user can switch to build mode.\n</system-reminder>\n\n${trimmed}`;
-						} else {
-							promptInputText = `<system-reminder>\nYou are now in ${selectedAgent} mode (was ${prevAgent}). Your available tools and behavior have changed to match this mode.\n</system-reminder>\n\n${trimmed}`;
-						}
-					}
-				}
 
 				try {
 					preEditSnapshotRef.current = await snapshotManager.current.track();
@@ -389,7 +411,7 @@ Return ONLY the title text, nothing else.`;
 					console.error('Snapshot track failed:', err);
 				}
 
-				for await (const ev of agent.run(attachments.length > 0 ? { ...userMsg, content: userContent } : promptInputText)) {
+				for await (const ev of agent.run(userMsg)) {
 					if (ev.type === 'message_end' && ev.message.role === 'user' && steeringMessagesRef.current.has(ev.message)) {
 						steeringMessagesRef.current.delete(ev.message);
 						const display = steeringDisplaysRef.current.get(ev.message);
@@ -418,8 +440,8 @@ Return ONLY the title text, nothing else.`;
 							content: '',
 							blocks: [],
 							streaming: true,
-							model: selectedModel,
-							agent: selectedAgent,
+							model: persistedTurn.model,
+							agent: persistedTurn.agent,
 						});
 					}
 					if (ev.type === 'message_update' && ev.message.role === 'assistant' && currentAssistantId) {
@@ -446,7 +468,7 @@ Return ONLY the title text, nothing else.`;
 									role: 'tool',
 									content: '',
 									meta: `${tc.name}(${JSON.stringify(tc.arguments || {})})`,
-									agent: selectedAgent,
+									agent: persistedTurn.agent,
 								});
 							}
 						}
@@ -454,15 +476,21 @@ Return ONLY the title text, nothing else.`;
 					if (ev.type === 'message_end' && ev.message.role === 'assistant' && currentAssistantId) {
 						const m = ev.message as AssistantMessage;
 						const blocks = getMessageBlocks(m);
-						const textContent = blocks
+						const isError = m.stopReason === 'error' || m.stopReason === 'aborted';
+						const errorText = isError && m.errorMessage ? `[error] ${m.errorMessage}` : '';
+						const displayBlocks = blocks.length === 0 && errorText
+							? [{ type: 'text' as const, content: errorText }]
+							: blocks;
+						const textContent = displayBlocks
 							.filter((b): b is ContentBlock & { type: 'text' } => b.type === 'text')
 							.map((b) => b.content)
 							.join('\n');
 						const duration = performance.now() - (currentTurnStartRef.current ?? start);
 						sessionState.updateMessageIn(runSessionId, currentAssistantId, {
 							content: textContent,
-							blocks,
+							blocks: displayBlocks,
 							streaming: false,
+							turnStatus: isError ? 'error' : undefined,
 							turnTokens: { input: m.usage.input, output: m.usage.output },
 							turnDurationMs: Math.round(duration),
 						});
@@ -483,6 +511,8 @@ Return ONLY the title text, nothing else.`;
 						...m,
 						metadata: {
 							...m.metadata,
+							agent: persistedTurn.agent,
+							model: persistedTurn.model,
 							turnDurationMs: Math.round(duration),
 							turnTokens: { input: m.usage.input, output: m.usage.output },
 							patch,
@@ -494,12 +524,12 @@ Return ONLY the title text, nothing else.`;
 						const ot = m.usage.output;
 						if (ot > 0 && e > 0) sessionState.setTokPerSecIn(runSessionId, ot / (e / 1000));
 						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: Math.max(p.input, m.usage.input), output: p.output + ot }));
-						const turnCost = calculateCost(selectedModel, { input: m.usage.input, output: m.usage.output });
+						const turnCost = calculateCost(persistedTurn.model, { input: m.usage.input, output: m.usage.output });
 						if (turnCost.total > 0) sessionState.addCostIn(runSessionId, turnCost.total);
 						recordUsageCost({
 							recordedAt: Date.now(),
-							provider,
-							model: selectedModel,
+							provider: persistedTurn.provider,
+							model: persistedTurn.model,
 							sessionId: runSessionId,
 							inputTokens: m.usage.input,
 							outputTokens: m.usage.output,
@@ -599,7 +629,7 @@ Return ONLY the title text, nothing else.`;
 								role: 'tool',
 								content: '',
 								meta: `${ev.toolName}(${JSON.stringify(ev.args || {})})`,
-								agent: selectedAgent,
+								agent: persistedTurn.agent,
 							});
 						}
 					}
@@ -630,6 +660,7 @@ Return ONLY the title text, nothing else.`;
 							details: { args, ...resultDetails },
 							isError: ev.isError || false,
 							timestamp: Date.now(),
+							metadata: { ...persistedTurn },
 						};
 						persistMessage(runSessionId, toolMsg);
 						const tuiId = toolMsgMap.current.get(ev.toolCallId);
@@ -677,8 +708,8 @@ Return ONLY the title text, nothing else.`;
 				const errorAssistant: AssistantMessage = {
 					role: 'assistant',
 					content: [],
-					provider,
-					model: selectedModel,
+					provider: persistedTurn.provider,
+					model: persistedTurn.model,
 					usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
 					stopReason: 'error',
 					errorMessage: message,
@@ -692,8 +723,8 @@ Return ONLY the title text, nothing else.`;
 						content: `[error] ${message}`,
 						blocks: [{ type: 'text', content: `[error] ${message}` }],
 						streaming: false,
-						model: selectedModel,
-						agent: selectedAgent,
+						model: persistedTurn.model,
+						agent: persistedTurn.agent,
 						turnStatus: 'error',
 					});
 				} else {
@@ -725,10 +756,14 @@ Return ONLY the title text, nothing else.`;
 			}
 		},
 	[
-			selectedModel,
-			provider,
-			selectedAgent,
-			thinkingEffort,
+			renderedSelectedModel,
+			selectedModelRef,
+			renderedProvider,
+			selectedProviderRef,
+			renderedSelectedAgent,
+			selectedAgentRef,
+			renderedThinkingEffort,
+			thinkingEffortRef,
 			customProviders,
 			getOrCreateAgent,
 			revertPoint,
@@ -738,7 +773,6 @@ Return ONLY the title text, nothing else.`;
 			sessionId,
 			securityRef,
 			snapshotManager,
-			lastAgentRef,
 			isStreamingRef,
 			currentTurnStartRef,
 			currentTurnMsgIdRef,

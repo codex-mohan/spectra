@@ -24,6 +24,7 @@ import type {
 	RetryContext,
 	RetryDecision,
 	AgentQueueMode,
+	ContextMessage,
 } from './types.js';
 
 type EmitFn = (event: AgentEvent) => void | Promise<void>;
@@ -159,6 +160,7 @@ export class Agent {
 	private transformContextFn?: AgentConfig['transformContext'];
 	private beforeModelCallHook?: AgentConfig['beforeModelCall'];
 	private getApiKeyFn?: AgentConfig['getApiKey'];
+	private _contextMessages?: readonly ContextMessage[];
 	private streamOptions?: StreamOptions;
 	private steeringQueue: PendingMessageQueue;
 	private followUpQueue: PendingMessageQueue;
@@ -381,6 +383,9 @@ export class Agent {
 						this.abortController!.signal,
 					);
 					if (result?.messages !== undefined) context.messages = [...result.messages];
+					if (result?.contextMessages !== undefined) {
+						context.contextMessages = result.contextMessages.map((message) => ({ ...message }));
+					}
 					const afterHash = hashValue(context);
 					await this.emitAudit(
 						'context_prepared',
@@ -977,6 +982,7 @@ export class Agent {
 		this.toolExecution = config.toolExecution ?? 'parallel';
 		this.streamOptions = config.streamOptions;
 		this.tools = tools;
+		this._contextMessages = config.contextMessages?.map((m) => ({ ...m }));
 	}
 
 	private createBeforeModelCallContext(context: Context, iteration: number): BeforeModelCallContext {
@@ -986,6 +992,7 @@ export class Agent {
 			messages: [...context.messages],
 			tools: [...(context.tools ?? [])],
 			iteration,
+			contextMessages: this._contextMessages?.map((m) => ({ ...m })),
 		};
 	}
 
@@ -999,6 +1006,7 @@ export class Agent {
 			systemPrompt: this.systemPrompt,
 			messages: messages ?? this._messages,
 			tools: toolDefs.length > 0 ? toolDefs : undefined,
+			contextMessages: this._contextMessages?.map((m) => ({ ...m })),
 		};
 	}
 

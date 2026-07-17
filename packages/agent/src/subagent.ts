@@ -54,6 +54,7 @@ export async function runSubagent(config: SubagentConfig, prompt: string): Promi
 		streamOptions: config.streamOptions,
 		convertToLlm: config.convertToLlm,
 		maxRetryDelayMs: config.maxRetryDelayMs,
+		contextMessages: config.contextMessages,
 	});
 
 	const controller = new AbortController();

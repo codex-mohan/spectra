@@ -11,30 +11,11 @@ import { createSecurityManager } from '../../security/index.js';
 import type { PermissionRequest, PermissionConfig, SecurityConfig } from '../../security/types.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SessionStore } from '../../services/session-store.js';
-import type { Message } from '@mohanscodex/spectra-ai';
-import type { AgentTool } from '@mohanscodex/spectra-agent';
+import type { Message, ContextMessage } from '@mohanscodex/spectra-ai';
+import type { Agent, AgentTool } from '@mohanscodex/spectra-agent';
 import { pruneStaleSkills } from '../../services/skill-store.js';
 
-const RUNTIME_KNOWLEDGE_POLICY = `## Runtime knowledge policy
 
-### Memory
-- Store durable facts: user preferences, project rules, repeated decisions, and environment choices.
-- Do not store secrets, transient outputs, or reusable procedures in memory.
-
-### Skills
-- Skills are reusable procedures with trigger conditions, steps, and verification.
-- Do not store plain facts or preferences as skills.
-
-### Evolving skills
-- Evolving skills are created and evolved by a hidden LLM judge, not by the main agent.
-- A session may become a skill only if it teaches a reusable workflow.
-- The judge may return: create, evolve, or skip.
-- If approval mode is enabled, skill candidates are saved only after approval.
-
-### Tool behavior
-- Use find_skills to discover skills.
-- Use skill to load instructions.
-- Keep memory and skills conceptually separate.`;
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
@@ -46,9 +27,10 @@ interface UseAgentDeps {
 export function useAgent(deps: UseAgentDeps) {
 	const { securityRef, securityConfig, enqueuePermission, sessionStore, sessionId } = deps;
 
-	// Per-session agent Map — like opencode's Map<SessionID, Runner>
-	const agentsMapRef = useRef(new Map<string, { reset: () => void; restoreHistory: (m: Message[]) => void; abort?: () => void }>());
-	const lastAgentRef = useRef<string | null>(null);
+	// One Agent instance per session; idle configuration changes do not discard runtime state.
+	const agentsMapRef = useRef(new Map<string, Agent>());
+	const compactionModelsRef = useRef(new Map<string, { model: string; provider: string }>());
+	const agentConfigFingerprintsRef = useRef(new Map<string, string>());
 
 	const initSecurityManager = useCallback(
 		(cwd: string) => {
@@ -88,46 +70,27 @@ export function useAgent(deps: UseAgentDeps) {
 		[securityRef, securityConfig, enqueuePermission],
 	);
 
-	// Like opencode's runner(sessionID, onInterrupt) — get or create a per-session agent
-	const getOrCreateAgent = useCallback(
+	// Resolve model config, tools, and system prompt for a given session configuration.
+	// Used by both first-creation and Agent.configure() reconfiguration paths.
+	const resolveAgentConfig = useCallback(
 		async (
-			sessionId: string,
-			selectedModel: string | null,
-			provider: string | null,
-			selectedAgent: string,
-			customProviders: Record<string, CustomProviderConfig>,
-			thinkingEffort: string | undefined,
+			sid: string,
+			sModel: string,
+			sProvider: string,
+			sAgent: string,
+			sCustomProviders: Record<string, CustomProviderConfig>,
+			sThinkingEffort: string | undefined,
 		) => {
-			if (!selectedModel || !provider) return null;
-
-			const agentKey = `${selectedAgent}:${selectedModel}:${provider}:${thinkingEffort || ''}`;
-			const sessionKey = `${sessionId}:${agentKey}`;
-
-			// Return existing agent for this session+config combination
-			const existing = agentsMapRef.current.get(sessionKey);
-			if (existing) return existing;
-
-			// Clean up any old agent for this session (different config)
-			for (const [key, agent] of agentsMapRef.current.entries()) {
-				if (key.startsWith(`${sessionId}:`) && key !== sessionKey) {
-					agent.reset();
-					agentsMapRef.current.delete(key);
-				}
-			}
-
-			const { Agent } = await import('@mohanscodex/spectra-agent');
-			const { initProviders } = await import('@mohanscodex/spectra-ai');
-			initProviders();
 			const { createAllToolsWithSecurity } = await import('../../tools/index.js');
-			const customCfg = customProviders[provider];
-			const cred = readCredential(provider);
+			const customCfg = sCustomProviders[sProvider];
+			const cred = readCredential(sProvider);
 			let resolvedBaseUrl = customCfg?.baseUrl;
 			let resolvedHeaders = customCfg?.headers;
 			if (!customCfg) {
-				if (provider === 'snowflake-cortex' && cred?.type === 'oauth' && cred.accountId) {
+				if (sProvider === 'snowflake-cortex' && cred?.type === 'oauth' && cred.accountId) {
 					resolvedBaseUrl = `https://${cred.accountId}.snowflakecomputing.com/api/v2/cortex/v1`;
 					resolvedHeaders = { ...resolvedHeaders, 'X-Snowflake-Authorization-Token-Type': 'OAUTH' };
-				} else if (provider === 'github-copilot') {
+				} else if (sProvider === 'github-copilot') {
 					resolvedHeaders = {
 						...resolvedHeaders,
 						'Copilot-Integration-Id': 'vscode-chat',
@@ -141,26 +104,24 @@ export function useAgent(deps: UseAgentDeps) {
 				}
 			}
 
-			const def = getAgentDefinition(selectedAgent);
-
+			const def = getAgentDefinition(sAgent);
 			const manager = initSecurityManager(process.cwd());
 
 			const agentConfig: AgentRegistryConfig = {
 				model: {
-					id: selectedModel,
-					name: selectedModel,
-					provider,
-					api: provider,
+					id: sModel,
+					name: sModel,
+					provider: sProvider,
+					api: sProvider,
 					baseUrl: resolvedBaseUrl,
 					headers: resolvedHeaders,
 				},
 				getApiKey: (p: string) => getAuthKey(p),
 			};
 
-			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sessionId);
+			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sid);
 			const { filterToolsByAgent } = await import('../../agents/index.js');
 
-			// Discover skills and create skill tools
 			let skillTools: AgentTool[] = [];
 			let skillCount = 0;
 			try {
@@ -170,59 +131,142 @@ export function useAgent(deps: UseAgentDeps) {
 				skillCount = skills.size;
 			} catch {}
 
-			const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], selectedAgent) : [...allTools, ...skillTools];
+			const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], sAgent) : [...allTools, ...skillTools];
 
-			const { loadContext } = await import('../../services/context.js');
-			const context = loadContext();
-
-			const { loadMemorySnapshot } = await import('../../services/memory.js');
-			const memorySnapshot = loadMemorySnapshot();
+			const { loadContext, buildContextMessages } = await import('../../services/context.js');
+			const sessionEntry = sessionStore.current?.get(sid);
+			const sessionCwd = sessionEntry?.directory || process.cwd();
+			const sessionStartedAt = sessionEntry?.created ? new Date(sessionEntry.created) : undefined;
+			const config = loadConfig(sessionCwd);
+			const context = loadContext(sessionCwd, {
+				model: sModel,
+				provider: sProvider,
+				sessionStartedAt,
+				references: config.references,
+			});
 
 			const skillsHint = skillCount > 0
 				? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
 				: '';
-			const systemPrompt = [context.systemPrompt + skillsHint, RUNTIME_KNOWLEDGE_POLICY, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
+			const systemPrompt = [context.systemPrompt + skillsHint].filter(Boolean).join('\n\n');
+			const contextMessages = buildContextMessages(def?.prompt);
 
+			const model = {
+				id: sModel,
+				name: sModel,
+				provider: sProvider,
+				api: sProvider,
+				baseUrl: resolvedBaseUrl,
+				headers: resolvedHeaders,
+			};
+
+			return {
+				model,
+				systemPrompt,
+				tools: agentTools,
+				maxTurns: def?.maxTurns,
+				contextMessages,
+				streamOptions: sThinkingEffort ? { thinkingEffort: sThinkingEffort } : undefined,
+			};
+		},
+		[initSecurityManager, sessionStore],
+	);
+
+	function runtimeFingerprint(config: {
+		model: { id: string; provider: string };
+		systemPrompt: string;
+		tools: AgentTool[];
+		maxTurns?: number;
+		streamOptions?: unknown;
+		contextMessages?: readonly ContextMessage[];
+	}): string {
+		return JSON.stringify({
+			model: config.model,
+			systemPrompt: config.systemPrompt,
+			tools: config.tools.map((tool) => ({ name: tool.name, description: tool.description, parameters: tool.parameters })),
+			maxTurns: config.maxTurns,
+			streamOptions: config.streamOptions,
+			contextMessages: config.contextMessages,
+		});
+	}
+
+
+	// Per-session agent: one Agent instance lives in the map keyed by sessionId.
+	// Non-streaming calls apply Agent.configure() atomically; streaming returns the live agent as-is.
+	// History is NEVER restored here — callers must use restoreSessionHistory explicitly,
+	// avoiding duplication with the user message that use-chat-submit persists before this call.
+	const getOrCreateAgent = useCallback(
+		async (
+			sessionId: string,
+			selectedModel: string | null,
+			provider: string | null,
+			selectedAgent: string,
+			customProviders: Record<string, CustomProviderConfig>,
+			thinkingEffort: string | undefined,
+			history?: Message[],
+		) => {
+			if (!selectedModel || !provider) return null;
+
+			const sessionKey = `${sessionId}:session`;
+
+			// --- Existing agent for this session ---
+			const existing = agentsMapRef.current.get(sessionKey);
+			if (existing) {
+				// While streaming, return as-is — steering handles queued messages
+				// and configure() would throw.
+				if (existing.isStreaming) return existing;
+
+				// Non-streaming: rebuild runtime config and apply atomically.
+				// History, abort controller, and event listeners are preserved.
+				const runtimeConfig = await resolveAgentConfig(
+					sessionId, selectedModel, provider, selectedAgent, customProviders, thinkingEffort,
+				);
+				const fingerprint = runtimeFingerprint(runtimeConfig);
+				if (agentConfigFingerprintsRef.current.get(sessionKey) === fingerprint) return existing;
+				try {
+					existing.configure(runtimeConfig);
+					compactionModelsRef.current.set(sessionKey, { model: selectedModel, provider });
+					agentConfigFingerprintsRef.current.set(sessionKey, fingerprint);
+				} catch (error) {
+					if (existing.isStreaming) return existing;
+					throw error;
+				}
+				return existing;
+			}
+
+			// --- First creation for this session ---
+			const { Agent } = await import('@mohanscodex/spectra-agent');
+			const { initProviders } = await import('@mohanscodex/spectra-ai');
+			initProviders();
+
+			const runtimeConfig = await resolveAgentConfig(
+				sessionId, selectedModel, provider, selectedAgent, customProviders, thinkingEffort,
+			);
+
+			compactionModelsRef.current.set(sessionKey, { model: selectedModel, provider });
 			const { createTransformContextFn } = await import('../../services/compaction.js');
 			const transformContext = createTransformContextFn(
-				() => ({ model: selectedModel, provider }),
+				() => compactionModelsRef.current.get(sessionKey) ?? null,
 				(p: string) => getAuthKey(p),
 			);
 
 			const agent = new Agent({
-				model: {
-					id: selectedModel,
-					name: selectedModel,
-					provider,
-					api: provider,
-					baseUrl: resolvedBaseUrl,
-					headers: resolvedHeaders,
-				},
-				systemPrompt,
+				...runtimeConfig,
 				getApiKey: (p: string) => getAuthKey(p),
-				tools: agentTools,
-				maxTurns: def?.maxTurns,
-				streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 				transformContext,
 			});
 
+			if (history && history.length > 0) agent.restoreHistory(history);
 			agentsMapRef.current.set(sessionKey, agent);
-			lastAgentRef.current = selectedAgent;
+			agentConfigFingerprintsRef.current.set(sessionKey, runtimeFingerprint(runtimeConfig));
 
-			// Prune stale junk skills (fire-and-forget, once per agent creation)
+			// Fire-and-forget maintenance
 			pruneStaleSkills().catch(() => {});
 
-			// Restore conversation history from persistent storage
-			if (sessionId) {
-				const sessionData = sessionStore.current.get(sessionId);
-				if (sessionData && sessionData.messages.length > 0) {
-					agent.restoreHistory(sessionData.messages);
-				}
-			}
 
 			return agent;
 		},
-		[initSecurityManager, sessionStore, sessionId],
+		[initSecurityManager, sessionStore, resolveAgentConfig],
 	);
 
 	// Restore a session's message history into its agent (called when loading a session)
@@ -237,7 +281,7 @@ export function useAgent(deps: UseAgentDeps) {
 			messages: Message[],
 		) => {
 			const agent = await getOrCreateAgent(sessionId, selectedModel, provider, selectedAgent, customProviders, thinkingEffort);
-			if (agent && messages.length > 0) {
+			if (agent && !agent.isStreaming && messages.length > 0) {
 				agent.restoreHistory(messages);
 			}
 			return agent;
@@ -245,46 +289,29 @@ export function useAgent(deps: UseAgentDeps) {
 		[getOrCreateAgent],
 	);
 
-	// Abort a specific session's agent — like opencode's cancel(sessionID)
+	// Abort a specific session's active run.
 	const abortSession = useCallback((sessionId: string) => {
-		for (const [key, agent] of agentsMapRef.current.entries()) {
-			if (key.startsWith(`${sessionId}:`)) {
-				agent.abort?.();
-				return;
-			}
-		}
+		const key = `${sessionId}:session`;
+		agentsMapRef.current.get(key)?.abort();
 	}, []);
 
-	// Reset agents for the current session (used when switching models/agents/thinking effort)
-	const resetAgentForModelSwitch = useCallback(() => {
-		const currentSessionId = sessionId.current;
-		if (!currentSessionId) return;
-		for (const [key, agent] of agentsMapRef.current.entries()) {
-			if (key.startsWith(`${currentSessionId}:`)) {
-				agent.reset();
-				agentsMapRef.current.delete(key);
-			}
-		}
-	}, [sessionId]);
-
-	// Remove a specific session's agents (used when deleting a session)
 	const removeSessionAgent = useCallback((sessionId: string) => {
-		for (const [key, agent] of agentsMapRef.current.entries()) {
-			if (key.startsWith(`${sessionId}:`)) {
-				agent.reset();
-				agentsMapRef.current.delete(key);
-			}
+		const key = `${sessionId}:session`;
+		const agent = agentsMapRef.current.get(key);
+		if (agent) {
+			agent.reset();
+			agentsMapRef.current.delete(key);
+			compactionModelsRef.current.delete(key);
+			agentConfigFingerprintsRef.current.delete(key);
 		}
 	}, []);
 
 	return {
 		agentsMapRef,
-		lastAgentRef,
 		getOrCreateAgent,
 		restoreSessionHistory,
 		abortSession,
 		removeSessionAgent,
-		resetAgentForModelSwitch,
 	};
 }
 
@@ -326,6 +353,7 @@ export function createSessionSecurityManager(
 export function createSessionFactory(
 	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
 	enqueuePermission: (req: PermissionRequest) => void,
+	sessionStore?: SessionStore,
 ) {
 	return async (
 		model: string,
@@ -370,16 +398,22 @@ export function createSessionFactory(
 
 		const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], agentName) : [...allTools, ...skillTools];
 
-		const { loadContext } = await import('../../services/context.js');
-		const context = loadContext();
-
-		const { loadMemorySnapshot } = await import('../../services/memory.js');
-		const memorySnapshot = loadMemorySnapshot();
+		const { loadContext, buildContextMessages } = await import('../../services/context.js');
+		const sessionEntry = sessionId ? sessionStore?.get(sessionId) : undefined;
+		const sessionCwd = sessionEntry?.directory || process.cwd();
+		const config = loadConfig(sessionCwd);
+		const context = loadContext(sessionCwd, {
+			model,
+			provider,
+			sessionStartedAt: sessionEntry?.created ? new Date(sessionEntry.created) : undefined,
+			references: config.references,
+		});
 
 		const skillsHint = skillCount > 0
 			? `\n\nSkills are available. Use the find_skills tool to discover skills by topic or task, then use the skill tool to load a specific skill's instructions.`
 			: '';
-		const systemPrompt = [context.systemPrompt + skillsHint, RUNTIME_KNOWLEDGE_POLICY, memorySnapshot, def?.prompt].filter(Boolean).join('\n\n');
+		const systemPrompt = [context.systemPrompt + skillsHint].filter(Boolean).join('\n\n');
+		const contextMessages = buildContextMessages(def?.prompt);
 
 		const agent = new Agent({
 			model: {
@@ -391,7 +425,9 @@ export function createSessionFactory(
 				headers: customCfg?.headers,
 			},
 			systemPrompt,
+			contextMessages,
 			getApiKey: (p: string) => getAuthKey(p),
+			tools: agentTools,
 			maxTurns: def?.maxTurns,
 			streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
 		});

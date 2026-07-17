@@ -118,6 +118,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
 	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
 	const thinkingEffort = sessionState.activeState.thinkingEffort;
+	const selectedAgentRef = useRef(selectedAgent);
+	selectedAgentRef.current = selectedAgent;
+	const selectedModelRef = useRef(selectedModel);
+	selectedModelRef.current = selectedModel;
+	const selectedProviderRef = useRef(selectedProvider);
+	selectedProviderRef.current = selectedProvider;
+	const thinkingEffortRef = useRef(thinkingEffort);
+	thinkingEffortRef.current = thinkingEffort;
 
 	// Setters for active session (UI-driven changes)
 	const setMessages = (fn: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
@@ -160,21 +168,25 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const setSelectedAgent = (v: string | ((prev: string) => string)) => {
 		const current = sessionState.getState(sessionState.activeSessionId);
 		const resolved = typeof v === 'function' ? v(current.selectedAgent) : v;
+		selectedAgentRef.current = resolved;
 		sessionState.setActive({ selectedAgent: resolved });
 	};
 	const setSelectedModel = (v: string | null | ((prev: string | null) => string | null)) => {
 		const current = sessionState.getState(sessionState.activeSessionId);
 		const resolved = typeof v === 'function' ? v(current.selectedModel) : v;
+		selectedModelRef.current = resolved;
 		sessionState.setActive({ selectedModel: resolved });
 	};
 	const setSelectedProvider = (v: string | null | ((prev: string | null) => string | null)) => {
 		const current = sessionState.getState(sessionState.activeSessionId);
 		const resolved = typeof v === 'function' ? v(current.selectedProvider) : v;
+		selectedProviderRef.current = resolved;
 		sessionState.setActive({ selectedProvider: resolved });
 	};
 	const setThinkingEffort = (v: string | undefined | ((prev: string | undefined) => string | undefined)) => {
 		const current = sessionState.getState(sessionState.activeSessionId);
 		const resolved = typeof v === 'function' ? v(current.thinkingEffort) : v;
+		thinkingEffortRef.current = resolved;
 		sessionState.setActive({ thinkingEffort: resolved });
 	};
 
@@ -207,7 +219,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const sessionManager = useRef<SessionManager>(
 		new SessionManager(
 			sessionStore.current,
-			createSessionFactory(securityConfig, () => {}),
+			createSessionFactory(securityConfig, () => {}, sessionStore.current),
 			() => createSessionSecurityManager(securityConfig, () => {}),
 		),
 	);
@@ -343,7 +355,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const { permissionRequest, enqueuePermission, resolvePermission } = usePermissionQueue(securityRef);
 
-	const { agentsMapRef, lastAgentRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent, resetAgentForModelSwitch } = useAgent({
+	const { agentsMapRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent } = useAgent({
 		securityRef,
 		securityConfig,
 		enqueuePermission,
@@ -372,9 +384,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			return;
 		}
 		setThinkingEffort(nextEffort);
-		resetAgentForModelSwitch();
 		showToast(nextEffort === 'none' ? 'Thinking: off' : `Thinking: ${nextEffort}`, 'info');
-	}, [provider, thinkingEffort, resetAgentForModelSwitch]);
+	}, [provider, thinkingEffort]);
 
 	const cmdItems = useMemo(
 		() =>
@@ -403,7 +414,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				setDialogStep,
 				onAgentSelected: (agent) => {
 					setSelectedAgent(agent);
-					resetAgentForModelSwitch();
 				},
 				onCycleVariant: handleCycleVariant,
 				currentEffort: thinkingEffort,
@@ -449,7 +459,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			tokenUsage,
 			elapsedMs,
 			tokPerSec,
-			resetAgentForModelSwitch,
 		],
 	);
 
@@ -464,7 +473,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		sessionId,
 		securityRef,
 		snapshotManager,
-		lastAgentRef,
 		isStreamingRef,
 		currentTurnStartRef,
 		currentTurnMsgIdRef,
@@ -473,6 +481,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		selectedModel,
 		provider,
 		selectedAgent,
+		selectedAgentRef,
+		selectedModelRef,
+		selectedProviderRef,
+		thinkingEffortRef,
 		customProviders,
 		thinkingEffort,
 		commandRegistry,
@@ -729,7 +741,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		updateLastAssistantMeta,
 		execCmd,
 		handleCycleVariant,
-		onAgentCycled: resetAgentForModelSwitch,
 	});
 
 	// --- JSX ---
@@ -996,7 +1007,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termHeight={termHeight}
 					keyHandlerRef={dialogKeyHandler}
 					onModelSelected={(modelId, providerId) => {
-						resetAgentForModelSwitch();
 						setSelectedModel(modelId);
 						setSelectedProvider(providerId);
 						setSavedConfig({ model: modelId, provider: providerId });
@@ -1075,7 +1085,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onModelSelected={(modelId, providerId) => {
-						resetAgentForModelSwitch();
 						setSelectedModel(modelId);
 						setSelectedProvider(providerId);
 						setSavedConfig({ model: modelId, provider: providerId });
@@ -1096,7 +1105,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					providers={customProviders}
 					onProvidersChange={(updated) => {
 						setCustomProviders(updated);
-						resetAgentForModelSwitch();
 						showToast('Providers updated', 'success');
 					}}
 					onClose={() => setDialogStep(null)}
@@ -1154,7 +1162,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termHeight={termHeight}
 					onAgentSelected={(agent) => {
 						setSelectedAgent(agent);
-						resetAgentForModelSwitch();
 						setDialogStep(null);
 						showToast(`Switched to ${titlecase(agent)} agent`, 'info');
 					}}
@@ -1172,7 +1179,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termHeight={termHeight}
 					onEffortSelected={(effort) => {
 						setThinkingEffort(effort);
-						resetAgentForModelSwitch();
 						setDialogStep(null);
 						showToast(effort === 'none' ? 'Thinking: off' : `Thinking: ${effort}`, 'info');
 					}}

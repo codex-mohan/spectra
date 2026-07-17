@@ -256,6 +256,51 @@ function mapStopReason(reason: string): 'stop' | 'length' | 'toolUse' | 'error' 
 	}
 }
 
+/**
+ * Lower ContextMessages into Anthropic messages by prepending tagged text
+ * before the latest user message content. For array content, adds a new
+ * leading text block. Creates a synthetic user message if none exists.
+ * Never mutates the input `messages` array.
+ */
+export function lowerAnthropicContextMessages(
+	contextMessages: readonly import('../types.js').ContextMessage[],
+	messages: MessageParam[],
+): MessageParam[] {
+	if (contextMessages.length === 0) return messages;
+
+	const tag = contextMessages
+		.map((cm) => `<context>\n${sanitizeSurrogates(cm.content)}\n</context>`)
+		.join('\n');
+
+	const tagged = `\n\n${tag}\n\n`;
+
+	// Find the last user message index
+	let lastUserIdx = -1;
+	for (let i = messages.length - 1; i >= 0; i--) {
+		if (messages[i].role === 'user') {
+			lastUserIdx = i;
+			break;
+		}
+	}
+
+	if (lastUserIdx >= 0) {
+		const result = [...messages];
+		const target = { ...result[lastUserIdx] };
+		const content = target.content;
+		if (typeof content === 'string') {
+			target.content = tagged + sanitizeSurrogates(content);
+		} else if (Array.isArray(content)) {
+			// Prepend a new leading text block with the context tags
+			target.content = [{ type: 'text' as const, text: tagged }, ...content];
+		}
+		result[lastUserIdx] = target as MessageParam;
+		return result;
+	}
+
+	// No user message — append a synthetic one
+	return [...messages, { role: 'user' as const, content: tagged }];
+}
+
 export function createAnthropicProvider() {
 	return {
 		name: 'anthropic',
@@ -305,8 +350,9 @@ export function createAnthropicProvider() {
 				};
 
 				try {
-					const messages: MessageParam[] = context.messages.map(toAnthropicMessage);
-					const tools = context.tools?.map(toAnthropicTool) ?? [];
+				const baseMessages: MessageParam[] = context.messages.map(toAnthropicMessage);
+				const messages = lowerAnthropicContextMessages(context.contextMessages ?? [], baseMessages);
+				const tools = context.tools?.map(toAnthropicTool) ?? [];
 
 					const thinkingEffort = options?.thinkingEffort;
 					const budget =

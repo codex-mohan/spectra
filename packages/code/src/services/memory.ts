@@ -148,24 +148,6 @@ export function removeEntry(target: MemoryTarget, entry: string, cwd?: string): 
 	return { success: true, message: `Removed from ${spec.label} (${newContent.length}/${spec.charLimit} chars).` };
 }
 
-export function loadMemorySnapshot(cwd?: string): string | null {
-	const memory = readEntries('memory', cwd);
-	const user = readEntries('user', cwd);
-	const project = readEntries('project', cwd);
-
-	const sections: string[] = [];
-	if (user.length > 0) {
-		sections.push(`## User Profile\n${user.join('\n')}`);
-	}
-	if (memory.length > 0) {
-		sections.push(`## Memory\n${memory.join('\n')}`);
-	}
-	if (project.length > 0) {
-		sections.push(`## Project Context\n${project.join('\n')}`);
-	}
-	if (sections.length === 0) return null;
-	return `<memory>\n${sections.join('\n\n')}\n</memory>`;
-}
 
 export function getMemoryUsage(target: MemoryTarget, cwd?: string): { used: number; limit: number; entries: number } {
 	const spec = getMemoryFileSpec(target, cwd);
