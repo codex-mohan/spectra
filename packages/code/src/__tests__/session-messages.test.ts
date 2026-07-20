@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { ChatMessage } from '../tui/types.js';
 
 vi.mock('@opentui/core', () => ({
 	RGBA: class RGBA {
@@ -146,5 +147,17 @@ describe('session message hydration', () => {
 			content: '[error] Request timed out',
 			turnStatus: 'error',
 		});
+	});
+
+	it('sums every completed turn for session token totals', async () => {
+		const { sumTurnTokens } = await import('../tui/utils/session-messages.js');
+		const messages = [
+			{ id: 'user', role: 'user', content: 'First turn' },
+			{ id: 'first', role: 'assistant', content: 'One', turnTokens: { input: 100, output: 25 } },
+			{ id: 'second', role: 'assistant', content: 'Two', turnTokens: { input: 180, output: 40 } },
+			{ id: 'tool', role: 'tool', content: 'Result' },
+		] satisfies ChatMessage[];
+
+		expect(sumTurnTokens(messages)).toEqual({ input: 280, output: 65 });
 	});
 });

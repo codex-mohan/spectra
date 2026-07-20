@@ -27,7 +27,7 @@ import { ThinkingEffortDialog } from './ui/thinking-effort-dialog.js';
 import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
 import { UpdateDialog, UPDATE_COMMAND } from './ui/update-dialog.js';
-import { CostDialog } from './ui/cost-dialog.js';
+import { SessionStatsDialog } from './ui/session-stats-dialog.js';
 import { UsageDialog } from './ui/usage-dialog.js';
 import { MemoryDialog } from './ui/memory-dialog.js';
 import { SettingsDialog } from './ui/settings-dialog.js';
@@ -53,7 +53,7 @@ import { getBuiltinCatalog, loadAgentCatalog, type AgentCatalog } from '../agent
 import { resolveAgentAccentColor } from './utils/agent-color.js';
 
 import { loadSavedConfig, saveModelConfig, fmtCtx, lookupContextWindow } from './utils/model-config.js';
-import { sdkMessagesToChatMessages } from './utils/session-messages.js';
+import { sdkMessagesToChatMessages, sumTurnTokens } from './utils/session-messages.js';
 import { usePermissionQueue } from './hooks/use-permission-queue.js';
 import { useRevert } from './hooks/use-revert.js';
 import { useAgent, createSessionFactory, createSessionSecurityManager } from './hooks/use-agent.js';
@@ -115,6 +115,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const tokPerSec = sessionState.activeState.tokPerSec;
 	const selectedAgent = sessionState.activeState.selectedAgent;
 	const turnCount = messages.filter((m: any) => m.role === 'user').length;
+	const sessionTokens = useMemo(() => sumTurnTokens(messages), [messages]);
 	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
 	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
 	const thinkingEffort = sessionState.activeState.thinkingEffort;
@@ -423,10 +424,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					securityRef.current?.getReadTracker().reset();
 					securityRef.current?.getDoomLoop().reset();
 				},
-				tokenUsage,
-				elapsedMs,
-				tokPerSec,
-				turnCount,
 			}),
 		[
 			renderer,
@@ -456,9 +453,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			setNavKey,
 			setDialogStep,
 			securityRef,
-			tokenUsage,
-			elapsedMs,
-			tokPerSec,
 		],
 	);
 
@@ -1214,13 +1208,23 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					}}
 				/>
 			)}
-			{dialogStep?.type === 'cost' && (
-				<CostDialog
+			{dialogStep?.type === 'session-stats' && (
+				<SessionStatsDialog
 					termWidth={termWidth}
 					termHeight={termHeight}
-					selectedModel={selectedModel || ''}
-					provider={provider || ''}
-					tokenUsage={tokenUsage}
+					selectedModel={selectedModel}
+					provider={provider}
+					selectedAgent={selectedAgent}
+					thinkingEffort={thinkingEffort}
+					mcpCount={mcpCount}
+					customProviderCount={customProviderCount}
+					turnCount={turnCount}
+					messagesLength={messages.length}
+					elapsedMs={elapsedMs}
+					tokPerSec={tokPerSec}
+					contextTokens={tokenUsage.input}
+					sessionTokens={sessionTokens}
+					costSoFar={sessionState.activeState.costSoFar}
 					onClose={() => setDialogStep(null)}
 					registerHandler={(fn: any) => {
 						dialogKeyHandler.current = fn;

@@ -2,8 +2,7 @@ import type { CmdItem } from './command-types.js';
 import type { SessionStore } from '../services/session-store.js';
 import { getEffortLabel } from './variant-cycle.js';
 import { titlecase } from './utils.js';
-import { calculateCost, formatCost, formatTokens, isFreeModel, type Message } from '@mohanscodex/spectra-ai';
-import { lookupContextWindow } from './utils/model-config.js';
+import type { Message } from '@mohanscodex/spectra-ai';
 import { showToast } from './components/toast.js';
 import { backgroundTasks } from '../services/background-tasks.js';
 import type { AgentCatalog } from '../agents/index.js';
@@ -240,7 +239,7 @@ export function buildCmdItems(opts: {
 			| { type: 'thinking-effort' }
 			| { type: 'toggle-mcp' }
 			| { type: 'debug' }
-			| { type: 'cost' }
+			| { type: 'session-stats' }
 			| { type: 'usage' }
 			| { type: 'theme' }
 			| { type: 'permissions' }
@@ -255,10 +254,6 @@ export function buildCmdItems(opts: {
 	selectedAgent: string;
 	agentCatalog: AgentCatalog;
 	onSecurityReset?: () => void;
-	tokenUsage?: { input: number; output: number };
-	elapsedMs?: number | null;
-	tokPerSec?: number | null;
-	turnCount?: number;
 }): CmdItem[] {
 	const {
 		renderer,
@@ -288,10 +283,6 @@ export function buildCmdItems(opts: {
 		selectedAgent,
 		agentCatalog,
 		onSecurityReset,
-		tokenUsage,
-		elapsedMs,
-		tokPerSec,
-		turnCount,
 	} = opts;
 
 	const commitTodoState = (action: string, state: TodoState) => {
@@ -901,13 +892,13 @@ export function buildCmdItems(opts: {
 		},
 		// Observability
 		{
-			id: 'cost',
-			label: 'Show Cost',
-			desc: 'Estimated session cost',
+			id: 'session-stats',
+			label: 'Session Stats',
+			desc: 'Session activity, context, tokens, runtime, and cost',
 			cat: 'Observability',
-			slashName: 'cost',
+			slashName: 'stats',
 			action: () => {
-				setDialogStep({ type: 'cost' });
+				setDialogStep({ type: 'session-stats' });
 			},
 		},
 		{
@@ -918,102 +909,6 @@ export function buildCmdItems(opts: {
 			slashName: 'usage',
 			action: () => {
 				setDialogStep({ type: 'usage' });
-			},
-		},
-		{
-			id: 'tokens',
-			label: 'Show Tokens',
-			desc: 'Token usage breakdown',
-			cat: 'Observability',
-			slashName: 'tokens',
-			action: () => {
-				const input = tokenUsage?.input ?? 0;
-				const output = tokenUsage?.output ?? 0;
-				const total = input + output;
-				if (total === 0) {
-					showToast('No token usage yet', 'info');
-					return;
-				}
-				const ctxMax = selectedModel ? lookupContextWindow(selectedModel, provider) : null;
-				const pct = ctxMax ? Math.round((total / ctxMax) * 100) : null;
-				const ctxStr = pct != null ? ` · ${pct}% of ${formatTokens(ctxMax!)} ctx` : '';
-				showToast(`↑${formatTokens(input)} input · ↓${formatTokens(output)} output${ctxStr}`, 'info');
-			},
-		},
-		{
-			id: 'session-stats',
-			label: 'Session Stats',
-			desc: 'Current session turns, messages, tokens, and runtime metrics',
-			cat: 'Observability',
-			slashName: 'stats',
-			action: () => {
-				const parts = [
-					`Turns: ${turnCount ?? 0}`,
-					`Messages: ${messagesLength}`,
-					`Duration: ${elapsedMs != null ? `${(elapsedMs / 1000).toFixed(1)}s` : 'n/a'}`,
-					`Rate: ${tokPerSec != null && tokPerSec > 0 ? `${tokPerSec.toFixed(1)} tok/s` : 'n/a'}`,
-				];
-				const input = tokenUsage?.input ?? 0;
-				const output = tokenUsage?.output ?? 0;
-				const total = input + output;
-				parts.push(total > 0 ? `Tokens: ↑${formatTokens(input)} ↓${formatTokens(output)}` : 'Tokens: none');
-				if (total > 0 && selectedModel && !isFreeModel(selectedModel)) {
-					const cost = calculateCost(selectedModel, { input, output });
-					parts.push(`Cost: ${formatCost(cost.total)}`);
-				} else {
-					parts.push('Cost: n/a');
-				}
-				showToast(parts.join(' · '), 'info');
-			},
-		},
-		{
-			id: 'context',
-			label: 'Show Context',
-			desc: 'Context window usage',
-			cat: 'Observability',
-			slashName: 'context',
-			action: () => {
-				const input = tokenUsage?.input ?? 0;
-				const output = tokenUsage?.output ?? 0;
-				const total = input + output;
-				if (total === 0) {
-					showToast('No token usage yet', 'info');
-					return;
-				}
-				if (!selectedModel) {
-					showToast(`Tokens used: ${formatTokens(total)}`, 'info');
-					return;
-				}
-				const ctxMax = lookupContextWindow(selectedModel, provider);
-				if (!ctxMax) {
-					showToast(`Tokens used: ${formatTokens(total)} (context window unknown for ${selectedModel})`, 'info');
-					return;
-				}
-				const remaining = Math.max(0, ctxMax - total);
-				const pct = Math.round((total / ctxMax) * 100);
-				const bar = pct > 90 ? '█'.repeat(Math.round(pct / 10)) + '░'.repeat(10 - Math.round(pct / 10)) : '';
-				showToast(`${formatTokens(total)} / ${formatTokens(ctxMax)} (${pct}%) · ${formatTokens(remaining)} remaining${bar ? ' ' + bar : ''}`, 'info');
-			},
-		},
-		{
-			id: 'system-stats',
-			label: 'System Stats',
-			desc: 'Runtime configuration, model, provider, and connected services',
-			cat: 'Observability',
-			slashName: 'system-stats',
-			action: () => {
-				const effort = currentEffort ? getEffortLabel(currentEffort) : 'default';
-				const parts = [
-					`Model: ${selectedModel ?? 'none'}`,
-					`Provider: ${provider ?? 'none'}`,
-					`Agent: ${selectedAgent || 'none'}`,
-					`MCPs: ${mcpCount}`,
-					`Custom providers: ${customProviderCount}`,
-					`Thinking: ${effort}`,
-					`Display: thinking ${showThinking ? 'on' : 'off'}, tools ${showToolCalls ? 'on' : 'off'}`,
-				];
-				if (!hasModel) parts.push('Model not configured');
-				showToast(parts.join(' · '), 'info');
 			},
 		},
 		// Git

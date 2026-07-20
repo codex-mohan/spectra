@@ -83,7 +83,7 @@ The TUI lets you:
 - Browse, resume, fork, archive, rename, and delete sessions.
 - Manage permissions, memory, skills, usage, and security settings.
 - View token usage, cost, shell timing, tool calls, syntax-highlighted output, and model thinking output.
-- Use slash commands such as `/sessions`, `/agent`, `/todo`, `/thinking`, `/tools`, `/permissions`, `/memory`, `/usage`, `/theme`, `/cost`, and `/doctor`.
+- Use slash commands such as `/sessions`, `/agent`, `/todo`, `/thinking`, `/tools`, `/permissions`, `/memory`, `/usage`, `/theme`, `/stats`, and `/doctor`.
 
 ### CLI
 

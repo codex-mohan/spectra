@@ -11,6 +11,16 @@ export interface ConvertedMessages {
 	costSoFar: number;
 }
 
+export function sumTurnTokens(messages: readonly ChatMessage[]): { input: number; output: number } {
+	return messages.reduce(
+		(total, message) => ({
+			input: total.input + (message.turnTokens?.input ?? 0),
+			output: total.output + (message.turnTokens?.output ?? 0),
+		}),
+		{ input: 0, output: 0 },
+	);
+}
+
 export function sdkMessagesToChatMessages(data: {
 	messages: any[];
 	model?: string;
