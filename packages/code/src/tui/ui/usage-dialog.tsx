@@ -99,37 +99,58 @@ function reportRows(report: ProviderUsageReport, innerWidth: number) {
 export function UsageDialog({ onClose, termWidth, termHeight, registerHandler, activeProvider }: UsageDialogProps) {
 	const [reports, setReports] = useState<ProviderUsageReport[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [selectedProvider, setSelectedProvider] = useState<string | null>(activeProvider ?? null);
+	const shown = reports ?? [];
+	const selectedIndex = Math.max(0, shown.findIndex((report) => report.provider === selectedProvider));
+	const selectedReport = shown[selectedIndex];
 
 	useEffect(() => {
 		const handler = (key: unknown) => {
-			if (key && typeof key === 'object' && 'name' in key) {
-				const name = key.name;
-				if (name === 'escape' || name === 'return' || name === 'enter') onClose();
+			if (!key || typeof key !== 'object' || !('name' in key)) return;
+			const name = key.name;
+			if ((name === 'tab' || name === 'right') && shown.length > 1) {
+				setSelectedProvider(shown[(selectedIndex + 1) % shown.length].provider);
+				return;
 			}
+			if (name === 'left' && shown.length > 1) {
+				setSelectedProvider(shown[(selectedIndex - 1 + shown.length) % shown.length].provider);
+				return;
+			}
+			if (name === 'escape' || name === 'return' || name === 'enter') onClose();
 		};
 		registerHandler?.(handler);
-	}, [onClose, registerHandler]);
+	}, [onClose, registerHandler, selectedIndex, shown]);
 
 	useEffect(() => {
 		const controller = new AbortController();
 		setReports(null);
 		setError(null);
 		fetchUsageReports({ providers: activeProvider ? [activeProvider] : undefined, signal: controller.signal })
-			.then((next) => setReports(next))
+			.then((nextReports) => {
+				setReports(nextReports);
+				setSelectedProvider((current) => {
+					if (current && nextReports.some((report) => report.provider === current)) return current;
+					if (activeProvider && nextReports.some((report) => report.provider === activeProvider)) return activeProvider;
+					return nextReports[0]?.provider ?? null;
+				});
+			})
 			.catch((err) => {
 				if (!controller.signal.aborted) setError(err instanceof Error ? err.message : String(err));
 			});
 		return () => controller.abort();
 	}, [activeProvider]);
-	const shown = reports ?? [];
-	const rowCount = reports === null
-		? 3
-		: shown.reduce((sum: number, report: ProviderUsageReport) => {
-			const notes = report.notes.length;
-			const windowLines = report.windows.length === 0 ? 1 : report.windows.length * 2 + report.windows.reduce((n: number, w) => n + (w.notes?.length ?? 0), 0);
-			return sum + 2 + notes + windowLines;
-		}, 0);
-	const height = Math.min(termHeight - 2, Math.max(14, 7 + rowCount));
+
+	const reportRowCount = selectedReport
+		? 2 + selectedReport.notes.length + (selectedReport.windows.length === 0
+			? 1
+			: selectedReport.windows.length * 2
+				+ selectedReport.windows.reduce((count, window) => count + (window.notes?.length ?? 0), 0))
+		: 1;
+	const modalInnerWidth = Math.max(1, Math.min(76, termWidth - 4) - 4);
+	const tabCharacters = shown.reduce((count, report) => count + report.planName.length + 2, 0)
+		+ Math.max(0, shown.length - 1) * 2;
+	const tabRows = shown.length === 0 ? 0 : Math.max(1, Math.ceil(tabCharacters / modalInnerWidth));
+	const height = Math.min(termHeight - 2, Math.max(15, 9 + tabRows + reportRowCount + (error ? 1 : 0)));
 
 	return (
 		<ModalFrame
@@ -139,22 +160,44 @@ export function UsageDialog({ onClose, termWidth, termHeight, registerHandler, a
 			height={height}
 			top="upper"
 			title="Coding Plan Usage"
-			footer={<text fg={c.dim}>close · enter</text>}
+			footer={(
+				<box flexDirection="row" gap={2}>
+					{shown.length > 1 && <text fg={c.dim}>← → / tab switch</text>}
+					<text fg={c.dim}>enter close</text>
+				</box>
+			)}
 		>
 			{({ innerWidth }) => (
 				<box flexDirection="column" paddingX={2} gap={1} flexGrow={1}>
-					<text fg={c.dim}>Connected coding/subscription plans. Live quota endpoints are used where available; observed rows only count Spectra requests.</text>
+					<text fg={c.dim}>Live provider quota when available; otherwise Spectra-observed usage.</text>
 					{error && <text fg={c.error}>Usage load failed: {error}</text>}
 					{reports === null ? (
 						<text fg={c.dim}>Loading usage…</text>
 					) : shown.length === 0 ? (
 						<text fg={c.dim}>No connected coding plans or observed usage yet.</text>
 					) : (
-						<scrollbox maxHeight={termHeight - 10} paddingX={0} scrollY={true} scrollbarOptions={{ visible: false }}>
-							<box flexDirection="column" gap={1}>
-								{shown.map((report) => reportRows(report, innerWidth))}
+						<>
+							<box flexDirection="row" flexWrap="wrap" gap={2}>
+								{shown.map((report, index) => {
+									const selected = index === selectedIndex;
+									return (
+										<box key={report.provider} paddingX={1} backgroundColor={selected ? c.bgSelect : c.bgCard}>
+											<text fg={selected ? c.accent : c.dim} attributes={selected ? 1 : 0}>
+												{report.planName}
+											</text>
+										</box>
+									);
+								})}
 							</box>
-						</scrollbox>
+							<scrollbox
+								maxHeight={Math.max(3, height - 10 - tabRows)}
+								paddingX={0}
+								scrollY={true}
+								scrollbarOptions={{ visible: false }}
+							>
+								{selectedReport && reportRows(selectedReport, innerWidth)}
+							</scrollbox>
+						</>
 					)}
 				</box>
 			)}

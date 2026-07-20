@@ -2,18 +2,34 @@ import { useRef, useCallback } from 'react';
 import type { SecurityManager } from '../../security/index.js';
 import type { CustomProviderConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
-import { getAuthKey } from '../utils/model-config.js';
+import { getAuthKey, lookupContextWindow } from '../utils/model-config.js';
 import { read as readCredential } from '../../services/auth-store.js';
 import { showToast } from '../components/toast.js';
-import { getAgentDefinition } from '../../agents/index.js';
+import { filterToolsByAgent, getAgentDefinition } from '../../agents/index.js';
 import type { AgentRegistryConfig } from '../../agents/registry.js';
 import { createSecurityManager } from '../../security/index.js';
 import type { PermissionRequest, PermissionConfig, SecurityConfig } from '../../security/types.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SessionStore } from '../../services/session-store.js';
-import type { Message, ContextMessage } from '@mohanscodex/spectra-ai';
-import type { Agent, AgentTool } from '@mohanscodex/spectra-agent';
+import { initProviders } from '@mohanscodex/spectra-ai';
+import type { AssistantMessage, Context, Message, ContextMessage } from '@mohanscodex/spectra-ai';
+import { Agent } from '@mohanscodex/spectra-agent';
+import type { AgentTool, BeforeModelCallContext } from '@mohanscodex/spectra-agent';
 import { pruneStaleSkills } from '../../services/skill-store.js';
+import { createAllToolsWithSecurity, discoverAndCreateSkillTools } from '../../tools/index.js';
+import { buildContextMessages, loadContext } from '../../services/context.js';
+import {
+	completeContextSnapshot,
+	createPreparedContextSnapshot,
+	restoreLatestContextSnapshot,
+} from '../../services/context-usage.js';
+import type {
+	ContextAttribution,
+	ContextUsageSnapshot,
+	PreparedContextSnapshot,
+} from '../../services/context-usage.js';
+import { createTransformContextFn } from '../../services/compaction.js';
+import type { CompactionModelInfo } from '../../services/compaction.js';
 
 
 
@@ -29,8 +45,11 @@ export function useAgent(deps: UseAgentDeps) {
 
 	// One Agent instance per session; idle configuration changes do not discard runtime state.
 	const agentsMapRef = useRef(new Map<string, Agent>());
-	const compactionModelsRef = useRef(new Map<string, { model: string; provider: string }>());
+	const compactionModelsRef = useRef(new Map<string, CompactionModelInfo>());
 	const agentConfigFingerprintsRef = useRef(new Map<string, string>());
+	const contextAttributionRef = useRef(new Map<string, ContextAttribution>());
+	const preparedContextRef = useRef(new Map<string, PreparedContextSnapshot>());
+	const contextUsageRef = useRef(new Map<string, ContextUsageSnapshot>());
 
 	const initSecurityManager = useCallback(
 		(cwd: string) => {
@@ -81,7 +100,6 @@ export function useAgent(deps: UseAgentDeps) {
 			sCustomProviders: Record<string, CustomProviderConfig>,
 			sThinkingEffort: string | undefined,
 		) => {
-			const { createAllToolsWithSecurity } = await import('../../tools/index.js');
 			const customCfg = sCustomProviders[sProvider];
 			const cred = readCredential(sProvider);
 			let resolvedBaseUrl = customCfg?.baseUrl;
@@ -120,12 +138,10 @@ export function useAgent(deps: UseAgentDeps) {
 			};
 
 			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sid);
-			const { filterToolsByAgent } = await import('../../agents/index.js');
 
 			let skillTools: AgentTool[] = [];
 			let skillCount = 0;
 			try {
-				const { discoverAndCreateSkillTools } = await import('../../tools/index.js');
 				const { skills, tools } = await discoverAndCreateSkillTools();
 				skillTools = tools;
 				skillCount = skills.size;
@@ -133,7 +149,6 @@ export function useAgent(deps: UseAgentDeps) {
 
 			const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], sAgent) : [...allTools, ...skillTools];
 
-			const { loadContext, buildContextMessages } = await import('../../services/context.js');
 			const sessionEntry = sessionStore.current?.get(sid);
 			const sessionCwd = sessionEntry?.directory || process.cwd();
 			const sessionStartedAt = sessionEntry?.created ? new Date(sessionEntry.created) : undefined;
@@ -150,6 +165,37 @@ export function useAgent(deps: UseAgentDeps) {
 				: '';
 			const systemPrompt = [context.systemPrompt + skillsHint].filter(Boolean).join('\n\n');
 			const contextMessages = buildContextMessages(def?.prompt);
+			const contextWindow = customCfg?.models?.[sModel]?.contextWindow ?? lookupContextWindow(sModel, sProvider);
+			const sessionKey = `${sid}:session`;
+			const attribution: ContextAttribution = {
+				baseSystemPrompt: context.sections.baseSystemPrompt,
+				systemContext: [
+					context.sections.environment,
+					context.sections.projectReferences,
+					...context.sections.instructionFiles,
+				].filter(Boolean),
+				skillsHint,
+				fingerprint: context.fingerprint,
+			};
+			contextAttributionRef.current.set(sessionKey, attribution);
+			const preparedTools = agentTools.map((tool) => ({
+				name: tool.name,
+				description: tool.description,
+				parameters: tool.parameters,
+			}));
+			const initialSnapshot = createPreparedContextSnapshot({
+				context: { systemPrompt, messages: [], tools: preparedTools, contextMessages },
+				attribution,
+				modelId: sModel,
+				providerId: sProvider,
+				contextWindow,
+			});
+			compactionModelsRef.current.set(sessionKey, {
+				model: sModel,
+				provider: sProvider,
+				contextWindow,
+				nonMessageTokens: initialSnapshot.nonMessageTokens,
+			});
 
 			const model = {
 				id: sModel,
@@ -225,7 +271,6 @@ export function useAgent(deps: UseAgentDeps) {
 				if (agentConfigFingerprintsRef.current.get(sessionKey) === fingerprint) return existing;
 				try {
 					existing.configure(runtimeConfig);
-					compactionModelsRef.current.set(sessionKey, { model: selectedModel, provider });
 					agentConfigFingerprintsRef.current.set(sessionKey, fingerprint);
 				} catch (error) {
 					if (existing.isStreaming) return existing;
@@ -235,25 +280,56 @@ export function useAgent(deps: UseAgentDeps) {
 			}
 
 			// --- First creation for this session ---
-			const { Agent } = await import('@mohanscodex/spectra-agent');
-			const { initProviders } = await import('@mohanscodex/spectra-ai');
 			initProviders();
 
 			const runtimeConfig = await resolveAgentConfig(
 				sessionId, selectedModel, provider, selectedAgent, customProviders, thinkingEffort,
 			);
 
-			compactionModelsRef.current.set(sessionKey, { model: selectedModel, provider });
-			const { createTransformContextFn } = await import('../../services/compaction.js');
 			const transformContext = createTransformContextFn(
 				() => compactionModelsRef.current.get(sessionKey) ?? null,
 				(p: string) => getAuthKey(p),
+				{},
+				{
+					onCompacted: (compacted) => {
+						const session = sessionStore.current.get(sessionId);
+						if (!session) return;
+						session.messages = [...compacted];
+						sessionStore.current.save(session);
+					},
+				},
 			);
+
+			const beforeModelCall = async (prepared: BeforeModelCallContext) => {
+				const attribution = contextAttributionRef.current.get(sessionKey);
+				const modelInfo = compactionModelsRef.current.get(sessionKey);
+				if (!attribution || !modelInfo) return undefined;
+				const preparedContext: Context = {
+					systemPrompt: prepared.systemPrompt,
+					messages: [...prepared.messages],
+					tools: [...prepared.tools],
+					contextMessages: prepared.contextMessages,
+				};
+				const snapshot = createPreparedContextSnapshot({
+					context: preparedContext,
+					attribution,
+					modelId: prepared.model.id,
+					providerId: prepared.model.provider,
+					contextWindow: modelInfo.contextWindow,
+				});
+				preparedContextRef.current.set(sessionKey, snapshot);
+				compactionModelsRef.current.set(sessionKey, {
+					...modelInfo,
+					nonMessageTokens: snapshot.nonMessageTokens,
+				});
+				return undefined;
+			};
 
 			const agent = new Agent({
 				...runtimeConfig,
 				getApiKey: (p: string) => getAuthKey(p),
 				transformContext,
+				beforeModelCall,
 			});
 
 			if (history && history.length > 0) agent.restoreHistory(history);
@@ -284,6 +360,8 @@ export function useAgent(deps: UseAgentDeps) {
 			if (agent && !agent.isStreaming && messages.length > 0) {
 				agent.restoreHistory(messages);
 			}
+				const restored = restoreLatestContextSnapshot(messages);
+				if (restored) contextUsageRef.current.set(`${sessionId}:session`, restored);
 			return agent;
 		},
 		[getOrCreateAgent],
@@ -295,6 +373,20 @@ export function useAgent(deps: UseAgentDeps) {
 		agentsMapRef.current.get(key)?.abort();
 	}, []);
 
+	const recordContextUsage = useCallback((sessionId: string, assistant: AssistantMessage) => {
+		const key = `${sessionId}:session`;
+		const prepared = preparedContextRef.current.get(key);
+		if (!prepared) return undefined;
+		const snapshot = completeContextSnapshot(prepared, assistant);
+		contextUsageRef.current.set(key, snapshot);
+		return snapshot;
+	}, []);
+
+	const getContextUsage = useCallback((sessionId: string | null) => {
+		if (!sessionId) return undefined;
+		return contextUsageRef.current.get(`${sessionId}:session`);
+	}, []);
+
 	const removeSessionAgent = useCallback((sessionId: string) => {
 		const key = `${sessionId}:session`;
 		const agent = agentsMapRef.current.get(key);
@@ -303,6 +395,9 @@ export function useAgent(deps: UseAgentDeps) {
 			agentsMapRef.current.delete(key);
 			compactionModelsRef.current.delete(key);
 			agentConfigFingerprintsRef.current.delete(key);
+			contextAttributionRef.current.delete(key);
+			preparedContextRef.current.delete(key);
+			contextUsageRef.current.delete(key);
 		}
 	}, []);
 
@@ -312,6 +407,9 @@ export function useAgent(deps: UseAgentDeps) {
 		restoreSessionHistory,
 		abortSession,
 		removeSessionAgent,
+		recordContextUsage,
+		getContextUsage,
+		contextUsageRef,
 	};
 }
 
@@ -364,10 +462,7 @@ export function createSessionFactory(
 		securityManager: SecurityManager,
 		sessionId?: string,
 	) => {
-		const { Agent } = await import('@mohanscodex/spectra-agent');
-		const { initProviders } = await import('@mohanscodex/spectra-ai');
 		initProviders();
-		const { createAllToolsWithSecurity } = await import('../../tools/index.js');
 		const customCfg = customProviders[provider];
 
 		const def = getAgentDefinition(agentName);
@@ -385,12 +480,10 @@ export function createSessionFactory(
 		};
 
 		const allTools = createAllToolsWithSecurity(securityManager, agentConfig, undefined, sessionId);
-		const { filterToolsByAgent } = await import('../../agents/index.js');
 
 		let skillTools: AgentTool[] = [];
 		let skillCount = 0;
 		try {
-			const { discoverAndCreateSkillTools } = await import('../../tools/index.js');
 			const { skills, tools } = await discoverAndCreateSkillTools();
 			skillTools = tools;
 			skillCount = skills.size;
@@ -398,7 +491,6 @@ export function createSessionFactory(
 
 		const agentTools = def ? filterToolsByAgent([...allTools, ...skillTools], agentName) : [...allTools, ...skillTools];
 
-		const { loadContext, buildContextMessages } = await import('../../services/context.js');
 		const sessionEntry = sessionId ? sessionStore?.get(sessionId) : undefined;
 		const sessionCwd = sessionEntry?.directory || process.cwd();
 		const config = loadConfig(sessionCwd);
@@ -414,6 +506,49 @@ export function createSessionFactory(
 			: '';
 		const systemPrompt = [context.systemPrompt + skillsHint].filter(Boolean).join('\n\n');
 		const contextMessages = buildContextMessages(def?.prompt);
+		const contextWindow = customCfg?.models?.[model]?.contextWindow ?? lookupContextWindow(model, provider);
+		const attribution: ContextAttribution = {
+			baseSystemPrompt: context.sections.baseSystemPrompt,
+			systemContext: [
+				context.sections.environment,
+				context.sections.projectReferences,
+				...context.sections.instructionFiles,
+			].filter(Boolean),
+			skillsHint,
+			fingerprint: context.fingerprint,
+		};
+		const preparedTools = agentTools.map((tool) => ({
+			name: tool.name,
+			description: tool.description,
+			parameters: tool.parameters,
+		}));
+		const initialSnapshot = createPreparedContextSnapshot({
+			context: { systemPrompt, messages: [], tools: preparedTools, contextMessages },
+			attribution,
+			modelId: model,
+			providerId: provider,
+			contextWindow,
+		});
+		const transformContext = createTransformContextFn(
+			() => ({
+				model,
+				provider,
+				contextWindow,
+				nonMessageTokens: initialSnapshot.nonMessageTokens,
+			}),
+			(p: string) => getAuthKey(p),
+			{},
+			{
+				onCompacted: (compacted) => {
+					if (!sessionStore || !sessionId) return;
+					const session = sessionStore.get(sessionId);
+					if (!session) return;
+					session.messages = [...compacted];
+					sessionStore.save(session);
+				},
+			},
+		);
+
 
 		const agent = new Agent({
 			model: {
@@ -430,6 +565,7 @@ export function createSessionFactory(
 			tools: agentTools,
 			maxTurns: def?.maxTurns,
 			streamOptions: thinkingEffort ? { thinkingEffort } : undefined,
+			transformContext,
 		});
 
 		return { agent, config: agentConfig, securityManager };

@@ -240,6 +240,7 @@ export function buildCmdItems(opts: {
 			| { type: 'toggle-mcp' }
 			| { type: 'debug' }
 			| { type: 'session-stats' }
+			| { type: 'context-usage' }
 			| { type: 'usage' }
 			| { type: 'theme' }
 			| { type: 'permissions' }
@@ -899,6 +900,16 @@ export function buildCmdItems(opts: {
 			slashName: 'stats',
 			action: () => {
 				setDialogStep({ type: 'session-stats' });
+			},
+		},
+		{
+			id: 'context-usage',
+			label: 'Context Usage',
+			desc: 'Current context allocation and compaction reserve',
+			cat: 'Observability',
+			slashName: 'context',
+			action: () => {
+				setDialogStep({ type: 'context-usage' });
 			},
 		},
 		{

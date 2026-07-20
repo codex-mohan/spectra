@@ -23,6 +23,7 @@ import { enqueuePendingSkill } from '../../services/pending-skills.js';
 import { synthesizeSkillWithAgent } from '../../services/skill-synth.js';
 import { loadAllEvolvingSkills, saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
 import { recordUsageCost } from '../../services/usage-store.js';
+import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
 
@@ -47,6 +48,7 @@ interface UseChatSubmitDeps {
 		effort: string | undefined,
 		history?: Message[],
 	) => Promise<any>;
+	recordContextUsage: (sessionId: string, assistant: AssistantMessage) => ContextUsageSnapshot | undefined;
 	selectedModel: string | null;
 	selectedModelRef: React.MutableRefObject<string | null>;
 	provider: string | null;
@@ -87,6 +89,7 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		currentTurnMsgIdRef,
 		revertPoint,
 	getOrCreateAgent,
+	recordContextUsage,
 	selectedModel: renderedSelectedModel,
 	selectedModelRef,
 	provider: renderedProvider,
@@ -475,6 +478,7 @@ Return ONLY the title text, nothing else.`;
 					}
 					if (ev.type === 'message_end' && ev.message.role === 'assistant' && currentAssistantId) {
 						const m = ev.message as AssistantMessage;
+						const contextUsage = recordContextUsage(runSessionId, m);
 						const blocks = getMessageBlocks(m);
 						const isError = m.stopReason === 'error' || m.stopReason === 'aborted';
 						const errorText = isError && m.errorMessage ? `[error] ${m.errorMessage}` : '';
@@ -516,6 +520,7 @@ Return ONLY the title text, nothing else.`;
 							turnDurationMs: Math.round(duration),
 							turnTokens: { input: m.usage.input, output: m.usage.output },
 							patch,
+							contextUsage,
 						},
 					});
 						preEditSnapshotRef.current = undefined;
@@ -523,7 +528,11 @@ Return ONLY the title text, nothing else.`;
 						sessionState.setElapsedMsIn(runSessionId, e);
 						const ot = m.usage.output;
 						if (ot > 0 && e > 0) sessionState.setTokPerSecIn(runSessionId, ot / (e / 1000));
-						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: Math.max(p.input, m.usage.input), output: p.output + ot }));
+						if (contextUsage) sessionState.set(runSessionId, { contextUsage });
+						const currentContextTokens = contextUsage
+							? contextUsage.nonMessageTokens + contextUsage.messagesTokens
+							: m.usage.input;
+						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: currentContextTokens, output: p.output + ot }));
 						const turnCost = calculateCost(persistedTurn.model, { input: m.usage.input, output: m.usage.output });
 						if (turnCost.total > 0) sessionState.addCostIn(runSessionId, turnCost.total);
 						recordUsageCost({

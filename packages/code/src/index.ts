@@ -5,7 +5,7 @@ export async function launchTui(options?: import('./tui/index.js').TuiOptions): 
 }
 export { loadConfig } from './services/config.js';
 export { buildContextMessages, composeContext, loadContext } from './services/context.js';
-export type { ContextComposeOptions, ContextDiagnostic, ContextResult, ContextSource } from './services/context.js';
+export type { ContextComposeOptions, ContextDiagnostic, ContextResult, ContextSections, ContextSource } from './services/context.js';
 export { SessionStore } from './services/session-store.js';
 export type { SpectraConfig, McpConfig, ProjectReferenceConfig } from './services/config.js';
 export {

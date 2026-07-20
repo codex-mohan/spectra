@@ -28,6 +28,7 @@ import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
 import { UpdateDialog, UPDATE_COMMAND } from './ui/update-dialog.js';
 import { SessionStatsDialog } from './ui/session-stats-dialog.js';
+import { ContextUsageDialog } from './ui/context-usage-dialog.js';
 import { UsageDialog } from './ui/usage-dialog.js';
 import { MemoryDialog } from './ui/memory-dialog.js';
 import { SettingsDialog } from './ui/settings-dialog.js';
@@ -64,6 +65,7 @@ import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 import { backgroundTasks } from '../services/background-tasks.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
+import { createContextBreakdown, restoreLatestContextSnapshot } from '../services/context-usage.js';
 
 export function App({ renderer }: { renderer: CliRenderer }) {
 	const { width: termWidth, height: termHeight } = useTerminalDimensions();
@@ -119,6 +121,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
 	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
 	const thinkingEffort = sessionState.activeState.thinkingEffort;
+	const contextBreakdown = useMemo(
+		() => sessionState.activeState.contextUsage ? createContextBreakdown(sessionState.activeState.contextUsage) : undefined,
+		[sessionState.activeState.contextUsage],
+	);
 	const selectedAgentRef = useRef(selectedAgent);
 	selectedAgentRef.current = selectedAgent;
 	const selectedModelRef = useRef(selectedModel);
@@ -356,7 +362,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const { permissionRequest, enqueuePermission, resolvePermission } = usePermissionQueue(securityRef);
 
-	const { agentsMapRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent } = useAgent({
+	const { agentsMapRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent, recordContextUsage } = useAgent({
 		securityRef,
 		securityConfig,
 		enqueuePermission,
@@ -472,6 +478,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		currentTurnMsgIdRef,
 		revertPoint,
 		getOrCreateAgent,
+		recordContextUsage,
 		selectedModel,
 		provider,
 		selectedAgent,
@@ -509,11 +516,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			agent: childData.agent,
 		});
 
+		const restoredContext = restoreLatestContextSnapshot(childData.messages);
 		sessionState.switchSession(childId);
 		sessionState.set(childId, {
 			messages: childMsgs,
 			tokenUsage: childTokens,
 			costSoFar: childCost,
+			contextUsage: restoredContext,
 			selectedModel: childData.model,
 			selectedProvider: childData.provider || childData.model.split('/')[0],
 			selectedAgent: childData.agent || 'build',
@@ -915,10 +924,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 										{visibleStatus}
 									</text>
 								)}
-								{tokenUsage.input + tokenUsage.output > 0 &&
+								{(contextBreakdown?.usedTokens ?? tokenUsage.input) > 0 &&
 									(() => {
-										const used = tokenUsage.input + tokenUsage.output;
-										const cw = lookupContextWindow(selectedModel || '', provider);
+										const used = contextBreakdown?.usedTokens ?? tokenUsage.input;
+										const cw = contextBreakdown?.contextWindow || lookupContextWindow(selectedModel || '', provider);
 										const pct = cw ? Math.round((used / cw) * 100) : null;
 										return (
 											<box flexDirection="row" gap={1}>
@@ -1019,12 +1028,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					mode={dialogStep.mode || 'load'}
 					onLoad={(data) => {
 						const { messages: loadedMsgs, tokenUsage: tu, costSoFar } = sdkMessagesToChatMessages(data);
+						const restoredContext = restoreLatestContextSnapshot(sessionStore.current.get(data.id)?.messages ?? []);
 						// Switch to the session's per-session state
 						sessionState.switchSession(data.id);
 						sessionState.set(data.id, {
 							messages: loadedMsgs,
 							tokenUsage: tu,
 							costSoFar,
+							contextUsage: restoredContext,
 							selectedModel: data.model,
 							selectedProvider: data.provider || data.model.split('/')[0],
 							selectedAgent: data.agent || 'build',
@@ -1222,11 +1233,22 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					messagesLength={messages.length}
 					elapsedMs={elapsedMs}
 					tokPerSec={tokPerSec}
-					contextTokens={tokenUsage.input}
+					contextTokens={contextBreakdown?.usedTokens ?? tokenUsage.input}
 					sessionTokens={sessionTokens}
 					costSoFar={sessionState.activeState.costSoFar}
 					onClose={() => setDialogStep(null)}
 					registerHandler={(fn: any) => {
+						dialogKeyHandler.current = fn;
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'context-usage' && (
+				<ContextUsageDialog
+					breakdown={contextBreakdown}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onClose={() => setDialogStep(null)}
+					registerHandler={(fn) => {
 						dialogKeyHandler.current = fn;
 					}}
 				/>
@@ -1301,8 +1323,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							const data = sessionStore.current.get(forked.id);
 							if (data) {
 								const { messages: loadedMsgs } = sdkMessagesToChatMessages(data);
+								const restoredContext = restoreLatestContextSnapshot(data.messages);
 								sessionState.switchSession(data.id);
-								sessionState.set(data.id, { messages: loadedMsgs, pendingSteering: [], pendingFollowUp: [] });
+								sessionState.set(data.id, { messages: loadedMsgs, contextUsage: restoredContext, pendingSteering: [], pendingFollowUp: [] });
 								sessionId.current = forked.id;
 								showToast('Session forked', 'success');
 							}

@@ -5,7 +5,7 @@ import { tmpdir } from 'os';
 import { write } from '../services/auth-store.js';
 import { PROVIDER_META } from '../tui/utils/provider-meta.js';
 import { createCodexAuthorizationFlow, loginCodex, renderCallbackPage } from '../services/provider-auth.js';
-import { getAuthKey } from '../tui/utils/model-config.js';
+import { getAuthKey, lookupContextWindow } from '../tui/utils/model-config.js';
 
 describe('provider auth keys', () => {
 	let tmpDir: string;
@@ -37,6 +37,13 @@ describe('provider auth keys', () => {
 	it('returns local no-auth sentinels for local providers', () => {
 		expect(getAuthKey('ollama')).toBe('ollama-local');
 		expect(getAuthKey('lm-studio')).toBe('lm-studio-local');
+	});
+});
+
+describe('OpenCode model metadata', () => {
+	it('maps Zen metadata without replacing the dedicated Go catalog', () => {
+		expect(lookupContextWindow('deepseek-v4-flash-free', 'opencode-zen')).toBe(200_000);
+		expect(lookupContextWindow('glm-5', 'opencode-go')).toBe(202_752);
 	});
 });
 

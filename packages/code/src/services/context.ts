@@ -30,6 +30,13 @@ export interface ContextSource extends InstructionFileCandidate {
 	contentHash: string;
 }
 
+export interface ContextSections {
+	baseSystemPrompt: string;
+	environment: string;
+	projectReferences: string;
+	instructionFiles: readonly string[];
+}
+
 export interface ContextResult {
 	systemPrompt: string;
 	instructions: string[];
@@ -37,6 +44,7 @@ export interface ContextResult {
 	sources: ContextSource[];
 	fingerprint: string;
 	diagnostics: ContextDiagnostic[];
+	sections: ContextSections;
 }
 
 export interface ContextComposeOptions {
@@ -62,12 +70,13 @@ export function composeContext(options: ContextComposeOptions = {}): ContextResu
 			.filter((source): source is ContextSource => source !== undefined),
 	);
 	const instructions = sources.map((source) => source.content);
+	const baseSystemPrompt = options.includeSystemPrompt === false ? '' : getSystemPrompt();
 	const environment = options.model && options.provider
 		? getEnvironmentPrompt({ model: options.model, provider: options.provider, cwd, sessionStartedAt: options.sessionStartedAt, now: options.now })
 		: '';
 	const referencePrompt = renderReferences(options.references ?? [], cwd, diagnostics);
 	const renderedSources = sources.map(renderSource);
-	const sections = [options.includeSystemPrompt === false ? '' : getSystemPrompt(), environment, referencePrompt, ...renderedSources].filter(Boolean);
+	const sections = [baseSystemPrompt, environment, referencePrompt, ...renderedSources].filter(Boolean);
 	const systemPrompt = sections.join('\n\n');
 	return {
 		systemPrompt,
@@ -76,6 +85,12 @@ export function composeContext(options: ContextComposeOptions = {}): ContextResu
 		sources,
 		fingerprint: hash([systemPrompt, ...sources.map((source) => `${source.path}:${source.contentHash}`)].join('\n')),
 		diagnostics,
+		sections: {
+			baseSystemPrompt,
+			environment,
+			projectReferences: referencePrompt,
+			instructionFiles: renderedSources,
+		},
 	};
 }
 

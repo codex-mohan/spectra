@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import type { ChatMessage, PendingQueueMessage } from '../types.js';
+import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 
 export interface SessionViewState {
 	messages: ChatMessage[];
@@ -8,6 +9,7 @@ export interface SessionViewState {
 	isLoading: boolean;
 	status: string;
 	tokenUsage: { input: number; output: number };
+	contextUsage?: ContextUsageSnapshot;
 	costSoFar: number;
 	elapsedMs: number | null;
 	tokPerSec: number | null;
@@ -30,6 +32,7 @@ const DEFAULT_STATE: SessionViewState = {
 	isLoading: false,
 	status: 'Ready',
 	tokenUsage: { input: 0, output: 0 },
+	contextUsage: undefined,
 	costSoFar: 0,
 	elapsedMs: null,
 	tokPerSec: null,

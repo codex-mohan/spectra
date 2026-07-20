@@ -121,4 +121,17 @@ describe('context composer', () => {
 		expect(result.sources).toHaveLength(0);
 		expect(result.diagnostics).toContainEqual(expect.objectContaining({ message: 'Instruction file exceeds 10 characters' }));
 	});
+	it('exposes attribution sections without changing composed prompt bytes', () => {
+		const root = join(tempDir, 'repo');
+		writeFile(join(root, 'AGENTS.md'), 'Project instruction.\n');
+		const result = composeContext({ cwd: root, model: 'test-model', provider: 'openai' });
+		const reconstructed = [
+			result.sections.baseSystemPrompt,
+			result.sections.environment,
+			result.sections.projectReferences,
+			...result.sections.instructionFiles,
+		].filter(Boolean).join('\n\n');
+
+		expect(reconstructed).toBe(result.systemPrompt);
+	});
 });

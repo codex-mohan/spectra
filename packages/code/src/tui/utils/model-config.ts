@@ -61,13 +61,18 @@ export function fmtCtx(n: number): string {
 	return (s.endsWith('.0') ? s.slice(0, -2) : s) + 'K';
 }
 
+const MODEL_CATALOG_PROVIDER_ALIASES: Readonly<Record<string, string>> = {
+	'opencode-zen': 'opencode',
+};
+
 export function lookupContextWindow(modelId: string, providerId: string | null): number | undefined {
 	if (!providerId) return undefined;
-	const models = getProviderModels(providerId);
+	const catalogProviderId = MODEL_CATALOG_PROVIDER_ALIASES[providerId] ?? providerId;
+	const models = getProviderModels(catalogProviderId);
 	const exact = models.find((m) => m.id === modelId);
 	if (exact?.contextWindow) return exact.contextWindow;
 	const base = modelId.replace(/-\d{8}$/, '');
-	const prefix = models.find((m) => m.id === base || m.id === `${providerId}/${base}`);
+	const prefix = models.find((m) => m.id === base || m.id === `${catalogProviderId}/${base}`);
 	if (prefix?.contextWindow) return prefix.contextWindow;
 	const family = base.replace(/-\d+$/, '');
 	const partial = models.find((m) => m.id === family || m.id.endsWith(`/${family}`));
