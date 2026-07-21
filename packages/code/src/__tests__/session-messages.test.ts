@@ -160,4 +160,9 @@ describe('session message hydration', () => {
 
 		expect(sumTurnTokens(messages)).toEqual({ input: 280, output: 65 });
 	});
+
+	it('formats persisted image dimensions for the attachment row', async () => {
+		const { formatAttachmentMetadata } = await import('../tui/utils/file-visuals.js');
+		expect(formatAttachmentMetadata({ metadata: { width: 300, height: 400, sizeBytes: 1_536 } })).toBe('300×400 1.5KB');
+	});
 });

@@ -5,7 +5,7 @@ import type { PromptAttachment } from '../prompt-bar.js';
 import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
 import { filetype } from '../utils/filetype.js';
-import { formatAttachmentBadge, getDisplayIcon, getFileIcon, getFileVisual } from '../utils/file-visuals.js';
+import { formatAttachmentBadge, formatAttachmentMetadata, getDisplayIcon, getFileIcon, getFileVisual } from '../utils/file-visuals.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -505,12 +505,15 @@ export function MessageView({
 				</text>
 				{msg.attachments && msg.attachments.length > 0 && (
 					<box flexDirection="row" flexWrap="wrap" gap={1} marginTop={0}>
-						{msg.attachments.map((att: PromptAttachment, i: number) => (
-							<box key={`${att.filename}-${i}`} flexDirection="row" gap={0}>
-								<text fg={att.badge.color} attributes={1}>{formatAttachmentBadge(att, { includeFilename: false })}</text>
-								<text fg={c.dim}> {att.filename}</text>
-							</box>
-						))}
+						{msg.attachments.map((att: PromptAttachment, i: number) => {
+							const metadata = formatAttachmentMetadata(att);
+							return (
+								<box key={`${att.filename}-${i}`} flexDirection="row" gap={0}>
+									<text fg={att.badge.color} attributes={1}>{formatAttachmentBadge(att, { includeFilename: false })}</text>
+									<text fg={c.dim}> {att.filename}{metadata ? ` · ${metadata}` : ''}</text>
+								</box>
+							);
+						})}
 					</box>
 				)}
 				{isRevertPoint && (
