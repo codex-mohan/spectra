@@ -181,8 +181,8 @@ export function UsageDialog({ onClose, termWidth, termHeight, registerHandler, a
 								{shown.map((report, index) => {
 									const selected = index === selectedIndex;
 									return (
-										<box key={report.provider} paddingX={1} backgroundColor={selected ? c.bgSelect : c.bgCard}>
-											<text fg={selected ? c.accent : c.dim} attributes={selected ? 1 : 0}>
+										<box key={report.provider} paddingX={1} backgroundColor={selected ? c.text : c.bgCard}>
+											<text fg={selected ? c.bgCard : c.dim} attributes={selected ? 1 : 0}>
 												{report.planName}
 											</text>
 										</box>

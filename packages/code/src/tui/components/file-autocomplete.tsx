@@ -101,10 +101,10 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 
 	const navigateToPath = useCallback((path: string) => {
 		if (!trigger) return;
-		const newText = '@' + path;
-		promptBarRef.current?.setText(newText, newText.length);
+		const newText = `${draftText.slice(0, trigger.start)}@${path}${draftText.slice(trigger.end)}`;
+		promptBarRef.current?.setText(newText, trigger.start + path.length + 1);
 		setSelected(0);
-	}, [trigger, promptBarRef]);
+	}, [draftText, trigger, promptBarRef]);
 
 	const confirmFile = useCallback(async (file: FileEntry) => {
 		if (!trigger) return;
