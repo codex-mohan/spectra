@@ -1,5 +1,7 @@
 import { c } from '../theme.js';
 import { EXTENSION_TO_MIME } from './file-data.js';
+import { formatAttachmentMetadata } from './attachment-reference.js';
+export { formatAttachmentMetadata } from './attachment-reference.js';
 export { MEDIA_SIZE_LIMITS, getSizeLimit, isSupportedMime } from './file-data.js';
 
 export interface FileVisual {
@@ -201,16 +203,6 @@ export function formatAttachmentBadge(input: { filename: string; mime: string },
 	return options.includeFilename === false ? head : `${head} ${input.filename}`;
 }
 
-export function formatAttachmentMetadata(input: { metadata?: { sizeBytes?: number; width?: number; height?: number; durationMs?: number; files?: number } }): string {
-	const m = input.metadata;
-	if (!m) return '';
-	const parts: string[] = [];
-	if (m.width != null && m.height != null) parts.push(`${m.width}×${m.height}`);
-	if (m.durationMs != null) parts.push(formatDuration(m.durationMs));
-	if (m.files != null) parts.push(`${m.files} files`);
-	if (m.sizeBytes != null) parts.push(formatSize(m.sizeBytes));
-	return parts.join(' ');
-}
 
 /**
  * Get the badge text for display in prompt or message.
@@ -246,18 +238,6 @@ function getFallbackIcon(input: { filename: string; mime: string }): string {
 	return EMOJI.file;
 }
 
-function formatDuration(ms: number): string {
-	const totalSeconds = Math.max(0, Math.round(ms / 1000));
-	const minutes = Math.floor(totalSeconds / 60);
-	const seconds = totalSeconds % 60;
-	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
-function formatSize(bytes: number): string {
-	if (bytes < 1024) return `${bytes}B`;
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-	return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
-}
 
 function getExtension(filename: string): string | undefined {
 	const dot = filename.lastIndexOf('.');

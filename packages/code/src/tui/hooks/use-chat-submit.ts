@@ -24,6 +24,7 @@ import { synthesizeSkillWithAgent } from '../../services/skill-synth.js';
 import { loadAllEvolvingSkills, saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
 import { recordUsageCost } from '../../services/usage-store.js';
 import type { ContextUsageSnapshot } from '../../services/context-usage.js';
+import { formatAttachmentReferences } from '../utils/attachment-reference.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
 
@@ -234,6 +235,8 @@ Return ONLY the title text, nothing else.`;
 	const submitPrompt = useCallback(
 		async (payload: PromptSubmitPayload) => {
 			const { text: trimmed, attachments } = payload;
+			const attachmentReferences = formatAttachmentReferences(attachments);
+			const promptText = [attachmentReferences, trimmed].filter(Boolean).join('\n\n');
 			const turn = captureTurnConfiguration({
 				agent: selectedAgentRef,
 				model: selectedModelRef,
@@ -260,7 +263,7 @@ Return ONLY the title text, nothing else.`;
 				if (agent?.isStreaming) {
 					const userContent: Message['content'] = attachments.length > 0
 						? [
-							...(trimmed ? [{ type: 'text' as const, text: trimmed } satisfies TextContent] : []),
+							...(promptText ? [{ type: 'text' as const, text: promptText } satisfies TextContent] : []),
 							...attachments.map((att): FileContent => ({
 								type: 'file' as const,
 								mime: att.mime,
@@ -283,7 +286,7 @@ Return ONLY the title text, nothing else.`;
 						timestamp: Date.now(),
 						metadata: { ...activeTurn },
 					};
-					const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
+					const displayContent = promptText || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
 					const steeringDisplayId = genId();
 					steeringMessagesRef.current.add(userMsg);
 					steeringDisplaysRef.current.set(userMsg, { id: steeringDisplayId, content: displayContent, attachments, model: activeTurn.model });
@@ -345,7 +348,7 @@ Return ONLY the title text, nothing else.`;
 			// Build message content: text + file attachments
 			const userContent: Message['content'] = attachments.length > 0
 				? [
-					...(trimmed ? [{ type: 'text' as const, text: trimmed } satisfies TextContent] : []),
+					...(promptText ? [{ type: 'text' as const, text: promptText } satisfies TextContent] : []),
 					...attachments.map((att): FileContent => ({
 						type: 'file' as const,
 						mime: att.mime,
@@ -365,7 +368,7 @@ Return ONLY the title text, nothing else.`;
 				metadata: { agent: selectedAgent, model: selectedModel, provider, thinkingEffort },
 			};
 			const persistedTurn = readTurnConfiguration(userMsg);
-			const displayContent = trimmed || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
+			const displayContent = promptText || (attachments.length > 0 ? `[${attachments.length} file${attachments.length > 1 ? 's' : ''}]` : '');
 			sessionState.addMessageTo(runSessionId, { id: uid, role: 'user', content: displayContent, attachments, model: selectedModel });
 			sessionState.setLoadingIn(runSessionId, true);
 			sessionState.setStatusIn(runSessionId, 'Streaming...');
