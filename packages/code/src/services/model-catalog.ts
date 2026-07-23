@@ -452,7 +452,7 @@ export async function resolveModelCatalog(
 	let discoverySucceeded = false;
 	try {
 		const result = await discoverModels(providerId, credentialContext ?? {});
-		if (result?.models) {
+		if (result?.models && result.models.length > 0) {
 			fresh = result.models;
 			discoverySucceeded = true;
 		}
