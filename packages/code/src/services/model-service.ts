@@ -14,6 +14,7 @@ import type { Credential } from './auth-store.js';
 import { read as readCredential } from './auth-store.js';
 import { resolveModelCatalog, type ResolveModelCatalogOptions } from './model-catalog.js';
 import type { DiscoveryContext } from '@mohanscodex/spectra-ai';
+import { getModels } from '@mohanscodex/spectra-ai';
 
 // ── Discovery context from credentials ──────────────────────────────────────
 
@@ -68,15 +69,18 @@ export async function resolveModelsForProvider(
 	const accountId =
 		credential?.type === 'oauth' ? credential.accountId : undefined;
 
-	const result = await resolveModelCatalog({
-		providerId,
-		credentialContext: context,
-		accountId,
-		authoritative: providerId === 'openai-codex',
-		...options,
-	});
-
-	return result.models.map((m) => ({ id: m.id, name: m.name }));
+	try {
+		const result = await resolveModelCatalog({
+			providerId,
+			credentialContext: context,
+			accountId,
+			authoritative: providerId === 'openai-codex',
+			...options,
+		});
+		return result.models.map((model) => ({ id: model.id, name: model.name }));
+	} catch {
+		return (await getModels(providerId)).map((model) => ({ id: model.id, name: model.name }));
+	}
 }
 
 // ── Provider request headers ────────────────────────────────────────────────
