@@ -4,6 +4,7 @@ import type { CustomProviderConfig } from '../../services/config.js';
 import { loadConfig, saveConfig } from '../../services/config.js';
 import { getAuthKey, lookupContextWindow } from '../utils/model-config.js';
 import { read as readCredential } from '../../services/auth-store.js';
+import { resolveProviderHeaders } from '../../services/model-service.js';
 import { showToast } from '../components/toast.js';
 import { filterToolsByAgent, getAgentDefinition } from '../../agents/index.js';
 import type { AgentRegistryConfig } from '../../agents/registry.js';
@@ -103,24 +104,10 @@ export function useAgent(deps: UseAgentDeps) {
 			const customCfg = sCustomProviders[sProvider];
 			const cred = readCredential(sProvider);
 			let resolvedBaseUrl = customCfg?.baseUrl;
-			let resolvedHeaders = customCfg?.headers;
-			if (!customCfg) {
-				if (sProvider === 'snowflake-cortex' && cred?.type === 'oauth' && cred.accountId) {
-					resolvedBaseUrl = `https://${cred.accountId}.snowflakecomputing.com/api/v2/cortex/v1`;
-					resolvedHeaders = { ...resolvedHeaders, 'X-Snowflake-Authorization-Token-Type': 'OAUTH' };
-				} else if (sProvider === 'github-copilot') {
-					resolvedHeaders = {
-						...resolvedHeaders,
-						'Copilot-Integration-Id': 'vscode-chat',
-						'Editor-Version': 'vscode/1.109.2',
-						'Editor-Plugin-Version': 'copilot-chat/0.37.5',
-						'User-Agent': 'GitHubCopilotChat/0.37.5',
-						'X-GitHub-Api-Version': '2025-10-01',
-						'x-initiator': 'user',
-						'Openai-Intent': 'conversation-agent',
-					};
-				}
+			if (!customCfg && sProvider === 'snowflake-cortex' && cred?.type === 'oauth' && cred.accountId) {
+				resolvedBaseUrl = `https://${cred.accountId}.snowflakecomputing.com/api/v2/cortex/v1`;
 			}
+			const resolvedHeaders = resolveProviderHeaders(sProvider, cred, customCfg?.headers);
 
 			const def = getAgentDefinition(sAgent);
 			const manager = initSecurityManager(process.cwd());
@@ -474,7 +461,7 @@ export function createSessionFactory(
 				provider,
 				api: provider,
 				baseUrl: customCfg?.baseUrl,
-				headers: customCfg?.headers,
+				headers: resolveProviderHeaders(provider, readCredential(provider), customCfg?.headers),
 			},
 			getApiKey: (p: string) => getAuthKey(p),
 		};
@@ -557,7 +544,7 @@ export function createSessionFactory(
 				provider,
 				api: provider,
 				baseUrl: customCfg?.baseUrl,
-				headers: customCfg?.headers,
+				headers: resolveProviderHeaders(provider, readCredential(provider), customCfg?.headers),
 			},
 			systemPrompt,
 			contextMessages,

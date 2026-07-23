@@ -6,12 +6,27 @@ export type StreamFunction = (model: Model, context: Context, options?: StreamOp
 export interface ModelInfo {
 	id: string;
 	name: string;
+	contextWindow?: number;
+	supportsTools?: boolean;
+	supportedInputs?: string[];
+}
+
+export interface DiscoveryContext {
+	apiKey?: string;
+	headers?: Record<string, string>;
+	baseUrl?: string;
+}
+
+export interface DiscoveryResult {
+	models: ModelInfo[];
+	fetchedAt?: number;
 }
 
 export interface Provider {
 	name: string;
 	stream: StreamFunction;
 	listModels?: () => ModelInfo[] | Promise<ModelInfo[]>;
+	discoverModels?: (context: DiscoveryContext) => DiscoveryResult | Promise<DiscoveryResult>;
 	/** MIME types this provider can handle in user messages. Undefined = text only. */
 	supportedMediaTypes?: string[];
 }
@@ -34,6 +49,15 @@ export async function getModels(providerName: string): Promise<ModelInfo[]> {
 	const provider = providers.get(providerName);
 	if (!provider?.listModels) return [];
 	return provider.listModels();
+}
+
+export async function discoverProviderModels(
+	providerName: string,
+	context: DiscoveryContext,
+): Promise<DiscoveryResult | undefined> {
+	const provider = providers.get(providerName);
+	if (!provider?.discoverModels) return undefined;
+	return provider.discoverModels(context);
 }
 
 export function stream(model: Model, context: Context, options?: StreamOptions): AssistantMessageEventStream {

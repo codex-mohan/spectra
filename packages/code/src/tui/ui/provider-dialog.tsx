@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback, type ReactNode } fro
 import { c } from '../theme.js';
 import { write, readAll, type ApiCredential } from '../../services/auth-store.js';
 import { isCredentialConnected } from '../../services/provider-connection.js';
-import { listProviders, getModels } from '@mohanscodex/spectra-ai';
+import { listProviders } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { PROVIDER_META, resolveMetaKey, getApiKeyDesc } from '../utils/provider-meta.js';
 import { loginKimiCode, loginCodex, type AuthInfo } from '../../services/provider-auth.js';
@@ -12,6 +12,7 @@ import { loginXai } from '../../services/xai-auth.js';
 import { loginDigitalOcean } from '../../services/digitalocean-auth.js';
 import { loginSnowflakeCortex } from '../../services/snowflake-cortex-auth.js';
 import { openBrowser } from '../../utils/platform.js';
+import { resolveModelsForProvider } from '../../services/model-service.js';
 
 interface KeyEvent {
 	name: string;
@@ -675,7 +676,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				termWidth={termWidth}
 				termHeight={termHeight}
 				onSuccess={() => {
-					getModels(step.id).then((m) => {
+					resolveModelsForProvider(step.id).then((m) => {
 						setModels(m);
 						setStep({ phase: 'model-select', id: step.id, name: step.name });
 					}).catch(() => {
@@ -692,7 +693,7 @@ export function ProviderDialog(props: ProviderDialogProps) {
 		const cfg = loadConfig();
 		const customCfg = cfg.providers?.[step.id];
 		if (customCfg?.apiKey) {
-			getModels(step.id).then((m) => {
+			resolveModelsForProvider(step.id).then((m) => {
 				if (m.length > 0) {
 					setModels(m);
 					setStep({ phase: 'model-select', id: step.id, name: step.name });
@@ -706,11 +707,13 @@ export function ProviderDialog(props: ProviderDialogProps) {
 				} else {
 					setStep({ phase: 'model-select', id: step.id, name: step.name });
 				}
+			}).catch(() => {
+				setStep({ phase: 'model-select', id: step.id, name: step.name });
 			});
 			return null;
 		}
 		if (models === null) {
-			getModels(step.id).then((m) => setModels(m));
+			resolveModelsForProvider(step.id).then((m) => setModels(m)).catch(() => {});
 		}
 		const optionalDefaultKey = OPTIONAL_AUTH_PROVIDER_IDS[step.id];
 		return (

@@ -13,21 +13,38 @@ interface FetchModel {
 	contextWindow?: number;
 }
 
-// ChatGPT subscription models are not exposed through models.dev, but are
-// available through the OpenAI Codex OAuth provider.
-const CODEX_MODELS: readonly FetchModel[] = [
-	{ id: 'gpt-4.1', name: 'GPT-4.1', contextWindow: 1_047_576 },
-	{ id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', contextWindow: 1_047_576 },
-	{ id: 'gpt-4.1-nano', name: 'GPT-4.1 nano', contextWindow: 1_047_576 },
-	{ id: 'gpt-5-codex', name: 'GPT-5-Codex', contextWindow: 400_000 },
-	{ id: 'gpt-5.1-codex', name: 'GPT-5.1 Codex', contextWindow: 400_000 },
-	{ id: 'gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max', contextWindow: 400_000 },
-	{ id: 'gpt-5.1-codex-mini', name: 'GPT-5.1 Codex mini', contextWindow: 400_000 },
-	{ id: 'gpt-5.2-codex', name: 'GPT-5.2 Codex', contextWindow: 400_000 },
-	{ id: 'gpt-5.3-codex', name: 'GPT-5.3 Codex', contextWindow: 400_000 },
-	{ id: 'gpt-5.3-codex-spark', name: 'GPT-5.3 Codex Spark', contextWindow: 128_000 },
-	{ id: 'o4-mini', name: 'o4-mini', contextWindow: 200_000 },
-];
+interface CodexModelPayload {
+	slug?: unknown;
+	display_name?: unknown;
+	context_window?: unknown;
+	visibility?: unknown;
+	supported_in_api?: unknown;
+}
+
+async function fetchCodexModels(): Promise<FetchModel[]> {
+	try {
+		const res = await fetch(
+			'https://raw.githubusercontent.com/openai/codex/main/codex-rs/models-manager/models.json',
+			{ signal: AbortSignal.timeout(10000) },
+		);
+		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		const data = await res.json() as { models?: CodexModelPayload[] };
+		return (data.models ?? [])
+			.filter((model) =>
+				typeof model.slug === 'string'
+				&& model.visibility === 'list'
+				&& model.supported_in_api !== false,
+			)
+			.map((model) => ({
+				id: model.slug as string,
+				name: typeof model.display_name === 'string' ? model.display_name : model.slug as string,
+				contextWindow: typeof model.context_window === 'number' ? model.context_window : undefined,
+			}));
+	} catch (error) {
+		console.warn('Failed to fetch Codex models:', error);
+		return [];
+	}
+}
 
 async function fetchOpenRouterModels(): Promise<FetchModel[]> {
 	try {
@@ -48,8 +65,9 @@ async function fetchOpenRouterModels(): Promise<FetchModel[]> {
 }
 
 async function main() {
-	const orModels = await fetchOpenRouterModels();
+	const [orModels, codexModels] = await Promise.all([fetchOpenRouterModels(), fetchCodexModels()]);
 	console.log(`OpenRouter: ${orModels.length} models`);
+	console.log(`Codex: ${codexModels.length} models`);
 
 	let devData: Record<
 		string,
@@ -86,7 +104,7 @@ async function main() {
 		addModel('openrouter', m.id, m.name);
 	}
 
-	for (const model of CODEX_MODELS) {
+	for (const model of codexModels) {
 		addModel('openai-codex', model.id, model.name, model.contextWindow);
 	}
 

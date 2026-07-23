@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { c } from '../theme.js';
-import { listProviders, getModels } from '@mohanscodex/spectra-ai';
+import { listProviders } from '@mohanscodex/spectra-ai';
 import { loadConfig } from '../../services/config.js';
 import { readAll } from '../../services/auth-store.js';
 import { isCredentialConnected } from '../../services/provider-connection.js';
 import { getProviderDisplayName, resolveMetaKey } from '../utils/provider-meta.js';
+import { resolveModelsForProvider } from '../../services/model-service.js';
 
 export interface ModelSwitcherProps {
 	providerId: string;
@@ -59,12 +60,12 @@ export function ModelSwitcher(props: ModelSwitcherProps) {
 		const connectedCustoms = Object.entries(customProviders).filter(([id]) => isProviderConnected(id, customProviders));
 
 		const promises = connectedBuiltins.map((id) =>
-			getModels(id).then((models) => {
+			resolveModelsForProvider(resolveMetaKey(id)).then((models) => {
 				const displayName = getProviderDisplayName(id, customProviders);
 				for (const m of models) {
 					collected.push({ id: m.id, name: m.name, provider: id, providerName: displayName });
 				}
-			}),
+			}).catch(() => {}),
 		);
 
 		for (const [id, pcfg] of connectedCustoms) {

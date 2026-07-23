@@ -19,6 +19,7 @@ import type {
 	Tool,
 	ToolCall,
 } from '../types.js';
+import { getProviderModels } from '../models.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
 import { normalizeProviderError, sanitizeSurrogates } from './shared.js';
 
@@ -311,8 +312,8 @@ export function createAnthropicProvider() {
 			'text/javascript', 'text/typescript',
 			'application/json', 'application/xml',
 		],
-		listModels: () => import('../models.js').then((m) => m.getProviderModels('anthropic')),
-		stream(model: Model, context: Context, options?: StreamOptions): AssistantMessageEventStream {
+		listModels: () => getProviderModels('anthropic').map((m) => ({ id: m.id, name: m.name, contextWindow: m.contextWindow })),
+	stream(model: Model, context: Context, options?: StreamOptions): AssistantMessageEventStream {
 			const stream = new AssistantMessageEventStream();
 
 			const run = async () => {

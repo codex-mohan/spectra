@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { write } from '../services/auth-store.js';
 import { PROVIDER_META } from '../tui/utils/provider-meta.js';
-import { createCodexAuthorizationFlow, loginCodex, renderCallbackPage } from '../services/provider-auth.js';
+import { createCodexAuthorizationFlow, extractCodexAccountId, loginCodex, renderCallbackPage } from '../services/provider-auth.js';
 import { getAuthKey, lookupContextWindow } from '../tui/utils/model-config.js';
 
 describe('provider auth keys', () => {
@@ -63,6 +63,17 @@ describe('Codex OAuth authorization', () => {
 		expect(url.searchParams.get('state')).toMatch(/^[a-f0-9]{32}$/);
 		expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/);
 		expect(flow.verifier).toMatch(/^[A-Za-z0-9_-]{43}$/);
+	});
+
+	it('extracts the ChatGPT account ID from JWT claims without trusting malformed tokens', () => {
+		const claims = {
+			'https://api.openai.com/auth': { chatgpt_account_id: 'account-123' },
+		};
+		const jwt = `header.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.signature`;
+
+		expect(extractCodexAccountId(jwt)).toBe('account-123');
+		expect(extractCodexAccountId('not-a-jwt', jwt)).toBe('account-123');
+		expect(extractCodexAccountId('header.invalid.signature')).toBeUndefined();
 	});
 
 	it('does not start a callback server after cancellation', async () => {

@@ -29,6 +29,7 @@ interface DeviceAuthorizationResponse {
 
 interface TokenResponse {
 	access_token?: string;
+	id_token?: string;
 	refresh_token?: string;
 	expires_in?: number;
 	error?: string;
@@ -92,6 +93,33 @@ function tokenToCredential(payload: TokenResponse, refreshFallback?: string): Oa
 	};
 }
 
+function parseJwtPayload(token: string | undefined): Record<string, unknown> | undefined {
+	if (!token) return undefined;
+	const segments = token.split('.');
+	if (segments.length !== 3) return undefined;
+	try {
+		const payload: unknown = JSON.parse(Buffer.from(segments[1], 'base64url').toString('utf8'));
+		return payload !== null && typeof payload === 'object' && !Array.isArray(payload)
+			? payload as Record<string, unknown>
+			: undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+/** Read the account identity OpenAI embeds in Codex OAuth JWT claims. */
+export function extractCodexAccountId(...tokens: Array<string | undefined>): string | undefined {
+	for (const token of tokens) {
+		const claims = parseJwtPayload(token);
+		const auth = claims?.['https://api.openai.com/auth'];
+		if (auth !== null && typeof auth === 'object' && !Array.isArray(auth)) {
+			const accountId = (auth as Record<string, unknown>).chatgpt_account_id;
+			if (typeof accountId === 'string' && accountId.length > 0) return accountId;
+		}
+	}
+	return undefined;
+}
+
 function codexTokenToCredential(payload: TokenResponse, refreshFallback?: string): OauthCredential {
 	if (!payload.access_token || typeof payload.expires_in !== 'number') {
 		throw new Error('Codex token response missing access token or expiry');
@@ -103,6 +131,7 @@ function codexTokenToCredential(payload: TokenResponse, refreshFallback?: string
 		access: payload.access_token,
 		refresh,
 		expires: Date.now() + payload.expires_in * 1000 - OAUTH_EXPIRY_SKEW_MS,
+		accountId: extractCodexAccountId(payload.id_token, payload.access_token),
 	};
 }
 

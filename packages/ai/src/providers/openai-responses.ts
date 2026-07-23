@@ -25,6 +25,7 @@ import type {
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
 import { normalizeProviderError, parseStreamingJson, sanitizeSurrogates } from './shared.js';
+import { getProviderModels } from '../models.js';
 
 function getEnvApiKey(provider: string): string | undefined {
 	const keys: Record<string, string | undefined> = {
@@ -59,16 +60,32 @@ export interface OpenAIResponsesOptions extends StreamOptions {
 	reasoningSummary?: 'auto' | 'detailed' | 'concise' | null;
 }
 
-export function createOpenAIResponsesProvider() {
+export interface OpenAIResponsesProviderConfig {
+	name: string;
+	modelProvider: string;
+	baseUrl?: string;
+}
+
+export function mergeOpenAIResponsesHeaders(
+	modelHeaders?: Record<string, string>,
+	requestHeaders?: Record<string, string>,
+): Record<string, string> {
+	return { ...modelHeaders, ...requestHeaders };
+}
+
+export function createOpenAIResponsesProvider(config: OpenAIResponsesProviderConfig = {
+	name: 'openai-responses',
+	modelProvider: 'openai',
+}) {
 	return {
-		name: 'openai-responses',
+		name: config.name,
 		supportedMediaTypes: [
 			'image/png', 'image/jpeg', 'image/gif', 'image/webp',
 			'text/plain', 'text/markdown', 'text/csv', 'text/html', 'text/css',
 			'text/javascript', 'text/typescript',
 			'application/json', 'application/xml',
 		],
-		listModels: () => import('../models.js').then((m) => m.getProviderModels('openai')),
+		listModels: () => getProviderModels(config.modelProvider).map((m) => ({ id: m.id, name: m.name, contextWindow: m.contextWindow })),
 		stream(model: Model, context: Context, options?: OpenAIResponsesOptions): AssistantMessageEventStream {
 			const stream = new AssistantMessageEventStream();
 
@@ -97,8 +114,9 @@ export function createOpenAIResponsesProvider() {
 
 					const client = new OpenAI({
 						apiKey,
-						baseURL: model.baseUrl,
+						baseURL: config.baseUrl ?? model.baseUrl,
 						dangerouslyAllowBrowser: true,
+						defaultHeaders: mergeOpenAIResponsesHeaders(model.headers, options?.headers),
 					});
 
 					const messages = convertResponsesMessages(model, context);
