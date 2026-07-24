@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { SpectraTool } from './types.js';
 import { errorResult, textResult } from './utils.js';
+import { APP_USER_AGENT } from '../services/app-version.js';
 
 export const webFetchTool: SpectraTool = {
 	name: 'web_fetch',
@@ -22,7 +23,7 @@ Handles HTML to markdown conversion, PDF text extraction, and image descriptions
 
 		try {
 			const response = await fetch(url, {
-				headers: { 'User-Agent': 'Spectra-Code/1.0' },
+				headers: { 'User-Agent': APP_USER_AGENT },
 				signal: AbortSignal.timeout(15000),
 			});
 

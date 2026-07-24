@@ -9,8 +9,8 @@ import { loadAgentCatalog, filterToolsByAgent } from '../../agents/index.js';
 import { createAllToolsWithExtensions } from '../../tools/index.js';
 import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
+import { APP_VERSION } from '../../services/app-version.js';
 
-const PKG_VERSION = '0.4.0';
 
 export function buildAcpSystemPrompt(cwd?: string, options: Omit<ContextComposeOptions, 'cwd'> = {}): string {
 	return loadContext(cwd, options).systemPrompt;
@@ -97,7 +97,7 @@ export class ACPAdapter {
 	private onInitialize(req: JsonRpcRequest): void {
 		send(req.id!, {
 			protocolVersion: '0.1.0',
-			serverInfo: { name: 'Spectra Code', version: PKG_VERSION },
+			serverInfo: { name: 'Spectra Code', version: APP_VERSION },
 			capabilities: {},
 		});
 	}
@@ -159,7 +159,7 @@ export class ACPAdapter {
 			});
 
 			this.sessions.set(sessionId, { id: sessionId, agent });
-			send(req.id!, { sessionId, serverInfo: { name: 'Spectra Code', version: PKG_VERSION } });
+			send(req.id!, { sessionId, serverInfo: { name: 'Spectra Code', version: APP_VERSION } });
 		} catch (err) {
 			error(req.id!, -32603, err instanceof Error ? err.message : String(err));
 		}

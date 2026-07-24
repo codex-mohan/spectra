@@ -6,6 +6,7 @@ import { scheduler } from 'timers/promises';
 import { getGlobalDataDir } from '../utils/paths.js';
 import type { OauthCredential } from './auth-store.js';
 import { c } from '../tui/tokens.js';
+import { APP_USER_AGENT, APP_VERSION } from './app-version.js';
 
 export interface AuthInfo {
 	url: string;
@@ -72,9 +73,9 @@ function getKimiDeviceId(): string {
 
 function kimiHeaders(): Record<string, string> {
 	return {
-		'User-Agent': 'SpectraCode/0.5',
+		'User-Agent': APP_USER_AGENT,
 		'X-Msh-Platform': 'spectra_code',
-		'X-Msh-Version': '0.5',
+		'X-Msh-Version': APP_VERSION,
 		'X-Msh-Device-Id': getKimiDeviceId(),
 	};
 }

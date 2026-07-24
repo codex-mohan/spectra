@@ -6,14 +6,13 @@ import chalk from 'chalk';
 import { SessionStore } from './services/session-store.js';
 import { loadConfig, saveConfig } from './services/config.js';
 import { connectServer, disconnectServer, listConnectedServers, listServerTools } from './integrations/mcp/index.js';
+import { APP_VERSION } from './services/app-version.js';
 
 async function main() {
-	const pkg = await import('../package.json', { with: { type: 'json' } });
-	const version = pkg.default.version;
 
 	const cli = yargs(hideBin(process.argv))
 		.scriptName('spectra')
-		.version(version)
+		.version(APP_VERSION)
 		.help()
 		.alias('h', 'help')
 		.alias('v', 'version')

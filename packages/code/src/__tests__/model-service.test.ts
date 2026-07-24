@@ -4,6 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { buildDiscoveryContext, resolveProviderHeaders } from '../services/model-service.js';
 import type { Credential } from '../services/auth-store.js';
+import { APP_USER_AGENT } from '../services/app-version.js';
 
 // ── buildDiscoveryContext ───────────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ describe('resolveProviderHeaders', () => {
 		expect(headers).toEqual({
 			Authorization: 'Bearer tok',
 			'ChatGPT-Account-Id': 'acct-xyz',
+			'User-Agent': APP_USER_AGENT,
 		});
 	});
 
@@ -111,6 +113,7 @@ describe('resolveProviderHeaders', () => {
 		const headers = resolveProviderHeaders('openai-codex', cred);
 		expect(headers).toEqual({ Authorization: 'Bearer tok' });
 		expect(headers!['ChatGPT-Account-Id']).toBeUndefined();
+		expect(headers!['User-Agent']).toBeUndefined();
 	});
 
 	// ── Snowflake ─────────────────────────────────────────────────────
@@ -192,6 +195,7 @@ describe('resolveProviderHeaders', () => {
 		expect(headers).toEqual({
 			Authorization: 'Bearer tok',
 			'ChatGPT-Account-Id': 'acct-1',
+			'User-Agent': APP_USER_AGENT,
 			'X-Api-Version': '2024-01',
 		});
 	});

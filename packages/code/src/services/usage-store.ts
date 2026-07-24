@@ -7,6 +7,7 @@ import { refreshKimiCode, refreshCodexToken } from './provider-auth.js';
 import { refreshGitHubCopilotToken } from './github-copilot-auth.js';
 import { refreshXaiToken } from './xai-auth.js';
 import { refreshSnowflakeCortexToken } from './snowflake-cortex-auth.js';
+import { APP_USER_AGENT, APP_VERSION } from './app-version.js';
 
 export type UsageUnit = 'usd' | 'tokens' | 'requests' | 'percent' | 'unknown';
 export type UsageStatus = 'ok' | 'warning' | 'exhausted' | 'unknown';
@@ -533,7 +534,7 @@ function parseKimiUsagePayload(provider: string, payload: unknown, nowMs: number
 }
 
 function kimiHeaders(): Record<string, string> {
-	return { 'User-Agent': 'SpectraCode/0.5', 'X-Msh-Platform': 'spectra_code', 'X-Msh-Version': '0.5' };
+	return { 'User-Agent': APP_USER_AGENT, 'X-Msh-Platform': 'spectra_code', 'X-Msh-Version': APP_VERSION };
 }
 
 const kimiUsageProvider: UsageProvider = {
@@ -676,7 +677,7 @@ const codexUsageProvider: UsageProvider = {
 		const base = normalizeBaseUrl(baseUrl || 'https://chatgpt.com/backend-api');
 		const url = `${base}/wham/usage`;
 		const accountId = credential.accountId ?? extractCodexAccountId(credential.access);
-		const headers: Record<string, string> = { Authorization: `Bearer ${credential.access}`, 'User-Agent': 'SpectraCode/0.5' };
+		const headers: Record<string, string> = { Authorization: `Bearer ${credential.access}`, 'User-Agent': APP_USER_AGENT };
 		if (accountId) headers['ChatGPT-Account-Id'] = accountId;
 		const response = await fetchImpl(url, { headers, signal });
 		if (!response.ok) return null;

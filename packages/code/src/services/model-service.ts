@@ -15,6 +15,7 @@ import { read as readCredential } from './auth-store.js';
 import { resolveModelCatalog, type ResolveModelCatalogOptions } from './model-catalog.js';
 import type { DiscoveryContext } from '@mohanscodex/spectra-ai';
 import { getModels } from '@mohanscodex/spectra-ai';
+import { APP_USER_AGENT } from './app-version.js';
 
 // ── Discovery context from credentials ──────────────────────────────────────
 
@@ -124,6 +125,7 @@ export function resolveProviderHeaders(
 
 	if (providerId === 'openai-codex' && credential?.type === 'oauth' && credential.accountId) {
 		headers['ChatGPT-Account-Id'] = credential.accountId;
+		headers['User-Agent'] = APP_USER_AGENT;
 	}
 
 	if (providerId === 'snowflake-cortex' && credential?.type === 'oauth' && credential.accountId) {
