@@ -4,7 +4,6 @@ import type { DiscoveryContext, DiscoveryResult, ModelInfo } from '../registry.j
 
 /** ChatGPT subscription backend used by the Codex Responses transport. */
 export const OPENAI_CODEX_RESPONSES_BASE_URL = 'https://chatgpt.com/backend-api/codex';
-const SPECTRA_CODEX_CLIENT_VERSION = '0.6.1';
 
 interface CodexModelPayload {
 	slug?: unknown;
@@ -53,7 +52,6 @@ async function discoverOpenAICodexModels(context: DiscoveryContext): Promise<Dis
 	if (!context.apiKey) throw new Error('Codex model discovery requires an OAuth access token');
 	const baseUrl = (context.baseUrl || OPENAI_CODEX_RESPONSES_BASE_URL).replace(/\/+$/, '');
 	const url = new URL(`${baseUrl}/models`);
-	url.searchParams.set('client_version', SPECTRA_CODEX_CLIENT_VERSION);
 	const response = await fetch(url, {
 		headers: {
 			...context.headers,

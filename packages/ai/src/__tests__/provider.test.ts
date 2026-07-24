@@ -81,7 +81,13 @@ describe('openai-codex model catalog', () => {
 		try {
 			const provider = createOpenAICodexResponsesProvider();
 			await provider.stream(
-				{ id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra', provider: 'openai-codex', api: 'openai-codex' },
+				{
+					id: 'gpt-5.6-terra',
+					name: 'GPT-5.6 Terra',
+					provider: 'openai-codex',
+					api: 'openai-codex',
+					headers: { 'User-Agent': 'spectra-code/test' },
+				},
 				{ systemPrompt: 'You are a coding agent.', messages: [] },
 				{ apiKey: 'token', headers: { 'ChatGPT-Account-Id': 'account' } },
 			).result();
@@ -91,6 +97,7 @@ describe('openai-codex model catalog', () => {
 			expect(request.url).toBe('https://chatgpt.com/backend-api/codex/responses');
 			expect(request.headers.get('OpenAI-Beta')).toBe('responses=experimental');
 			expect(request.headers.get('originator')).toBe('spectra');
+			expect(request.headers.get('User-Agent')).toBe('spectra-code/test');
 			expect(request.headers.get('ChatGPT-Account-Id')).toBe('account');
 			const body = await request.json() as Record<string, unknown>;
 			expect(body).toMatchObject({
