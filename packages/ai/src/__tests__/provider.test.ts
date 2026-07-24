@@ -54,6 +54,11 @@ describe('openai-codex model catalog', () => {
 			name: 'openai-codex',
 			modelProvider: 'openai-codex',
 			baseUrl: OPENAI_CODEX_RESPONSES_BASE_URL,
+			defaultHeaders: {
+				'OpenAI-Beta': 'responses=experimental',
+				originator: 'spectra',
+			},
+			codexProtocol: true,
 		});
 		expect(OPENAI_CODEX_RESPONSES_BASE_URL).toBe('https://chatgpt.com/backend-api/codex');
 	});
@@ -67,6 +72,40 @@ describe('openai-codex model catalog', () => {
 			'X-Model': 'model',
 			'X-Request': 'request',
 		});
+	});
+
+	it('sends the Codex-specific Responses request contract', async () => {
+		const requestSpy = vi.fn(async () => new Response('', { status: 400 }));
+		const originalFetch = globalThis.fetch;
+		globalThis.fetch = requestSpy as typeof fetch;
+		try {
+			const provider = createOpenAICodexResponsesProvider();
+			await provider.stream(
+				{ id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra', provider: 'openai-codex', api: 'openai-codex' },
+				{ systemPrompt: 'You are a coding agent.', messages: [] },
+				{ apiKey: 'token', headers: { 'ChatGPT-Account-Id': 'account' } },
+			).result();
+
+			const [input, init] = requestSpy.mock.calls[0] as unknown as [string | URL | Request, RequestInit | undefined];
+			const request = new Request(input, init);
+			expect(request.url).toBe('https://chatgpt.com/backend-api/codex/responses');
+			expect(request.headers.get('OpenAI-Beta')).toBe('responses=experimental');
+			expect(request.headers.get('originator')).toBe('spectra');
+			expect(request.headers.get('ChatGPT-Account-Id')).toBe('account');
+			const body = await request.json() as Record<string, unknown>;
+			expect(body).toMatchObject({
+				model: 'gpt-5.6-terra',
+				instructions: 'You are a coding agent.',
+				store: false,
+				stream: true,
+				tool_choice: 'auto',
+				parallel_tool_calls: true,
+				include: ['reasoning.encrypted_content'],
+				text: { verbosity: 'medium' },
+			});
+		} finally {
+			globalThis.fetch = originalFetch;
+		}
 	});
 
 	it('normalizes only visible API-supported Codex discovery models', () => {

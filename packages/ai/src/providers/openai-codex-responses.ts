@@ -70,6 +70,11 @@ export const OPENAI_CODEX_PROVIDER_CONFIG: OpenAIResponsesProviderConfig = {
 	name: 'openai-codex',
 	modelProvider: 'openai-codex',
 	baseUrl: OPENAI_CODEX_RESPONSES_BASE_URL,
+	defaultHeaders: {
+		'OpenAI-Beta': 'responses=experimental',
+		originator: 'spectra',
+	},
+	codexProtocol: true,
 };
 
 /**

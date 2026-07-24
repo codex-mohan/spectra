@@ -64,6 +64,8 @@ export interface OpenAIResponsesProviderConfig {
 	name: string;
 	modelProvider: string;
 	baseUrl?: string;
+	defaultHeaders?: Record<string, string>;
+	codexProtocol?: boolean;
 }
 
 export function mergeOpenAIResponsesHeaders(
@@ -116,15 +118,31 @@ export function createOpenAIResponsesProvider(config: OpenAIResponsesProviderCon
 						apiKey,
 						baseURL: config.baseUrl ?? model.baseUrl,
 						dangerouslyAllowBrowser: true,
-						defaultHeaders: mergeOpenAIResponsesHeaders(model.headers, options?.headers),
+						defaultHeaders: mergeOpenAIResponsesHeaders(
+							config.defaultHeaders,
+							mergeOpenAIResponsesHeaders(model.headers, options?.headers),
+						),
 					});
 
-					const messages = convertResponsesMessages(model, context);
+					const messages = convertResponsesMessages(
+						model,
+						config.codexProtocol ? { ...context, systemPrompt: undefined } : context,
+					);
 
 					const params: OpenAI.Responses.ResponseCreateParamsStreaming = {
 						model: model.id,
 						input: messages as OpenAI.Responses.ResponseInput,
 						stream: true,
+						...(config.codexProtocol
+							? {
+								instructions: context.systemPrompt,
+								store: false,
+								tool_choice: 'auto' as const,
+								parallel_tool_calls: true,
+								include: ['reasoning.encrypted_content'],
+								text: { verbosity: 'medium' as const },
+							}
+							: {}),
 					};
 
 					if (options?.maxTokens) {
