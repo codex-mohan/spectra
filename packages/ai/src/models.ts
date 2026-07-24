@@ -966,6 +966,53 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1050000
     }
   ],
+  "aiand": [
+    {
+      "id": "deepseek-ai/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "deepseek-ai/deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "google/gemma-4-31b-it",
+      "name": "Gemma 4 31B IT",
+      "contextWindow": 262144
+    },
+    {
+      "id": "zai-org/glm-5.1",
+      "name": "GLM-5.1",
+      "contextWindow": 200000
+    },
+    {
+      "id": "zai-org/glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "openai/gpt-oss-120b",
+      "name": "GPT OSS 120B",
+      "contextWindow": 131072
+    },
+    {
+      "id": "moonshotai/kimi-k2.6",
+      "name": "Kimi K2.6",
+      "contextWindow": 262144
+    },
+    {
+      "id": "moonshotai/kimi-k2.7-code",
+      "name": "Kimi K2.7 Code",
+      "contextWindow": 262144
+    },
+    {
+      "id": "qwen/qwen3.6-27b",
+      "name": "Qwen3.6 27B",
+      "contextWindow": 262144
+    }
+  ],
   "aihubmix": [
     {
       "id": "claude-fable-5",
@@ -2404,6 +2451,36 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
+      "id": "anthropic.claude-opus-5",
+      "name": "Claude Opus 5",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "au.anthropic.claude-opus-5",
+      "name": "Claude Opus 5 (AU)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "eu.anthropic.claude-opus-5",
+      "name": "Claude Opus 5 (EU)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "global.anthropic.claude-opus-5",
+      "name": "Claude Opus 5 (Global)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "jp.anthropic.claude-opus-5",
+      "name": "Claude Opus 5 (JP)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "us.anthropic.claude-opus-5",
+      "name": "Claude Opus 5 (US)",
+      "contextWindow": 1000000
+    },
+    {
       "id": "anthropic.claude-sonnet-4-5-20250929-v1:0",
       "name": "Claude Sonnet 4.5",
       "contextWindow": 200000
@@ -2883,6 +2960,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
+      "id": "claude-opus-5",
+      "name": "Claude Opus 5",
+      "contextWindow": 1000000
+    },
+    {
       "id": "claude-sonnet-4-5-20250929",
       "name": "Claude Sonnet 4.5",
       "contextWindow": 1000000
@@ -3168,6 +3250,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "claude-opus-4-8",
       "name": "Claude Opus 4.8",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-opus-5",
+      "name": "Claude Opus 5",
       "contextWindow": 1000000
     },
     {
@@ -3568,6 +3655,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
+      "id": "claude-opus-5",
+      "name": "Claude Opus 5",
+      "contextWindow": 1000000
+    },
+    {
       "id": "claude-sonnet-4-5",
       "name": "Claude Sonnet 4.5",
       "contextWindow": 200000
@@ -3934,7 +4026,12 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "zai-org/GLM-5.2",
       "name": "GLM 5.2",
-      "contextWindow": 256000
+      "contextWindow": 524288
+    },
+    {
+      "id": "zai-org/GLM-5.2-Fast",
+      "name": "GLM 5.2 Fast",
+      "contextWindow": 524288
     },
     {
       "id": "thinkingmachines/inkling",
@@ -5125,6 +5222,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 256000
     },
     {
+      "id": "tencent/hy3",
+      "name": "Hy3",
+      "contextWindow": 262144
+    },
+    {
       "id": "tencent/hy3-preview",
       "name": "Hy3 preview",
       "contextWindow": 262144
@@ -5952,6 +6054,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 200000
     },
     {
+      "id": "glm-5.2",
+      "name": "GLM-5.2",
+      "contextWindow": 1000000
+    },
+    {
       "id": "gpt-oss-120b",
       "name": "GPT OSS 120B",
       "contextWindow": 131072
@@ -6010,11 +6117,6 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "deepseek-v4-pro",
       "name": "DeepSeek V4 Pro",
-      "contextWindow": 1000000
-    },
-    {
-      "id": "fugu-ultra",
-      "name": "Fugu Ultra",
       "contextWindow": 1000000
     },
     {
@@ -7275,6 +7377,16 @@ const MODELS: Record<string, ModelEntry[]> = {
   ],
   "google": [
     {
+      "id": "deep-research-max-preview-04-2026",
+      "name": "Deep Research Max Preview (Apr-21-2026)",
+      "contextWindow": 131072
+    },
+    {
+      "id": "deep-research-preview-04-2026",
+      "name": "Deep Research Preview (Apr-21-2026)",
+      "contextWindow": 131072
+    },
+    {
       "id": "gemini-2.0-flash",
       "name": "Gemini 2.0 Flash",
       "contextWindow": 1048576
@@ -7283,6 +7395,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "gemini-2.0-flash-lite",
       "name": "Gemini 2.0 Flash-Lite",
       "contextWindow": 1048576
+    },
+    {
+      "id": "gemini-2.5-computer-use-preview-10-2025",
+      "name": "Gemini 2.5 Computer Use Preview 10-2025",
+      "contextWindow": 131072
     },
     {
       "id": "gemini-2.5-flash",
@@ -7320,6 +7437,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1048576
     },
     {
+      "id": "gemini-3.1-flash-live-preview",
+      "name": "Gemini 3.1 Flash Live Preview",
+      "contextWindow": 131072
+    },
+    {
       "id": "gemini-3.1-pro-preview",
       "name": "Gemini 3.1 Pro Preview",
       "contextWindow": 1048576
@@ -7355,6 +7477,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1048576
     },
     {
+      "id": "gemini-robotics-er-1.6-preview",
+      "name": "Gemini Robotics-ER 1.6 Preview",
+      "contextWindow": 131072
+    },
+    {
       "id": "gemma-4-26b-a4b-it",
       "name": "Gemma 4 26B A4B IT",
       "contextWindow": 262144
@@ -7363,6 +7490,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "gemma-4-31b-it",
       "name": "Gemma 4 31B IT",
       "contextWindow": 262144
+    },
+    {
+      "id": "gemini-3.1-flash-lite-image",
+      "name": "Nano Banana 2 Lite",
+      "contextWindow": 65536
     }
   ],
   "google-vertex": [
@@ -7404,6 +7536,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "claude-opus-4-8@default",
       "name": "Claude Opus 4.8",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-opus-5@default",
+      "name": "Claude Opus 5",
       "contextWindow": 1000000
     },
     {
@@ -7581,6 +7718,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "claude-opus-4-8@default",
       "name": "Claude Opus 4.8",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-opus-5@default",
+      "name": "Claude Opus 5",
       "contextWindow": 1000000
     },
     {
@@ -8001,6 +8143,13 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "glm-4.6",
       "name": "Zai GLM-4.6",
       "contextWindow": 204800
+    }
+  ],
+  "hetzner": [
+    {
+      "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+      "name": "Qwen3.6 35B A3B FP8",
+      "contextWindow": 262144
     }
   ],
   "hpc-ai": [
@@ -10370,6 +10519,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "k3",
       "name": "Kimi K3",
       "contextWindow": 1048576
+    },
+    {
+      "id": "k3-256k",
+      "name": "Kimi K3-256K",
+      "contextWindow": 262144
     }
   ],
   "kuae-cloud-coding-plan": [
@@ -14815,33 +14969,8 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 400000
     },
     {
-      "id": "gpt-5-codex",
-      "name": "GPT-5-Codex",
-      "contextWindow": 400000
-    },
-    {
       "id": "gpt-5.1",
       "name": "GPT-5.1",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-chat-latest",
-      "name": "GPT-5.1 Chat",
-      "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-max",
-      "name": "GPT-5.1 Codex Max",
-      "contextWindow": 400000
-    },
-    {
-      "id": "gpt-5.1-codex-mini",
-      "name": "GPT-5.1 Codex mini",
       "contextWindow": 400000
     },
     {
@@ -14853,11 +14982,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "gpt-5.2-chat-latest",
       "name": "GPT-5.2 Chat",
       "contextWindow": 128000
-    },
-    {
-      "id": "gpt-5.2-codex",
-      "name": "GPT-5.2 Codex",
-      "contextWindow": 400000
     },
     {
       "id": "gpt-5.2-pro",
@@ -14950,11 +15074,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 200000
     },
     {
-      "id": "o3-deep-research",
-      "name": "o3-deep-research",
-      "contextWindow": 200000
-    },
-    {
       "id": "o3-mini",
       "name": "o3-mini",
       "contextWindow": 200000
@@ -14967,11 +15086,6 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "o4-mini",
       "name": "o4-mini",
-      "contextWindow": 200000
-    },
-    {
-      "id": "o4-mini-deep-research",
-      "name": "o4-mini-deep-research",
       "contextWindow": 200000
     }
   ],
@@ -15046,6 +15160,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "claude-opus-4-8",
       "name": "Claude Opus 4.8",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-opus-5",
+      "name": "Claude Opus 5",
       "contextWindow": 1000000
     },
     {
@@ -15312,6 +15431,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "id": "ling-2.6-flash-free",
       "name": "Ling 2.6 Flash Free",
       "contextWindow": 262100
+    },
+    {
+      "id": "ling-3.0-flash-free",
+      "name": "Ling-3.0-flash Free",
+      "contextWindow": 262144
     },
     {
       "id": "mimo-v2-flash-free",
@@ -15619,6 +15743,16 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "anthropic/claude-opus-4.8-fast",
       "name": "Claude Opus 4.8 (Fast)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "anthropic/claude-opus-5",
+      "name": "Claude Opus 5",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "anthropic/claude-opus-5-fast",
+      "name": "Claude Opus 5 (Fast)",
       "contextWindow": 1000000
     },
     {
@@ -16274,6 +16408,11 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "inclusionai/ling-2.6-flash",
       "name": "Ling-2.6-flash",
+      "contextWindow": 262144
+    },
+    {
+      "id": "inclusionai/ling-3.0-flash:free",
+      "name": "Ling-3.0-flash (free)",
       "contextWindow": 262144
     },
     {
@@ -20901,11 +21040,6 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 1000000
     },
     {
-      "id": "claude-opus-4-7-fast",
-      "name": "Claude Opus 4.7 Fast",
-      "contextWindow": 1000000
-    },
-    {
       "id": "claude-opus-4-8",
       "name": "Claude Opus 4.8",
       "contextWindow": 1000000
@@ -20913,6 +21047,16 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "claude-opus-4-8-fast",
       "name": "Claude Opus 4.8 Fast",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-opus-5",
+      "name": "Claude Opus 5",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "claude-opus-5-fast",
+      "name": "Claude Opus 5 Fast",
       "contextWindow": 1000000
     },
     {
@@ -21291,6 +21435,11 @@ const MODELS: Record<string, ModelEntry[]> = {
       "contextWindow": 128000
     },
     {
+      "id": "seed-2-1-turbo",
+      "name": "Seed 2.1 Turbo",
+      "contextWindow": 256000
+    },
+    {
       "id": "venice-uncensored-role-play",
       "name": "Venice Role Play Uncensored",
       "contextWindow": 128000
@@ -21355,6 +21504,16 @@ const MODELS: Record<string, ModelEntry[]> = {
     {
       "id": "anthropic/claude-opus-4.8-fast",
       "name": "Claude Opus 4.8 (Fast)",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "anthropic/claude-opus-5",
+      "name": "Claude Opus 5",
+      "contextWindow": 1000000
+    },
+    {
+      "id": "anthropic/claude-opus-5-fast",
+      "name": "Claude Opus 5 (Fast)",
       "contextWindow": 1000000
     },
     {
