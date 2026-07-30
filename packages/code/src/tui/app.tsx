@@ -902,7 +902,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							alignItems="center"
 							height={1}
 						>
-							<box flexDirection="row" gap={2} alignItems="center" overflow="hidden">
+							<box flexDirection="row" gap={2} alignItems="center" flexGrow={1} flexShrink={1} minWidth={0} overflow="hidden">
 								{isLoading ? (
 									<box flexDirection="row" gap={2} alignItems="center">
 										<box flexDirection="row" gap={1}>
@@ -920,7 +920,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 									<text fg={c.dim}>Ready</text>
 								)}
 								{visibleStatus && (
-									<text fg={c.dim} overflow="hidden" wrapMode="none">
+									<text fg={c.dim} flexShrink={1} minWidth={0} overflow="hidden" wrapMode="none">
 										{visibleStatus}
 									</text>
 								)}
@@ -938,7 +938,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 										);
 									})()}
 							</box>
-							<box flexDirection="row" gap={2} alignItems="center">
+							<box flexDirection="row" gap={2} alignItems="center" flexShrink={0}>
 								<box flexDirection="row">
 									<text fg={c.text}>tab</text>
 									<text fg={c.dim}> agent</text>
