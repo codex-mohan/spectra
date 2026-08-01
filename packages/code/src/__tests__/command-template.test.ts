@@ -36,11 +36,12 @@ describe('template frontmatter', () => {
 		expect(raw.slice(parsed.bodyOffset)).toBe('Body $ARGUMENTS');
 	});
 
-	test('rejects unsupported metadata', () => {
-		const parsed = parseFrontmatter('---\ndescription: Review\nmodel: unsafe\n---\nBody', 'review.md');
+	test('accepts Claude-compatible metadata', () => {
+		const parsed = parseFrontmatter('---\ndescription: Review\nmodel: unsafe\nagent: audit\nsubtask: true\n---\nBody', 'review.md');
 
-		expect(parsed.frontmatter).toBeNull();
-		expect(parsed.diagnostics[0]?.message).toContain('Unsupported frontmatter field');
+		expect(parsed.frontmatter).toEqual({
+			description: 'Review', contextProviders: [], model: 'unsafe', agent: 'audit', subtask: true,
+		});
 	});
 });
 
@@ -62,43 +63,71 @@ describe('template rendering', () => {
 		expect(rendered.text).toContain('M src/app.ts');
 	});
 
-	test('rejects shell interpolation syntax', () => {
+	test('leaves shell interpolation for execution', () => {
 		const rendered = renderTemplate('Inspect !`git status`', 'unsafe.md', {
 			args: '',
 			contextValues: new Map(),
 			declaredProviders: [],
 		});
-		expect(rendered.diagnostics[0]?.message).toContain('forbidden');
+		expect(rendered.diagnostics).toEqual([]);
+		expect(rendered.text).toContain('!`git status`');
 	});
 });
 
 describe('template discovery and registration', () => {
-	test('loads nested native templates and gives them collision priority', async () => {
+	test('loads native and Claude-compatible templates with their source dialect', async () => {
 		const root = await makeTempDir();
-		const commandsDir = join(root, '.spectra', 'commands', 'git');
-		await mkdir(commandsDir, { recursive: true });
-		await writeFile(join(commandsDir, 'review.md'), '---\ndescription: Project review\n---\nReview $ARGUMENTS');
-		await writeFile(join(commandsDir, 'unsafe.md'), '---\ndescription: Unsafe\n---\n!`git status`');
+		const spectraCommands = join(root, '.spectra', 'commands', 'git');
+		const claudeCommands = join(root, '.claude', 'commands');
+		await mkdir(spectraCommands, { recursive: true });
+		await mkdir(claudeCommands, { recursive: true });
+		await writeFile(join(spectraCommands, 'review.md'), '---\ndescription: Project review\n---\nReview $ARGUMENTS');
+		await writeFile(join(claudeCommands, 'inspect.md'), '---\nmodel: unsafe\n---\nInspect $0 and $1');
 
 		const loaded = await loadTemplateDefinitions(root);
 		const projectTemplate = loaded.templates.find((template) => template.name === 'git/review');
-		expect(projectTemplate).toBeDefined();
-		expect(loaded.templates.some((template) => template.name === 'git/unsafe')).toBe(false);
-		expect(loaded.diagnostics.some((diagnostic) => diagnostic.message.includes('forbidden'))).toBe(true);
+		const claudeTemplate = loaded.templates.find((template) => template.name === 'inspect');
+		expect(projectTemplate?.dialect).toBe('spectra');
+		expect(claudeTemplate?.dialect).toBe('claude');
+		expect(claudeTemplate?.description).toBe('inspect');
+		expect(loaded.diagnostics).toEqual([]);
+
+		const definitions = templatesToCommands([claudeTemplate!], root);
+		const action = await definitions[0]!.execute({ source: 'slash', args: 'one two', invocation: 'inspect' });
+		expect(action).toEqual({ type: 'submit_prompt', text: 'Inspect one and two' });
 
 		const builtin: CommandDefinition = {
-			id: 'builtin:git/review',
-			name: 'git/review',
-			aliases: [],
-			title: 'Builtin review',
-			description: 'Builtin review',
-			source: 'builtin',
-			execute: () => undefined,
+			id: 'builtin:git/review', name: 'git/review', aliases: [], title: 'Builtin review',
+			description: 'Builtin review', source: 'builtin', execute: () => undefined,
 		};
-		const definitions = templatesToCommands([projectTemplate!], root);
-		const registry = createRegistry([...definitions, builtin]);
+		const registry = createRegistry([...templatesToCommands([projectTemplate!], root), builtin]);
 		expect(registry.resolve('git/review')?.definition.source).toBe('template');
 		expect(registry.resolve('git/review:2')?.definition.source).toBe('builtin');
+	});
+
+	test('executes declared shell interpolation when enabled', async () => {
+		const root = await makeTempDir();
+		const commandsDir = join(root, '.spectra', 'commands');
+		await mkdir(commandsDir, { recursive: true });
+		const command = process.platform === 'win32' ? 'Write-Output shell-ok' : 'printf shell-ok';
+		await writeFile(join(commandsDir, 'shell.md'), `---\ndescription: Shell\n---\nResult: !\`${command}\``);
+
+		const loaded = await loadTemplateDefinitions(root);
+		const definition = templatesToCommands(loaded.templates, root)[0]!;
+		await expect(definition.execute({ source: 'slash', args: '', invocation: 'shell' }))
+			.resolves.toEqual({ type: 'submit_prompt', text: 'Result: shell-ok' });
+	});
+
+	test('rejects shell interpolation when disabled', async () => {
+		const root = await makeTempDir();
+		const commandsDir = join(root, '.spectra', 'commands');
+		await mkdir(commandsDir, { recursive: true });
+		await writeFile(join(commandsDir, 'shell.md'), '---\ndescription: Shell\n---\nResult: !`echo shell-ok`');
+
+		const loaded = await loadTemplateDefinitions(root, { shellExecution: false });
+		const definition = templatesToCommands(loaded.templates, root, { shellExecution: false })[0]!;
+		const result = await definition.execute({ source: 'slash', args: '', invocation: 'shell' });
+		expect(result).toMatchObject([{ type: 'show_toast', variant: 'error' }]);
 	});
 });
 

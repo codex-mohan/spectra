@@ -289,10 +289,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	// Load template definitions asynchronously — non-blocking, diagnostics shown once via toast.
 	useEffect(() => {
 		let stale = false;
-		loadTemplateDefinitions(process.cwd())
+		const shellExecution = loadConfig().commands?.shellExecution !== false;
+		loadTemplateDefinitions(process.cwd(), { shellExecution })
 			.then(({ templates, diagnostics }) => {
 				if (stale) return;
-				setTemplateDefinitions(templatesToCommands(templates, process.cwd()));
+				setTemplateDefinitions(templatesToCommands(templates, process.cwd(), { shellExecution }));
 				for (const d of diagnostics) {
 					const key = `${d.kind}:${d.sourcePath}:${d.message}`;
 					if (!shownDiagnosticsRef.current.has(key)) {

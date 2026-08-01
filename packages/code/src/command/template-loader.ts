@@ -1,7 +1,6 @@
 // ---------------------------------------------------------------------------
 // Template loader — recursive async discovery, parsing, rendering, and
 // conversion to CommandDefinition objects returning submit_prompt.
-// No new dependencies. Async fs APIs. execFile for git (no shell).
 // ---------------------------------------------------------------------------
 
 import { readFile, readdir } from 'fs/promises';
@@ -11,6 +10,7 @@ import { getGlobalConfigDir } from '../utils/paths.js';
 import { parseFrontmatter } from './frontmatter.js';
 import { renderTemplate, type RenderContext } from './template-renderer.js';
 import { gatherContext, type GatherContextResult } from './context-providers.js';
+import { interpolateShellCommands } from './template-shell.js';
 import type {
 	TemplateDefinition,
 	TemplateDiagnostic,
@@ -30,17 +30,17 @@ export interface LoadTemplateResult {
 	readonly diagnostics: readonly TemplateDiagnostic[];
 }
 
-// --- Public API ---------------------------------------------------------------
+export interface LoadTemplateOptions {
+	readonly shellExecution?: boolean;
+}
 
 /**
- * Walk Markdown files below each project `.spectra/commands` directory,
- * then below the global Spectra configuration `commands` directory.
- *
- * Each `.md` file is parsed, validated, and deduplicated by normalised absolute
- * path.  Invalid files are skipped and surfaced as non-fatal diagnostics.
+ * Load project `.spectra/commands`, Claude-compatible `.claude/commands`,
+ * then the global Spectra configuration commands directory.
  */
 export async function loadTemplateDefinitions(
 	projectRoot: string,
+	options: LoadTemplateOptions = {},
 ): Promise<LoadTemplateResult> {
 	const diagnostics: TemplateDiagnostic[] = [];
 	const seenPaths = new Set<string>();
@@ -53,14 +53,14 @@ export async function loadTemplateDefinitions(
 	// --- discover search locations (project first, then global) ---------------
 	const locations = await discoverSearchLocations(projectRoot);
 
-	for (const { commandsDir } of locations) {
-		const mdFiles = await collectMarkdownFiles(commandsDir);
+	for (const location of locations) {
+		const mdFiles = await collectMarkdownFiles(location.commandsDir);
 
 		for (const filePath of mdFiles) {
 			const normalised = pathKey(filePath);
 			if (seenPaths.has(normalised)) continue;
 			seenPaths.add(normalised);
-			const result = await parseTemplateFile(filePath, commandsDir);
+			const result = await parseTemplateFile(filePath, location);
 			if (result.template !== null) {
 				templates.push(result.template);
 			}
@@ -79,41 +79,43 @@ export async function loadTemplateDefinitions(
 export function templatesToCommands(
 	templates: readonly TemplateDefinition[],
 	projectRoot: string,
+	options: LoadTemplateOptions = {},
 ): readonly CommandDefinition[] {
-	return templates.map((tpl) => buildCommandDefinition(tpl, projectRoot));
+	return templates.map((tpl) => buildCommandDefinition(tpl, projectRoot, options.shellExecution !== false));
 }
 
 // --- Discovery ----------------------------------------------------------------
 
 interface SearchLocation {
 	readonly commandsDir: string;
+	readonly dialect: 'spectra' | 'claude';
 }
 
 /**
- * Walk upward from `projectRoot` collecting `.spectra` directories, then
- * append the global config directory.  Closest project dir comes first.
- * Deduplicates by normalised path.
+ * Walk upward from `projectRoot` collecting Spectra and Claude command
+ * directories, then append the global Spectra configuration directory.
  */
 async function discoverSearchLocations(projectRoot: string): Promise<SearchLocation[]> {
 	const locations: SearchLocation[] = [];
 	const seen = new Set<string>();
-	let current = resolve(projectRoot);
-
-	while (true) {
-		const commandsDir = join(current, '.spectra', 'commands');
+	const add = (commandsDir: string, dialect: 'spectra' | 'claude') => {
 		const key = process.platform === 'win32' ? normalize(commandsDir).toLowerCase() : normalize(commandsDir);
 		if (!seen.has(key)) {
 			seen.add(key);
-			locations.push({ commandsDir });
+			locations.push({ commandsDir, dialect });
 		}
+	};
+	let current = resolve(projectRoot);
+
+	while (true) {
+		add(join(current, '.spectra', 'commands'), 'spectra');
+		add(join(current, '.claude', 'commands'), 'claude');
 		const parent = dirname(current);
 		if (parent === current) break;
 		current = parent;
 	}
 
-	const globalCommands = join(getGlobalConfigDir(), 'commands');
-	const globalKey = process.platform === 'win32' ? normalize(globalCommands).toLowerCase() : normalize(globalCommands);
-	if (!seen.has(globalKey)) locations.push({ commandsDir: globalCommands });
+	add(join(getGlobalConfigDir(), 'commands'), 'spectra');
 	return locations;
 }
 
@@ -149,7 +151,7 @@ interface ParseResult {
 
 async function parseTemplateFile(
 	filePath: string,
-	commandsDir: string,
+	location: SearchLocation,
 ): Promise<ParseResult> {
 	const diags: TemplateDiagnostic[] = [];
 
@@ -182,6 +184,7 @@ async function parseTemplateFile(
 		args: '',
 		contextValues: new Map(),
 		declaredProviders: frontmatter.contextProviders,
+		dialect: location.dialect,
 	});
 	if (validation.diagnostics.length > 0) {
 		diags.push(...validation.diagnostics);
@@ -191,7 +194,7 @@ async function parseTemplateFile(
 	// --- derive name from path ------------------------------------------------
 	// Name is the relative path from the `commands/` dir, without `.md`,
 	// normalised to `/` for cross-platform portability.
-	let relPath = relative(commandsDir, filePath).replace(/\\/g, '/');
+	let relPath = relative(location.commandsDir, filePath).replace(/\\/g, '/');
 	if (relPath.endsWith('.md')) {
 		relPath = relPath.slice(0, -3);
 	}
@@ -207,10 +210,11 @@ async function parseTemplateFile(
 
 	const tpl: TemplateDefinition = {
 		name,
-		description: frontmatter.description,
+		description: frontmatter.description || name.replaceAll(/[-_/]+/g, ' '),
 		sourcePath: filePath,
 		content,
 		contextProviders: frontmatter.contextProviders,
+		dialect: location.dialect,
 	};
 
 	return { template: tpl, diagnostics: diags };
@@ -221,8 +225,9 @@ async function parseTemplateFile(
 function buildCommandDefinition(
 	tpl: TemplateDefinition,
 	projectRoot: string,
+	shellExecution: boolean,
 ): CommandDefinition {
-	const { name, description, sourcePath, content, contextProviders } = tpl;
+	const { name, description, sourcePath, content, contextProviders, dialect } = tpl;
 
 	return {
 		id: `template:${normalize(sourcePath).replace(/\\/g, '/')}`,
@@ -256,6 +261,7 @@ function buildCommandDefinition(
 				args: ctx.args,
 				contextValues,
 				declaredProviders: contextProviders,
+				dialect,
 			};
 			const rendered = renderTemplate(content, sourcePath, renderCtx);
 			if (rendered.diagnostics.length > 0) {
@@ -266,9 +272,18 @@ function buildCommandDefinition(
 				}));
 			}
 
+			const interpolated = await interpolateShellCommands(rendered.text, sourcePath, projectRoot, shellExecution);
+			if (interpolated.diagnostics.length > 0) {
+				return interpolated.diagnostics.map((diagnostic): CommandAction => ({
+					type: 'show_toast',
+					message: `${name}: ${diagnostic.message}`,
+					variant: 'error',
+				}));
+			}
+
 			const action: CommandAction = {
 				type: 'submit_prompt',
-				text: rendered.text,
+				text: interpolated.text,
 			};
 			return action;
 		},

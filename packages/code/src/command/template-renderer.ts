@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------
-// Template renderer — $ARGUMENTS / $1..$N substitution, context placeholders.
-// Rejects backtick-command syntax. No external dependencies.
+// Template renderer — argument and context substitution.
 // ---------------------------------------------------------------------------
 
 import type { TemplateDiagnostic } from './template-types.js';
@@ -14,6 +13,8 @@ export interface RenderContext {
 	readonly contextValues: ReadonlyMap<string, string>;
 	/** Providers declared in frontmatter (order matters for fallback appending). */
 	readonly declaredProviders: readonly string[];
+	/** Spectra uses `$1` for the first argument; Claude uses `$0`. */
+	readonly dialect?: 'spectra' | 'claude';
 }
 
 export interface RenderResult {
@@ -25,18 +26,15 @@ export interface RenderResult {
 
 const DOLLAR_ARGS_RE = /\$ARGUMENTS/g;
 const DOLLAR_REF_RE = /\$(\d+)/g;
-const BACKTICK_CMD_RE = /!`[^`]*`/;
 
 // --- Public API ---------------------------------------------------------------
 
 /**
- * Render a template body by:
  *  1. Replacing `$ARGUMENTS` with the full argument string.
- *  2. Replacing `$1`..`$N` with quote-aware split argument parts.
+ *  2. Replacing positional placeholders with quote-aware argument parts.
  *  3. If no `$`-placeholder exists and args are non-empty, appending args as a paragraph.
  *  4. Replacing `{{context.git.status}}` / `{{context.git.diff}}` placeholders.
  *  5. Appending declared-but-unplaced providers in labeled fenced sections.
- *  6. Rejecting `!`...` `` backtick-command syntax.
  */
 export function renderTemplate(
 	body: string,
@@ -46,14 +44,7 @@ export function renderTemplate(
 	const diagnostics: TemplateDiagnostic[] = [];
 	let text = body;
 
-	// --- reject backtick-command syntax ---------------------------------------
-	if (BACKTICK_CMD_RE.test(text)) {
-		diagnostics.push({
-			kind: 'validation',
-			sourcePath,
-			message: 'Template body contains forbidden backtick-command syntax (!`...`)',
-		});
-	}
+	const dialect = ctx.dialect ?? 'spectra';
 
 	// --- $ARGUMENTS substitution ----------------------------------------------
 	const hasDollarPlaceholder = DOLLAR_ARGS_RE.test(text) || DOLLAR_REF_RE.test(text);
@@ -66,12 +57,13 @@ export function renderTemplate(
 		text = text.replace(DOLLAR_ARGS_RE, () => ctx.args);
 	}
 
-	// --- $1..$N quote-aware substitution --------------------------------------
+	// --- positional quote-aware substitution ----------------------------------
 	const parts = splitArgsQuoted(ctx.args);
 	DOLLAR_REF_RE.lastIndex = 0;
 	text = text.replace(DOLLAR_REF_RE, (_match, rawIndex: string) => {
 		const index = Number.parseInt(rawIndex, 10);
-		return index > 0 && index <= parts.length ? parts[index - 1] : '';
+		const partIndex = dialect === 'claude' ? index : index - 1;
+		return partIndex >= 0 && partIndex < parts.length ? parts[partIndex] : '';
 	});
 
 	// --- no-placeholder fallback: append args as paragraph --------------------

@@ -65,10 +65,12 @@ describe('command registry', () => {
 
 		const registry = buildCommandRegistry(commands);
 
-		expect(registry.entries.map((entry) => entry.invocation)).toEqual(['new', 'clear:2']);
+		expect(registry.entries.map((entry) => entry.invocation)).toEqual([
+			'commit', 'review', 'explain', 'build-fix', 'new', 'clear:2',
+		]);
 		expect(registry.resolve('clear')?.definition.id).toBe('builtin:new');
 		expect(registry.resolve('/CLEAR:2')?.definition.id).toBe('builtin:clear');
-		expect([...registry.slashNames]).toEqual(['new', 'clear', 'clear:2']);
+		expect([...registry.slashNames]).toEqual(['commit', 'review', 'explain', 'build-fix', 'new', 'clear', 'clear:2']);
 	});
 });
 

@@ -18,3 +18,6 @@ export { parseFrontmatter, type FrontmatterResult } from './frontmatter.js';
 export { renderTemplate, type RenderContext, type RenderResult } from './template-renderer.js';
 export { gatherContext, type GatherContextResult } from './context-providers.js';
 export { loadTemplateDefinitions, templatesToCommands, type LoadTemplateResult } from './template-loader.js';
+
+// Built-in prompt templates
+export { BUILTIN_TEMPLATE_COMMANDS } from './builtin-templates.js';

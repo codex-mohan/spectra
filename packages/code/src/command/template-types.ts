@@ -9,6 +9,9 @@ export type ContextProviderKind = 'git.status' | 'git.diff';
 export interface TemplateFrontmatter {
 	readonly description: string;
 	readonly contextProviders: readonly ContextProviderKind[];
+	readonly agent?: string;
+	readonly model?: string;
+	readonly subtask?: boolean;
 }
 
 /** Structured diagnostic from template loading, parsing, or rendering. */
@@ -25,7 +28,7 @@ export interface TemplateDiagnostic {
 export interface TemplateDefinition {
 	/** Path-derived name, normalized to `/`, without `.md` extension. */
 	readonly name: string;
-	/** Required description from frontmatter. */
+	/** Description from frontmatter, or a path-derived fallback. */
 	readonly description: string;
 	/** Absolute path to the .md file. */
 	readonly sourcePath: string;
@@ -33,4 +36,6 @@ export interface TemplateDefinition {
 	readonly content: string;
 	/** Declared context providers from frontmatter. */
 	readonly contextProviders: readonly ContextProviderKind[];
+	/** Argument indexing compatible with the source command directory. */
+	readonly dialect: 'spectra' | 'claude';
 }

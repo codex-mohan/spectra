@@ -8,8 +8,7 @@ import type { TemplateDiagnostic, TemplateFrontmatter, ContextProviderKind } fro
 // --- Constants ----------------------------------------------------------------
 
 const VALID_CONTEXT_PROVIDERS: ReadonlySet<string> = new Set(['git.status', 'git.diff']);
-const REJECTED_FIELDS: ReadonlySet<string> = new Set(['agent', 'model', 'subtask']);
-
+const VALID_FIELDS: ReadonlySet<string> = new Set(['description', 'context', 'agent', 'model', 'subtask']);
 // --- Result types -------------------------------------------------------------
 
 export interface FrontmatterResult {
@@ -22,14 +21,11 @@ export interface FrontmatterResult {
 // --- Public API ---------------------------------------------------------------
 
 /**
- * Parse YAML-style frontmatter delimited by `---` fences.
+ * Optional fields: `description`, `context`, `agent`, `model`, and `subtask`.
  *
- * Required field: `description` (string).
- * Optional field: `context` (YAML list of provider names).
- * Rejected fields: `agent`, `model`, `subtask` → source-aware diagnostic.
- *
- * Returns `null` frontmatter when required fields are missing or the block is
- * malformed — diagnostics explain why.
+ * Returns `null` frontmatter when the block is malformed — diagnostics explain
+ * why. Descriptions are allowed to be omitted for Claude-compatible commands;
+ * callers derive a title from the command name.
  */
 export function parseFrontmatter(raw: string, sourcePath: string): FrontmatterResult {
 	const diagnostics: TemplateDiagnostic[] = [];
@@ -44,8 +40,11 @@ export function parseFrontmatter(raw: string, sourcePath: string): FrontmatterRe
 	}
 
 	const block = match[1].replace(/\r\n/g, '\n');
-	let description: string | undefined;
+	let description = '';
 	let contextProviders: ContextProviderKind[] | undefined;
+	let agent: string | undefined;
+	let model: string | undefined;
+	let subtask: boolean | undefined;
 	const seenKeys = new Set<string>();
 	let invalid = false;
 	const lines = block.split('\n');
@@ -78,11 +77,11 @@ export function parseFrontmatter(raw: string, sourcePath: string): FrontmatterRe
 		}
 		seenKeys.add(key);
 
-		if (REJECTED_FIELDS.has(key) || (key !== 'description' && key !== 'context')) {
+		if (!VALID_FIELDS.has(key)) {
 			diagnostics.push({
 				kind: 'validation',
 				sourcePath,
-				message: `Unsupported frontmatter field "${key}"; supported fields are "description" and "context"`,
+				message: `Unsupported frontmatter field "${key}"; supported fields are "description", "context", "agent", "model", and "subtask"`,
 			});
 			invalid = true;
 			i++;
@@ -91,7 +90,31 @@ export function parseFrontmatter(raw: string, sourcePath: string): FrontmatterRe
 
 		if (key === 'description') {
 			description = stripOuterQuotes(value);
-			if (!description) invalid = true;
+			i++;
+			continue;
+		}
+
+		if (key === 'agent' || key === 'model') {
+			const parsed = stripOuterQuotes(value);
+			if (!parsed) {
+				diagnostics.push({ kind: 'validation', sourcePath, message: `"${key}" must be a non-empty string` });
+				invalid = true;
+			} else if (key === 'agent') {
+				agent = parsed;
+			} else {
+				model = parsed;
+			}
+			i++;
+			continue;
+		}
+
+		if (key === 'subtask') {
+			if (value === 'true') subtask = true;
+			else if (value === 'false') subtask = false;
+			else {
+				diagnostics.push({ kind: 'validation', sourcePath, message: '"subtask" must be true or false' });
+				invalid = true;
+			}
 			i++;
 			continue;
 		}
@@ -121,14 +144,10 @@ export function parseFrontmatter(raw: string, sourcePath: string): FrontmatterRe
 		}
 	}
 
-	if (!description) {
-		diagnostics.push({ kind: 'validation', sourcePath, message: 'Missing required "description" field in frontmatter' });
-		invalid = true;
-	}
 	if (invalid) return { frontmatter: null, bodyOffset: match[0].length, diagnostics };
 
 	return {
-		frontmatter: { description: description!, contextProviders: contextProviders ?? [] },
+		frontmatter: { description, contextProviders: contextProviders ?? [], agent, model, subtask },
 		bodyOffset: match[0].length,
 		diagnostics,
 	};

@@ -30,6 +30,7 @@ export interface SpectraConfig {
 	providers?: Record<string, CustomProviderConfig>;
 	memory?: MemoryConfig;
 	skills?: SkillsConfig;
+	commands?: CommandConfig;
 	references?: ProjectReferenceConfig[];
 }
 
@@ -50,6 +51,11 @@ export interface SkillsConfig {
 	confirmBeforeSave?: boolean;
 }
 
+
+export interface CommandConfig {
+	/** Allow shell interpolation in user and project command templates. */
+	shellExecution?: boolean;
+}
 
 export interface McpConfig {
 	name: string;

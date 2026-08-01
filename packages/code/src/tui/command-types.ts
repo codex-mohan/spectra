@@ -17,6 +17,7 @@ import {
 	dispatch,
 	type DispatcherResult,
 } from '../command/index.js';
+import { BUILTIN_TEMPLATE_COMMANDS } from '../command/index.js';
 
 // ---------------------------------------------------------------------------
 // Re-export domain types for TUI consumers
@@ -80,8 +81,8 @@ export function buildCommandRegistry(
 ): RegistrySnapshot {
 	const builtinDefs: CommandDefinition[] = items.map((item) => adaptLegacyCmdItem(item));
 	const definitions: CommandDefinition[] = templates
-		? [...templates, ...builtinDefs]
-		: builtinDefs;
+		? [...templates, ...BUILTIN_TEMPLATE_COMMANDS, ...builtinDefs]
+		: [...BUILTIN_TEMPLATE_COMMANDS, ...builtinDefs];
 	return createRegistry(definitions);
 }
 
