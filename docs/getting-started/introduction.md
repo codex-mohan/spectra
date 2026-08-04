@@ -4,9 +4,9 @@
 
 ## What Is Spectra?
 
-Spectra is a minimal, ultra-fast, multi-language AI agent framework. It provides the **primitives** you need to build AI agents — streaming, tool execution, event systems, session management — without imposing a specific architecture on you.
+Spectra is a **terminal-native AI coding agent and extensible platform** for building, running, and orchestrating coding workflows. Spectra Code is the full-screen OpenTUI application: it gives developers tools, subagents, MCP, ACP, skills, sessions, todos, memory, and project safety controls in the terminal.
 
-Each SDK (TypeScript, Rust) is a **complete, independent native implementation**. They share design patterns and type shapes, not code or runtime. There are no bindings, no FFI, no shared runtime between them.
+The TypeScript and Rust SDKs are the extension layer beneath that experience. They provide the primitives for building custom agents and applications without a shared runtime, bindings, or FFI.
 
 ## Core Philosophy
 

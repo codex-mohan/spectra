@@ -1,10 +1,17 @@
 # Spectra
 
-> Minimal, ultra-fast, multi-language AI agent framework. Independent TypeScript and Rust SDKs with the same API surface, no shared runtime, no bindings, no FFI.
+> Terminal-native AI coding agent with extensible TypeScript and Rust SDKs for building and orchestrating coding workflows.
 
-Spectra is a construction kit for building AI agents — not a pre-built house. Each SDK (TypeScript, Rust) is a complete, independent native implementation. Ship only primitives that enable developers to build anything beyond the core without fighting the framework.
+Spectra combines a full-screen terminal coding agent with independent native SDKs. Run Spectra Code for tools, subagents, MCP, ACP, skills, sessions, todos, memory, provider management, and security controls; use the TypeScript or Rust SDKs to build and extend agent applications.
 
 For coding agents: use this file to navigate Spectra documentation. Fetch linked `.md` files for clean content without HTML chrome. Full content in one file: [llms-full.txt](https://codex-mohan.github.io/spectra/llms-full.txt).
+
+## Spectra Code — Terminal Coding TUI
+
+- Package and CLI: `@mohanscodex/spectra-code` (`spectra`)
+- Overview and installation: [packages/code/README.md](https://github.com/codex-mohan/spectra/blob/main/packages/code/README.md)
+- Features: full-screen TUI, foreground/background subagents, file attachments, todos, evolving skills, memory, MCP, ACP, provider management, and safety controls.
+
 
 ## Getting Started
 

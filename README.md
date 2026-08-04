@@ -13,7 +13,7 @@
 
 # Spectra
 
-**Minimal, ultra-fast, multi-language AI agent framework**
+**Terminal-native AI coding agent with extensible TypeScript and Rust SDKs for building and orchestrating coding workflows**
 
 ---
 
@@ -52,6 +52,7 @@ Think of Spectra as two layers: a **lean core** (agent loop + tools + streaming)
 ## Packages
 
 Core SDK packages are `@mohanscodex/spectra-ai`, `@mohanscodex/spectra-agent`, and `@mohanscodex/spectra-app`. `@mohanscodex/spectra-code` is the terminal TUI app built on those core packages.
+Spectra is both a developer toolkit and a developer application: the SDK packages let you build agents, while **Spectra Code** is the full-screen terminal-native coding TUI for using agents in a project.
 
 | Package | Layer | Description |
 |---------|-------|-------------|

@@ -1,12 +1,12 @@
 # Project Structure
 
-Spectra is organized as a monorepo with independent SDKs for each language. This guide explains the layout and why it's structured this way.
+Spectra is organized as a terminal-native AI coding agent and extensible platform. The monorepo contains the Spectra Code application plus independent SDKs for extending or embedding agent workflows in TypeScript and Rust.
 
 ## Monorepo Layout
 
 ```
 spectra/
-├── packages/                    # TypeScript SDKs (Bun workspaces)
+├── packages/                    # TypeScript packages (Bun workspaces)
 │   ├── ai/                      # @mohanscodex/spectra-ai
 │   │   └── src/
 │   │       ├── types.ts         # Core types: Message, Model, StopReason
@@ -18,7 +18,9 @@ spectra/
 │   │       ├── agent.ts         # Agent class with run loop
 │   │       ├── types.ts         # AgentTool, AgentEvent, AgentConfig
 │   │       └── define-tool.ts   # defineTool() with Zod validation
-│   └── app/                     # @mohanscodex/spectra-app (optional)
+│   ├── app/                     # @mohanscodex/spectra-app (optional)
+│   └── code/                    # @mohanscodex/spectra-code — terminal coding TUI + CLI
+
 │       └── src/
 │           ├── session.ts       # SessionManager, SessionStore
 │           ├── engine.ts        # SessionEngine orchestration
@@ -70,6 +72,7 @@ There is no "core" that other SDKs bind to. Rust is not a library that TypeScrip
 | `@mohanscodex/spectra-ai` | LLM provider layer — handles streaming, SSE parsing, provider registration |
 | `@mohanscodex/spectra-agent` | Agent orchestration — run loop, tool dispatch, event streaming |
 | `@mohanscodex/spectra-app` | Production features — sessions, rate limiting, multi-agent delegation |
+| `@mohanscodex/spectra-code` | Terminal-native coding TUI and CLI — OpenTUI frontend, tools, skills, MCP, ACP, sessions, and project workflows |
 
 This separation lets you:
 - Use just the provider layer if you want to build your own agent

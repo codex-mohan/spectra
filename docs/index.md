@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Spectra
-  text: Minimal, ultra-fast AI agent framework
-  tagline: A construction kit, not a pre-built house. Independent TypeScript and Rust SDKs — no shared runtime, no bindings, no FFI.
+  text: Terminal-native AI coding agent with TypeScript and Rust SDKs
+  tagline: Build, run, and orchestrate coding workflows in a full-screen terminal environment, then extend the agent with native SDKs.
   actions:
     - theme: brand
       text: Get Started
@@ -38,6 +38,9 @@ features:
   - icon: 🪝
     title: Extension Hooks
     details: Before/after tool call hooks, context transformation, and composable middleware. Inject logging, rate limiting, or audit trails.
+  - icon: 💻
+    title: Terminal Coding TUI
+    details: Spectra Code is a full-screen OpenTUI coding agent with tools, subagents, MCP, ACP, skills, sessions, todos, memory, and security controls.
 ---
 
 ## Why Spectra?
