@@ -6,6 +6,7 @@ import stripAnsi from 'strip-ansi';
 import { basename } from 'path';
 import { filetype } from '../utils/filetype.js';
 import { formatAttachmentBadge, formatAttachmentMetadata, getDisplayIcon, getFileIcon, getFileVisual } from '../utils/file-visuals.js';
+import { askToolDetailsSchema, type AskQuestionResult } from '../../tools/ask.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -265,6 +266,45 @@ function TodoToolView({ state, marginTop }: { state: TodoState; marginTop: numbe
 				)}
 			</box>
 		</box>
+	);
+}
+
+function normalizeAskResults(details: Record<string, unknown> | undefined): AskQuestionResult[] {
+	const parsed = askToolDetailsSchema.safeParse(details);
+	return parsed.success ? parsed.data.results : [];
+}
+
+function AskToolView({ details, marginTop }: { details: Record<string, unknown>; marginTop: number }) {
+	const results = normalizeAskResults(details);
+	return (
+		<BlockTool title="? Ask" titleColor={c.accent} borderColor={c.accent} marginTop={marginTop} status="success">
+			<box flexDirection="column" gap={1}>
+				{results.map((result) => {
+					const selected = new Set(result.selectedOptions);
+					return (
+						<box key={result.id} flexDirection="column">
+							<text fg={c.text} attributes={1}>{result.question}</text>
+							{result.options.map((option) => {
+								const active = selected.has(option);
+								const marker = result.multi ? (active ? '☑' : '☐') : (active ? '●' : '○');
+								return (
+									<box key={option} flexDirection="row" paddingLeft={1} gap={1}>
+										<text fg={active ? c.success : c.dim}>{marker}</text>
+										<text fg={active ? c.text : c.dim}>{option}</text>
+									</box>
+								);
+							})}
+							{result.customInput !== undefined && (
+								<box flexDirection="row" paddingLeft={1} gap={1}>
+									<text fg={c.success}>↳</text>
+									<text fg={c.text}>{result.customInput}</text>
+								</box>
+							)}
+						</box>
+					);
+				})}
+			</box>
+		</BlockTool>
 	);
 }
 
@@ -647,6 +687,9 @@ export function MessageView({
 
 		if (tName === 'todo' && msg.todoState) {
 			return <TodoToolView state={msg.todoState} marginTop={mt} />;
+		}
+		if (tName === 'ask' && normalizeAskResults(msg.toolDetails).length > 0) {
+			return <AskToolView details={msg.toolDetails!} marginTop={mt} />;
 		}
 		if (tName === 'memory') {
 			return <MemoryToolView args={argsObj} output={output} isError={toolError} marginTop={mt} />;

@@ -18,6 +18,7 @@ import { Agent } from '@mohanscodex/spectra-agent';
 import type { AgentTool, BeforeModelCallContext } from '@mohanscodex/spectra-agent';
 import { pruneStaleSkills } from '../../services/skill-store.js';
 import { createAllToolsWithSecurity, discoverAndCreateSkillTools } from '../../tools/index.js';
+import type { AskHandler } from '../../tools/ask.js';
 import { buildContextMessages, loadContext } from '../../services/context.js';
 import {
 	completeContextSnapshot,
@@ -40,9 +41,10 @@ interface UseAgentDeps {
 	enqueuePermission: (req: PermissionRequest) => void;
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionId: React.MutableRefObject<string | null>;
+	requestAsk: AskHandler;
 }
 export function useAgent(deps: UseAgentDeps) {
-	const { securityRef, securityConfig, enqueuePermission, sessionStore, sessionId } = deps;
+	const { securityRef, securityConfig, enqueuePermission, sessionStore, sessionId, requestAsk } = deps;
 
 	// One Agent instance per session; idle configuration changes do not discard runtime state.
 	const agentsMapRef = useRef(new Map<string, Agent>());
@@ -124,7 +126,7 @@ export function useAgent(deps: UseAgentDeps) {
 				getApiKey: (p: string) => getAuthKey(p),
 			};
 
-			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sid);
+			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sid, requestAsk);
 
 			let skillTools: AgentTool[] = [];
 			let skillCount = 0;
@@ -202,7 +204,7 @@ export function useAgent(deps: UseAgentDeps) {
 				streamOptions: sThinkingEffort ? { thinkingEffort: sThinkingEffort } : undefined,
 			};
 		},
-		[initSecurityManager, sessionStore],
+		[initSecurityManager, requestAsk, sessionStore],
 	);
 
 	function runtimeFingerprint(config: {

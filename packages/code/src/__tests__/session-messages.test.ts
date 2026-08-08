@@ -149,6 +149,33 @@ describe('session message hydration', () => {
 		});
 	});
 
+	it('preserves structured Ask details for transcript rendering', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const details = {
+			results: [{
+				id: 'storage',
+				question: 'Which storage backend?',
+				options: ['SQLite', 'PostgreSQL'],
+				multi: false,
+				selectedOptions: ['SQLite'],
+			}],
+		};
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [{
+				role: 'toolResult',
+				toolCallId: 'ask-1',
+				toolName: 'ask',
+				content: [{ type: 'text', text: 'User answers:\nstorage: SQLite' }],
+				details,
+				isError: false,
+				timestamp: Date.now(),
+			}],
+		});
+
+		expect(converted.messages[0]?.toolDetails).toMatchObject(details);
+	});
+
 	it('sums every completed turn for session token totals', async () => {
 		const { sumTurnTokens } = await import('../tui/utils/session-messages.js');
 		const messages = [

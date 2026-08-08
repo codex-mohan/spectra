@@ -738,6 +738,7 @@ Return ONLY the title text, nothing else.`;
 								content: toolOutput,
 								streaming: false,
 								toolExecutionStarted: false,
+								toolDetails: resultDetails,
 								exitCode,
 								toolError: ev.isError || undefined,
 								wallTimeMs,

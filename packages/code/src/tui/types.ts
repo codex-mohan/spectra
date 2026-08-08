@@ -56,6 +56,8 @@ export interface ChatMessage {
 	toolArgumentsComplete?: boolean;
 	/** True after execution begins and before its final result arrives. */
 	toolExecutionStarted?: boolean;
+	/** Structured details returned by the tool for specialized transcript rendering. */
+	toolDetails?: Record<string, unknown>;
 	/** The model used for this message */
 	model?: string;
 	/** Attachments for user messages */

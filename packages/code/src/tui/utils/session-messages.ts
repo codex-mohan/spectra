@@ -157,6 +157,7 @@ export function sdkMessagesToChatMessages(data: {
 				meta,
 				agent: typeof metadata.agent === 'string' ? metadata.agent : data.agent,
 				toolError: m.isError === true,
+				toolDetails: details,
 				exitCode: typeof details?.exitCode === 'number' ? details.exitCode : undefined,
 				wallTimeMs: typeof details?.wallTimeMs === 'number' ? details.wallTimeMs : undefined,
 				timeoutMs: typeof details?.timeoutMs === 'number' ? details.timeoutMs : undefined,
