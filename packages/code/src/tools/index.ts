@@ -9,6 +9,7 @@ import { webFetchTool } from './web-fetch.js';
 import { memoryTool } from './memory.js';
 import { createTaskTool } from './task.js';
 import { createTodoTool } from './todo.js';
+import { createAskTool, type AskHandler } from './ask.js';
 import type { AgentTool, ToolResult } from '@mohanscodex/spectra-agent';
 import { defineTool, createSkillTool, createFindSkillsTool } from '@mohanscodex/spectra-agent';
 import type { Skill } from '@mohanscodex/spectra-agent';
@@ -27,16 +28,21 @@ import { fileURLToPath } from 'url';
 
 export { type SpectraTool } from './types.js';
 
-export const builtinTools: SpectraTool[] = [
-	shellTool,
-	readTool,
-	writeTool,
-	editTool,
-	grepTool,
-	globTool,
-	webFetchTool,
-	memoryTool,
-];
+function createBuiltinTools(askHandler?: AskHandler): SpectraTool<any>[] {
+	return [
+		shellTool,
+		readTool,
+		writeTool,
+		editTool,
+		grepTool,
+		globTool,
+		webFetchTool,
+		memoryTool,
+		createAskTool(askHandler),
+	];
+}
+
+export const builtinTools: SpectraTool<any>[] = createBuiltinTools();
 
 const builtinToolByName = new Map(builtinTools.map((tool) => [tool.name, tool]));
 
@@ -45,7 +51,7 @@ export function getToolStreamingDisplay(toolName: string): SpectraTool['streamin
 }
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
-const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'task', 'web_fetch', 'webfetch']);
+const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'task', 'ask', 'web_fetch', 'webfetch']);
 
 function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool['execute'] {
 	const tracker = security.getReadTracker();
@@ -241,8 +247,9 @@ export function createAllToolsWithSecurity(
 	config?: AgentRegistryConfig,
 	sessionStore?: SessionStore,
 	parentSessionId?: string,
+	askHandler?: AskHandler,
 ): AgentTool[] {
-	const tools = [...builtinTools, createTodoTool(sessionStore, parentSessionId)].map((t) => spectraToolToAgentTool(t, security));
+	const tools = [...createBuiltinTools(askHandler), createTodoTool(sessionStore, parentSessionId)].map((t) => spectraToolToAgentTool(t, security));
 	if (config) {
 		tools.push(spectraToolToAgentTool(createTaskTool(config, security, sessionStore, parentSessionId), security));
 	}

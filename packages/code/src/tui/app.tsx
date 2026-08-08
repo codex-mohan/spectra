@@ -34,6 +34,7 @@ import { MemoryDialog } from './ui/memory-dialog.js';
 import { SettingsDialog } from './ui/settings-dialog.js';
 import { SkillsDialog } from './ui/skills-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
+import { AskDialog } from './ui/ask-dialog.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import { SubagentNav } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
@@ -66,6 +67,7 @@ import type { SecurityManager } from '../security/index.js';
 import { backgroundTasks } from '../services/background-tasks.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
 import { createContextBreakdown, restoreLatestContextSnapshot } from '../services/context-usage.js';
+import type { AskHandler, AskToolDetails } from '../tools/ask.js';
 
 function orderPaletteCommands(entries: readonly ResolvedCommand[]): ResolvedCommand[] {
 	const templates = entries.filter((entry) => entry.definition.category === 'Templates');
@@ -227,6 +229,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const sessionStore = useRef(new SessionStore());
 	const sessionId = useRef<string | null>(null);
 	const dialogKeyHandler = useRef<((key: unknown) => void) | null>(null);
+	const askPendingRef = useRef<{
+		resolve: (details: AskToolDetails | undefined) => void;
+		signal?: AbortSignal;
+		onAbort: () => void;
+	} | null>(null);
 	const isStreamingRef = useRef(false);
 	const currentTurnStartRef = useRef<number | null>(null);
 	const currentTurnMsgIdRef = useRef<string | null>(null);
@@ -238,6 +245,31 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		return { permission: cfg.permission, security: cfg.security };
 	});
 	const [agentCatalog, setAgentCatalog] = useState<AgentCatalog>(() => getBuiltinCatalog());
+
+	const settleAsk = useCallback((details: AskToolDetails | undefined) => {
+		const pending = askPendingRef.current;
+		if (!pending) return;
+		pending.signal?.removeEventListener('abort', pending.onAbort);
+		askPendingRef.current = null;
+		setDialogStep((current: any) => current?.type === 'ask' ? null : current);
+		pending.resolve(details);
+	}, []);
+
+	const requestAsk = useCallback<AskHandler>((input, context) => {
+		if (context.signal?.aborted || askPendingRef.current) return Promise.resolve(undefined);
+		return new Promise((resolve) => {
+			const onAbort = () => {
+				const pending = askPendingRef.current;
+				if (!pending || pending.resolve !== resolve) return;
+				askPendingRef.current = null;
+				setDialogStep((current: any) => current?.type === 'ask' ? null : current);
+				resolve(undefined);
+			};
+			askPendingRef.current = { resolve, signal: context.signal, onAbort };
+			context.signal?.addEventListener('abort', onAbort, { once: true });
+			setDialogStep({ type: 'ask', input });
+		});
+	}, []);
 
 	const sessionManager = useRef<SessionManager>(
 		new SessionManager(
@@ -385,6 +417,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		enqueuePermission,
 		sessionStore,
 		sessionId,
+		requestAsk,
 	});
 
 	const { revertedMessagesRef, revertDraftRef, runRevert, runRedo, discardRevert } = useRevert({
@@ -1372,6 +1405,18 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					}}
 					onClose={() => {
 						resolvePermission(permissionRequest!.id, { action: 'deny' });
+					}}
+				/>
+			)}
+			{dialogStep?.type === 'ask' && (
+				<AskDialog
+					input={dialogStep.input}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onSubmit={settleAsk}
+					onCancel={() => settleAsk(undefined)}
+					registerHandler={(handler) => {
+						dialogKeyHandler.current = handler;
 					}}
 				/>
 			)}

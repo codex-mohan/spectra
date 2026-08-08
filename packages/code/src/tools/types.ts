@@ -9,7 +9,7 @@ export interface ToolStreamingDisplay {
 	output?: boolean;
 }
 
-export interface SpectraTool<TArgs extends z.ZodType = z.ZodType> {
+export interface SpectraTool<TArgs extends z.ZodType = z.ZodTypeAny> {
 	name: string;
 	description: string;
 	displayName?: string | ((args: z.infer<TArgs>, result: ToolResult) => string);
