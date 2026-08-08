@@ -46,9 +46,12 @@ function statusColor(status: UsageWindowReport['status']): string {
 	return c.dim;
 }
 
-function bar(window: UsageWindowReport, width: number): string {
-	const filled = Math.round(Math.min(Math.max(window.usedFraction, 0), 1) * width);
-	return '█'.repeat(filled) + '░'.repeat(Math.max(0, width - filled));
+function bar(window: UsageWindowReport, width: number): { filled: string; empty: string } {
+	const filledWidth = Math.round(Math.min(Math.max(window.usedFraction, 0), 1) * width);
+	return {
+		filled: '█'.repeat(filledWidth),
+		empty: '█'.repeat(Math.max(0, width - filledWidth)),
+	};
 }
 
 function freePercent(window: UsageWindowReport): string {
@@ -65,7 +68,7 @@ function sourceLabel(report: ProviderUsageReport): string {
 function reportRows(report: ProviderUsageReport, innerWidth: number) {
 	const header = `${report.planName} · ${report.provider} · ${sourceLabel(report)}`;
 	return (
-		<box key={report.provider} flexDirection="column" gap={0}>
+		<box key={report.provider} flexDirection="column" gap={1}>
 			<text fg={c.accent}>{header.slice(0, innerWidth)}</text>
 			{report.notes.map((note) => (
 				<text key={note} fg={c.dim}>{note.slice(0, innerWidth)}</text>
@@ -79,12 +82,15 @@ function reportRows(report: ProviderUsageReport, innerWidth: number) {
 					const label = `${window.label} ${window.accountLabel ?? report.accountLabel ?? 'account 1'}`;
 					const meta = `${formatWindowAmount(window)} · ${formatResetTime(window)}`;
 					const line1 = `● ${label} · ${meta}`.slice(0, innerWidth);
-					const barStr = bar(window, Math.max(8, Math.min(28, innerWidth - 4)));
-					const line2 = `${barStr} ${freePercent(window)}`.slice(0, innerWidth);
+					const barSegments = bar(window, Math.max(8, Math.min(28, innerWidth - 4)));
 					return (
-						<box key={`${report.provider}-${window.id}`} flexDirection="column" gap={0} flexShrink={1}>
+						<box key={`${report.provider}-${window.id}`} flexDirection="column" gap={1} flexShrink={1}>
 							<text fg={statusColor(window.status)}>{line1}</text>
-							<text fg={statusColor(window.status)}>{line2}</text>
+							<text>
+								<span fg={statusColor(window.status)}>{barSegments.filled}</span>
+								<span fg={c.border}>{barSegments.empty}</span>
+								<span fg={statusColor(window.status)}> {freePercent(window)}</span>
+							</text>
 							{window.notes?.map((note) => (
 								<text key={note} fg={c.dim}>{note.slice(0, innerWidth)}</text>
 							))}
