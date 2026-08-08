@@ -617,23 +617,24 @@ export function MessageView({
 
 	if (msg.role === 'tool') {
 		const raw = msg.meta || '';
-		const tName = raw.includes('(') ? raw.split('(')[0] : raw;
+		const tName = msg.toolName || (raw.includes('(') ? raw.split('(')[0] : raw);
 		const rawArgs = raw.includes('(') ? raw.slice(raw.indexOf('(') + 1, raw.lastIndexOf(')')) : '';
 
-		// Parse args: try JSON first, fall back to raw string
-		let argsObj: Record<string, unknown> = {};
+		let argsObj: Record<string, unknown> = msg.toolArguments || {};
 		let argsStr = rawArgs;
-		try {
-			const parsed = JSON.parse(rawArgs);
-			if (typeof parsed === 'object' && parsed !== null) {
-				argsObj = parsed;
-				argsStr = Object.values(parsed)
-					.filter((v) => v !== undefined && v !== 'undefined')
-					.map((v) => String(v))
-					.join(' ');
+		if (!msg.toolArguments) {
+			try {
+				const parsed = JSON.parse(rawArgs);
+				if (typeof parsed === 'object' && parsed !== null) argsObj = parsed;
+			} catch {
+				if (argsStr === 'undefined') argsStr = '';
 			}
-		} catch {
-			if (argsStr === 'undefined') argsStr = '';
+		}
+		if (Object.keys(argsObj).length > 0) {
+			argsStr = Object.values(argsObj)
+				.filter((value) => value !== undefined && value !== 'undefined')
+				.map(String)
+				.join(' ');
 		}
 
 		const output = stripAnsi(msg.content || '');
@@ -835,7 +836,7 @@ export function MessageView({
 							) : null}
 							<box flexDirection="row" gap={0}>
 								<text fg={shellColor}>$ </text>
-								<code content={command} syntaxStyle={mdStyle} filetype="bash" conceal={true} drawUnstyledText={true} />
+								<code content={command} syntaxStyle={mdStyle} filetype="bash" streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={true} />
 							</box>
 						</box>
 						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
@@ -845,7 +846,9 @@ export function MessageView({
 						{output ? (
 							<TruncatedContent text={output} maxLines={MAX_SHELL_LINES} color={toolError ? c.error : undefined} />
 						) : (
-							<text fg={toolError ? c.error : c.dim}>{toolError ? 'Command failed with no output' : 'No output'}</text>
+							<text fg={toolError ? c.error : c.dim}>
+								{toolError ? 'Command failed with no output' : msg.streaming ? 'Running...' : 'No output'}
+							</text>
 						)}
 					</box>
 					{(wallStr || timeoutStr) && (
@@ -862,10 +865,10 @@ export function MessageView({
 		}
 
 		if (tName === 'write') {
-			const path = (argsObj as any)?.path || argsStr;
+			const path = typeof argsObj.path === 'string' ? argsObj.path : '';
+			const liveContent = typeof argsObj.content === 'string' ? argsObj.content : '';
 			const fileName = path ? basename(path) : '';
 			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
-			const displayTitle = toolError ? (fileName ? `Write failed: ${fileName}` : 'Write failed') : fileName ? `Wrote ${fileName}` : 'Wrote';
 			const writeColor = toolError ? c.error : c.writeTool;
 			const ft = path ? filetype(path) : undefined;
 			return (
@@ -882,22 +885,27 @@ export function MessageView({
 				>
 					<box flexDirection="row" gap={0}>
 						<text fg={writeColor}>{toolError ? 'Write failed' : 'Write'}</text>
-						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
-						<text fg={writeColor}>{toolError ? ' ✗' : ' ✓'}</text>
+						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : <text fg={c.dim}> ...</text>}
+						<text fg={writeColor}>{toolError ? ' ✗' : msg.streaming ? ' …' : ' ✓'}</text>
 					</box>
-					<box paddingLeft={1}>
+					<box flexDirection="column" paddingLeft={1}>
 						{dirPath ? <text fg={c.dim}>{dirPath}</text> : null}
-						{toolError && output ? (
+						{msg.streaming ? (
+							liveContent ? (
+								<code
+									content={liveContent}
+									syntaxStyle={mdStyle}
+									{...(ft ? { filetype: ft } : {})}
+									streaming={!msg.toolArgumentsComplete}
+									conceal={true}
+									drawUnstyledText={true}
+									maxHeight={12}
+								/>
+							) : <text fg={c.dim}>Receiving file content...</text>
+						) : toolError && output ? (
 							<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
 						) : output ? (
-							<code
-								content={output}
-								syntaxStyle={mdStyle}
-								{...(ft ? { filetype: ft } : {})}
-								streaming={!!msg.streaming}
-								conceal={true}
-								drawUnstyledText={true}
-							/>
+							<DiffContent text={output} filePath={path} />
 						) : (
 							<text fg={toolError ? c.error : c.dim}>{toolError ? 'Write failed with no output' : 'File written'}</text>
 						)}
@@ -907,11 +915,13 @@ export function MessageView({
 		}
 
 		if (tName === 'edit') {
-			const path = (argsObj as any)?.path || argsStr;
+			const path = typeof argsObj.path === 'string' ? argsObj.path : '';
+			const oldString = typeof argsObj.oldString === 'string' ? argsObj.oldString : '';
+			const newString = typeof argsObj.newString === 'string' ? argsObj.newString : '';
 			const fileName = path ? basename(path) : '';
 			const dirPath = path && path.includes('/') ? path.split('/').slice(0, -1).join('/') : '';
-			const displayTitle = toolError ? (fileName ? `✎ Edit failed: ${fileName}` : '✎ Edit failed') : fileName ? `✎ Edit ${fileName}` : '✎ Edit';
 			const editColor = toolError ? c.error : c.editTool;
+			const ft = path ? filetype(path) : undefined;
 			return (
 				<box
 					flexDirection="column"
@@ -926,11 +936,27 @@ export function MessageView({
 				>
 					<box flexDirection="row" gap={0}>
 						<text height={1} fg={editColor}>{toolError ? 'Edit failed' : 'Edit'}</text>
-						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : null}
+						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : <text fg={c.dim}> ...</text>}
 						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
-						<text fg={editColor}>{toolError ? ' ✗' : ' ✓'}</text>
+						<text fg={editColor}>{toolError ? ' ✗' : msg.streaming ? ' …' : ' ✓'}</text>
 					</box>
-					{toolError && output ? (
+					{msg.streaming ? (
+						<box flexDirection="column" paddingLeft={1} gap={1}>
+							{oldString ? (
+								<box flexDirection="column">
+									<text fg={c.dim}>Match</text>
+									<code content={oldString} syntaxStyle={mdStyle} {...(ft ? { filetype: ft } : {})} streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={true} maxHeight={8} />
+								</box>
+							) : null}
+							{newString ? (
+								<box flexDirection="column">
+									<text fg={c.dim}>Replacement</text>
+									<code content={newString} syntaxStyle={mdStyle} {...(ft ? { filetype: ft } : {})} streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={true} maxHeight={8} />
+								</box>
+							) : null}
+							{!oldString && !newString ? <text fg={c.dim}>Receiving edit...</text> : null}
+						</box>
+					) : toolError && output ? (
 						<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={c.error} />
 					) : output ? (
 						<DiffContent text={output} filePath={path} />
