@@ -1,5 +1,14 @@
 # @mohanscodex/spectra-agent
 
+## 0.6.2
+
+### Patch Changes
+
+- [`c77faad`](https://github.com/codex-mohan/spectra/commit/c77faadc61eb8c9c0962956bde8233f22dad9583) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add atomic agent runtime reconfiguration, request-scoped model preparation, and sanitized structured provider failure diagnostics.
+
+- Updated dependencies [[`60a588b`](https://github.com/codex-mohan/spectra/commit/60a588b171e1c4764ea64003748b207542906f4f), [`c77faad`](https://github.com/codex-mohan/spectra/commit/c77faadc61eb8c9c0962956bde8233f22dad9583)]:
+  - @mohanscodex/spectra-ai@0.6.2
+
 ## 0.6.1
 
 ### Patch Changes

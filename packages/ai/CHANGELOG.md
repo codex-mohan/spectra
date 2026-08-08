@@ -1,5 +1,13 @@
 # @mohanscodex/spectra-ai
 
+## 0.6.2
+
+### Patch Changes
+
+- [`60a588b`](https://github.com/codex-mohan/spectra/commit/60a588b171e1c4764ea64003748b207542906f4f) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Discover credential-scoped provider models with cached fallbacks, including ChatGPT Codex and OpenRouter support.
+
+- [`c77faad`](https://github.com/codex-mohan/spectra/commit/c77faadc61eb8c9c0962956bde8233f22dad9583) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add atomic agent runtime reconfiguration, request-scoped model preparation, and sanitized structured provider failure diagnostics.
+
 ## 0.6.1
 
 ## 0.6.0

@@ -1,5 +1,25 @@
 # @mohanscodex/spectra-code
 
+## 0.6.2
+
+### Patch Changes
+
+- [`b75ebba`](https://github.com/codex-mohan/spectra/commit/b75ebba7b716a12067a9f980fa4eaf510742c878) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add compatible project command templates, built-in prompt workflows, and configurable shell interpolation.
+
+- [`60a588b`](https://github.com/codex-mohan/spectra/commit/60a588b171e1c4764ea64003748b207542906f4f) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Discover credential-scoped provider models with cached fallbacks, including ChatGPT Codex and OpenRouter support.
+
+- [`9a949b8`](https://github.com/codex-mohan/spectra/commit/9a949b8c0f400c59703164e245fc1269374cdd65) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add the interactive `ask` tool with multi-question choices, custom answers, rich OpenTUI dialogs, persisted result rendering, and a non-interactive fallback.
+
+- [`7822a17`](https://github.com/codex-mohan/spectra/commit/7822a17de427932fedb9523d8d2a9b022faa8ca9) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Replace dotted quota indicators in the usage menu with continuous, color-separated progress tracks.
+
+- [`e6e5d6b`](https://github.com/codex-mohan/spectra/commit/e6e5d6b9eb1797c742aa0e6cf84cd1065ded362b) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add provider-anchored context accounting, cache-stable tool estimation, robust persisted autocompaction, a dedicated `/context` visualization, and provider tabs for `/usage`.
+
+- [`9156ddf`](https://github.com/codex-mohan/spectra/commit/9156ddf2417f0a40cc2e45cd00ca04b268ab68db) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Show persisted attachment dimensions and metadata beside the existing Nerd Font attachment badges.
+
+- Updated dependencies [[`60a588b`](https://github.com/codex-mohan/spectra/commit/60a588b171e1c4764ea64003748b207542906f4f), [`c77faad`](https://github.com/codex-mohan/spectra/commit/c77faadc61eb8c9c0962956bde8233f22dad9583)]:
+  - @mohanscodex/spectra-ai@0.6.2
+  - @mohanscodex/spectra-agent@0.6.2
+
 ## 0.6.1
 
 ### Patch Changes
