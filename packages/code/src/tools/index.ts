@@ -38,6 +38,12 @@ export const builtinTools: SpectraTool[] = [
 	memoryTool,
 ];
 
+const builtinToolByName = new Map(builtinTools.map((tool) => [tool.name, tool]));
+
+export function getToolStreamingDisplay(toolName: string): SpectraTool['streaming'] {
+	return builtinToolByName.get(toolName)?.streaming;
+}
+
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
 const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'task', 'web_fetch', 'webfetch']);
 

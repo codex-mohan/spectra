@@ -48,6 +48,14 @@ export interface ChatMessage {
 	meta?: string;
 	/** Whether the message is being streamed */
 	streaming?: boolean;
+	/** Stable identity and structured arguments for a tool invocation. */
+	toolCallId?: string;
+	toolName?: string;
+	toolArguments?: Record<string, unknown>;
+	/** True after the provider finishes emitting the tool arguments. */
+	toolArgumentsComplete?: boolean;
+	/** True after execution begins and before its final result arrives. */
+	toolExecutionStarted?: boolean;
 	/** The model used for this message */
 	model?: string;
 	/** Attachments for user messages */

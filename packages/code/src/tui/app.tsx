@@ -67,6 +67,22 @@ import { backgroundTasks } from '../services/background-tasks.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
 import { createContextBreakdown, restoreLatestContextSnapshot } from '../services/context-usage.js';
 
+function orderPaletteCommands(entries: readonly ResolvedCommand[]): ResolvedCommand[] {
+	const templates = entries.filter((entry) => entry.definition.category === 'Templates');
+	if (templates.length === 0) return [...entries];
+
+	const remaining = entries.filter((entry) => entry.definition.category !== 'Templates');
+	let insertAt = remaining.length;
+	for (let index = remaining.length - 1; index >= 0; index--) {
+		if (remaining[index]?.definition.category === 'Agent') {
+			insertAt = index + 1;
+			break;
+		}
+	}
+
+	return [...remaining.slice(0, insertAt), ...templates, ...remaining.slice(insertAt)];
+}
+
 export function App({ renderer }: { renderer: CliRenderer }) {
 	const { width: termWidth, height: termHeight } = useTerminalDimensions();
 
@@ -619,17 +635,18 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	);
 
 	// --- cmdFiltered + slash ---
+	const paletteEntries = useMemo(() => orderPaletteCommands(resolvedEntries), [resolvedEntries]);
 	const cmdFiltered = useMemo(() => {
 		const q = cmdFilter.toLowerCase();
 		return !q
-			? resolvedEntries
-			: resolvedEntries.filter(
+			? paletteEntries
+			: paletteEntries.filter(
 					(r) =>
 						r.definition.title.toLowerCase().includes(q) ||
 						r.definition.description.toLowerCase().includes(q) ||
 						(r.definition.category && r.definition.category.toLowerCase().includes(q)),
 				);
-	}, [resolvedEntries, cmdFilter]);
+	}, [paletteEntries, cmdFilter]);
 
 	const slashFiltered = useMemo(() => {
 		const head = slashHead(draftText);

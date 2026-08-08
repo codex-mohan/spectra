@@ -9,6 +9,7 @@ import { resolve, relative, basename } from 'path';
 export const editTool: SpectraTool = {
 	name: 'edit',
 	capabilities: { reads: false, writes: true },
+	streaming: { arguments: true },
 	description: `Edit a file by finding and replacing text.
 The tool finds oldString in the file and replaces it with newString.
 Matching is whitespace-tolerant: tabs/spaces and \\r\\n/\\n differences are accepted.

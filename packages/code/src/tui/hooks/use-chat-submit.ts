@@ -25,6 +25,8 @@ import { loadAllEvolvingSkills, saveEvolvingSkill, evolveSkill } from '../../ser
 import { recordUsageCost } from '../../services/usage-store.js';
 import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 import { formatAttachmentReferences } from '../utils/attachment-reference.js';
+import { getToolStreamingDisplay } from '../../tools/index.js';
+import { isRecord, parseToolArguments, toolResultText } from '../live-tool-streaming.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
 
@@ -127,6 +129,7 @@ interface QueuedSteeringDisplay {
 	const shownToolCalls = useRef(new Set<string>());
 	const toolMsgMap = useRef(new Map<string, string>());
 	const toolArgsMap = useRef(new Map<string, unknown>());
+	const partialToolJson = useRef(new Map<number, string>());
 	const streamingIdRef = useRef<string | null>(null);
 	const streamingSessionsRef = useRef(new Set<string>());
 	const preEditSnapshotRef = useRef<string | undefined>(undefined);
@@ -417,6 +420,39 @@ Return ONLY the title text, nothing else.`;
 					console.error('Snapshot track failed:', err);
 				}
 
+				const upsertToolView = (
+					toolCallId: string,
+					toolName: string,
+					args: Record<string, unknown>,
+					argumentsComplete: boolean,
+				) => {
+					if (!toolCallId) return;
+					shownToolCalls.current.add(toolCallId);
+					toolArgsMap.current.set(toolCallId, args);
+					const existingId = toolMsgMap.current.get(toolCallId);
+					const patch: Partial<ChatMessage> = {
+						meta: `${toolName}(${JSON.stringify(args)})`,
+						streaming: true,
+						toolCallId,
+						toolName,
+						toolArguments: args,
+						toolArgumentsComplete: argumentsComplete,
+					};
+					if (existingId) {
+						sessionState.updateMessageIn(runSessionId, existingId, patch);
+						return;
+					}
+					const tuiId = genId();
+					toolMsgMap.current.set(toolCallId, tuiId);
+					sessionState.addMessageTo(runSessionId, {
+						id: tuiId,
+						role: 'tool',
+						content: '',
+						agent: persistedTurn.agent,
+						...patch,
+					});
+				};
+
 				for await (const ev of agent.run(userMsg)) {
 					if (ev.type === 'message_end' && ev.message.role === 'user' && steeringMessagesRef.current.has(ev.message)) {
 						steeringMessagesRef.current.delete(ev.message);
@@ -436,6 +472,7 @@ Return ONLY the title text, nothing else.`;
 						sessionState.setStatusIn(runSessionId, 'Steering sent to model');
 					}
 					if (ev.type === 'message_start' && ev.message.role === 'assistant') {
+						partialToolJson.current.clear();
 						const newId = genId();
 						currentAssistantId = newId;
 						currentTurnMsgIdRef.current = newId;
@@ -458,24 +495,32 @@ Return ONLY the title text, nothing else.`;
 							.map((b) => b.content)
 							.join('\n');
 						sessionState.updateMessageIn(runSessionId, currentAssistantId, { content: textContent, blocks });
-						if (ev.assistantMessageEvent.type === 'toolcall_end') {
-							const tc = (ev.assistantMessageEvent as any).toolCall as {
-								id: string;
-								name: string;
-								arguments: Record<string, unknown>;
-							};
-							if (tc && !shownToolCalls.current.has(tc.id)) {
-								shownToolCalls.current.add(tc.id);
-								toolArgsMap.current.set(tc.id, tc.arguments);
-								const tuiId = genId();
-								toolMsgMap.current.set(tc.id, tuiId);
-								sessionState.addMessageTo(runSessionId, {
-									id: tuiId,
-									role: 'tool',
-									content: '',
-									meta: `${tc.name}(${JSON.stringify(tc.arguments || {})})`,
-									agent: persistedTurn.agent,
-								});
+						const assistantEvent = ev.assistantMessageEvent;
+						if (
+							assistantEvent.type === 'toolcall_start'
+							|| assistantEvent.type === 'toolcall_delta'
+							|| assistantEvent.type === 'toolcall_end'
+						) {
+							const contentIndex = assistantEvent.contentIndex;
+							const partialCall = m.content[contentIndex];
+							if (partialCall?.type === 'toolCall') {
+								const streaming = getToolStreamingDisplay(partialCall.name);
+								if (assistantEvent.type === 'toolcall_start') {
+									partialToolJson.current.set(contentIndex, '');
+								}
+								if (assistantEvent.type === 'toolcall_delta') {
+									const raw = (partialToolJson.current.get(contentIndex) ?? '') + assistantEvent.delta;
+									partialToolJson.current.set(contentIndex, raw);
+								}
+								const complete = assistantEvent.type === 'toolcall_end';
+								if (streaming?.arguments || complete) {
+									const finalCall = complete ? assistantEvent.toolCall : partialCall;
+									const fallback = finalCall.arguments;
+									const args = complete
+										? fallback
+										: parseToolArguments(partialToolJson.current.get(contentIndex) ?? '', fallback);
+									upsertToolView(finalCall.id, finalCall.name, args, complete);
+								}
 							}
 						}
 					}
@@ -625,42 +670,46 @@ Return ONLY the title text, nothing else.`;
 						}
 					}
 					if (ev.type === 'tool_execution_start') {
-						if (!shownToolCalls.current.has(ev.toolCallId)) {
-							shownToolCalls.current.add(ev.toolCallId);
-							toolArgsMap.current.set(ev.toolCallId, ev.args);
-							if (ev.toolName === 'task') {
-								const taskArgs = (ev.args ?? {}) as Record<string, unknown>;
-								const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
-								const description = taskArgs.description ? `: ${String(taskArgs.description)}` : '';
-								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} running${description}`.slice(0, 120));
-							}
-							const tuiId = genId();
-							toolMsgMap.current.set(ev.toolCallId, tuiId);
-							sessionState.addMessageTo(runSessionId, {
-								id: tuiId,
-								role: 'tool',
-								content: '',
-								meta: `${ev.toolName}(${JSON.stringify(ev.args || {})})`,
-								agent: persistedTurn.agent,
+						const args = isRecord(ev.args) ? ev.args : {};
+						upsertToolView(ev.toolCallId, ev.toolName, args, true);
+						const tuiId = toolMsgMap.current.get(ev.toolCallId);
+						if (tuiId) {
+							sessionState.updateMessageIn(runSessionId, tuiId, { toolExecutionStarted: true });
+						}
+						if (ev.toolName === 'task') {
+							const subagent = String(args.agent || args.subagent_type || 'subagent');
+							const description = args.description ? `: ${String(args.description)}` : '';
+							sessionState.setStatusIn(runSessionId, `Subagent @${subagent} running${description}`.slice(0, 120));
+						}
+					}
+					if (ev.type === 'tool_execution_update' && getToolStreamingDisplay(ev.toolName)?.output) {
+						const tuiId = toolMsgMap.current.get(ev.toolCallId);
+						if (tuiId) {
+							const partialDetails = isRecord(ev.partialResult.details) ? ev.partialResult.details : undefined;
+							sessionState.updateMessageIn(runSessionId, tuiId, {
+								content: toolResultText(ev.partialResult.content),
+								streaming: true,
+								toolExecutionStarted: true,
+								...(typeof partialDetails?.exitCode === 'number' ? { exitCode: partialDetails.exitCode } : {}),
 							});
 						}
 					}
 					if (ev.type === 'tool_execution_end') {
 						const args = toolArgsMap.current.get(ev.toolCallId) || {};
-						const resultDetails = (ev.result?.details as Record<string, unknown> | undefined) ?? {};
-						const toolOutput = (ev.result?.content?.[0]?.text || '').trim();
+						const resultDetails = isRecord(ev.result?.details) ? ev.result.details : {};
+						const toolOutput = toolResultText(ev.result?.content).trim();
 						if (ev.isError) {
 							const firstLine =
 								toolOutput.split('\n').find((line: string) => line.trim().length > 0)?.trim() || 'Unknown error';
 							if (ev.toolName === 'task') {
-								const taskArgs = args as Record<string, unknown>;
+								const taskArgs = isRecord(args) ? args : {};
 								const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
 								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} failed: ${firstLine}`.slice(0, 160));
 							} else {
 								sessionState.setStatusIn(runSessionId, `${ev.toolName} failed: ${firstLine}`.slice(0, 160));
 							}
 						} else if (ev.toolName === 'task') {
-							const taskArgs = args as Record<string, unknown>;
+							const taskArgs = isRecord(args) ? args : {};
 							const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
 							sessionState.setStatusIn(runSessionId, `Subagent @${subagent} completed`);
 						}
@@ -687,6 +736,8 @@ Return ONLY the title text, nothing else.`;
 								: undefined;
 							sessionState.updateMessageIn(runSessionId, tuiId, {
 								content: toolOutput,
+								streaming: false,
+								toolExecutionStarted: false,
 								exitCode,
 								toolError: ev.isError || undefined,
 								wallTimeMs,
