@@ -34,7 +34,7 @@ import { MemoryDialog } from './ui/memory-dialog.js';
 import { SettingsDialog } from './ui/settings-dialog.js';
 import { SkillsDialog } from './ui/skills-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
-import { AskDialog } from './ui/ask-dialog.js';
+import { AskMenu } from './ui/ask-dialog.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import { SubagentNav } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
@@ -67,7 +67,7 @@ import type { SecurityManager } from '../security/index.js';
 import { backgroundTasks } from '../services/background-tasks.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
 import { createContextBreakdown, restoreLatestContextSnapshot } from '../services/context-usage.js';
-import type { AskHandler, AskToolDetails } from '../tools/ask.js';
+import type { AskHandler, AskToolDetails, AskToolInput } from '../tools/ask.js';
 
 function orderPaletteCommands(entries: readonly ResolvedCommand[]): ResolvedCommand[] {
 	const templates = entries.filter((entry) => entry.definition.category === 'Templates');
@@ -106,6 +106,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
+	const [askRequest, setAskRequest] = useState<AskToolInput | null>(null);
 	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
 	const [placeholderIdx, setPlaceholderIdx] = useState(0);
 	const [navKey, setNavKey] = useState(0);
@@ -251,7 +252,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		if (!pending) return;
 		pending.signal?.removeEventListener('abort', pending.onAbort);
 		askPendingRef.current = null;
-		setDialogStep((current: any) => current?.type === 'ask' ? null : current);
+		setAskRequest(null);
 		pending.resolve(details);
 	}, []);
 
@@ -262,12 +263,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				const pending = askPendingRef.current;
 				if (!pending || pending.resolve !== resolve) return;
 				askPendingRef.current = null;
-				setDialogStep((current: any) => current?.type === 'ask' ? null : current);
+				setAskRequest(null);
 				resolve(undefined);
 			};
 			askPendingRef.current = { resolve, signal: context.signal, onAbort };
 			context.signal?.addEventListener('abort', onAbort, { once: true });
-			setDialogStep({ type: 'ask', input });
+			setAskRequest(input);
 		});
 	}, []);
 
@@ -621,7 +622,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	useKeyboard(
 		(key) => {
 			if (!viewingChildSession) return;
-			if (dialogStep || updateVersion || msgControls || permissionRequest || showCmd) return;
+			if (askRequest || dialogStep || updateVersion || msgControls || permissionRequest || showCmd) return;
 			if (key.name === 'escape') {
 				if (isStreamingRef.current) return;
 				exitChildView();
@@ -752,6 +753,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		revertedMessagesRef,
 		runRedo,
 		dialogStep,
+		askRequest,
 		updateVersion,
 		msgControls,
 		permissionRequest,
@@ -820,7 +822,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							thinkingEffort={thinkingEffort}
 							initialValue={revertDraftRef.current || ''}
 							width={Math.min(68, termWidth - 8)}
-							focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
+							focused={!dialogStep && !askRequest && !showCmd && !msgControls && !permissionRequest}
 							onTextChange={(t) => setDraftText(t)}
 							onGetTextarea={(r) => {
 								promptTextareaRef.current = r;
@@ -936,7 +938,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								elapsedMs={elapsedMs}
 								tokenUsage={tokenUsage}
 								width={termWidth - 4}
-								focused={!dialogStep && !showCmd && !msgControls && !permissionRequest}
+								focused={!dialogStep && !askRequest && !showCmd && !msgControls && !permissionRequest}
 								onTextChange={(t) => setDraftText(t)}
 								onGetTextarea={(r) => {
 									promptTextareaRef.current = r;
@@ -1016,7 +1018,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termHeight={termHeight}
 				/>
 			)}
-			{slashActive && slashFiltered.length > 0 && (
+			{!askRequest && slashActive && slashFiltered.length > 0 && (
 				<SlashAutocomplete
 					query={slashHead(draftText)?.name || ''}
 					selected={slashSelected}
@@ -1029,7 +1031,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					promptWidth={promptPosition.width}
 				/>
 			)}
-			{slashArgActive && (
+			{!askRequest && slashArgActive && (
 				<ArgAutocomplete
 					commandName={slashHead(draftText)?.name || ''}
 					query={slashHead(draftText)?.arguments || ''}
@@ -1043,7 +1045,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					promptWidth={promptPosition.width}
 				/>
 			)}
-			{fileAtActive && (
+			{!askRequest && fileAtActive && (
 				<FileAutocomplete
 					draftText={draftText}
 					promptTop={promptPosition.top}
@@ -1408,11 +1410,15 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					}}
 				/>
 			)}
-			{dialogStep?.type === 'ask' && (
-				<AskDialog
-					input={dialogStep.input}
+			{askRequest && (
+				<AskMenu
+					input={askRequest}
 					termWidth={termWidth}
 					termHeight={termHeight}
+					route={route}
+					promptTop={promptPosition.top}
+					promptLeft={promptPosition.left}
+					promptWidth={promptPosition.width}
 					onSubmit={settleAsk}
 					onCancel={() => settleAsk(undefined)}
 					registerHandler={(handler) => {

@@ -23,6 +23,7 @@ interface UseAppKeyboardDeps {
 	promptBarRef: React.MutableRefObject<{ setText: (text: string, cursorOffset?: number) => void } | null>;
 
 	dialogStep: any;
+	askRequest: unknown;
 	updateVersion: string | null;
 	msgControls: ChatMessage | null;
 	permissionRequest: any;
@@ -86,6 +87,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		promptHistoryService,
 		promptBarRef,
 		dialogStep,
+		askRequest,
 		updateVersion,
 		msgControls,
 		permissionRequest,
@@ -134,7 +136,7 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 	const interruptArmedAtRef = useRef<number>(0);
 
 	useKeyboard((key) => {
-		if (dialogStep || updateVersion || msgControls || permissionRequest !== null) {
+		if (askRequest || dialogStep || updateVersion || msgControls || permissionRequest !== null) {
 			dialogKeyHandler.current?.(key);
 			return;
 		}
