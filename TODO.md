@@ -1,32 +1,13 @@
 # Spectra Roadmap
 
-## 1. Custom states from tool calls (generative UI support)
-
-Tool calls should be capable of emitting custom states during execution. This enables generative UI patterns where the tool can surface intermediate progress, status changes, or arbitrary state updates to the caller — useful for showing loading states, progress bars, or dynamic UI transitions.
-
-- [ ] Define a `ToolState` / custom state event type in the SDK types
-- [ ] Allow `execute()` to yield/push custom state events alongside the final `ToolResult`
-- [ ] Surface these states through the agent event stream so callers can render them reactively
-- [ ] Ensure both TypeScript (`packages/agent`) and Rust (`crates/spectra-rs`) support this
-
-## 2. Real-time tool content streaming
-
-Ability to stream a tool's content in real time as it is produced, rather than waiting for the full `ToolResult` before surfacing anything. This builds on the current tool call implementation to support progressive output.
-
-- [ ] Design a streaming tool interface (e.g., `execute` returns an async iterable / stream of chunks)
-- [ ] Integrate streaming tool output into the agent event loop so deltas are yielded as they arrive
-- [ ] Ensure backward compatibility — non-streaming tools (current `execute` returning `ToolResult`) still work
-- [ ] Implement in both TypeScript (`packages/agent`) and Rust (`crates/spectra-rs`)
-
-## 3. Context compaction
+## 1. Context compaction
 
 Automatic context management that summarizes old conversation history when approaching token limits, preserving recent turns verbatim.
 
-- [ ] Anchored summaries: incrementally update previous summary instead of rebuilding from scratch
 - [ ] Async pruning pass: mark old tool outputs as compacted, protect recent 40K, never prune `skill` tool outputs
 - [ ] Auto-continue after compaction ("Continue if you have next steps...")
 
-## 4. Agent loop safety guards
+## 2. Agent loop safety guards
 
 Defensive mechanisms in the agent loop to prevent common failure modes. Based on patterns from OwlCoda's conversation engine.
 
@@ -36,7 +17,7 @@ Defensive mechanisms in the agent loop to prevent common failure modes. Based on
 - [ ] Convergence state machine: track whether agent is making forward progress or cycling between states
 - [ ] Surface safety events (interrupt, warning, hard-stop) through the agent event stream so TUI can render them
 
-## 5. Command system: slash invocation, templates, and plugin commands
+## 3. Command system: slash invocation, templates, and plugin commands
 
 Spectra needs one command pipeline with multiple command sources. `/` is only the invocation surface in the TUI; it must not imply that every command is hardcoded in `commands.ts` or that templates/plugins are separate execution paths.
 
@@ -100,76 +81,22 @@ type CommandEffect =
 - [ ] Ensure slash submit, palette submit, and plugin-triggered submit all call the same command executor
 - [ ] Keep prompt autocomplete menus separate from centered modal/select dialogs; they can share list-window utilities but not command dispatch state
 
-## 6. Plugin system
+## 4. Plugin system
 
-Dynamic, hook-based plugin system. Plugins extend behavior without modifying core code and must support message-level behavior, not only request/tool hooks.
+Detailed architecture, lifecycle invariants, integration boundaries, migration phases, tests, and acceptance criteria: [Plugin System Architecture and Implementation Plan](docs/plans/plugin-system-plan.md).
 
-**Plugin loading order (cascading precedence):**
-1. Project-level: `.spectra/plugins/` (project root, highest priority)
-2. User-level: `~/.spectra/plugins/` or platform config dir plugins
-3. Config-defined: plugins listed in config file
-4. Package plugins: npm-style plugin packages declared in config
+**Implementation sequence:**
+- [ ] Build the framework-neutral runtime kernel: typed services, scopes, owned effects, dependency activation, rollback, and awaited disposal
+- [ ] Add plugin manifests, capabilities, discovery, configuration validation, diagnostics, and inspection commands
+- [ ] Migrate built-in, MCP, and custom tools to one lifecycle-owned tool registry and interceptor pipeline
+- [ ] Add prompt, message, provider, compaction, and human-interaction services with persistent/transient mutation boundaries
+- [ ] Move built-in, template, skill, MCP, and plugin commands into one command registry and effect runner
+- [ ] Create process, project, session, agent, and child-agent scopes with inherited, narrowing security policy
+- [ ] Introduce stable OpenTUI slots after host lifecycle and keyboard/focus ownership are proven
+- [ ] Remove each legacy manual registry, wrapper, callback, or direct optional-feature import after its subsystem migrates
+- [ ] Implement equivalent Rust lifecycle semantics natively after the TypeScript contracts stabilize; no bindings, FFI, or shared runtime
 
-**Plugin shape:**
-```typescript
-export default function activate(api: SpectraPluginAPI): void | Promise<void> {
-  api.registerCommand('name', command);
-  api.registerTool(tool);
-  api.on('message.beforeAppend', handler);
-}
-
-interface SpectraPluginAPI {
-  on<E extends PluginEventName>(event: E, handler: PluginHandler<E>): Disposable;
-  registerCommand(name: string, command: PluginCommand): Disposable;
-  registerTool(tool: PluginTool): Disposable;
-  registerMessageRenderer(type: string, renderer: MessageRenderer): Disposable;
-  renderTemplate(nameOrPath: string, args: TemplateRenderArgs): Promise<RenderedTemplate>;
-  storage: PluginStorage;
-  ui: PluginUi;
-}
-```
-
-**Message-level support (required):**
-- [ ] `message.beforeAppend` — inspect/modify/veto a user, assistant, tool, error, or custom message before it is persisted
-- [ ] `message.afterAppend` — observe persisted messages for indexing, memory, telemetry, side effects, or plugin state
-- [ ] `message.beforeProvider` — transform the message list before provider serialization without mutating stored history
-- [ ] `message.afterProvider` — observe provider-normalized messages and token/media metadata after serialization
-- [ ] `message.render` — allow custom renderers for plugin-defined message/content block types in the TUI
-- [ ] `message.compact` — let plugins summarize or protect their own custom message blocks during compaction
-- [ ] Message hook contexts must include stable message id, session id, parent/child session id, role, content blocks, attachments, metadata, source command/plugin, and abort signal
-- [ ] Message hooks must clearly separate persistent mutations from transient provider-context mutations
-- [ ] Message hooks must be ordered, timeout-bounded, and isolated so one plugin cannot corrupt history or block rendering indefinitely
-
-**Hook points:**
-- [ ] `plugin.load` / `plugin.unload` — lifecycle setup/teardown
-- [ ] `command.before` / `command.after` — command execution lifecycle
-- [ ] `input.beforeSubmit` — inspect/transform prompt text and attachments before command parsing or chat submit
-- [ ] `agent.beforeStart` / `agent.afterEnd` — agent turn lifecycle
-- [ ] `tool.beforeExecute` / `tool.afterExecute` — block/modify tool calls and observe tool results
-- [ ] `provider.beforeRequest` / `provider.afterResponse` — provider transport inspection/mutation after message normalization
-- [ ] `session.created` / `session.loaded` / `session.updated` — session lifecycle
-- [ ] `ui.toast` / `ui.status` — UI notifications and status contributions
-- [ ] `error` — plugin-aware error reporting and recovery
-
-**Safety and isolation:**
-- [ ] Validate plugin metadata and capabilities before activation
-- [ ] Require explicit capabilities for filesystem, shell/script, network, message mutation, provider mutation, and custom rendering
-- [ ] Route plugin script execution through the same permission/security layer as tools
-- [ ] Persist plugin diagnostics with source path/package and hook name
-- [ ] Add plugin timeouts and per-hook failure isolation
-- [ ] Add reload support that disposes commands/tools/hooks/renderers cleanly
-
-**Implementation:**
-- [ ] Define plugin types and hook contexts in `packages/code/src/plugins`
-- [ ] Plugin loader: scan directories/packages, dynamically import, validate metadata/capabilities
-- [ ] Hook runner: deterministic ordering, try/catch isolation, timeout handling, diagnostics
-- [ ] Command registry integration: plugin commands appear in slash autocomplete with provenance and descriptions
-- [ ] Tool registry integration: plugin tools use existing `defineTool` validation and security wrappers
-- [ ] Message pipeline integration: storage, provider serialization, compaction, and TUI rendering all expose message hooks
-- [ ] Plugin discovery CLI: `spectra plugin list`, `spectra plugin install`, `spectra plugin remove`, `spectra plugin doctor`
-- [ ] Rust SDK gets a parallel native extension design later; do not bind TS plugins into Rust
-
-## 7. Observability middleware
+## 5. Observability middleware
 
 Per-request metrics, cost tracking, and runtime health visibility at the HTTP proxy/transport layer.
 
@@ -177,12 +104,12 @@ Per-request metrics, cost tracking, and runtime health visibility at the HTTP pr
 - [ ] Rate limit headers parsing: extract `X-RateLimit-*` headers from provider responses, surface to UI
 - [ ] Expose metrics through agent event stream so TUI can render `/cost`, `/tokens`, `/stats` commands
 
-## 8. Session handling overhaul
+## 6. Session handling overhaul
 
-Spectra's session system is fundamentally weaker than OpenCode's. The current JSON-per-file storage, shallow fork, and missing compaction will not scale.
+Spectra's session system now uses SQLite-backed sessions and messages, but normalization, pagination, branching, search, metadata, and archival still need production-grade designs.
 
 **Storage:**
-- [ ] Schema: sessions table, messages table, parts table with foreign keys
+- [ ] Add a normalized parts table with foreign keys for message content blocks
 - [ ] Cursor-based pagination for session listing
 
 **Fork & Branch:**
@@ -192,8 +119,6 @@ Spectra's session system is fundamentally weaker than OpenCode's. The current JS
 
 **Search & Filtering:**
 - [ ] SQL LIKE search on title, model, agent
-- [ ] Filter by directory/project scope
-- [ ] Global cross-project session listing
 - [ ] Pagination (don't load all sessions into memory)
 
 **Metadata:**
@@ -207,7 +132,7 @@ Spectra's session system is fundamentally weaker than OpenCode's. The current JS
 - [ ] Sort by updated/created
 - [ ] Show token count and cost per session
 
-## 9. Skills system
+## 7. Skills system
 
 Learned, reusable skill files that provide specialized workflows and context for specific tasks. Skills are markdown-based instruction files with YAML frontmatter, following the Claude Code format (compatible with OwlCoda and OpenCode).
 
@@ -354,7 +279,7 @@ skill-name/
 *Meta / Using Skills (1):*
 - `using-skills` — mandatory workflows for how to find, read, and use skills
 
-## 10. Template command renderer and prompt effects
+## 8. Template command renderer and prompt effects
 
 Template commands are file-backed prompt programs. They are not a separate slash-command system; they are one command source inside the unified command registry. The same renderer must also be callable from built-in commands and plugin commands, because a custom slash command may need to inject a prompt, spawn a subagent, run a permission-gated script, or combine those effects.
 
@@ -416,7 +341,7 @@ $ARGUMENTS
 - [ ] `explain.md` — explain selected code or current error with file/context references
 - [ ] `test.md` — plan and run focused verification for the current change
 
-## 11. Command-spawned subagents
+## 9. Command-spawned subagents
 
 Commands may start child sessions when the command's result is better isolated from the main conversation. `/review` should default to a read-only subagent; `/commit` can run inline or in a full-access subagent depending on user intent and permissions.
 
@@ -433,7 +358,7 @@ Commands may start child sessions when the command's result is better isolated f
 - [ ] `/commit` — render commit template; run inline for direct user command or spawn full-access subagent when requested
 - [ ] Plugin commands — may request subagents through the same `spawn_subagent` effect, never through private session APIs
 
-## 12. Commit and review command protocols
+## 10. Commit and review command protocols
 
 Commit/review behavior belongs in template-backed commands, not hardcoded into the shell tool. The shell tool may expose wall time, timeout, exit code, and safety hints, but command policy should live in templates plus command effects so users and plugins can override it.
 
@@ -453,7 +378,7 @@ Commit/review behavior belongs in template-backed commands, not hardcoded into t
 - [ ] Return findings with file/line references and severity
 - [ ] Avoid style-only noise unless it hides a real maintainability risk
 
-## 13. Coding plan provider integrations
+## 11. Coding plan provider integrations
 
 Support bundled access to popular AI coding subscription plans — giving users affordable, multi-model access without managing individual provider API keys. These plans are OpenAI/Anthropic-compatible and work with any agent that speaks those protocols.
 
@@ -482,7 +407,7 @@ Support bundled access to popular AI coding subscription plans — giving users 
 - [ ] Model capability registry: map each plan's models to their context windows, strengths, and benchmarks
 - [ ] Integration with existing provider system: plans register as providers in `packages/ai` registry
 
-## 14. Multimodal input support
+## 12. Multimodal input support
 
 Enable users to attach files (images, audio, video, text, PDFs, etc.) directly in the prompt input and send them as multimodal content to LLMs. Refer to OpenCode's implementation for the UX baseline — their prompt component uses extmarks (virtual text placeholders) and a MIME-typed badge system.
 
@@ -508,12 +433,6 @@ Enable users to attach files (images, audio, video, text, PDFs, etc.) directly i
 - Documents: `application/pdf`, `text/plain`, `text/markdown`, `text/csv`, `text/html`, `text/css`, `text/javascript`, `application/json`, `application/xml`
 - Directories: `application/x-directory`
 
-**Attachment methods (match OpenCode patterns):**
-- [ ] `@` fuzzy search — type `@` to trigger autocomplete, fuzzy-search files by path, select one
-- [ ] Paste/drag file path — detect pasted file paths, read content based on MIME extension mapping
-- [ ] Clipboard image paste — read system clipboard for image data (cross-platform: macOS/Linux/Windows)
-- [ ] Clipboard audio/video paste — read clipboard for media file references where supported
-
 **Provider-level multimodal message construction:**
 - [ ] Anthropic Messages API: `{ type: "image", source: { type: "base64", media_type, data } }` for images; `{ type: "document", source: { type: "base64", media_type, data } }` for PDFs; audio via `{ type: "input_audio", input_audio: { data, format } }`
 - [ ] OpenAI Chat Completions: `{ type: "image_url", image_url: { url: dataUrl } }` for images; `{ type: "input_audio", input_audio: { data, format } }` for audio (supported models only)
@@ -533,7 +452,7 @@ Enable users to attach files (images, audio, video, text, PDFs, etc.) directly i
 - `packages/llm/src/schema/messages.ts` — `MediaPart` schema
 - `packages/llm/src/protocols/shared.ts` — `IMAGE_MIMES`, `validateMedia()`
 
-## 15. Oh My Pi reference adoption
+## 13. Oh My Pi reference adoption
 
 Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 
@@ -544,7 +463,6 @@ Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 - [ ] Code intelligence: add LSP tool support for diagnostics, references, rename, code actions, symbols, hover, and definitions
 - [ ] Debugger integration: add DAP tool support for launch/attach, breakpoints, stepping, stack, scopes, variables, and evaluation
 - [ ] Browser automation: add Puppeteer/CDP tab control for web and desktop-app automation
-- [ ] Structured ask tool: model-triggered option picker that routes ambiguity through UI instead of prose
 - [ ] Background job tool: async shell/task handles with wait/cancel and completion injection
 - [ ] IRC coordination: short live messages between parent and child agents
 - [ ] Output artifacts: persist truncated tool output behind stable `artifact://` references
@@ -584,7 +502,7 @@ Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 - `packages/coding-agent/src/cli/usage-cli.ts` — usage CLI, redaction, status bars, history rendering
 - `packages/coding-agent/src/config/service-tier.ts` — per-family service-tier settings
 
-## 16. Future deferred
+## 14. Future deferred
 
 The following are deferred until the core system is stable and functional:
 

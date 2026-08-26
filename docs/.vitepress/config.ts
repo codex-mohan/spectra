@@ -3,7 +3,7 @@ import llmstxt from 'vitepress-plugin-llms';
 
 export default defineConfig({
 	title: 'Spectra',
-	description: 'Terminal-native AI coding agent with extensible TypeScript and Rust SDKs for building and orchestrating coding workflows'
+	description: 'Terminal-native AI coding agent with extensible TypeScript and Rust SDKs for building and orchestrating coding workflows',
 	base: '/spectra/',
 	lastUpdated: true,
 	cleanUrls: true,
