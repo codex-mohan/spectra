@@ -27,7 +27,8 @@ export function DoctorDialog({
 		registerHandler?.(handler);
 	}, [onClose, registerHandler]);
 
-	const failedCount = result.checks.filter((check) => !check.passed).length;
+	const errorCount = result.checks.filter((check) => check.status === 'error').length;
+	const warningCount = result.checks.filter((check) => check.status === 'warning').length;
 	const innerW = Math.min(68, termWidth - 4) - 4;
 	// Name/detail inline: ✓ Name  detail
 	// Reserve: icon(1) + gap(1) + gap(2) + detail padding = ~4 chars overhead
@@ -65,8 +66,8 @@ export function DoctorDialog({
 				alignItems="center"
 				backgroundColor={c.bgCard}
 			>
-				<text fg={check.passed ? c.success : c.error} width={1}>
-					{check.passed ? '✓' : '✗'}
+				<text fg={check.status === 'pass' ? c.success : check.status === 'warning' ? c.warn : c.error} width={1}>
+					{check.status === 'pass' ? '✓' : check.status === 'warning' ? '!' : '✗'}
 				</text>
 				<text fg={c.text}>{trunc(check.name, nameMax)}</text>
 				{check.detail && <text fg={c.dim}>{trunc(check.detail, detailMax)}</text>}
@@ -81,8 +82,8 @@ export function DoctorDialog({
 			width={68}
 			height={Math.min(32, termHeight - 4)}
 			top="upper"
-			title={result.allPassed ? '✓ All checks passed' : `✗ ${failedCount}/${result.checks.length} failed`}
-			titleColor={result.allPassed ? c.success : c.error}
+			title={errorCount > 0 ? `✗ ${errorCount} required checks failed` : warningCount > 0 ? `! ${warningCount} warning${warningCount === 1 ? '' : 's'}` : '✓ All checks passed'}
+			titleColor={errorCount > 0 ? c.error : warningCount > 0 ? c.warn : c.success}
 			rightHint={undefined}
 			footer={<text fg={c.dim}>esc/enter close</text>}
 		>
@@ -95,6 +96,7 @@ export function DoctorDialog({
 					maxHeight={height - 5}
 					scrollY={true}
 					backgroundColor={c.bgCard}
+					verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.sbTrack, foregroundColor: c.sbThumb } }}
 				>
 					<box flexDirection="column" backgroundColor={c.bgCard}>
 						{rows.length === 0 ? (

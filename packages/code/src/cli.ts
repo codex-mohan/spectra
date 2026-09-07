@@ -455,12 +455,14 @@ async function main() {
 			const result = await runDoctor();
 			process.stdout.write('Spectra Code — System Health Check\n\n');
 			for (const check of result.checks) {
-				process.stdout.write(`${check.passed ? '✓' : '✗'} [${check.section}] ${check.name}\n`);
+				const icon = check.status === 'pass' ? '✓' : check.status === 'warning' ? '!' : '✗';
+				process.stdout.write(`${icon} [${check.section}] ${check.name}\n`);
 				process.stdout.write(`  ${check.detail}\n`);
 			}
-			process.stdout.write(
-				`\n${result.allPassed ? '✓ All checks passed.' : '✗ Some checks failed — review the items above.'}\n`,
-			);
+			const summary = result.allPassed
+				? result.hasWarnings ? '! Required checks passed with warnings.' : '✓ All checks passed.'
+				: '✗ Required checks failed — review the items above.';
+			process.stdout.write(`\n${summary}\n`);
 			process.exit(result.allPassed ? 0 : 1);
 		},
 	);

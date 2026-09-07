@@ -4,14 +4,17 @@ import type { CliRenderer } from '@opentui/core';
 import { execFileSync } from 'child_process';
 import { c, SPINNER } from './theme.js';
 import { ChatArea } from './components/chat-area.js';
+import { ActivityFooter } from './components/activity-footer.js';
 import { PendingQueue } from './components/pending-queue.js';
 import { CommandPalette } from './components/command-palette.js';
 import { PromptBar, type PromptBarRef } from './prompt-bar.js';
 import { FileAutocomplete } from './components/file-autocomplete.js';
+import { HomeTitle } from './components/home-title.js';
 import { Tips } from './tips.js';
 import { titlecase } from './utils.js';
 import type { ChatMessage } from './types.js';
 import { SessionStore } from '../services/session-store.js';
+import { APP_VERSION } from '../services/app-version.js';
 import { SessionManager } from '../services/session-manager.js';
 import { SnapshotManager } from '../services/snapshot-manager.js';
 import { PromptHistoryService } from '../services/prompt-history.js';
@@ -130,7 +133,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const pendingFollowUp = sessionState.activeState.pendingFollowUp;
 	const isLoading = sessionState.activeState.isLoading;
 	const status = sessionState.activeState.status;
-	const visibleStatus = status !== 'Ready' && status !== 'Streaming...' ? status : null;
 	const tokenUsage = sessionState.activeState.tokenUsage;
 	const elapsedMs = sessionState.activeState.elapsedMs;
 	const tokPerSec = sessionState.activeState.tokPerSec;
@@ -807,7 +809,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				<box key={`home-${homeKey}`} flexDirection="column" flexGrow={1}>
 					<box flexGrow={1} />
 					<box flexDirection="column" alignItems="center" flexShrink={0}>
-						<ascii-font text="SPECTRA" font="block" color={c.accent} />
+						<HomeTitle />
 						<box height={1} />
 						<PromptBar
 							isLoading={isLoading}
@@ -830,12 +832,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							onPositionChange={setPromptPosition}
 							onGetPromptBar={(r) => { promptBarRef.current = r; }}
 						/>
-						{visibleStatus && (
-							<box width={Math.min(68, termWidth - 8)} paddingLeft={3}>
-								<text fg={c.dim} overflow="hidden" wrapMode="none">
-									{visibleStatus}
-								</text>
-							</box>
+						{(status === 'Error' || status === 'Interrupted') && (
+							<ActivityFooter width={Math.max(0, Math.min(32, termWidth - 8))}
+								isLoading={isLoading} status={status} permissionPending={!!permissionRequest}
+								questionPending={!!askRequest} interruptArmed={interruptKey === 1}
+								runningTools={0} spinner={SPINNER[spinnerFrame]} metrics="" />
 						)}
 						<box height={1} />
 						<box flexDirection="row" justifyContent="flex-end" width={Math.min(68, termWidth - 8)}>
@@ -884,9 +885,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								{cwdLabel}
 							</text>
 						</box>
-						<text fg={c.dim} flexShrink={0}>
-							Spectra Code
-						</text>
+						<box flexDirection="row" gap={1} alignItems="center">
+							<text fg={c.dim}>Spectra Code</text>
+							<text fg={c.dim}>v{APP_VERSION}</text>
+						</box>
 					</box>
 				</box>
 			) : (
@@ -949,63 +951,23 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							
 						)}
 						<box height={1} />
-						<box
-							flexDirection="row"
-							justifyContent="space-between"
-							alignItems="center"
-							height={1}
-						>
-							<box flexDirection="row" gap={2} alignItems="center" flexGrow={1} flexShrink={1} minWidth={0} overflow="hidden">
-								{isLoading ? (
-									<box flexDirection="row" gap={2} alignItems="center">
-										<box flexDirection="row" gap={1}>
-											<text fg={c.warn}>{SPINNER[spinnerFrame]}</text>
-											<text fg={c.dim}>Streaming...</text>
-										</box>
-										<box flexDirection="row" gap={1}>
-											<text fg={interruptKey === 1 ? c.warn : c.accent}>
-												{interruptKey === 1 ? 'esc again' : 'esc'}
-											</text>
-											<text fg={c.dim}>{interruptKey === 1 ? 'confirm' : 'interrupt'}</text>
-										</box>
-									</box>
-								) : (
-									<text fg={c.dim}>Ready</text>
-								)}
-								{visibleStatus && (
-									<text fg={c.dim} flexShrink={1} minWidth={0} overflow="hidden" wrapMode="none">
-										{visibleStatus}
-									</text>
-								)}
-								{(contextBreakdown?.usedTokens ?? tokenUsage.input) > 0 &&
-									(() => {
-										const used = contextBreakdown?.usedTokens ?? tokenUsage.input;
-										const cw = contextBreakdown?.contextWindow || lookupContextWindow(selectedModel || '', provider);
-										const pct = cw ? Math.round((used / cw) * 100) : null;
-										return (
-											<box flexDirection="row" gap={1}>
-												<text fg={c.subtext}>{fmtCtx(used)}</text>
-												{pct !== null && <text fg={pct > 80 ? c.warn : c.dim}>({pct}%)</text>}
-												{costDisplay && <text fg={c.warn}>{costDisplay}</text>}
-											</box>
-										);
-									})()}
-							</box>
-							<box flexDirection="row" gap={2} alignItems="center" flexShrink={0}>
-								<box flexDirection="row">
-									<text fg={c.text}>tab</text>
-									<text fg={c.dim}> agent</text>
-								</box>
-								<box flexDirection="row">
-									<text fg={c.text}>ctrl+t</text>
-									<text fg={c.dim}> effort</text>
-								</box>
-								<box flexDirection="row">
-									<text fg={c.text}>ctrl+p</text>
-									<text fg={c.dim}> commands</text>
-								</box>
-							</box>
-						</box>
+						<ActivityFooter
+							width={Math.max(0, termWidth - 4)}
+							isLoading={isLoading}
+							status={status}
+							pendingSteering={pendingSteering.length}
+							permissionPending={!!permissionRequest}
+							questionPending={!!askRequest}
+							interruptArmed={interruptKey === 1}
+							runningTools={messages.filter((message) => message.role === 'tool' && message.streaming && message.toolExecutionStarted).length}
+							spinner={SPINNER[spinnerFrame]}
+							metrics={(() => {
+								const used = contextBreakdown?.usedTokens ?? tokenUsage.input;
+								if (used <= 0) return '';
+								const window = contextBreakdown?.contextWindow || lookupContextWindow(selectedModel || '', provider);
+								return [fmtCtx(used), window ? `(${Math.round(used / window * 100)}%)` : '', costDisplay].filter(Boolean).join(' ');
+							})()}
+						/>
 					</box>
 				</box>
 			)}

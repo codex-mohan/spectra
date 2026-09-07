@@ -299,7 +299,6 @@ Return ONLY the title text, nothing else.`;
 					setDraftText('');
 					setSlashSelected(0);
 					setSubmitKey((k) => k + 1);
-					sessionState.setStatusIn(currentSessionId, 'Steering queued for current response');
 					return;
 				}
 
@@ -469,7 +468,6 @@ Return ONLY the title text, nothing else.`;
 							});
 						}
 						persistMessage(runSessionId, ev.message);
-						sessionState.setStatusIn(runSessionId, 'Steering sent to model');
 					}
 					if (ev.type === 'message_start' && ev.message.role === 'assistant') {
 						partialToolJson.current.clear();
@@ -676,11 +674,6 @@ Return ONLY the title text, nothing else.`;
 						if (tuiId) {
 							sessionState.updateMessageIn(runSessionId, tuiId, { toolExecutionStarted: true });
 						}
-						if (ev.toolName === 'task') {
-							const subagent = String(args.agent || args.subagent_type || 'subagent');
-							const description = args.description ? `: ${String(args.description)}` : '';
-							sessionState.setStatusIn(runSessionId, `Subagent @${subagent} running${description}`.slice(0, 120));
-						}
 					}
 					if (ev.type === 'tool_execution_update' && getToolStreamingDisplay(ev.toolName)?.output) {
 						const tuiId = toolMsgMap.current.get(ev.toolCallId);
@@ -698,21 +691,6 @@ Return ONLY the title text, nothing else.`;
 						const args = toolArgsMap.current.get(ev.toolCallId) || {};
 						const resultDetails = isRecord(ev.result?.details) ? ev.result.details : {};
 						const toolOutput = toolResultText(ev.result?.content).trim();
-						if (ev.isError) {
-							const firstLine =
-								toolOutput.split('\n').find((line: string) => line.trim().length > 0)?.trim() || 'Unknown error';
-							if (ev.toolName === 'task') {
-								const taskArgs = isRecord(args) ? args : {};
-								const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
-								sessionState.setStatusIn(runSessionId, `Subagent @${subagent} failed: ${firstLine}`.slice(0, 160));
-							} else {
-								sessionState.setStatusIn(runSessionId, `${ev.toolName} failed: ${firstLine}`.slice(0, 160));
-							}
-						} else if (ev.toolName === 'task') {
-							const taskArgs = isRecord(args) ? args : {};
-							const subagent = String(taskArgs.agent || taskArgs.subagent_type || 'subagent');
-							sessionState.setStatusIn(runSessionId, `Subagent @${subagent} completed`);
-						}
 						const toolMsg: Message = {
 							role: 'toolResult',
 							toolCallId: ev.toolCallId,
@@ -752,7 +730,7 @@ Return ONLY the title text, nothing else.`;
 					if (ev.type === 'agent_end') {
 						const errMsg = agent.errorMessage;
 						if (errMsg) {
-							sessionState.setStatusIn(runSessionId, errMsg);
+							sessionState.setStatusIn(runSessionId, 'Error');
 							if (currentTurnMsgIdRef.current) {
 								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error' });
 							}
