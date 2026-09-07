@@ -136,7 +136,10 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 	const interruptArmedAtRef = useRef<number>(0);
 
 	useKeyboard((key) => {
-		if (askRequest || dialogStep || updateVersion || msgControls || permissionRequest !== null) {
+		// PermissionDialog owns its keyboard listener; the shared handler may
+		// still belong to a previously closed dialog (including message revert).
+		if (permissionRequest != null) return;
+		if (askRequest || dialogStep || updateVersion || msgControls) {
 			dialogKeyHandler.current?.(key);
 			return;
 		}

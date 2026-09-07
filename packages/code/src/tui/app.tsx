@@ -1393,6 +1393,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			)}
 			{permissionRequest && (
 				<PermissionDialog
+					key={permissionRequest.id}
 					request={permissionRequest}
 					termWidth={termWidth}
 					termHeight={termHeight}

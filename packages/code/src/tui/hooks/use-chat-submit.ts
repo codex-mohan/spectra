@@ -809,7 +809,6 @@ Return ONLY the title text, nothing else.`;
 			} finally {
 				preEditSnapshotRef.current = undefined;
 				sessionState.setLoadingIn(runSessionId, false);
-				setSubmitKey((k) => k + 1);
 				setInterruptKey(0);
 				streamingSessionsRef.current.delete(runSessionId);
 				isStreamingRef.current = streamingSessionsRef.current.size > 0;
