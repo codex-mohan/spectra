@@ -265,12 +265,14 @@ export function PromptBar(props: PromptBarProps) {
 		const text = stripAttachmentText(textarea?.plainText ?? '', textarea).trim();
 		const currentAttachments = syncAttachments();
 		if (!text && currentAttachments.length === 0) return;
-		onSubmit({ text, attachments: currentAttachments });
 		textarea?.extmarks?.clear();
 		attachmentsRef.current = [];
 		setAttachments([]);
 		setShowHint(false);
 		setCharCount(0);
+		// Submission may synchronously remount the input or navigate away.
+		// Finish all input cleanup before handing control to the parent.
+		onSubmit({ text, attachments: currentAttachments });
 	}, [onSubmit, syncAttachments]);
 
 	const handlePaste = useCallback(async (event: { bytes?: Uint8Array; preventDefault?: () => void }) => {
