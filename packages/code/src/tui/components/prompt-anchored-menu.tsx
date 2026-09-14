@@ -3,6 +3,7 @@ import { c } from '../theme.js';
 import { getCenteredWindow, type SelectionWindow } from '../utils/selection-window.js';
 
 interface PromptAnchoredMenuRenderProps {
+	width: number;
 	listHeight: number;
 	visibleWindow: SelectionWindow;
 }
@@ -46,13 +47,13 @@ export function PromptAnchoredMenu({
 	const spaceAbove = isChat ? Math.max(0, (promptTop ?? termHeight) - MENU_CHROME) : termHeight;
 	const listHeight = Math.max(MIN_LIST_ROWS, Math.min(MAX_LIST_ROWS, itemCount, spaceAbove));
 	const height = listHeight + MENU_CHROME;
-	const left = promptLeft ?? 3;
-	const width = promptWidth ?? Math.min(50, termWidth - 8);
+	const left = Math.max(0, Math.min(promptLeft ?? 3, termWidth));
+	const width = Math.max(0, Math.min(promptWidth ?? Math.min(50, termWidth - 8), termWidth - left));
 	const top = isChat ? Math.max(0, (promptTop ?? termHeight) - height) : Math.floor(termHeight / 2) - height - 2;
 	const visibleWindow = getCenteredWindow(itemCount, selected, listHeight);
 
 	return (
-		<box position="absolute" left={left} top={top} width={width} height={height} zIndex={100} backgroundColor={c.bgCard}>
+		<box position="absolute" left={left} top={Math.max(0, top)} width={width} height={height} overflow="hidden" zIndex={100} backgroundColor={c.bgCard}>
 			<box height={1} />
 			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between" alignItems="center">
 				{headerLeft}
@@ -62,7 +63,7 @@ export function PromptAnchoredMenu({
 				<text fg={c.border}>{'─'.repeat(Math.max(0, width - 2))}</text>
 			</box>
 			<box height={listHeight} flexDirection="column">
-				{children({ listHeight, visibleWindow })}
+				{children({ width, listHeight, visibleWindow })}
 			</box>
 			<box height={1} paddingLeft={1} paddingRight={1} flexDirection="row" justifyContent="space-between" gap={1}>
 				{footerLeft}

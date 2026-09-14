@@ -1,3 +1,4 @@
+import { MenuRowText } from './menu-row-text.js';
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
 import type { ResolvedCommand } from '../command-types.js';
@@ -41,7 +42,7 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 			footerLeft={<text fg={c.dim}>{'\u2191\u2193'} navigate</text>}
 			footerRight={<text fg={c.dim}>esc dismiss</text>}
 		>
-			{({ visibleWindow }) =>
+			{({ visibleWindow, width }) =>
 				items.slice(visibleWindow.start, visibleWindow.end).map((item, offset) => {
 					const actualIndex = visibleWindow.start + offset;
 					const isSel = actualIndex === selected;
@@ -57,13 +58,7 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 							justifyContent="space-between"
 							alignItems="center"
 						>
-							<box flexDirection="row" gap={1} flexShrink={0}>
-								<text fg={isSel ? c.accent : c.dim}>/{item.invocation}</text>
-								{item.definition.title && item.definition.title !== item.invocation && <text fg={c.subtext}>{item.definition.title}</text>}
-							</box>
-							<text fg={c.dim} overflow="hidden" wrapMode="none" truncate flexShrink={1} marginLeft={1}>
-								{item.definition.description}
-							</text>
+							<MenuRowText width={Math.max(0, width - 2)} title={[`/${item.invocation}`, item.definition.title !== item.invocation ? item.definition.title : ''].filter(Boolean).join(' ')} detail={item.definition.description} selected={isSel} />
 						</box>
 					);
 				})

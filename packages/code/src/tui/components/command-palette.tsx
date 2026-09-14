@@ -1,3 +1,4 @@
+import { MenuRowText } from './menu-row-text.js';
 import { useMemo } from 'react';
 import { c } from '../theme.js';
 import { getCenteredWindow } from '../utils/selection-window.js';
@@ -16,11 +17,11 @@ export interface CommandPaletteProps {
 export function CommandPalette(props: CommandPaletteProps) {
 	const { filter, selected, items, termWidth, termHeight } = props;
 
-	const mw = Math.min(64, termWidth - 4);
+	const mw = Math.max(0, Math.min(64, termWidth - 4));
 	const ml = Math.floor((termWidth - mw) / 2);
 	const mh = Math.min(22, termHeight - 4);
 	const mt = Math.max(1, Math.floor((termHeight - mh) / 2));
-	const innerW = mw - 4;
+	const innerW = Math.max(0, mw - 4);
 	const listH = mh - 6;
 
 	const { rows, selectedRowIndex } = useMemo(() => {
@@ -57,17 +58,12 @@ export function CommandPalette(props: CommandPaletteProps) {
 					justifyContent="space-between"
 					alignItems="center"
 				>
-					<text fg={isSelected ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1}>
-						{def.title}
-					</text>
-					<text fg={c.dim} overflow="hidden" wrapMode="none" truncate flexShrink={1} marginLeft={1}>
-						{def.description}
-					</text>
+					<MenuRowText width={Math.max(0, mw - 5)} title={def.title} detail={def.description} selected={isSelected} />
 				</box>,
 			);
 		}
 		return { rows: r, selectedRowIndex };
-	}, [items, selected]);
+	}, [items, selected, mw]);
 
 	const visibleWindow = getCenteredWindow(rows.length, selectedRowIndex, listH);
 	const visibleRows = rows.slice(visibleWindow.start, visibleWindow.end);

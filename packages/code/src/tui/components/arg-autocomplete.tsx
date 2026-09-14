@@ -1,3 +1,4 @@
+import { MenuRowText } from './menu-row-text.js';
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
 import type { ArgCompletion } from '../command-types.js';
@@ -38,7 +39,7 @@ export function ArgAutocomplete(props: ArgAutocompleteProps) {
 			footerLeft={<text fg={c.dim}>↑↓ navigate</text>}
 			footerRight={<text fg={c.dim}>tab/enter select · esc dismiss</text>}
 		>
-			{({ visibleWindow }) => {
+			{({ visibleWindow, width }) => {
 				if (items.length === 0) {
 					return (
 						<box height={1} paddingLeft={1} paddingRight={1}>
@@ -60,12 +61,7 @@ export function ArgAutocomplete(props: ArgAutocompleteProps) {
 							justifyContent="space-between"
 							alignItems="center"
 						>
-							<text fg={isSel ? c.accent : c.text} overflow="hidden" wrapMode="none" flexGrow={1}>{item.value}</text>
-							{item.desc && (
-								<text fg={c.dim} overflow="hidden" wrapMode="none" truncate flexShrink={1} marginLeft={1}>
-									{item.desc}
-								</text>
-							)}
+							<MenuRowText width={Math.max(0, width - 2)} title={item.value} detail={item.desc} selected={isSel} />
 						</box>
 					);
 				});
