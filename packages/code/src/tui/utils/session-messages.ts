@@ -11,13 +11,22 @@ export interface ConvertedMessages {
 	costSoFar: number;
 }
 
-export function sumTurnTokens(messages: readonly ChatMessage[]): { input: number; output: number } {
-	return messages.reduce(
+export interface SessionTurnTokens {
+	input: number;
+	output: number;
+	cacheRead: number;
+	cacheWrite: number;
+}
+
+export function sumTurnTokens(messages: readonly ChatMessage[]): SessionTurnTokens {
+	return messages.reduce<SessionTurnTokens>(
 		(total, message) => ({
 			input: total.input + (message.turnTokens?.input ?? 0),
 			output: total.output + (message.turnTokens?.output ?? 0),
+			cacheRead: total.cacheRead + (message.turnTokens?.cacheRead ?? 0),
+			cacheWrite: total.cacheWrite + (message.turnTokens?.cacheWrite ?? 0),
 		}),
-		{ input: 0, output: 0 },
+		{ input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 	);
 }
 
@@ -122,9 +131,19 @@ export function sdkMessagesToChatMessages(data: {
 			const usage = m.usage as Record<string, unknown> | undefined;
 			const rawTokens = metadata.turnTokens as Record<string, unknown> | undefined;
 			const turnTokens = rawTokens && typeof rawTokens.input === 'number' && typeof rawTokens.output === 'number'
-				? { input: rawTokens.input, output: rawTokens.output }
+				? {
+					input: rawTokens.input,
+					output: rawTokens.output,
+					cacheRead: typeof rawTokens.cacheRead === 'number' ? rawTokens.cacheRead : 0,
+					cacheWrite: typeof rawTokens.cacheWrite === 'number' ? rawTokens.cacheWrite : 0,
+				}
 				: usage && typeof usage.input === 'number' && typeof usage.output === 'number'
-					? { input: usage.input, output: usage.output }
+					? {
+						input: usage.input,
+						output: usage.output,
+						cacheRead: typeof usage.cacheRead === 'number' ? usage.cacheRead : 0,
+						cacheWrite: typeof usage.cacheWrite === 'number' ? usage.cacheWrite : 0,
+					}
 					: undefined;
 			return {
 				id,

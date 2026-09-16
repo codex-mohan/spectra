@@ -68,6 +68,9 @@ export interface McpConfig {
 	timeout?: number;
 }
 
+/** Config layer an MCP server is persisted to. */
+export type McpScope = 'project' | 'global';
+
 export interface PluginConfig {
 	name: string;
 	path?: string;
@@ -155,18 +158,88 @@ export function loadConfig(cwd?: string): SpectraConfig {
 
 export function saveConfig(cfg: SpectraConfig, filePath?: string): void {
 	const target = filePath || join(getGlobalConfigDir(), 'spectra.json');
-	const dir = target.substring(
-		0,
-		target.lastIndexOf('/') > 0
-			? Math.max(target.lastIndexOf('/'), target.lastIndexOf('\\'))
-			: target.lastIndexOf('\\') > 0
-				? target.lastIndexOf('\\')
-				: 0,
-	);
-	if (!existsSync(dir)) {
-		mkdirSync(dir, { recursive: true });
-	}
+	ensureParentDir(target);
 	writeFileSync(target, JSON.stringify(cfg, null, 2));
+}
+
+function ensureParentDir(filePath: string): void {
+	const separator = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+	if (separator > 0) mkdirSync(filePath.slice(0, separator), { recursive: true });
+}
+
+const MCP_SCOPES: readonly McpScope[] = ['project', 'global'];
+
+/** Path of the single config file backing a scope, independent of what exists on disk. */
+export function mcpScopePath(scope: McpScope, cwd: string = process.cwd()): string {
+	return scope === 'project' ? join(cwd, '.spectra', 'spectra.json') : join(getGlobalConfigDir(), 'spectra.json');
+}
+
+/** Reads one config file in isolation, without merging the global and project layers. */
+export function readConfigFile(filePath: string): SpectraConfig {
+	if (!existsSync(filePath)) return {};
+	try {
+		const parsed = safeJsonParse(readFileSync(filePath, 'utf-8'));
+		return isRecord(parsed) ? parsed as SpectraConfig : {};
+	} catch {
+		return {};
+	}
+}
+
+function writeConfigFile(filePath: string, cfg: SpectraConfig): void {
+	ensureParentDir(filePath);
+	writeFileSync(filePath, JSON.stringify(cfg, null, 2));
+}
+
+/** Locates the scope currently owning an MCP server name. */
+export function findMcpScope(name: string, cwd: string = process.cwd()): McpScope | undefined {
+	for (const scope of MCP_SCOPES) {
+		const servers = readConfigFile(mcpScopePath(scope, cwd)).mcp ?? [];
+		if (servers.some((server) => server.name === name)) return scope;
+	}
+	return undefined;
+}
+
+/** Inserts or replaces an MCP server in one scope, leaving every other key untouched. */
+export function saveMcpServer(server: McpConfig, scope: McpScope, cwd: string = process.cwd()): void {
+	const filePath = mcpScopePath(scope, cwd);
+	const cfg = readConfigFile(filePath);
+	const servers = [...(cfg.mcp ?? [])];
+	const index = servers.findIndex((entry) => entry.name === server.name);
+	if (index >= 0) servers[index] = server;
+	else servers.push(server);
+	cfg.mcp = servers;
+	writeConfigFile(filePath, cfg);
+}
+
+/** Removes an MCP server from whichever scope defines it. */
+export function removeMcpServerConfig(name: string, cwd: string = process.cwd()): McpScope | undefined {
+	for (const scope of MCP_SCOPES) {
+		const filePath = mcpScopePath(scope, cwd);
+		const cfg = readConfigFile(filePath);
+		const servers = cfg.mcp ?? [];
+		const remaining = servers.filter((server) => server.name !== name);
+		if (remaining.length === servers.length) continue;
+		cfg.mcp = remaining;
+		writeConfigFile(filePath, cfg);
+		return scope;
+	}
+	return undefined;
+}
+
+/** Toggles the enabled flag of a server in whichever scope defines it. */
+export function setMcpServerEnabled(name: string, enabled: boolean, cwd: string = process.cwd()): boolean {
+	for (const scope of MCP_SCOPES) {
+		const filePath = mcpScopePath(scope, cwd);
+		const cfg = readConfigFile(filePath);
+		const servers = cfg.mcp ?? [];
+		const index = servers.findIndex((server) => server.name === name);
+		if (index < 0) continue;
+		servers[index] = { ...servers[index], enabled };
+		cfg.mcp = servers;
+		writeConfigFile(filePath, cfg);
+		return true;
+	}
+	return false;
 }
 
 export function getEffectiveModel(cfg: SpectraConfig): string {

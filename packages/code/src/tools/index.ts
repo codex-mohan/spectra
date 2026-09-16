@@ -258,6 +258,36 @@ export async function createAllToolsWithExtensions(): Promise<{
 	};
 }
 
+/**
+ * MCP tools arrive as AgentTools rather than SpectraTools, so they miss the
+ * wrapExecute guard. Gate them explicitly: an unknown `mcp` permission falls
+ * back to `ask`, which routes the call through the permission dialog.
+ */
+function createGatedMcpTools(security: SecurityManager): AgentTool[] {
+	const gated: AgentTool[] = [];
+	for (const server of listConnectedServers()) {
+		if (server.tools.length === 0) continue;
+		for (const tool of createMcpAgentTools(server.name, server.tools)) {
+			const execute = tool.execute;
+			gated.push({
+				...tool,
+				execute: async (toolCallId, args, signal, onUpdate) => {
+					try {
+						await security.checkPermission('mcp', [tool.name], tool.name, `MCP tool ${tool.name}`);
+					} catch (err) {
+						if (err instanceof PermissionDeniedError) {
+							return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true } as ToolResult;
+						}
+						throw err;
+					}
+					return execute(toolCallId, args, signal, onUpdate);
+				},
+			});
+		}
+	}
+	return gated;
+}
+
 export function createAllToolsWithSecurity(
 	security: SecurityManager,
 	config?: AgentRegistryConfig,
@@ -275,6 +305,7 @@ export function createAllToolsWithSecurity(
 	if (config) {
 		tools.push(spectraToolToAgentTool(createTaskTool(config, security, sessionStore, parentSessionId), security));
 	}
+	tools.push(...createGatedMcpTools(security));
 	return tools;
 }
 

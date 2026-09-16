@@ -498,6 +498,7 @@ Exported helpers include:
 - `loadContext`
 - `SessionStore`
 - MCP helpers such as `connectServer`, `disconnectServer`, `listConnectedServers`, `listServerTools`, and `readServerResource`
+- MCP authoring helpers such as `MCP_PRESETS`, `parseMcpServersJson`, `splitArguments`, and `formatArguments`
 - Resource helpers such as `createReadTool`, `InternalUrlRouter`, `createInternalUrlRouter`, and `ArtifactStore`
 - Tool helpers such as `builtinTools`, `createAllTools`, `createAllToolsWithMcp`, and `createAllToolsWithExtensions`
 - Built-in tools such as `shellTool`, `readTool`, `writeTool`, `editTool`, `grepTool`, `globTool`, and `webFetchTool`

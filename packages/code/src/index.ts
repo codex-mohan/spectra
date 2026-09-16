@@ -19,7 +19,13 @@ export {
 	shutdownAllServers,
 	sanitizeToolName,
 	formatMcpToolName,
+	formatArguments,
+	splitArguments,
+	parseMcpServersJson,
+	sanitizeServerName,
+	MCP_PRESETS,
 } from './integrations/mcp/index.js';
+export type { McpPreset, McpImportOutcome } from './integrations/mcp/index.js';
 export type { SpectraTool } from './tools/types.js';
 export {
 	builtinTools,

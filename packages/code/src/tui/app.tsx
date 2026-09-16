@@ -27,7 +27,7 @@ import { DoctorDialog } from './ui/doctor-dialog.js';
 import { AboutDialog } from './ui/about-dialog.js';
 import { AgentSwitcher } from './ui/agent-switcher.js';
 import { ThinkingEffortDialog } from './ui/thinking-effort-dialog.js';
-import { McpToggleDialog } from './ui/mcp-toggle-dialog.js';
+import { McpManageDialog } from './ui/mcp-manage-dialog.js';
 import { DebugDialog } from './ui/debug-dialog.js';
 import { UpdateDialog, UPDATE_COMMAND } from './ui/update-dialog.js';
 import { SessionStatsDialog } from './ui/session-stats-dialog.js';
@@ -51,6 +51,7 @@ import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
 import { setTerminalTitle, formatSessionTitle } from './utils/terminal-title.js';
 import { loadConfig, type CustomProviderConfig } from '../services/config.js';
+import { listConnectedServers } from '../integrations/mcp/index.js';
 import { registerAllCustomProviders } from '../services/custom-providers.js';
 import { PermissionDialog } from './ui/permission-dialog.js';
 import { PLACEHOLDERS } from './app-constants.js';
@@ -139,6 +140,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const selectedAgent = sessionState.activeState.selectedAgent;
 	const turnCount = messages.filter((m: any) => m.role === 'user').length;
 	const sessionTokens = useMemo(() => sumTurnTokens(messages), [messages]);
+	const toolCallCount = useMemo(
+		() => messages.reduce((total, message) => total + (message.blocks?.filter((block) => block.type === 'toolCall').length ?? 0), 0),
+		[messages],
+	);
+	const avgTurnMs = useMemo(() => {
+		const durations = messages
+			.map((message) => message.turnDurationMs)
+			.filter((value): value is number => typeof value === 'number' && value > 0);
+		if (durations.length === 0) return null;
+		return durations.reduce((total, value) => total + value, 0) / durations.length;
+	}, [messages]);
 	const selectedModel = sessionState.activeState.selectedModel ?? savedConfig.model;
 	const selectedProvider = sessionState.activeState.selectedProvider ?? savedConfig.provider;
 	const thinkingEffort = sessionState.activeState.thinkingEffort;
@@ -306,7 +318,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const provider = selectedProvider;
 	const hasModel = selectedModel !== null && selectedProvider !== null;
 	const agentAccentColor = resolveAgentAccentColor(agentCatalog.definitions[selectedAgent]?.color);
-	const mcpCount = 0;
+	const mcpCount = useMemo(() => listConnectedServers().length, [dialogStep]);
 	const customProviderCount = Object.keys(customProviders).length;
 
 	const cwdLabel = useMemo(() => {
@@ -1209,7 +1221,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				/>
 			)}
 			{dialogStep?.type === 'toggle-mcp' && (
-				<McpToggleDialog
+				<McpManageDialog
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}
@@ -1246,9 +1258,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					customProviderCount={customProviderCount}
 					turnCount={turnCount}
 					messagesLength={messages.length}
+					toolCallCount={toolCallCount}
 					elapsedMs={elapsedMs}
+					avgTurnMs={avgTurnMs}
 					tokPerSec={tokPerSec}
 					contextTokens={contextBreakdown?.usedTokens ?? tokenUsage.input}
+					contextReserveTokens={contextBreakdown?.reserveTokens ?? null}
 					sessionTokens={sessionTokens}
 					costSoFar={sessionState.activeState.costSoFar}
 					onClose={() => setDialogStep(null)}

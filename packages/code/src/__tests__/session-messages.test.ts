@@ -180,12 +180,12 @@ describe('session message hydration', () => {
 		const { sumTurnTokens } = await import('../tui/utils/session-messages.js');
 		const messages = [
 			{ id: 'user', role: 'user', content: 'First turn' },
-			{ id: 'first', role: 'assistant', content: 'One', turnTokens: { input: 100, output: 25 } },
-			{ id: 'second', role: 'assistant', content: 'Two', turnTokens: { input: 180, output: 40 } },
+			{ id: 'first', role: 'assistant', content: 'One', turnTokens: { input: 100, output: 25, cacheRead: 900, cacheWrite: 40 } },
+			{ id: 'second', role: 'assistant', content: 'Two', turnTokens: { input: 180, output: 40, cacheRead: 60 } },
 			{ id: 'tool', role: 'tool', content: 'Result' },
 		] satisfies ChatMessage[];
 
-		expect(sumTurnTokens(messages)).toEqual({ input: 280, output: 65 });
+		expect(sumTurnTokens(messages)).toEqual({ input: 280, output: 65, cacheRead: 960, cacheWrite: 40 });
 	});
 
 	it('formats persisted image dimensions for the attachment row', async () => {

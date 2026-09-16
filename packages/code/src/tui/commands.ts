@@ -761,11 +761,11 @@ export function buildCmdItems(opts: {
 		},
 		{
 			id: 'toggle-mcp',
-			label: 'Toggle MCPs',
+			label: 'Manage MCPs',
 			desc: `${opts.mcpCount} connected`,
 			cat: 'Agent',
 			slashName: 'mcp',
-			slashAliases: ['toggle-mcp'],
+			slashAliases: ['toggle-mcp', 'mcps'],
 			action: () => {
 				setDialogStep({ type: 'toggle-mcp' });
 			},

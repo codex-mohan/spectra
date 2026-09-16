@@ -67,7 +67,7 @@ export interface ChatMessage {
 	/** Turn duration in milliseconds */
 	turnDurationMs?: number;
 	/** Token usage for this turn */
-	turnTokens?: { input: number; output: number };
+	turnTokens?: { input: number; output: number; cacheRead?: number; cacheWrite?: number };
 	/** Exit code for shell tool results (structured, no regex parsing needed) */
 	exitCode?: number;
 	/** Whether a tool result reported an error */

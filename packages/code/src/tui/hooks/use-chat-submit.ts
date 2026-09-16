@@ -541,7 +541,7 @@ Return ONLY the title text, nothing else.`;
 							blocks: displayBlocks,
 							streaming: false,
 							turnStatus: isError ? 'error' : undefined,
-							turnTokens: { input: m.usage.input, output: m.usage.output },
+							turnTokens: { input: m.usage.input, output: m.usage.output, cacheRead: m.usage.cacheRead, cacheWrite: m.usage.cacheWrite },
 							turnDurationMs: Math.round(duration),
 						});
 
@@ -564,7 +564,7 @@ Return ONLY the title text, nothing else.`;
 							agent: persistedTurn.agent,
 							model: persistedTurn.model,
 							turnDurationMs: Math.round(duration),
-							turnTokens: { input: m.usage.input, output: m.usage.output },
+							turnTokens: { input: m.usage.input, output: m.usage.output, cacheRead: m.usage.cacheRead, cacheWrite: m.usage.cacheWrite },
 							patch,
 							contextUsage,
 						},
