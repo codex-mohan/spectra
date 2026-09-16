@@ -66,7 +66,7 @@ function isTextFile(file: FileContent): boolean {
 	return file.mime.startsWith('text/') || file.mime === 'application/json' || file.mime === 'application/xml';
 }
 
-function toAnthropicMessage(message: Message): MessageParam {
+export function toAnthropicMessage(message: Message): MessageParam {
 	if (message.role === 'user') {
 		const content =
 			typeof message.content === 'string'
@@ -161,33 +161,32 @@ function toAnthropicMessage(message: Message): MessageParam {
 	}
 
 	if (message.role === 'toolResult') {
-		const content: ContentBlockParam[] = message.content.map((block) => {
+		const content = message.content.flatMap((block): Array<TextBlockParam | ImageBlockParam> => {
 			if (block.type === 'text') {
-				return {
-					type: 'tool_result' as const,
-					tool_use_id: message.toolCallId,
-					content: sanitizeSurrogates(block.text),
-				};
+				return [{ type: 'text' as const, text: sanitizeSurrogates(block.text) }];
 			}
 			if (block.type === 'image') {
-				return {
-					type: 'tool_result' as const,
-					tool_use_id: message.toolCallId,
-					content: [
-						{
-							type: 'image' as const,
-							source: {
-								type: 'base64' as const,
-								media_type: block.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-								data: block.data,
-							},
-						},
-					],
-				};
+				return [{
+					type: 'image' as const,
+					source: {
+						type: 'base64' as const,
+						media_type: block.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+						data: block.data,
+					},
+				}];
 			}
-			return { type: 'tool_result' as const, tool_use_id: message.toolCallId, content: '' };
+			return [];
 		});
-		return { role: 'user', content: content as unknown as MessageParam['content'] };
+		// One tool_result per tool_use_id: a result carrying both text and
+		// images must merge them into this single block's content array.
+		return {
+			role: 'user',
+			content: [{
+				type: 'tool_result' as const,
+				tool_use_id: message.toolCallId,
+				content: content.length > 0 ? content : '',
+			}] as unknown as MessageParam['content'],
+		};
 	}
 
 	return { role: 'user', content: '' };

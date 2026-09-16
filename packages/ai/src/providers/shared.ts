@@ -1,8 +1,36 @@
-import type { ProviderErrorDetails, ProviderErrorKind } from '../types.js';
+import type { ImageContent, ProviderErrorDetails, ProviderErrorKind, TextContent, ToolResultMessage } from '../types.js';
 
 export function sanitizeSurrogates(text: string): string {
 	return text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
 }
+
+export type ToolResultBlock = ToolResultMessage['content'][number];
+
+/**
+ * Joins the text blocks of a tool result. OpenAI-compatible tool payloads
+ * (`role: "tool"` and `function_call_output`) accept text only, so images are
+ * replayed separately via {@link toolResultImages}.
+ */
+export function toolResultText(content: readonly ToolResultBlock[]): string {
+	return content
+		.filter((block): block is TextContent => block.type === 'text')
+		.map((block) => block.text)
+		.join('\n');
+}
+
+export function toolResultImages(content: readonly ToolResultBlock[]): ImageContent[] {
+	return content.filter((block): block is ImageContent => block.type === 'image');
+}
+
+export function imageDataUrl(image: ImageContent): string {
+	return `data:${image.mimeType};base64,${image.data}`;
+}
+
+/**
+ * Label preceding tool-result images in the follow-up user turn. The tool
+ * payload itself is text-only, so the image arrives one message later.
+ */
+export const TOOL_RESULT_IMAGE_NOTE = 'Images returned by the tool result above:';
 
 export function parseStreamingJson(json: string): Record<string, unknown> {
 	try {

@@ -16,6 +16,7 @@ import type {
 	AssistantMessage,
 	Context,
 	FileContent,
+	ImageContent,
 	Model,
 	StreamOptions,
 	TextContent,
@@ -24,7 +25,15 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
-import { normalizeProviderError, parseStreamingJson, sanitizeSurrogates } from './shared.js';
+import {
+	imageDataUrl,
+	normalizeProviderError,
+	parseStreamingJson,
+	sanitizeSurrogates,
+	TOOL_RESULT_IMAGE_NOTE,
+	toolResultImages,
+	toolResultText,
+} from './shared.js';
 import { getProviderModels } from '../models.js';
 
 function getEnvApiKey(provider: string): string | undefined {
@@ -390,7 +399,27 @@ export function convertResponsesMessages(model: Model, context: Context): unknow
 		});
 	}
 
+	// `function_call_output.output` is a string, so tool-result images ride in one
+	// user turn emitted after the whole run of consecutive tool results —
+	// inserting them between outputs would break function_call adjacency.
+	const pendingImages: ImageContent[] = [];
+	const flushToolResultImages = (): void => {
+		if (pendingImages.length === 0) return;
+		messages.push({
+			role: 'user',
+			content: [
+				{ type: 'input_text' as const, text: TOOL_RESULT_IMAGE_NOTE },
+				...pendingImages.map((image) => ({
+					type: 'input_image' as const,
+					image_url: imageDataUrl(image),
+				})),
+			],
+		});
+		pendingImages.length = 0;
+	};
+
 	for (const msg of context.messages) {
+		if (msg.role !== 'toolResult') flushToolResultImages();
 		if (msg.role === 'user') {
 			if (typeof msg.content === 'string') {
 				messages.push({
@@ -456,15 +485,12 @@ export function convertResponsesMessages(model: Model, context: Context): unknow
 				}
 			}
 		} else if (msg.role === 'toolResult') {
-			const textResult = msg.content
-				.filter((c) => c.type === 'text')
-				.map((c) => (c as TextContent).text)
-				.join('\n');
 			messages.push({
 				type: 'function_call_output',
 				call_id: msg.toolCallId.split('|')[0] || msg.toolCallId,
-				output: sanitizeSurrogates(textResult || '(no result)'),
+				output: sanitizeSurrogates(toolResultText(msg.content) || '(no result)'),
 			});
+			pendingImages.push(...toolResultImages(msg.content));
 		}
 	}
 
@@ -486,6 +512,8 @@ export function convertResponsesMessages(model: Model, context: Context): unknow
 			messages.push(...contextItems);
 		}
 	}
+
+	flushToolResultImages();
 
 	return messages;
 }

@@ -7,6 +7,7 @@ import type {
 	AssistantMessage,
 	Context,
 	FileContent,
+	ImageContent,
 	Model,
 	StreamOptions,
 	TextContent,
@@ -14,7 +15,15 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
-import { normalizeProviderError, parseStreamingJson, sanitizeSurrogates } from './shared.js';
+import {
+	imageDataUrl,
+	normalizeProviderError,
+	parseStreamingJson,
+	sanitizeSurrogates,
+	TOOL_RESULT_IMAGE_NOTE,
+	toolResultImages,
+	toolResultText,
+} from './shared.js';
 import { getProviderModels } from '../models.js';
 import type { DiscoveryContext, DiscoveryResult, ModelInfo } from '../registry.js';
 
@@ -433,7 +442,27 @@ export function convertMessages(model: Model, context: Context): ChatCompletionM
 		params.push({ role: 'system', content: sanitizeSurrogates(systemText) });
 	}
 
+	// A `role: "tool"` payload is text-only, so images returned by a tool ride in
+	// one user turn emitted after the whole run of consecutive tool results —
+	// inserting them between tool messages would break tool_call adjacency.
+	const pendingImages: ImageContent[] = [];
+	const flushToolResultImages = (): void => {
+		if (pendingImages.length === 0) return;
+		params.push({
+			role: 'user',
+			content: [
+				{ type: 'text' as const, text: TOOL_RESULT_IMAGE_NOTE },
+				...pendingImages.map((image) => ({
+					type: 'image_url' as const,
+					image_url: { url: imageDataUrl(image) },
+				})),
+			],
+		});
+		pendingImages.length = 0;
+	};
+
 	for (const msg of context.messages) {
+		if (msg.role !== 'toolResult') flushToolResultImages();
 		if (msg.role === 'user') {
 			if (typeof msg.content === 'string') {
 				params.push({ role: 'user', content: sanitizeSurrogates(msg.content) });
@@ -498,16 +527,12 @@ export function convertMessages(model: Model, context: Context): ChatCompletionM
 				params.push(assistantMsg as unknown as ChatCompletionAssistantMessageParam);
 			}
 		} else if (msg.role === 'toolResult') {
-			const textResult = msg.content
-				.filter((c) => c.type === 'text')
-				.map((c) => (c as TextContent).text)
-				.join('\n');
-
 			params.push({
 				role: 'tool',
-				content: sanitizeSurrogates(textResult || '(no result)'),
+				content: sanitizeSurrogates(toolResultText(msg.content) || '(no result)'),
 				tool_call_id: msg.toolCallId,
 			});
+			pendingImages.push(...toolResultImages(msg.content));
 		}
 	}
 
@@ -527,6 +552,8 @@ export function convertMessages(model: Model, context: Context): ChatCompletionM
 			params.push(...contextItems);
 		}
 	}
+
+	flushToolResultImages();
 
 	// Defensive repair: some providers (e.g. DeepSeek) are strict about every
 	// assistant `tool_calls` being followed by matching `role: "tool"` messages.

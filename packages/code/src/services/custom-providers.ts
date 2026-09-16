@@ -1,5 +1,9 @@
 import {
 	registerProvider,
+	imageDataUrl,
+	toolResultImages,
+	toolResultText,
+	TOOL_RESULT_IMAGE_NOTE,
 	type Provider,
 	type Model,
 	type Context,
@@ -112,7 +116,23 @@ export function registerCustomProvider(id: string, config: CustomProviderConfig)
 					if (context.systemPrompt) {
 						messages.push({ role: 'system', content: context.systemPrompt });
 					}
-				for (const msg of context.messages) {
+					// A `role: "tool"` payload is text-only, so images returned by a
+					// tool ride in one user turn after the whole run of tool results.
+					const pendingImages: any[] = [];
+					const flushToolResultImages = (): void => {
+						if (pendingImages.length === 0) return;
+						messages.push({
+							role: 'user',
+							content: [
+								{ type: 'text', text: TOOL_RESULT_IMAGE_NOTE },
+								...pendingImages.map((image) => ({ type: 'image_url', image_url: { url: imageDataUrl(image) } })),
+							],
+						});
+						pendingImages.length = 0;
+					};
+
+					for (const msg of context.messages) {
+						if (msg.role !== 'toolResult') flushToolResultImages();
 						if (msg.role === 'user') {
 							if (typeof msg.content === 'string') {
 								messages.push({ role: 'user', content: msg.content });
@@ -152,13 +172,12 @@ export function registerCustomProvider(id: string, config: CustomProviderConfig)
 								});
 							}
 						} else if (msg.role === 'toolResult') {
-							const text = msg.content
-								.filter((c: any) => c.type === 'text')
-								.map((c: any) => c.text)
-								.join('\n');
-							messages.push({ role: 'tool', content: text || '(no result)', tool_call_id: msg.toolCallId });
+							messages.push({ role: 'tool', content: toolResultText(msg.content) || '(no result)', tool_call_id: msg.toolCallId });
+							pendingImages.push(...toolResultImages(msg.content));
 						}
 					}
+
+					flushToolResultImages();
 
 					const params: any = {
 						model: model.id,

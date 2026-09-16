@@ -3,6 +3,12 @@ export { stream, complete, registerProvider, getProvider, listProviders, getMode
 export type { StreamFunction, Provider, ModelInfo, DiscoveryContext, DiscoveryResult } from './registry.js';
 export { initProviders } from './providers/register-builtins.js';
 export { normalizeProviderError } from './providers/shared.js';
+export {
+	imageDataUrl,
+	toolResultImages,
+	toolResultText,
+	TOOL_RESULT_IMAGE_NOTE,
+} from './providers/shared.js';
 export { getProviderModels } from './models.js';
 export type { ModelEntry } from './models.js';
 export {
