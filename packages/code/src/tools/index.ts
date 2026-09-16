@@ -1,8 +1,8 @@
 import type { SpectraTool } from './types.js';
 import { shellTool } from './shell.js';
-import { readTool } from './read.js';
+import { createReadTool } from './read.js';
 import { writeTool } from './write.js';
-import { editTool } from './edit.js';
+import { createEditTool } from './edit.js';
 import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
@@ -26,14 +26,20 @@ import type { SessionStore } from '../services/session-store.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
+import { ReadSnapshotStore } from './read-snapshots.js';
 export { type SpectraTool } from './types.js';
 
-function createBuiltinTools(askHandler?: AskHandler): SpectraTool<any>[] {
+function createBuiltinTools(
+	askHandler?: AskHandler,
+	readOptions: Parameters<typeof createReadTool>[0] = {},
+	editOptions: Parameters<typeof createEditTool>[0] = {},
+): SpectraTool<any>[] {
+	const snapshots = readOptions.snapshots ?? editOptions.snapshots ?? new ReadSnapshotStore();
 	return [
 		shellTool,
-		readTool,
+		createReadTool({ ...readOptions, snapshots }),
 		writeTool,
-		editTool,
+		createEditTool({ ...editOptions, snapshots }),
 		grepTool,
 		globTool,
 		webFetchTool,
@@ -77,6 +83,16 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 							content: [{ type: 'text', text: `External file access denied: ${err.message}` }],
 							isError: true,
 						};
+					}
+					throw err;
+				}
+			}
+			if (patterns.pathPatterns.length === 0) {
+				try {
+					await security.checkPermission(tool.name, patterns.toolPatterns, tool.name, patterns.toolPatterns[0]);
+				} catch (err) {
+					if (err instanceof PermissionDeniedError) {
+						return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
 					}
 					throw err;
 				}
@@ -249,7 +265,13 @@ export function createAllToolsWithSecurity(
 	parentSessionId?: string,
 	askHandler?: AskHandler,
 ): AgentTool[] {
-	const tools = [...createBuiltinTools(askHandler), createTodoTool(sessionStore, parentSessionId)].map((t) => spectraToolToAgentTool(t, security));
+	const snapshots = new ReadSnapshotStore();
+	const tools = [...createBuiltinTools(askHandler, {
+		sessionStore,
+		sessionId: parentSessionId,
+		ssrfGuard: security.getSsrfGuard(),
+		snapshots,
+	}, { snapshots }), createTodoTool(sessionStore, parentSessionId)].map((t) => spectraToolToAgentTool(t, security));
 	if (config) {
 		tools.push(spectraToolToAgentTool(createTaskTool(config, security, sessionStore, parentSessionId), security));
 	}

@@ -243,6 +243,29 @@ Useful environment variables:
 - `SPECTRA_API_KEY` — API key override.
 - `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` — provider-specific keys.
 
+## Unified resources
+
+The `read` tool accepts ordinary paths, HTTP(S) URLs, and internal resource URIs through the same interface. Internal protocols keep large or specialized context outside the permanent prompt and load it only when needed.
+
+| Protocol | Resource |
+|---|---|
+| `skill://<name>[/path]` | Bundled, evolving, user, or project skill files |
+| `rule://<name>` | Active project instruction sources |
+| `agent://<id>[/field]` | Background task or child-session output, with JSON field extraction |
+| `artifact://<id>` | Recoverable large tool output |
+| `history://<session-id>[/field]` | Persisted session state and messages |
+| `memory://project`, `memory://user`, `memory://memory` | Scoped memory files |
+| `local://<path>` | Session-local mutable files |
+| `mcp://<resource-uri>` | Resources advertised by connected MCP servers |
+| `issue://<number>`, `pr://<number>` | GitHub issue or pull request for the current repository |
+| `ssh://<host>/<path>` | Files or shallow directory listings on configured SSH hosts |
+| `vault://<path>` | Read-only files under `SPECTRA_VAULT_DIR` |
+| `spectra://readme`, `spectra://agents`, `spectra://docs/<path>` | Spectra documentation |
+
+Append `:N`, `:N-M`, comma-separated ranges, `:raw`, or `:conflicts` to file and resource paths. Unselected results larger than the inline limit are saved under `.spectra/artifacts/` and returned as an `artifact://<id>` reference.
+
+Programmatic consumers can register additional schemes with `InternalUrlRouter` or create a session-aware tool with `createReadTool()`.
+
 ## Custom tools
 
 Create a `tools` directory in any discovered config directory, such as `.spectra/tools/`, then add `.ts` or `.js` files.
@@ -455,7 +478,10 @@ import {
   SessionStore,
   builtinTools,
   shellTool,
+  createReadTool,
   readTool,
+  InternalUrlRouter,
+  createInternalUrlRouter,
   writeTool,
   getGlobalDataDir,
 } from "@mohanscodex/spectra-code";
@@ -471,7 +497,8 @@ Exported helpers include:
 - `loadConfig`
 - `loadContext`
 - `SessionStore`
-- MCP helpers such as `connectServer`, `disconnectServer`, `listConnectedServers`, and `listServerTools`
+- MCP helpers such as `connectServer`, `disconnectServer`, `listConnectedServers`, `listServerTools`, and `readServerResource`
+- Resource helpers such as `createReadTool`, `InternalUrlRouter`, `createInternalUrlRouter`, and `ArtifactStore`
 - Tool helpers such as `builtinTools`, `createAllTools`, `createAllToolsWithMcp`, and `createAllToolsWithExtensions`
 - Built-in tools such as `shellTool`, `readTool`, `writeTool`, `editTool`, `grepTool`, `globTool`, and `webFetchTool`
 - Platform helpers such as `getPlatformInfo`, `getSystemPrompt`, `getGlobalConfigDir`, `getGlobalDataDir`, and `getGlobalCacheDir`

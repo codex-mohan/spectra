@@ -13,6 +13,7 @@ export {
 	disconnectServer,
 	listConnectedServers,
 	listServerTools,
+	readServerResource,
 	callMcpTool,
 	connectAllServers,
 	shutdownAllServers,
@@ -29,7 +30,7 @@ export {
 	spectraToolToAgentTool,
 } from './tools/index.js';
 export { shellTool } from './tools/shell.js';
-export { readTool } from './tools/read.js';
+export { createReadTool, readTool } from './tools/read.js';
 export { writeTool } from './tools/write.js';
 export { editTool } from './tools/edit.js';
 export { grepTool } from './tools/grep.js';
@@ -39,3 +40,20 @@ export { createMcpAgentTool, createMcpAgentTools } from './tools/mcp-tool.js';
 export { getEnvironmentPrompt, getPlatformInfo, getSystemPrompt } from './utils/platform.js';
 export type { EnvironmentPromptOptions } from './utils/platform.js';
 export { getGlobalConfigDir, getGlobalDataDir, getGlobalCacheDir, discoverConfigDirs } from './utils/paths.js';
+export {
+	ArtifactStore,
+	InternalUrlRouter,
+	createInternalUrlRouter,
+	internalScheme,
+	parseInternalUrl,
+} from './internal-urls/index.js';
+export type {
+	InternalResource,
+	InternalUrl,
+	NamedResource,
+	ProtocolHandler,
+	ResolveContext,
+	ResourceContentType,
+	UrlCompletion,
+	WriteContext,
+} from './internal-urls/index.js';

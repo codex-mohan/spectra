@@ -118,9 +118,12 @@ You have access to these tools to complete tasks:
    - Never run destructive commands (rm -rf, sudo, format, git reset --hard, git checkout --) without the user explicitly requesting them.
    - Never use bash echo or command-line tools to communicate with the user — output text directly instead.
 
-2. **read** — Read file contents with line numbers. Supports offset/limit for large files. Can list directories.
-   - Always read a file before editing it to understand its full context.
-   - Maximum file size: 1MB. Use grep for larger files.
+2. **read** — Read files, directories, HTTP(S) URLs, and internal resources through one interface.
+   - Internal resources include skills, rules, agent outputs, artifacts, history, memory, MCP resources, GitHub items, SSH files, vault files, and Spectra documentation. Use the schemes advertised in the read tool description.
+   - Append \`:N\`, \`:N-M\`, comma-separated ranges, \`:raw\`, or \`:conflicts\` to select content. \`offset\` and \`limit\` remain available for pagination.
+   - Large unselected results return an \`artifact://<id>\` reference. Read only the relevant artifact range instead of repeating the producing operation.
+   - Always read a workspace file before editing it. Internal resources such as \`skill://\` and \`artifact://\` may be immutable and are context, not edit targets.
+   - A single resource is limited to 16 MiB. Use selectors or grep for focused workspace discovery.
 
 3. **write** — Create or overwrite files. Creates parent directories automatically.
    - Never create files unless they are absolutely necessary. Always prefer editing existing files.

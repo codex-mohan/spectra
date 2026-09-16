@@ -1,3 +1,9 @@
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createReadTool } from '../tools/read.js';
+import { createEditTool } from '../tools/edit.js';
+import { ReadSnapshotStore } from '../tools/read-snapshots.js';
 import { describe, it, expect } from 'vitest';
 import {
 	findEditMatch,
@@ -97,6 +103,30 @@ describe('edit-match: CRLF tolerance', () => {
 		expect(error).toBeUndefined();
 		// Detected ending is LF; newString CRLFs are normalised down to LF.
 		expect(next).toBe('foo\nQUUX\nbaz\n');
+	});
+});
+
+describe('edit: hashline snapshots', () => {
+	it('requires the read tag and applies a tagged replacement', async () => {
+		const directory = mkdtempSync(join(tmpdir(), 'spectra-hashline-'));
+		try {
+			const filePath = join(directory, 'sample.ts');
+			writeFileSync(filePath, 'export const value = 1;\n');
+			const snapshots = new ReadSnapshotStore();
+			const read = createReadTool({ cwd: directory, snapshots });
+			const edit = createEditTool({ cwd: directory, snapshots });
+			const readResult = await read.execute({ path: 'sample.ts' }, { toolCallId: 'read' });
+			const text = readResult.content[0]?.type === 'text' ? readResult.content[0].text : '';
+			const header = /^\[([^\]]+#([0-9A-F]{4}))\]/m.exec(text);
+			expect(header).not.toBeNull();
+
+			const patch = `[${header![1]}]\nSWAP 1.=1:\n+export const value = 2;\n`;
+			const editResult = await edit.execute({ patch }, { toolCallId: 'edit' });
+			expect(editResult.isError).toBeFalsy();
+			expect(readFileSync(filePath, 'utf8')).toBe('export const value = 2;\n');
+		} finally {
+			rmSync(directory, { recursive: true, force: true });
+		}
 	});
 });
 

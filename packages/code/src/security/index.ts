@@ -424,15 +424,28 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 		const rawPath = (args.path || args.file_path || args.filePath) as string | undefined;
 
 		if (rawPath) {
-			pathPatterns.push(rawPath);
-			try {
-				const abs = resolve(cwd, rawPath);
-				pathPatterns.push(abs);
-				if (!isInsideWorkingDir(rawPath, cwd)) {
-					externalPaths.push(rawPath);
-					externalPaths.push(abs);
+			const uriScheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(rawPath)?.[1]?.toLowerCase();
+			if (uriScheme) {
+				if (uriScheme === 'http' || uriScheme === 'https') {
+					try {
+						toolPatterns.push(new URL(rawPath).hostname);
+					} catch {
+						toolPatterns.push(rawPath);
+					}
+				} else {
+					toolPatterns.push(`${uriScheme}://`);
 				}
-			} catch {}
+			} else {
+				pathPatterns.push(rawPath);
+				try {
+					const abs = resolve(cwd, rawPath);
+					pathPatterns.push(abs);
+					if (!isInsideWorkingDir(rawPath, cwd)) {
+						externalPaths.push(rawPath);
+						externalPaths.push(abs);
+					}
+				} catch {}
+			}
 		}
 
 		if (toolName === 'bash' || toolName === 'shell') {

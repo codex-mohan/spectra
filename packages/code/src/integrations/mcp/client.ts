@@ -1,9 +1,27 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { CallToolResultSchema, ToolListChangedNotificationSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+	CallToolResultSchema,
+	ResourceListChangedNotificationSchema,
+	ToolListChangedNotificationSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import type { CallToolResult, ListToolsResult, Tool as McpToolDefinition } from '@modelcontextprotocol/sdk/types.js';
 import type { McpConfig } from '../../services/config.js';
+
+export interface McpResourceDefinition {
+	uri: string;
+	name?: string;
+	description?: string;
+	mimeType?: string;
+}
+
+export interface McpResourceTemplateDefinition {
+	uriTemplate: string;
+	name?: string;
+	description?: string;
+	mimeType?: string;
+}
 
 export interface McpServerConfig {
 	name: string;
@@ -20,6 +38,8 @@ export interface ConnectedServer {
 	client: Client;
 	transport: StdioClientTransport | StreamableHTTPClientTransport;
 	tools: McpToolDefinition[];
+	resources: McpResourceDefinition[];
+	resourceTemplates: McpResourceTemplateDefinition[];
 	config: McpServerConfig;
 	refCount: number;
 }
@@ -66,11 +86,28 @@ export async function connectServer(config: McpServerConfig): Promise<ConnectedS
 		tools = [];
 	}
 
+	let resources: McpResourceDefinition[] = [];
+	let resourceTemplates: McpResourceTemplateDefinition[] = [];
+	try {
+		const result = await client.listResources();
+		resources = (result.resources ?? []) as McpResourceDefinition[];
+	} catch {
+		resources = [];
+	}
+	try {
+		const result = await client.listResourceTemplates();
+		resourceTemplates = (result.resourceTemplates ?? []) as McpResourceTemplateDefinition[];
+	} catch {
+		resourceTemplates = [];
+	}
+
 	const connected: ConnectedServer = {
 		name: config.name,
 		client,
 		transport,
 		tools,
+		resources,
+		resourceTemplates,
 		config,
 		refCount: 0,
 	};
@@ -86,6 +123,23 @@ export async function connectServer(config: McpServerConfig): Promise<ConnectedS
 			}
 		} catch {
 			// ignore
+		}
+	});
+
+	client.setNotificationHandler(ResourceListChangedNotificationSchema, async () => {
+		const existing = connectedServers.get(config.name);
+		if (!existing) return;
+		try {
+			const result = await client.listResources();
+			existing.resources = (result.resources ?? []) as McpResourceDefinition[];
+		} catch {
+			// Keep the last known resource list when refresh fails.
+		}
+		try {
+			const result = await client.listResourceTemplates();
+			existing.resourceTemplates = (result.resourceTemplates ?? []) as McpResourceTemplateDefinition[];
+		} catch {
+			// Keep the last known template list when refresh fails.
 		}
 	});
 
@@ -143,6 +197,12 @@ export async function listServerTools(name: string): Promise<McpToolDefinition[]
 		throw new Error(`Server "${name}" is not connected`);
 	}
 	return server.tools;
+}
+
+export async function readServerResource(serverName: string, uri: string) {
+	const server = connectedServers.get(serverName);
+	if (!server) throw new Error(`Server "${serverName}" is not connected`);
+	return server.client.readResource({ uri });
 }
 
 export async function callMcpTool(
