@@ -1,5 +1,19 @@
 # @mohanscodex/spectra-code
 
+## 0.7.0
+
+### Minor Changes
+
+- [`dd59796`](https://github.com/codex-mohan/spectra/commit/dd597964f870db7cc8a3a6a44e2ae8a62b67251d) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Manage MCP servers from the TUI: add, edit, delete, connect, and retest with project or global scope, a verified preset catalog, JSON import from an `mcpServers` block, and quoted argument parsing for paths containing spaces. Connected servers now expose their tools to the TUI agent behind an `mcp` permission. Session stats report cache read/write tokens, tool calls, average turn time, and the autocompact reserve.
+
+- [`acc942a`](https://github.com/codex-mohan/spectra/commit/acc942ab1ddd25f3cd27c5eadbc2f2aade5c36a9) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add a session-aware unified `read` resource router for skills, rules, agent outputs, artifacts, history, memory, MCP resources, GitHub items, SSH files, vault files, and Spectra documentation. Add shared selectors and recoverable artifact spilling across files and protocol resources.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.7.0
+  - @mohanscodex/spectra-agent@0.7.0
+
 ## 0.6.2
 
 ### Patch Changes
