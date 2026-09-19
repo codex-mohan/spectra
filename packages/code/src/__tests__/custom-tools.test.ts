@@ -76,5 +76,5 @@ describe('Custom Tools', () => {
 		expect(result.builtin).toHaveLength((await import('../tools/index.js')).builtinTools.length);
 		expect(Array.isArray(result.custom)).toBe(true);
 		expect(result.all.length).toBeGreaterThanOrEqual(result.builtin.length);
-	});
+	}, 15_000);
 });

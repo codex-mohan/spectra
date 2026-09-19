@@ -16,7 +16,6 @@ import { initProviders } from '@mohanscodex/spectra-ai';
 import type { AssistantMessage, Context, Message, ContextMessage } from '@mohanscodex/spectra-ai';
 import { Agent } from '@mohanscodex/spectra-agent';
 import type { AgentTool, BeforeModelCallContext } from '@mohanscodex/spectra-agent';
-import { pruneStaleSkills } from '../../services/skill-store.js';
 import { createAllToolsWithSecurity, discoverAndCreateSkillTools } from '../../tools/index.js';
 import type { AskHandler } from '../../tools/ask.js';
 import { buildContextMessages, loadContext } from '../../services/context.js';
@@ -324,10 +323,6 @@ export function useAgent(deps: UseAgentDeps) {
 			if (history && history.length > 0) agent.restoreHistory(history);
 			agentsMapRef.current.set(sessionKey, agent);
 			agentConfigFingerprintsRef.current.set(sessionKey, runtimeFingerprint(runtimeConfig));
-
-			// Fire-and-forget maintenance
-			pruneStaleSkills().catch(() => {});
-
 
 			return agent;
 		},

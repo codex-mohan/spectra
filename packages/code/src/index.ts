@@ -42,6 +42,7 @@ export { editTool } from './tools/edit.js';
 export { grepTool } from './tools/grep.js';
 export { globTool } from './tools/glob.js';
 export { webFetchTool } from './tools/web-fetch.js';
+export { proposeSkillTool } from './tools/propose-skill.js';
 export { createMcpAgentTool, createMcpAgentTools } from './tools/mcp-tool.js';
 export { getEnvironmentPrompt, getPlatformInfo, getSystemPrompt } from './utils/platform.js';
 export type { EnvironmentPromptOptions } from './utils/platform.js';

@@ -1,6 +1,6 @@
 import { useRef, useCallback, useMemo } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
-import type { Message, AssistantMessage, FileContent, TextContent, ToolResultMessage } from '@mohanscodex/spectra-ai';
+import type { Message, AssistantMessage, FileContent, TextContent } from '@mohanscodex/spectra-ai';
 import type { PromptSubmitPayload } from '../prompt-bar.js';
 import { calculateCost, stream } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
@@ -18,10 +18,6 @@ import { setTerminalTitle, formatSessionTitle } from '../utils/terminal-title.js
 import { getAuthKey } from '../utils/model-config.js';
 import { captureTurnConfiguration, latestTurnConfiguration, readTurnConfiguration } from '../turn-config.js';
 import type { useSessionState } from './use-session-state.js';
-import { loadConfig } from '../../services/config.js';
-import { enqueuePendingSkill } from '../../services/pending-skills.js';
-import { synthesizeSkillWithAgent } from '../../services/skill-synth.js';
-import { loadAllEvolvingSkills, saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
 import { recordUsageCost } from '../../services/usage-store.js';
 import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 import { formatAttachmentReferences } from '../utils/attachment-reference.js';
@@ -600,72 +596,6 @@ Return ONLY the title text, nothing else.`;
 							fireTitleAgent(userText, assistantText).catch(() => {});
 						}
 
-						if (runSessionId) {
-							const sid = runSessionId;
-							(async () => {
-								try {
-									const cfg = loadConfig();
-									if (cfg.skills?.autoSynthesize === false) return;
-
-									const sess = sessionStore.current.get(sid);
-									if (!sess) return;
-
-									const toolCalls: { name: string; args: unknown; success: boolean }[] = [];
-									for (const msg of sess.messages) {
-										if (msg.role === 'assistant') {
-											const content = Array.isArray(msg.content) ? msg.content : [];
-											for (const block of content) {
-												if (block.type === 'toolCall') {
-													const resultMsg = sess.messages.find((message): message is ToolResultMessage =>
-														message.role === 'toolResult' && message.toolCallId === block.id,
-													);
-													toolCalls.push({
-														name: block.name,
-														args: block.arguments,
-														success: !resultMsg || !resultMsg.isError,
-													});
-												}
-											}
-										}
-									}
-
-									const trace = {
-										messages: sess.messages,
-										toolCalls,
-										duration: e,
-									};
-
-									const existing = await loadAllEvolvingSkills();
-									const generated = await synthesizeSkillWithAgent(trace, existing, {
-										model: deps.selectedModel,
-										provider: deps.provider,
-										getApiKey: getAuthKey,
-									});
-									if (!generated) return;
-
-									const id = generated.action === 'evolve' && generated.existingSkillId
-										? generated.existingSkillId
-										: generated.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
-
-									if (cfg.skills?.confirmBeforeSave !== false) {
-										enqueuePendingSkill({ id, action: generated.action, existingSkillId: generated.existingSkillId, name: generated.name, description: generated.description, whenToUse: generated.whenToUse, content: generated.content, reason: generated.reason, createdAt: new Date().toISOString() });
-										showToast(`${generated.action === 'evolve' ? 'Evolved' : 'Learned new'} skill: ${generated.name}. Use /skills to save.`, 'info');
-										return;
-									}
-
-									if (generated.action === 'evolve' && generated.existingSkillId) {
-										await evolveSkill(generated.existingSkillId, { description: generated.description, whenToUse: generated.whenToUse }, generated.content);
-										showToast(`Evolved skill: ${generated.name}`, 'success');
-									} else {
-										const meta = { id, name: generated.name, description: generated.description, whenToUse: generated.whenToUse, tags: [] as string[], useCount: 0, version: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), origin: 'learned' as const };
-										await saveEvolvingSkill(meta, generated.content);
-										showToast(`Saved skill: ${generated.name}`, 'success');
-									}
-								} catch {
-									// Synthesis failed silently
-								}
-							})();
-						}
 					}
 					if (ev.type === 'tool_execution_start') {
 						const args = isRecord(ev.args) ? ev.args : {};

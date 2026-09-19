@@ -205,7 +205,6 @@ describe('resolveAgentAccentColor', () => {
 		expect(BUILTIN_AGENT_DEFINITIONS.explore?.color).toBe('purple');
 		expect(BUILTIN_AGENT_DEFINITIONS.general?.color).toBe('blue');
 		expect(BUILTIN_AGENT_DEFINITIONS.title?.color).toBeUndefined();
-		expect(BUILTIN_AGENT_DEFINITIONS['skill-synth']?.color).toBeUndefined();
 		expect(resolveAgentAccentColor(BUILTIN_AGENT_DEFINITIONS.plan?.color)).toBe(c.orange);
 	});
 });

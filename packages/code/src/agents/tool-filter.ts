@@ -18,6 +18,7 @@ const TOOL_ALIASES: Record<string, string> = {
 	task: 'task',
 	todo: 'todo',
 	memory: 'memory',
+	propose_skill: 'propose_skill',
 	skill: 'skill',
 	find_skills: 'find_skills',
 	// Claude TitleCase
@@ -30,6 +31,7 @@ const TOOL_ALIASES: Record<string, string> = {
 	Glob: 'glob',
 	WebFetch: 'web_fetch',
 	Task: 'task',
+	ProposeSkill: 'propose_skill',
 };
 
 export function normalizeToolName(name: string): string {

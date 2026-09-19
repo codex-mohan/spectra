@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { c } from '../theme.js';
 import { getPendingSkills, approvePendingSkill, rejectPendingSkill, type PendingSkill } from '../../services/pending-skills.js';
-import { saveEvolvingSkill, evolveSkill } from '../../services/skill-store.js';
+import { saveEvolvingSkill, evolveSkill, loadEvolvingSkill } from '../../services/skill-store.js';
 import { loadAllSkills, invalidateSkillCatalog } from '../../services/skill-catalog.js';
 import { showToast } from '../components/toast.js';
 import type { Skill } from '@mohanscodex/spectra-agent';
@@ -22,6 +22,7 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler, 
 	const [pending, setPending] = useState<PendingSkill[]>([]);
 	const [allSkills, setAllSkills] = useState<Skill[]>([]);
 	const [selectedIdx, setSelectedIdx] = useState(0);
+	const mutationInFlight = useRef(false);
 
 	useEffect(() => {
 		setPending(getPendingSkills());
@@ -62,24 +63,29 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler, 
 
 			if (tab === 'pending') {
 				if (key.name === 'a' || key.name === 'y') {
+					if (mutationInFlight.current) return;
 					const skill = pending[selectedIdx];
 					if (!skill) return;
+					mutationInFlight.current = true;
 					try {
-						const approved = approvePendingSkill(skill.id);
-						if (!approved) return;
-						if (approved.action === 'evolve') {
-							if (!approved.existingSkillId) throw new Error('Missing existing skill id');
-							await evolveSkill(approved.existingSkillId, { description: approved.description, whenToUse: approved.whenToUse }, approved.content);
-							showToast(`Evolved skill: ${approved.name}`, 'success');
+						if (skill.action === 'evolve') {
+							if (!skill.existingSkillId) throw new Error('Missing existing skill id');
+							await evolveSkill(skill.existingSkillId, { name: skill.name, description: skill.description, whenToUse: skill.whenToUse }, skill.content);
+							showToast(`Evolved skill: ${skill.name}`, 'success');
 						} else {
-							const meta = { id: approved.id, name: approved.name, description: approved.description, whenToUse: approved.whenToUse, tags: [] as string[], useCount: 0, version: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), origin: 'learned' as const };
-							await saveEvolvingSkill(meta, approved.content);
-							showToast(`Saved skill: ${approved.name}`, 'success');
+							if (await loadEvolvingSkill(skill.id)) throw new Error(`Skill already exists: ${skill.id}`);
+							const now = new Date().toISOString();
+							const meta = { id: skill.id, name: skill.name, description: skill.description, whenToUse: skill.whenToUse, tags: [] as string[], useCount: 0, version: 1, createdAt: now, updatedAt: now, origin: 'learned' as const };
+							await saveEvolvingSkill(meta, skill.content);
+							showToast(`Saved skill: ${skill.name}`, 'success');
 						}
+						approvePendingSkill(skill.id);
 						refreshAll();
 						if (selectedIdx >= getPendingSkills().length) setSelectedIdx(Math.max(0, getPendingSkills().length - 1));
 					} catch (err) {
 						showToast(`Failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
+					} finally {
+						mutationInFlight.current = false;
 					}
 					return;
 				}

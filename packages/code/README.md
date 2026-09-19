@@ -333,7 +333,7 @@ Skill layers, from lowest to highest precedence:
 | Layer | Location | Notes |
 | --- | --- | --- |
 | Bundled | Included in the npm package | Shipped with 60+ workflows |
-| Evolving | `~/.spectra/skills/` | Generated from previous sessions |
+| Evolving | `~/.spectra/skills/` | Explicitly proposed during work and saved after user review |
 | User/project | `.claude/skills/`, `.agents/skills/`, `~/.claude/skills/`, and other discovered skill directories | Override bundled and evolving skills |
 
 Create a custom skill with a `SKILL.md` file:
@@ -353,7 +353,7 @@ when_to_use: when the user asks to deploy to our platform
 3. Deploy with the custom platform CLI.
 ```
 
-During a session, the agent can use `find_skills` to discover relevant skills and `skill` to load instructions.
+During a session, the agent can use `find_skills` to discover relevant skills and `skill` to load instructions. A completed, reusable workflow may be submitted through `propose_skill`; proposals remain pending until you approve or reject them with `/skills`. Ordinary tasks no longer launch automatic skill synthesis.
 
 ## Security
 
@@ -501,7 +501,7 @@ Exported helpers include:
 - MCP authoring helpers such as `MCP_PRESETS`, `parseMcpServersJson`, `splitArguments`, and `formatArguments`
 - Resource helpers such as `createReadTool`, `InternalUrlRouter`, `createInternalUrlRouter`, and `ArtifactStore`
 - Tool helpers such as `builtinTools`, `createAllTools`, `createAllToolsWithMcp`, and `createAllToolsWithExtensions`
-- Built-in tools such as `shellTool`, `readTool`, `writeTool`, `editTool`, `grepTool`, `globTool`, and `webFetchTool`
+- Built-in tools such as `shellTool`, `readTool`, `writeTool`, `editTool`, `grepTool`, `globTool`, `webFetchTool`, and `proposeSkillTool`
 - Platform helpers such as `getPlatformInfo`, `getSystemPrompt`, `getGlobalConfigDir`, `getGlobalDataDir`, and `getGlobalCacheDir`
 
 ## Development

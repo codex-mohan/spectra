@@ -128,7 +128,8 @@ export class ACPAdapter {
 				await connectAllServers(config.mcp).catch(() => {});
 			}
 
-			const toolResult = await createAllToolsWithExtensions();
+			// ACP has no /skills review surface, so proposals remain a TUI-only capability.
+			const toolResult = await createAllToolsWithExtensions({ includeSkillProposal: false });
 			const agentTools = def ? filterToolsByAgent(toolResult.all, agentName, catalog) : toolResult.all;
 
 			const systemPrompt = buildAcpSystemPrompt(requestCwd, {

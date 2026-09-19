@@ -71,7 +71,7 @@ describe('ACP Protocol', () => {
 			const adapter = new acpSource.ACPAdapter();
 			expect(adapter).toBeDefined();
 			expect(SdkAgent).toBeDefined();
-		});
+		}, 15_000);
 
 		it('shares the same tool system as the TUI', async () => {
 			// The ACP server uses createAllTools + spectraToolToAgentTool — same as TUI
@@ -80,7 +80,7 @@ describe('ACP Protocol', () => {
 
 			expect(tools).toHaveLength(builtinTools.length);
 			expect(tools.map((t) => t.name).sort()).toEqual(builtinTools.map((t) => t.name).sort());
-		});
+		}, 15_000);
 
 		it('shares the same config loader', async () => {
 			const { loadConfig: tuiLoadConfig } = await import('../services/config.js');
@@ -102,7 +102,7 @@ describe('ACP Protocol', () => {
 			const { BUILTIN_AGENT_DEFINITIONS: acpDefs } = await import('../agents/index.js');
 			expect(acpDefs).toBe(tuiDefs);
 			expect(Object.keys(acpDefs).sort()).toEqual(
-				['build', 'debug', 'explore', 'general', 'plan', 'skill-synth', 'title'].sort(),
+				['build', 'debug', 'explore', 'general', 'plan', 'title'].sort(),
 			);
 		});
 

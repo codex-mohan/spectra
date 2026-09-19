@@ -8,8 +8,8 @@ import {
 	incrementUseCount,
 	loadAllEvolvingSkills,
 	evolveSkill,
+	normalizeSkillId,
 } from '../services/skill-store.js';
-import { parseSkillSynthesisDecision } from '../services/skill-synth.js';
 
 describe('Code evolving skill store', () => {
 	let tmpDir: string;
@@ -115,39 +115,23 @@ describe('Code evolving skill store', () => {
 		expect(loaded?.meta.useCount).toBe(5);
 	});
 
-	it('parses LLM evolve decisions by stored id instead of display name', async () => {
-		await saveEvolvingSkill({
-			id: 'debug-fetch-errors',
-			name: 'Debug Fetch Errors',
-			description: 'Original',
-			whenToUse: 'when debugging fetch errors',
+	it('normalizes display names into stable ids', () => {
+		expect(normalizeSkillId('  Debug  Fetch: Errors!  ')).toBe('debug-fetch-errors');
+	});
+
+	it('rejects invalid ids before touching the filesystem', async () => {
+		await expect(saveEvolvingSkill({
+			id: '../escape',
+			name: 'Escape',
+			description: 'Invalid',
+			whenToUse: '',
 			tags: [],
 			useCount: 0,
 			version: 1,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
 			origin: 'learned',
-		}, '# Original');
-
-		const decision = parseSkillSynthesisDecision(JSON.stringify({
-			action: 'evolve',
-			existingSkillId: 'debug-fetch-errors',
-			name: 'Debug Fetch Errors',
-			description: 'Updated',
-			whenToUse: 'when debugging fetch errors',
-			content: '# Updated',
-			reason: 'The session improves the existing workflow.',
-		}), await loadAllEvolvingSkills());
-
-		expect(decision).toEqual({
-			action: 'evolve',
-			existingSkillId: 'debug-fetch-errors',
-			name: 'Debug Fetch Errors',
-			description: 'Updated',
-			whenToUse: 'when debugging fetch errors',
-			content: '# Updated',
-			reason: 'The session improves the existing workflow.',
-		});
+		}, '# Invalid')).rejects.toThrow('Invalid skill id');
 	});
 
 	it('returns null for non-existent skills', async () => {
@@ -155,4 +139,3 @@ describe('Code evolving skill store', () => {
 		expect(loaded).toBeNull();
 	});
 });
-

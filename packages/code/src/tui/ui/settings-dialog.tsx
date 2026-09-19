@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { c } from '../theme.js';
-import { loadConfig, saveConfig, type SpectraConfig } from '../../services/config.js';
 
 interface SettingsDialogProps {
 	onClose: () => void;
@@ -10,46 +9,18 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler }: SettingsDialogProps) {
-	const [config, setConfig] = useState<SpectraConfig>({});
-	const [focusIdx, setFocusIdx] = useState(0);
-
-	useEffect(() => {
-		setConfig(loadConfig());
-	}, []);
-
 	useEffect(() => {
 		const handler = (key: any) => {
 			if (key.name === 'escape' || key.name === 'return' || key.name === 'enter') {
 				onClose();
-				return;
-			}
-			if (key.name === 'up' && focusIdx > 0) setFocusIdx(focusIdx - 1);
-			if (key.name === 'down' && focusIdx < 1) setFocusIdx(focusIdx + 1);
-			if (key.name === 'return' || key.name === 'enter' || key.name === 'space') {
-				toggle(focusIdx);
 			}
 		};
 		registerHandler?.(handler);
-	}, [onClose, registerHandler, focusIdx]);
-
-	const toggle = (idx: number) => {
-		const skills = { ...(config.skills || {}) };
-		if (idx === 0) {
-			skills.autoSynthesize = skills.autoSynthesize === false ? true : false;
-		} else if (idx === 1) {
-			skills.confirmBeforeSave = skills.confirmBeforeSave === false ? true : false;
-		}
-		const updated = { ...config, skills };
-		setConfig(updated);
-		saveConfig(updated);
-	};
-
-	const autoSynth = config.skills?.autoSynthesize !== false;
-	const confirmSave = config.skills?.confirmBeforeSave !== false;
+	}, [onClose, registerHandler]);
 
 	const mw = Math.min(55, termWidth - 4);
 	const ml = Math.floor((termWidth - mw) / 2);
-	const mh = 14;
+	const mh = 12;
 	const mt = Math.max(0, Math.floor((termHeight - mh) / 3));
 	const innerW = mw - 4;
 
@@ -69,20 +40,17 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 				</box>
 				<box flexDirection="column" paddingX={2} gap={1} flexGrow={1}>
 					<box flexDirection="row" gap={1}>
-						<text fg={focusIdx === 0 ? c.accent : c.dim}>{focusIdx === 0 ? '▸ ' : '  '}</text>
-						<text fg={c.text}>Auto-synthesize skills</text>
-						<text fg={autoSynth ? c.success : c.dim}>{autoSynth ? ' [ON]' : ' [OFF]'}</text>
+						<text fg={c.text}>Creation</text>
+						<text fg={c.success}>explicit proposals</text>
 					</box>
 					<box flexDirection="row" gap={1}>
-						<text fg={focusIdx === 1 ? c.accent : c.dim}>{focusIdx === 1 ? '▸ ' : '  '}</text>
-						<text fg={c.text}>Confirm before saving skills</text>
-						<text fg={confirmSave ? c.success : c.dim}>{confirmSave ? ' [ON]' : ' [OFF]'}</text>
+						<text fg={c.text}>Review</text>
+						<text fg={c.success}>always required</text>
 					</box>
+					<text fg={c.dim}>Use /skills to approve or reject proposals.</text>
 				</box>
 				<box paddingX={2} paddingTop={1} paddingBottom={1} flexDirection="row" justifyContent="center" gap={2}>
-					<text fg={c.dim}>↑↓ navigate</text>
-					<text fg={c.dim}>enter/space toggle</text>
-					<text fg={c.dim}>esc close</text>
+					<text fg={c.dim}>enter/esc close</text>
 				</box>
 			</box>
 		</box>

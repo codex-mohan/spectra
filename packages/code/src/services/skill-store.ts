@@ -40,8 +40,20 @@ function getSkillMdPath(id: string): string {
 	return path.join(getSkillDir(id), 'SKILL.md');
 }
 
-function isValidSkillId(id: string): boolean {
+export function isValidSkillId(id: string): boolean {
 	return /^[a-z0-9][a-z0-9-]{1,79}$/.test(id);
+}
+
+export function normalizeSkillId(value: string): string {
+	return value
+		.normalize('NFKD')
+		.toLowerCase()
+		.replace(/[^a-z0-9\s-]/g, '')
+		.trim()
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '')
+		.slice(0, 80);
 }
 
 export function getEvolvingSkillId(skill: Skill): string | null {
@@ -65,6 +77,7 @@ export async function ensureSkillsDir(): Promise<void> {
 }
 
 export async function saveEvolvingSkill(skill: EvolvingSkillMeta, content: string): Promise<void> {
+	if (!isValidSkillId(skill.id)) throw new Error(`Invalid skill id: ${skill.id}`);
 	await ensureSkillsDir();
 	const dir = getSkillDir(skill.id);
 	if (!existsSync(dir)) {
@@ -135,7 +148,7 @@ export async function evolveSkill(
 	content: string,
 ): Promise<void> {
 	const loaded = await loadEvolvingSkill(existingId);
-	if (!loaded) return;
+	if (!loaded) throw new Error(`Skill not found: ${existingId}`);
 
 	const updated: EvolvingSkillMeta = {
 		...loaded.meta,
@@ -169,31 +182,4 @@ export async function forkSkill(
 		origin: 'learned',
 	};
 	await saveEvolvingSkill(meta, content);
-}
-
-const STALE_SKILL_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-
-export async function pruneStaleSkills(): Promise<string[]> {
-	const dir = getSkillsDir();
-	if (!existsSync(dir)) return [];
-
-	const pruned: string[] = [];
-	const now = Date.now();
-	try {
-		const entries = await fs.readdir(dir, { withFileTypes: true });
-		for (const entry of entries) {
-			if (!entry.isDirectory()) continue;
-			const loaded = await loadEvolvingSkill(entry.name);
-			if (!loaded) continue;
-			const { meta } = loaded;
-			if (meta.origin !== 'learned' || meta.useCount > 0) continue;
-			const age = now - new Date(meta.createdAt).getTime();
-			if (age < STALE_SKILL_AGE_MS) continue;
-			await fs.rm(getSkillDir(entry.name), { recursive: true, force: true });
-			pruned.push(entry.name);
-		}
-	} catch {
-		// Skip unreadable directories.
-	}
-	return pruned;
 }

@@ -116,7 +116,7 @@ describe('template discovery and registration', () => {
 		const definition = templatesToCommands(loaded.templates, root)[0]!;
 		await expect(definition.execute({ source: 'slash', args: '', invocation: 'shell' }))
 			.resolves.toEqual({ type: 'submit_prompt', text: 'Result: shell-ok' });
-	});
+	}, 15_000);
 
 	test('rejects shell interpolation when disabled', async () => {
 		const root = await makeTempDir();

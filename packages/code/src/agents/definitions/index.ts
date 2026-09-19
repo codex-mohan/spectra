@@ -5,7 +5,6 @@ import { debugAgent } from './debug.js';
 import { exploreAgent } from './explore.js';
 import { generalAgent } from './general.js';
 import { titleAgent } from './title.js';
-import { skillSynthAgent } from './skill-synth.js';
 
 /** Built-in agents only. Prefer loadAgentCatalog() for the full merged set. */
 export const BUILTIN_AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
@@ -15,5 +14,4 @@ export const BUILTIN_AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
 	[exploreAgent.name]: exploreAgent,
 	[generalAgent.name]: generalAgent,
 	[titleAgent.name]: titleAgent,
-	[skillSynthAgent.name]: skillSynthAgent,
 };

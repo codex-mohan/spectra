@@ -47,7 +47,9 @@ export interface MemoryConfig {
 }
 
 export interface SkillsConfig {
+	/** @deprecated Skill proposals are explicit and no longer synthesized after turns. */
 	autoSynthesize?: boolean;
+	/** @deprecated Skill proposals always require review before they are saved. */
 	confirmBeforeSave?: boolean;
 }
 

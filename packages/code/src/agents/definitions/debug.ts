@@ -5,7 +5,7 @@ export const debugAgent: AgentDefinition = {
 	mode: 'primary',
 	description:
 		'Investigation and debugging. Can read files and run safe commands but cannot edit. Use for diagnosing issues.',
-	disallowedTools: ['write', 'edit'],
+	disallowedTools: ['write', 'edit', 'propose_skill'],
 	color: 'green',
 	temperature: 0,
 	prompt: `## Mode: Debug

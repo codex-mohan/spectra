@@ -7,6 +7,7 @@ import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
 import { webFetchTool } from './web-fetch.js';
 import { memoryTool } from './memory.js';
+import { proposeSkillTool } from './propose-skill.js';
 import { createTaskTool } from './task.js';
 import { createTodoTool } from './todo.js';
 import { createAskTool, type AskHandler } from './ask.js';
@@ -44,6 +45,7 @@ function createBuiltinTools(
 		globTool,
 		webFetchTool,
 		memoryTool,
+		proposeSkillTool,
 		createAskTool(askHandler),
 	];
 }
@@ -57,7 +59,7 @@ export function getToolStreamingDisplay(toolName: string): SpectraTool['streamin
 }
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
-const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'task', 'ask', 'web_fetch', 'webfetch']);
+const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'propose_skill', 'task', 'ask', 'web_fetch', 'webfetch']);
 
 function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool['execute'] {
 	const tracker = security.getReadTracker();
@@ -232,13 +234,15 @@ export function getToolStats(): { builtin: number; mcp: number; total: number } 
 	};
 }
 
-export async function createAllToolsWithExtensions(): Promise<{
+export async function createAllToolsWithExtensions(options: { includeSkillProposal?: boolean } = {}): Promise<{
 	builtin: AgentTool[];
 	mcp: AgentTool[];
 	custom: AgentTool[];
 	all: AgentTool[];
 }> {
-	const builtin = builtinTools.map((t) => spectraToolToAgentTool(t));
+	const builtin = builtinTools
+		.filter((tool) => options.includeSkillProposal !== false || tool.name !== 'propose_skill')
+		.map((tool) => spectraToolToAgentTool(tool));
 
 	const connected = listConnectedServers();
 	const mcp: AgentTool[] = [];

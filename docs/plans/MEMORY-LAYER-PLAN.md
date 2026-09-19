@@ -26,49 +26,24 @@ and config dirs. A memory layer built on a broken instruction loader inherits it
 
 ---
 
-## Part B — Fix Evolving Skills (Quality Gate + Opt-In)
+## Part B — Explicit Evolving Skills
 
-Current state: zero quality filtering. `skill-synth.ts:103` takes raw user input as the
-skill name verbatim. Eligibility is 3 tool calls + 6 messages (trivially met). Silent
-synthesis after every run (`use-chat-submit.ts:417`). Three junk skills already on disk
-with `useCount: 0`, one with a typo (`"imporve"`).
+Automatic end-of-turn synthesis has been removed. Completing a normal task no longer
+launches a hidden model or creates a skill candidate.
 
-### B.1 — Struggle-detector synthesis gate (`packages/agent/src/skill-synth.ts`)
+The primary agent can call `propose_skill` after a completed task demonstrates a
+repeatable, multi-step procedure. The tool requires:
 
-Replace the quantitative eligibility (`MIN_TOOL_CALLS=3`, `MIN_MESSAGES=6`) with a
-**qualitative struggle detector**. A skill is synthesized ONLY when the agent genuinely
-struggled with something technical.
+- A stable name, description, and concrete trigger condition
+- Instruction-quality Markdown containing steps, verification, and pitfalls
+- At least two concrete observations showing that the workflow is reusable
+- `action: evolve` plus the exact stored id when improving a learned skill
 
-**Eligible (ALL must be true):**
-- At least 1 **transformative** tool call (`write`, `edit`, `bash`, `shell`, `task`) — read-only sessions never qualify
-- Struggle signal — at least ONE of:
-  - Error → retry: a tool call failed, then the agent changed approach and retried toward the same goal
-  - ≥2 failed attempts toward the same goal (e.g., two edits that didn't match, then a third that did)
-  - User correction: user message after an assistant message that redirects or corrects ("no, do it this way", "that's wrong", "actually...")
-- Technical topic: the procedure extracted mentions APIs, libraries, methods, commands, config, or non-obvious workflows
-
-**Reject (ANY triggers rejection):**
-- Name is the raw first user message (copy of input — a real skill name is a synthesis, not a copy)
-- Name <4 words OR starts with interrogative/pleading words: `/^(what|how|why|when|where|who|can you|could you|would you|please|i want|i need)\b/i`
-- Procedure is the generic fallback (`"1. Analyze the task requirements\n2. Implement the solution\n3. Verify the result"`)
-- Only read-only tools used (`read`, `glob`, `grep` with no transformative tool)
-- Session is trivial/conversational (no transformative tool call)
-
-**Dedup:** raise `findSimilarSkill` threshold from 0.3 → 0.7 (`skill-store.ts`).
-
-### B.2 — Configurable user opt-in (`packages/code/src/tui/hooks/use-chat-submit.ts:417-458`)
-
-Read config from `SpectraConfig.skills`:
-- `autoSynthesize: false` → skip synthesis entirely (no work done)
-- `confirmBeforeSave: true` (default) → prompt in TUI: `"Learned a new skill: [name]. Save? (y/n)"` — never silent
-- `confirmBeforeSave: false` → silent save (current behavior, opt-in only)
-
-### B.3 — Cleanup existing junk
-
-On first load after this change, prune evolving skills where `useCount === 0` AND
-`origin === 'learned'` AND age > 7 days. Log pruned skill IDs. (One-time migration in
-`skill-store.ts` `loadAllEvolvingSkills` path or a dedicated `pruneStaleSkills()` called
-at agent init.)
+Every proposal enters the `/skills` pending tab and requires user approval. Proposal
+identity is normalized, repeated proposals update the existing pending entry, and
+approval/rejection is idempotent. Creates that collide by name or content with bundled,
+user, project, or learned skills are rejected. The deprecated `autoSynthesize` and
+`confirmBeforeSave` config fields are accepted for compatibility but ignored.
 
 ---
 
@@ -140,8 +115,8 @@ memory?: {
   projectScope?: boolean;   // default true — allow .spectra/memory/PROJECT.md access
 };
 skills?: {
-  autoSynthesize?: boolean;     // default true — run synthesis at all
-  confirmBeforeSave?: boolean;  // default true — prompt before persisting
+  autoSynthesize?: boolean;     // deprecated and ignored
+  confirmBeforeSave?: boolean;  // deprecated and ignored
 };
 ```
 
@@ -163,13 +138,10 @@ The palette groups commands via a `cat` field on each `CmdItem` in
   usage vs char cap, list blocked entries
 - Add `{ type: 'memory' }` to the `setDialogStep` union type (`commands.ts:31-48`)
 
-**Skill confirmation toggle — extend existing `settings` command:**
+**Skill policy — existing `settings` command:**
 - `commands.ts:664-673` has `slashName: 'settings'`, `cat: 'Config'`
-- Add a `"Skills"` section to the settings dialog panel exposing:
-  - `autoSynthesize` toggle (on/off)
-  - `confirmBeforeSave` toggle (on/off)
-- No new command — `settings` is already the right home in `Config` alongside
-  `theme`/`permissions`
+- The `Skills` section reports that creation uses explicit proposals and review is
+  always required. There is no automatic-synthesis or silent-save toggle.
 
 ---
 
@@ -178,7 +150,7 @@ The palette groups commands via a `cat` field on each `CmdItem` in
 1. **Part A** — Fix AGENTS.md loading (3 files, prerequisite, smallest blast radius)
 2. **Part C.1 + C.2 + C.3** — Memory storage + tool + injection (the core feature)
 3. **Part C.4 + C.5** — Config schema + `/memory` command + settings panel section
-4. **Part B** — Skills quality gate + opt-in + junk cleanup (fixes the broken system)
+4. **Part B** — Explicit proposal tool + deduplicated review queue (completed)
 
 Part A is prerequisite because Part C.3 injection touches the same 3 files — fixing
 them first means memory injection slots into already-correct prompt assembly.
@@ -196,9 +168,10 @@ them first means memory injection slots into already-correct prompt assembly.
 | `packages/code/src/tools/index.ts` | C.2 (register memory tool) |
 | `packages/code/src/services/config.ts` | C.4 (add memory + skills config fields) |
 | `packages/code/src/tui/commands.ts` | C.5 (`/memory` command + settings panel) |
-| `packages/agent/src/skill-synth.ts` | B.1 (struggle detector) |
-| `packages/agent/src/skill-store.ts` | B.1 (raise threshold) + B.3 (prune) |
-| `packages/code/src/tui/hooks/use-chat-submit.ts` | B.2 (opt-in confirmation) |
+| `packages/code/src/tools/propose-skill.ts` | B (explicit proposal tool) |
+| `packages/code/src/services/pending-skills.ts` | B (identity-based review queue) |
+| `packages/code/src/services/skill-store.ts` | B (stable ids and validated persistence) |
+| `packages/code/src/tui/ui/skills-dialog.tsx` | B (transactional review actions) |
 
 ## Explicitly Rejected
 

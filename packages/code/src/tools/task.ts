@@ -222,7 +222,8 @@ export function createTaskTool(
 
 				const buildSubTools = (parentId: string | undefined) => {
 					const allTools = createAllToolsWithSecurity(security, config, sessionStore, parentId);
-					return filterToolsByAgent(allTools, subagent_type);
+					// Only the visible primary TUI agent may add reviewable skill proposals.
+					return filterToolsByAgent(allTools, subagent_type).filter((tool) => tool.name !== 'propose_skill');
 				};
 				const configForSession = (tools: NonNullable<SubagentConfig['tools']>, signal?: AbortSignal, childSessionId?: string) => {
 					const session = childSessionId ? sessionStore?.get(childSessionId) : parentSessionId ? sessionStore?.get(parentSessionId) : undefined;
