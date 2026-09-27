@@ -1,5 +1,12 @@
 # @mohanscodex/spectra-agent
 
+## 0.7.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @mohanscodex/spectra-ai@0.7.0
+
 ## 0.6.2
 
 ### Patch Changes
