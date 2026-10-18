@@ -97,14 +97,18 @@ describe('selected OAuth provider metadata', () => {
 });
 
 describe('OAuth callback pages', () => {
-	it('uses Spectra terminal styling and escapes callback text', () => {
+	it('escapes callback text so page content cannot inject markup', () => {
 		const page = renderCallbackPage('<failed>', 'Unexpected <script>alert(1)</script>', 'error');
 
-		expect(page).toContain('linear-gradient(135deg,var(--bg),var(--card))');
-		expect(page).toContain('"Cascadia Code"');
-		expect(page).toContain('--accent:#6EC8D0');
 		expect(page).toContain('&lt;failed&gt;');
 		expect(page).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
 		expect(page).not.toContain('<script>alert(1)</script>');
+	});
+
+	it('stays self-contained with no remote assets', () => {
+		const page = renderCallbackPage('Authorization complete', 'You can return to Spectra.', 'success');
+
+		expect(page).not.toMatch(/(src|href)\s*=\s*["']https?:/);
+		expect(page).not.toContain('@import');
 	});
 });

@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { createHash, randomBytes, randomUUID } from 'crypto';
-import { createServer } from 'http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'http';
+import { networkInterfaces } from 'os';
 import { scheduler } from 'timers/promises';
 import { getGlobalDataDir } from '../utils/paths.js';
 import type { OauthCredential } from './auth-store.js';
@@ -45,7 +46,11 @@ const CODEX_AUTHORIZE_URL = `${CODEX_OAUTH_HOST}/oauth/authorize`;
 const CODEX_TOKEN_URL = `${CODEX_OAUTH_HOST}/oauth/token`;
 const CODEX_REDIRECT_URI = 'http://localhost:1455/auth/callback';
 const CODEX_SCOPE = 'openid profile email offline_access';
-const CODEX_CALLBACK_START_TIMEOUT_MS = 10_000;
+/** `localhost` resolves to both loopback families; the callback serves both. */
+const IPV4_LOOPBACK = '127.0.0.1';
+const IPV6_LOOPBACK = '::1';
+const CODEX_CALLBACK_PORT = 1455;
+const CODEX_PORT_IN_USE_MESSAGE = 'OpenAI Codex needs localhost:1455 for its OAuth callback. Another sign-in is still active; cancel it or close the other Codex client, then try again.';
 const CODEX_CALLBACK_TIMEOUT_MS = 5 * 60 * 1000;
 const CODEX_TOKEN_REQUEST_TIMEOUT_MS = 15_000;
 const KIMI_CLIENT_ID = '17e5f671-d194-4dfb-9706-5516cb48c098';
@@ -250,9 +255,10 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * Render a self-contained, styled callback page.
- * All CSS derives from Spectra token values via inline custom properties.
- * No remote assets, no external fonts — pure CLI/retro-console aesthetic.
+ * Render a self-contained, styled callback page: an animated pixel field over
+ * Spectra's palette behind the status card. All CSS/JS derives from Spectra
+ * token values inlined at render time. No remote assets, no external fonts —
+ * pure CLI/retro-console aesthetic.
  */
 export function renderCallbackPage(
 	heading: string,
@@ -268,6 +274,8 @@ export function renderCallbackPage(
 		variant === 'success' ? '\u2713'
 		: variant === 'error' ? '\u2717'
 		: '\u2022';
+	// Pixel field palette: the Spectra accent ramp and its cool neighbors.
+	const pixelColors = JSON.stringify([c.accent, c.blue, c.purple, c.info, c.thinking]);
 	return [
 		'<!doctype html>',
 		'<meta charset="utf-8">',
@@ -277,15 +285,35 @@ export function renderCallbackPage(
 		`*{margin:0;padding:0;box-sizing:border-box}`,
 		`:root{${palette};--status:${statusColor}}`,
 		'body{background:radial-gradient(ellipse at top,var(--glow),transparent 52%),linear-gradient(135deg,var(--bg),var(--card));color:var(--text);font-family:"SF Mono","Cascadia Code","Fira Code",Consolas,"Courier New",monospace;',
-		'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}',
-		'.card{background:var(--card);border:1px solid var(--border);border-radius:6px;',
-		'padding:2rem 2.5rem;max-width:32rem;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.4)}',
+		'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow:hidden}',
+		'/* pixel layers */',
+		'#px{position:fixed;inset:0;width:100%;height:100%;z-index:0}',
+		'.grid{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.35;',
+		'background-image:linear-gradient(rgba(110,200,208,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(110,200,208,.14) 1px,transparent 1px);',
+		'background-size:24px 24px;animation:grid-drift 36s steps(36) infinite}',
+		'@keyframes grid-drift{to{background-position:24px 24px}}',
+		'.dither{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.12;mix-blend-mode:screen;',
+		'background-image:conic-gradient(var(--accent) 0 25%,transparent 0 50%,var(--accent) 0 75%,transparent 0);',
+		'background-size:8px 8px;animation:dither-shift 2s steps(4) infinite}',
+		'@keyframes dither-shift{to{background-position:8px 8px}}',
+		'/* card */',
+		'.card{position:relative;z-index:2;background:var(--card);border:1px solid var(--border);border-radius:2px;',
+		'padding:2rem 2.5rem;max-width:32rem;width:100%;animation:rise .5s ease-out both;',
+		'box-shadow:8px 8px 0 0 rgba(0,0,0,.35),0 4px 24px rgba(0,0,0,.4),0 0 48px var(--glow)}',
+		'@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}',
+		'.card::before,.card::after{content:"";position:absolute;height:4px;width:56px}',
+		'.card::before{left:-1px;top:-1px;background:linear-gradient(90deg,var(--accent),var(--status))}',
+		'.card::after{right:-1px;bottom:-1px;background:linear-gradient(90deg,var(--status),var(--accent))}',
 		'.status{color:var(--status);font-size:1.5rem;margin-bottom:.5rem}',
 		'h1{font-size:1rem;font-weight:600;letter-spacing:.02em;margin-bottom:.75rem}',
 		'p{font-size:.85rem;line-height:1.6;color:var(--subtext)}',
 		'.divider{border:none;border-top:1px solid var(--border);margin:1rem 0}',
 		'.brand{font-size:.7rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}',
+		'@media (prefers-reduced-motion:reduce){.grid,.dither,.card{animation:none}}',
 		'</style>',
+		'<canvas id="px" aria-hidden="true"></canvas>',
+		'<div class="grid" aria-hidden="true"></div>',
+		'<div class="dither" aria-hidden="true"></div>',
 		'<div class="card">',
 		`<div class="status">${statusIcon}</div>`,
 		`<h1>${escapeHtml(heading)}</h1>`,
@@ -294,11 +322,91 @@ export function renderCallbackPage(
 		'<hr class="divider">',
 		'<div class="brand">Spectra</div>',
 		'</div>',
+		'<script>',
+		// Static script — no user-controlled text is interpolated below.
+		'(() => {',
+		`const COLORS = ${pixelColors};`,
+		'const canvas = document.getElementById("px");',
+		'const ctx = canvas.getContext("2d");',
+		'const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;',
+		'const CELL = 4;',
+		'let w = 0, h = 0, cells = [], last = 0;',
+		'function seed() {',
+		'  const cols = Math.ceil(w / CELL), rows = Math.ceil(h / CELL);',
+		'  const count = Math.min(160, Math.round(cols * rows / 24));',
+		'  cells = [];',
+		'  for (let i = 0; i < count; i++) {',
+		'    cells.push({',
+		'      x: Math.floor(Math.random() * cols) * CELL,',
+		'      y: Math.floor(Math.random() * rows) * CELL,',
+		'      size: (2 + Math.floor(Math.random() * 5)) * CELL,',
+		'      speed: 3 + Math.random() * 14,',
+		'      color: COLORS[Math.floor(Math.random() * COLORS.length)],',
+		'      phase: Math.random() * Math.PI * 2,',
+		'      alpha: 0.08 + Math.random() * 0.3',
+		'    });',
+		'  }',
+		'}',
+		'function resize() {',
+		'  const dpr = Math.min(2, window.devicePixelRatio || 1);',
+		'  w = window.innerWidth; h = window.innerHeight;',
+		'  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);',
+		'  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);',
+		'  ctx.imageSmoothingEnabled = false;',
+		'  seed();',
+		'}',
+		'function draw(now) {',
+		'  ctx.clearRect(0, 0, w, h);',
+		'  for (const p of cells) {',
+		'    const twinkle = 0.7 + 0.3 * Math.sin(now / 900 + p.phase);',
+		'    ctx.globalAlpha = p.alpha * twinkle;',
+		'    ctx.fillStyle = p.color;',
+		'    ctx.fillRect(Math.round(p.x / CELL) * CELL, Math.round(p.y / CELL) * CELL, p.size, p.size);',
+		'  }',
+		'  ctx.globalAlpha = 1;',
+		'}',
+		'function frame(now) {',
+		'  const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;',
+		'  for (const p of cells) { p.y -= p.speed * dt; if (p.y + p.size < 0) p.y = h + p.size; }',
+		'  draw(now);',
+		'  requestAnimationFrame(frame);',
+		'}',
+		'resize();',
+		'addEventListener("resize", resize);',
+		'reduce ? draw(0) : requestAnimationFrame(frame);',
+		'})();',
+		'</script>',
 		'</body></html>',
 	].join('\n');
 }
 
-function startCodexCallbackServer(state: string, signal?: AbortSignal) {
+/**
+ * Whether this host exposes an IPv6 loopback (`::1`) worth binding. With IPv6
+ * disabled there is no `::1` to bind, and that failure must not be mistaken
+ * for a port collision.
+ */
+function ipv6LoopbackAvailable(): boolean {
+	for (const addresses of Object.values(networkInterfaces())) {
+		for (const address of addresses ?? []) {
+			if (address.internal && address.family === 'IPv6') return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Start the Codex OAuth callback server.
+ *
+ * `CODEX_REDIRECT_URI` advertises `localhost`, which resolves to both loopback
+ * families and clients commonly try `::1` first. Binding only `127.0.0.1`
+ * delivers the authorization code to whatever holds the IPv6 loopback on port
+ * 1455 (or drops the connection), while the flow waits out its timeout — so
+ * both literals are bound and answer the same routes, and which family the
+ * client resolves stops mattering. A genuine collision on either literal fails
+ * the flow before the browser opens: the redirect URI is registered with
+ * OpenAI and cannot move to another port.
+ */
+export function startCodexCallbackServer(state: string, signal?: AbortSignal) {
 	let resolveCode: (code: string) => void;
 	let rejectCode: (error: Error) => void;
 	const code = new Promise<string>((resolve, reject) => {
@@ -306,7 +414,7 @@ function startCodexCallbackServer(state: string, signal?: AbortSignal) {
 		rejectCode = reject;
 	});
 	void code.catch(() => {});
-	const server = createServer((request, response) => {
+	const handleRequest = (request: IncomingMessage, response: ServerResponse) => {
 		const callback = new URL(request.url ?? '/', CODEX_REDIRECT_URI);
 		if (callback.pathname !== '/auth/callback') {
 			response.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' }).end(renderCallbackPage('Not found', 'The requested path does not exist.', 'error'));
@@ -325,40 +433,61 @@ function startCodexCallbackServer(state: string, signal?: AbortSignal) {
 		}
 		response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(renderCallbackPage('Authorization complete', 'You can return to Spectra.', 'success'));
 		resolveCode(authorizationCode);
-	});
-
-	const close = () => new Promise<void>((resolve) => {
-		if (!server.listening) {
-			resolve();
-			return;
-		}
-		server.close(() => resolve());
-	});
+	};
+	const servers = [createServer(handleRequest)];
+	const close = async () => {
+		await Promise.all(servers.map((server) => new Promise<void>((resolve) => {
+			if (!server.listening) {
+				resolve();
+				return;
+			}
+			// Idle keep-alive sockets (the browser redirect, fetch probes) would
+			// hold close() open until their timeout; drop them so the port frees now.
+			server.closeIdleConnections?.();
+			server.close(() => resolve());
+		})));
+	};
 	const cancelled = () => {
 		rejectCode(new Error('Login cancelled'));
-		if (server.listening) void close();
+		void close();
 	};
+	signal?.addEventListener('abort', cancelled);
 	const listening = new Promise<void>((resolve, reject) => {
-		let startupExpired = false;
-		const startupTimer = setTimeout(() => {
-			startupExpired = true;
-			reject(new Error('Timed out starting the OpenAI Codex callback server on localhost:1455.'));
-		}, CODEX_CALLBACK_START_TIMEOUT_MS);
-		server.once('error', (error: NodeJS.ErrnoException) => {
-			clearTimeout(startupTimer);
-			if (error.code === 'EADDRINUSE') {
-				reject(new Error('OpenAI Codex needs localhost:1455 for its OAuth callback. Another sign-in is still active; cancel it or close the other Codex client, then try again.'));
-				return;
-			}
-			reject(error);
-		});
-		server.listen(1455, '127.0.0.1', () => {
-			clearTimeout(startupTimer);
-			if (startupExpired) {
+		const primary = servers[0]!;
+		const onStartupError = (error: NodeJS.ErrnoException) =>
+			reject(error.code === 'EADDRINUSE' ? new Error(CODEX_PORT_IN_USE_MESSAGE) : error);
+		primary.once('error', onStartupError);
+		primary.listen(CODEX_CALLBACK_PORT, IPV4_LOOPBACK, () => {
+			primary.removeListener('error', onStartupError);
+			// A server without an 'error' handler throws on late server errors.
+			primary.on('error', (error: Error) => {
+				rejectCode(error);
 				void close();
+			});
+			if (!ipv6LoopbackAvailable()) {
+				resolve();
 				return;
 			}
-			resolve();
+			const companion = createServer(handleRequest);
+			servers.push(companion);
+			companion.once('error', (error: NodeJS.ErrnoException) => {
+				if (error.code === 'EADDRINUSE') {
+					// Another process answers `::1:1455` and would receive the
+					// redirect instead of us. Fail before the browser opens.
+					reject(new Error(CODEX_PORT_IN_USE_MESSAGE));
+					void close();
+					return;
+				}
+				resolve();
+			});
+			companion.listen(CODEX_CALLBACK_PORT, IPV6_LOOPBACK, () => {
+				companion.removeAllListeners('error');
+				companion.on('error', (error: Error) => {
+					rejectCode(error);
+					void close();
+				});
+				resolve();
+			});
 		});
 	});
 	return {
@@ -374,6 +503,52 @@ function startCodexCallbackServer(state: string, signal?: AbortSignal) {
 	};
 }
 
+/**
+ * Exchange the authorization code for tokens, retrying once when the request
+ * dies at the transport layer (cold DNS/TLS/proxy paths can lose the first
+ * exchange from a fresh process). A retry that reached the token endpoint gets
+ * a definitive `invalid_grant` instead — same outcome as today, no worse.
+ */
+async function exchangeCodexCode(verifier: string, code: string, callbacks: ProviderAuthCallbacks): Promise<Response> {
+	let lastError: unknown;
+	for (let attempt = 0; attempt < 2; attempt++) {
+		if (callbacks.signal?.aborted) throw new Error('Login cancelled');
+		if (attempt > 0) callbacks.onProgress('Retrying token exchange...');
+		const exchangeController = new AbortController();
+		const cancelExchange = () => exchangeController.abort();
+		callbacks.signal?.addEventListener('abort', cancelExchange, { once: true });
+		let timeout: NodeJS.Timeout | undefined;
+		try {
+			return await Promise.race([
+				fetch(CODEX_TOKEN_URL, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: new URLSearchParams({
+						grant_type: 'authorization_code',
+						client_id: CODEX_CLIENT_ID,
+						code,
+						code_verifier: verifier,
+						redirect_uri: CODEX_REDIRECT_URI,
+					}),
+					signal: exchangeController.signal,
+				}),
+				new Promise<never>((_, reject) => {
+					timeout = setTimeout(() => {
+						exchangeController.abort();
+						reject(new Error('OpenAI token exchange timed out after 15 seconds.'));
+					}, CODEX_TOKEN_REQUEST_TIMEOUT_MS);
+				}),
+			]);
+		} catch (error) {
+			lastError = error;
+		} finally {
+			clearTimeout(timeout);
+			callbacks.signal?.removeEventListener('abort', cancelExchange);
+		}
+	}
+	throw lastError instanceof Error ? lastError : new Error('OpenAI token exchange failed');
+}
+
 export async function loginCodex(callbacks: ProviderAuthCallbacks): Promise<OauthCredential> {
 	if (callbacks.signal?.aborted) throw new Error('Login cancelled');
 	const flow = createCodexAuthorizationFlow();
@@ -385,41 +560,12 @@ export async function loginCodex(callbacks: ProviderAuthCallbacks): Promise<Oaut
 		callbacks.onProgress('Waiting for OpenAI browser authorization...');
 		const code = await callbackServer.waitForCode();
 		callbacks.onProgress('Exchanging authorization code for tokens...');
-		const exchangeController = new AbortController();
-		const cancelExchange = () => exchangeController.abort();
-		callbacks.signal?.addEventListener('abort', cancelExchange, { once: true });
-		let timeout: ReturnType<typeof setTimeout> | undefined;
-		const tokenFetch = fetch(CODEX_TOKEN_URL, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body: new URLSearchParams({
-				grant_type: 'authorization_code',
-				client_id: CODEX_CLIENT_ID,
-				code,
-				code_verifier: flow.verifier,
-				redirect_uri: CODEX_REDIRECT_URI,
-			}),
-			signal: exchangeController.signal,
-		});
-		try {
-			const tokenResponse = await Promise.race([
-				tokenFetch,
-				new Promise<never>((_, reject) => {
-					timeout = setTimeout(() => {
-						exchangeController.abort();
-						reject(new Error('OpenAI token exchange timed out after 15 seconds. Please try again.'));
-					}, CODEX_TOKEN_REQUEST_TIMEOUT_MS);
-				}),
-			]);
-			if (!tokenResponse.ok) {
-				const detail = await tokenResponse.text().catch(() => '');
-				throw new Error(`Codex token exchange failed: ${tokenResponse.status}${detail ? ` ${detail}` : ''}`);
-			}
-			return codexTokenToCredential(await tokenResponse.json() as TokenResponse);
-		} finally {
-			if (timeout) clearTimeout(timeout);
-			callbacks.signal?.removeEventListener('abort', cancelExchange);
+		const tokenResponse = await exchangeCodexCode(flow.verifier, code, callbacks);
+		if (!tokenResponse.ok) {
+			const detail = await tokenResponse.text().catch(() => '');
+			throw new Error(`Codex token exchange failed: ${tokenResponse.status}${detail ? ` ${detail}` : ''}`);
 		}
+		return codexTokenToCredential(await tokenResponse.json() as TokenResponse);
 	} finally {
 		await callbackServer.close();
 	}
