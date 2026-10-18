@@ -367,11 +367,14 @@ function OAuthLoginDialog(props: {
 			if (key.name === 'escape') cancelLogin();
 			if (key.name === 'o') launchBrowser();
 		});
-		return () => {
-			abortControllerRef.current?.abort();
-			registerHandler(null);
-		};
+		// The app re-renders while auth is in flight and hands over a fresh
+		// `registerHandler` identity each time. Cancelling the login here killed
+		// it mid-flight and the rejection was swallowed, leaving the dialog
+		// stuck on "Starting login..." — re-registering must not cancel.
+		return () => registerHandler(null);
 	}, [cancelLogin, launchBrowser, registerHandler]);
+
+	useEffect(() => () => abortControllerRef.current?.abort(), []);
 
 	useEffect(() => {
 		if (startedRef.current) return;
@@ -399,7 +402,10 @@ function OAuthLoginDialog(props: {
 			setStatus('Saved');
 			setTimeout(onSuccess, 400);
 		}).catch((error: unknown) => {
-			if (!abortController.signal.aborted) setErr(error instanceof Error ? error.message : String(error));
+			// Only a user cancel may stay silent — it closes the dialog through
+			// cancelRequestedRef. Everything else must be visible instead of
+			// leaving the dialog parked on "Starting login...".
+			if (!cancelRequestedRef.current) setErr(error instanceof Error ? error.message : String(error));
 		}).finally(() => {
 			if (abortControllerRef.current === abortController) abortControllerRef.current = null;
 			if (cancelRequestedRef.current) onCancel();
