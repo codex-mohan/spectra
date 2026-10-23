@@ -594,6 +594,8 @@ Three user-visible failures drove this plan:
 
 ### Phases
 
+**Release convention:** every phase ships one `patch` changeset for `@mohanscodex/spectra-ai` and `@mohanscodex/spectra-code`. Version numbers are managed separately and must not be raised per phase.
+
 #### Phase 0 — Cost correctness (shipped)
 
 - [x] Extend `Model` with `cost?: ModelCost` (`maxTokens` already existed). Bundled rows stay lean: the runtime provider-scoped table supplies cards until Phase 1 adds cost to generated rows.
