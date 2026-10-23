@@ -43,7 +43,9 @@ import { SubagentNav } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
 import { loadPricingFromModelsDev, formatCost, getPricingStatus } from '@mohanscodex/spectra-ai';
 import { buildCmdItems } from './commands.js';
-import { slashHead } from './slash-commands.js';
+import { slashHead, slashTokenAt } from './slash-commands.js';
+import { findAtTrigger } from './utils/prompt-triggers.js';
+import { loadAllSkills } from '../services/skill-catalog.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
 import { type ArgCompletion, type CommandDefinition, buildCommandRegistry, type ResolvedCommand } from './command-types.js';
 import { ArgAutocomplete } from './components/arg-autocomplete.js';
@@ -119,6 +121,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [msgControls, setMsgControls] = useState<ChatMessage | null>(null);
 	const [revertPoint, setRevertPoint] = useState<string | null>(null);
 	const [draftText, setDraftText] = useState('');
+	const [draftCursor, setDraftCursor] = useState(0);
+	const [midSlashDismissed, setMidSlashDismissed] = useState(false);
+	const [skillCommands, setSkillCommands] = useState<ResolvedCommand[]>([]);
+	const completionGuardRef = useRef<{ text: string; at: number } | null>(null);
 	const [slashSelected, setSlashSelected] = useState(0);
 	const [slashArgSelected, setSlashArgSelected] = useState(0);
 	const [promptPosition, setPromptPosition] = useState({ top: 0, left: 0, width: 0 });
@@ -531,6 +537,38 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems, templateDefinitions), [cmdItems, templateDefinitions]);
 	const resolvedEntries = commandRegistry.entries;
 
+	useEffect(() => {
+		let cancelled = false;
+		loadAllSkills()
+			.then((skills) => {
+				if (cancelled) return;
+				const entries: ResolvedCommand[] = [];
+				for (const skill of skills.values()) {
+					const name = skill.name.trim();
+					// Slash tokens are single words; skip names that cannot be typed as one.
+					if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(name)) continue;
+					entries.push({
+						definition: {
+							id: `skill:${name}`,
+							name,
+							aliases: [],
+							title: name,
+							description: skill.description || skill.whenToUse || 'Skill',
+							category: 'Skills',
+							source: 'skill',
+							execute: () => undefined,
+						},
+						invocation: name,
+						collisionIndex: 0,
+						matchedBy: 'name',
+					});
+				}
+				setSkillCommands(entries);
+			})
+			.catch(() => {});
+		return () => { cancelled = true; };
+	}, []);
+
 	const { handleSubmit, executeResolvedCommand, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
 		sessionManager,
@@ -570,6 +608,30 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setDialogStep,
 		promptHistoryService,
 	});
+
+	/**
+	 * Enter completes an in-progress mid-text skill token instead of sending the
+	 * prompt. Returning true consumes the submit before any message is created.
+	 */
+	const interceptMidSlashSubmit = useCallback((text: string) => {
+		const guard = completionGuardRef.current;
+		if (guard && guard.text.trim() === text.trim() && performance.now() - guard.at < 500) {
+			completionGuardRef.current = null;
+			return true;
+		}
+		const mid = slashTokenAt(text, text.length);
+		if (!mid) return false;
+		const q = mid.query.toLowerCase();
+		const match = skillCommands.find((command) => command.definition.name.toLowerCase() === q)
+			?? skillCommands.find((command) => command.definition.name.toLowerCase().includes(q));
+		if (!match) return false;
+		const name = match.definition.name;
+		const nextText = `${text.slice(0, mid.start)}/${name} ${text.slice(mid.end)}`;
+		setDraftText(nextText);
+		setDraftCursor(nextText.length);
+		promptBarRef.current?.setText(nextText, nextText.length);
+		return true;
+	}, [skillCommands]);
 
 	// ─── Child session view-switching ───
 	const switchToChildSession = useCallback((childId: string) => {
@@ -697,7 +759,23 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				);
 	}, [paletteEntries, cmdFilter]);
 
+	const currentSlashHead = slashHead(draftText);
+	const hasSlashArgumentInput = currentSlashHead !== undefined && draftText.length > currentSlashHead.end;
+
+	const midSlashToken = currentSlashHead === undefined ? slashTokenAt(draftText, draftCursor) : undefined;
+	const midSlashFiltered = useMemo(() => {
+		if (!midSlashToken) return [] as ResolvedCommand[];
+		const q = midSlashToken.query.toLowerCase();
+		if (!q) return skillCommands;
+		return skillCommands.filter((resolved) =>
+			resolved.definition.name.toLowerCase().includes(q)
+			|| resolved.definition.description.toLowerCase().includes(q),
+		);
+	}, [midSlashToken, skillCommands]);
+	const midSlashActive = midSlashToken !== undefined && !midSlashDismissed && midSlashFiltered.length > 0;
+
 	const slashFiltered = useMemo(() => {
+		if (midSlashActive) return midSlashFiltered;
 		const head = slashHead(draftText);
 		if (!head) return [] as ResolvedCommand[];
 		const q = head.name.toLowerCase();
@@ -707,7 +785,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			if (resolved.invocation.toLowerCase().includes(q)) return true;
 			return definition.aliases.some((alias) => alias.toLowerCase().includes(q));
 		});
-	}, [resolvedEntries, draftText]);
+	}, [resolvedEntries, draftText, midSlashActive, midSlashFiltered]);
 
 	const normalizeArgCompletion = useCallback((item: string | ArgCompletion): ArgCompletion => {
 		return typeof item === 'string' ? { value: item } : item;
@@ -736,12 +814,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		return () => { cancelled = true; };
 	}, [commandRegistry, draftText, normalizeArgCompletion]);
 
-	const currentSlashHead = slashHead(draftText);
-	const hasSlashArgumentInput = currentSlashHead !== undefined && draftText.length > currentSlashHead.end;
 	const slashArgActive = hasSlashArgumentInput && slashArgItems.length > 0;
 
-	const slashActive = currentSlashHead !== undefined && !hasSlashArgumentInput;
-	const fileAtActive = useMemo(() => /(^|\s)@([^\s]*)$/.test(draftText), [draftText]);
+	const slashActive = (currentSlashHead !== undefined && !hasSlashArgumentInput) || midSlashActive;
+	const fileAtActive = useMemo(() => findAtTrigger(draftText, draftCursor) !== null, [draftText, draftCursor]);
 	useEffect(() => {
 		setSlashSelected(0);
 		setSlashArgSelected(0);
@@ -785,6 +861,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		slashArgActive,
 		slashArgSelected,
 		fileAtActive,
+		slashRange: midSlashActive ? midSlashToken : undefined,
+		onDismissMidSlash: () => setMidSlashDismissed(true),
+		onSkillCompleted: (text: string) => {
+			completionGuardRef.current = { text, at: performance.now() };
+		},
 		promptHistoryService,
 		interruptKey,
 		selectedAgent,
@@ -829,6 +910,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							inputKey={`h-${submitKey}-${navKey}`}
 							placeholder={`Ask anything... "${PLACEHOLDERS[placeholderIdx]}"`}
 							onSubmit={handleSubmit}
+							onSubmitIntercept={interceptMidSlashSubmit}
 							hasModel={hasModel}
 							agent={selectedAgent}
 							accentColor={agentAccentColor}
@@ -838,7 +920,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							initialValue={revertDraftRef.current || ''}
 							width={Math.min(68, termWidth - 8)}
 							focused={!dialogStep && !askRequest && !showCmd && !msgControls && !permissionRequest}
-							onTextChange={(t) => setDraftText(t)}
+							onTextChange={(t, c) => { setDraftText(t); setDraftCursor(c); setMidSlashDismissed(false); }}
 							onGetTextarea={(r) => {
 								promptTextareaRef.current = r;
 							}}
@@ -943,6 +1025,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								inputKey={`c-${submitKey}-${navKey}`}
 								placeholder={'Reply...'}
 								onSubmit={handleSubmit}
+								onSubmitIntercept={interceptMidSlashSubmit}
 								hasModel={hasModel}
 								agent={selectedAgent}
 								accentColor={agentAccentColor}
@@ -954,7 +1037,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								tokenUsage={tokenUsage}
 								width={termWidth - 4}
 								focused={!dialogStep && !askRequest && !showCmd && !msgControls && !permissionRequest}
-								onTextChange={(t) => setDraftText(t)}
+								onTextChange={(t, c) => { setDraftText(t); setDraftCursor(c); setMidSlashDismissed(false); }}
 								onGetTextarea={(r) => {
 									promptTextareaRef.current = r;
 								}}
@@ -1023,6 +1106,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			{!askRequest && fileAtActive && (
 				<FileAutocomplete
 					draftText={draftText}
+					cursor={draftCursor}
 					promptTop={promptPosition.top}
 					promptLeft={promptPosition.left}
 					promptWidth={promptPosition.width}

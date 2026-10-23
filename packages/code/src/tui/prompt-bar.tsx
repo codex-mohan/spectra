@@ -47,7 +47,9 @@ export interface PromptBarProps {
 	focused?: boolean;
 	/** Left strip color for the active agent. */
 	accentColor?: string;
-	onTextChange?: (text: string) => void;
+	onTextChange?: (text: string, cursor: number) => void;
+	/** Return true to consume the submit (e.g. complete an inline mention) without sending. */
+	onSubmitIntercept?: (text: string) => boolean;
 	onGetTextarea?: (ref: unknown) => void;
 	onPositionChange?: (pos: { top: number; left: number; width: number }) => void;
 	onGetPromptBar?: (ref: PromptBarRef) => void;
@@ -150,7 +152,7 @@ export function PromptBar(props: PromptBarProps) {
 		isLoading, inputKey, placeholder, onSubmit, hasModel,
 		agent, model, provider, thinkingEffort, initialValue, width,
 		elapsedMs, tokenUsage, focused = true, accentColor,
-		onTextChange, onGetTextarea, onPositionChange, onGetPromptBar,
+		onTextChange, onGetTextarea, onPositionChange, onGetPromptBar, onSubmitIntercept,
 	} = props;
 
 	const textareaRef = useRef<TextareaLike | null>(null);
@@ -229,7 +231,7 @@ export function PromptBar(props: PromptBarProps) {
 		const textarea = textareaRef.current;
 		if (!textarea?.plainText) {
 			syncAttachments();
-			onTextChange?.('');
+			onTextChange?.('', 0);
 			setCharCount(0);
 			setShowHint(false);
 			return;
@@ -238,7 +240,7 @@ export function PromptBar(props: PromptBarProps) {
 		setCharCount(text.length);
 		setShowHint(text.length >= COMPACT_THRESHOLD);
 		syncAttachments();
-		onTextChange?.(text);
+		onTextChange?.(text, textarea.cursorOffset ?? text.length);
 	}, [onTextChange, syncAttachments]);
 
 	useEffect(() => {
@@ -265,6 +267,7 @@ export function PromptBar(props: PromptBarProps) {
 		const text = stripAttachmentText(textarea?.plainText ?? '', textarea).trim();
 		const currentAttachments = syncAttachments();
 		if (!text && currentAttachments.length === 0) return;
+		if (onSubmitIntercept?.(text)) return;
 		textarea?.extmarks?.clear();
 		attachmentsRef.current = [];
 		setAttachments([]);
@@ -273,7 +276,7 @@ export function PromptBar(props: PromptBarProps) {
 		// Submission may synchronously remount the input or navigate away.
 		// Finish all input cleanup before handing control to the parent.
 		onSubmit({ text, attachments: currentAttachments });
-	}, [onSubmit, syncAttachments]);
+	}, [onSubmit, onSubmitIntercept, syncAttachments]);
 
 	const handlePaste = useCallback(async (event: { bytes?: Uint8Array; preventDefault?: () => void }) => {
 		if (!event.bytes || event.bytes.length === 0) { const clipboardFile = await readClipboardAttachment(); if (clipboardFile) { addAttachment(clipboardFile); event.preventDefault?.(); } return; }

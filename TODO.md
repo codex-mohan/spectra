@@ -594,7 +594,7 @@ Three user-visible failures drove this plan:
 
 ### Phases
 
-**Release convention:** every phase ships one `patch` changeset for `@mohanscodex/spectra-ai` and `@mohanscodex/spectra-code`. Version numbers are managed separately and must not be raised per phase.
+**Release convention:** changesets are deferred to Phase 5. Phases and incidental fixes ship code only until then; do not add per-phase changesets.
 
 #### Phase 0 — Cost correctness (shipped)
 

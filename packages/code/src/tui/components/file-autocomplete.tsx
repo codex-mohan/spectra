@@ -6,10 +6,13 @@ import { c } from '../theme.js';
 import type { PromptBarRef } from '../prompt-bar.js';
 import { getDisplayIcon, getFileVisual } from '../utils/file-visuals.js';
 import { detectMime } from '../utils/local-attachment.js';
+import { findAtTrigger, type AtTrigger } from '../utils/prompt-triggers.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
 
 export interface FileAutocompleteProps {
 	draftText: string;
+	/** Caret position; the mention menu follows the cursor, not the end of the text. */
+	cursor?: number;
 	promptTop?: number;
 	promptLeft?: number;
 	promptWidth?: number;
@@ -24,13 +27,6 @@ interface FileEntry {
 	name: string;
 	isDirectory: boolean;
 	score: number;
-}
-
-interface Trigger {
-	start: number;
-	end: number;
-	query: string;
-	range?: { start: number; end: number };
 }
 
 const MAX_SCAN_RESULTS = 2500;
@@ -60,17 +56,17 @@ async function getProjectEntries(): Promise<Omit<FileEntry, 'score'>[]> {
 }
 
 export function FileAutocomplete(props: FileAutocompleteProps) {
-	const { draftText, promptTop, promptLeft, promptWidth, termWidth, termHeight, route, promptBarRef } = props;
+	const { draftText, cursor, promptTop, promptLeft, promptWidth, termWidth, termHeight, route, promptBarRef } = props;
 	const [selected, setSelected] = useState(0);
-	const [trigger, setTrigger] = useState<Trigger | null>(null);
+	const [trigger, setTrigger] = useState<AtTrigger | null>(null);
 	const [files, setFiles] = useState<FileEntry[]>([]);
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
-		const next = findAtTrigger(draftText);
+		const next = findAtTrigger(draftText, cursor ?? draftText.length);
 		setTrigger(next);
 		setSelected(0);
-	}, [draftText]);
+	}, [draftText, cursor]);
 
 	useEffect(() => {
 		if (!trigger) {
@@ -221,31 +217,6 @@ export function FileAutocomplete(props: FileAutocompleteProps) {
 			}}
 		</PromptAnchoredMenu>
 	);
-}
-
-export function findAtTrigger(text: string): Trigger | null {
-	const head = text;
-	const match = /(^|\s)@([^\s]*)$/.exec(head);
-	if (!match) return null;
-	const token = match[2] ?? '';
-	const tokenStart = head.length - token.length - 1;
-	const [queryPart, rangePart] = token.split('#', 2);
-	return {
-		start: tokenStart,
-		end: head.length,
-		query: (queryPart ?? '').toLowerCase(),
-		range: parseLineRange(rangePart),
-	};
-}
-
-function parseLineRange(value: string | undefined): { start: number; end: number } | undefined {
-	if (!value) return undefined;
-	const match = /^(\d+)(?:-(\d+))?$/.exec(value);
-	if (!match) return undefined;
-	const start = Number(match[1]);
-	const end = Number(match[2] ?? match[1]);
-	if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end < start) return undefined;
-	return { start, end };
 }
 
 async function walk(base: string, rel: string, depth: number, out: Omit<FileEntry, 'score'>[]): Promise<void> {

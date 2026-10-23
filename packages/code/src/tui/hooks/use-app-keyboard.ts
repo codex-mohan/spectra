@@ -42,6 +42,12 @@ interface UseAppKeyboardDeps {
 	slashArgActive: boolean;
 	slashArgSelected: number;
 	fileAtActive: boolean;
+	/** When set, slash completion replaces only this token instead of the whole draft. */
+	slashRange?: { start: number; end: number };
+	/** Close the mid-text skill menu without clearing the draft. */
+	onDismissMidSlash: () => void;
+	/** Called after Enter completes a mid-text skill token. */
+	onSkillCompleted?: (text: string) => void;
 
 	interruptKey: number;
 	selectedAgent: string;
@@ -104,6 +110,9 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		slashArgActive,
 		slashArgSelected,
 		fileAtActive,
+		slashRange,
+		onDismissMidSlash,
+		onSkillCompleted,
 		interruptKey,
 		selectedAgent,
 		primaryAgents,
@@ -215,6 +224,10 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		}
 		if (slashActive && slashFiltered.length > 0) {
 			if (key.name === 'escape') {
+				if (slashRange) {
+					onDismissMidSlash();
+					return;
+				}
 				setDraftText('');
 				setSlashSelected(0);
 				promptBarRef.current?.setText('');
@@ -224,6 +237,17 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 				const item = slashFiltered[slashSelected];
 				if (item) {
 					const cmdName = item.definition.name;
+					if (slashRange) {
+						const newText = `${draftText.slice(0, slashRange.start)}/${cmdName} ${draftText.slice(slashRange.end)}`;
+						const cursor = slashRange.start + cmdName.length + 2;
+						promptBarRef.current?.setText(newText, cursor);
+						setDraftText(newText);
+						setSlashSelected(0);
+						// Enter also reaches the textarea's submit binding; let the
+						// submit interceptor swallow that one.
+						if (key.name === 'return' || key.name === 'enter') onSkillCompleted?.(newText);
+						return;
+					}
 					const newText = `/${cmdName} `;
 					promptBarRef.current?.setText(newText, newText.length);
 					setDraftText(newText);
