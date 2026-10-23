@@ -46,19 +46,28 @@ export interface ToolCall {
 
 export type StopReason = 'stop' | 'length' | 'toolUse' | 'error' | 'aborted';
 
+export interface UsageCost {
+	input: number;
+	output: number;
+	cacheRead: number;
+	cacheWrite: number;
+	total: number;
+}
+
 export interface Usage {
 	input: number;
 	output: number;
 	cacheRead: number;
 	cacheWrite: number;
+	/**
+	 * Prompt tokens billed at the uncached input rate. Providers whose reported
+	 * `input` includes cached tokens (OpenAI) set this to `input - cacheRead`;
+	 * providers that report cached tokens separately (Anthropic) leave it
+	 * undefined, which means `input` is already uncached.
+	 */
+	inputUncached?: number;
 	totalTokens: number;
-	cost?: {
-		input: number;
-		output: number;
-		cacheRead: number;
-		cacheWrite: number;
-		total: number;
-	};
+	cost?: UsageCost;
 }
 
 export interface UserMessage {
@@ -179,6 +188,22 @@ export interface StreamOptions {
 	thinkingEffort?: string;
 }
 
+export interface ModelCost {
+	/** USD per 1M tokens. */
+	input: number;
+	output: number;
+	cacheRead: number;
+	cacheWrite: number;
+	/** Rates that apply once the whole prompt crosses the threshold. */
+	longContext?: {
+		inputThreshold: number;
+		input: number;
+		output: number;
+		cacheRead: number;
+		cacheWrite: number;
+	};
+}
+
 export interface Model {
 	id: string;
 	name: string;
@@ -187,5 +212,7 @@ export interface Model {
 	baseUrl?: string;
 	reasoning?: boolean;
 	maxTokens?: number;
+	/** Rate card for this model/provider; falls back to the pricing table when absent. */
+	cost?: ModelCost;
 	headers?: Record<string, string>;
 }

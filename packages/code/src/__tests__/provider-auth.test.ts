@@ -43,7 +43,8 @@ describe('provider auth keys', () => {
 describe('OpenCode model metadata', () => {
 	it('maps Zen metadata without replacing the dedicated Go catalog', () => {
 		expect(lookupContextWindow('deepseek-v4-flash-free', 'opencode-zen')).toBe(200_000);
-		expect(lookupContextWindow('glm-5', 'opencode-go')).toBe(202_752);
+		// The Go bundle keeps its own rows for ids the OpenCode catalog does not carry.
+		expect(lookupContextWindow('glm-5.3', 'opencode-go')).toBe(1_000_000);
 	});
 });
 

@@ -41,7 +41,7 @@ import { AskMenu } from './ui/ask-dialog.js';
 import { ToastContainer, showToast } from './components/toast.js';
 import { SubagentNav } from './components/subagent-footer.js';
 import clipboard from 'clipboardy';
-import { loadPricingFromModelsDev, formatCost, isFreeModel } from '@mohanscodex/spectra-ai';
+import { loadPricingFromModelsDev, formatCost, getPricingStatus } from '@mohanscodex/spectra-ai';
 import { buildCmdItems } from './commands.js';
 import { slashHead } from './slash-commands.js';
 import { SlashAutocomplete } from './components/slash-autocomplete.js';
@@ -234,9 +234,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		if (!selectedModel) return null;
 		const cost = sessionState.activeState.costSoFar;
 		if (cost > 0) return formatCost(cost);
-		if (isFreeModel(selectedModel)) return 'Free';
+		const selectedProvider = sessionState.activeState.selectedProvider;
+		if (selectedProvider && getPricingStatus({ provider: selectedProvider, id: selectedModel }) === 'free') return 'Free';
 		return null;
-	}, [sessionState.activeState.costSoFar, selectedModel]);
+	}, [sessionState.activeState.costSoFar, sessionState.activeState.selectedProvider, selectedModel]);
 
 	// --- Refs ---
 	const promptTextareaRef = useRef<unknown>(null);

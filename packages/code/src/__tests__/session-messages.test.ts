@@ -10,8 +10,56 @@ vi.mock('@opentui/core', () => ({
 	},
 }));
 
+describe('session cost hydration', () => {
+	it('sums stored usage cost instead of repricing turns', async () => {
+		// Dynamic import keeps the hoisted OpenTUI mock in place before the module loads.
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [
+				{
+					role: 'assistant',
+					content: 'First',
+					timestamp: Date.now(),
+					usage: {
+						input: 10, output: 5, cacheRead: 0, cacheWrite: 0, totalTokens: 15,
+						cost: { input: 0.01, output: 0.02, cacheRead: 0, cacheWrite: 0, total: 0.03 },
+					},
+				},
+				{
+					role: 'assistant',
+					content: 'Second',
+					timestamp: Date.now(),
+					usage: {
+						input: 20, output: 10, cacheRead: 100, cacheWrite: 5, totalTokens: 30,
+						cost: { input: 0.02, output: 0.04, cacheRead: 0.001, cacheWrite: 0.001, total: 0.062 },
+					},
+				},
+			],
+		});
+
+		expect(converted.costSoFar).toBeCloseTo(0.092, 6);
+		expect(converted.tokenUsage).toEqual({ input: 20, output: 15 });
+	});
+
+	it('keeps legacy turns without stored cost at zero', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'claude-sonnet-4-5',
+			messages: [{
+				role: 'assistant',
+				content: 'Legacy',
+				timestamp: Date.now(),
+				usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0, totalTokens: 150 },
+			}],
+		});
+
+		expect(converted.costSoFar).toBe(0);
+	});
+});
 describe('session message hydration', () => {
 	it('hydrates persisted file attachments with display badges', async () => {
+		// Dynamic import keeps the hoisted OpenTUI mock in place before the module loads.
 		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
 		const converted = sdkMessagesToChatMessages({
 			model: 'test-model',

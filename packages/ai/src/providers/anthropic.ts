@@ -21,6 +21,7 @@ import type {
 } from '../types.js';
 import { getProviderModels } from '../models.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
+import { calculateUsageCost } from '../pricing.js';
 import { normalizeProviderError, sanitizeSurrogates } from './shared.js';
 
 type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam | { type: 'document'; source: { type: 'base64'; media_type: 'application/pdf'; data: string } };
@@ -523,6 +524,7 @@ export function createAnthropicProvider() {
 
 					cleanupBlocks(blocks);
 
+					output.usage.cost = calculateUsageCost(model, output.usage);
 					stream.push({ type: 'done', reason: output.stopReason, message: output });
 					stream.end();
 				} catch (error) {
@@ -531,6 +533,7 @@ export function createAnthropicProvider() {
 					const details = normalizeProviderError(error, { aborted: output.stopReason === 'aborted' });
 					output.errorMessage = details.message;
 					output.metadata = { ...output.metadata, error: details };
+					output.usage.cost = calculateUsageCost(model, output.usage);
 					stream.push({ type: 'error', reason: output.stopReason, error: output });
 					stream.end();
 				}

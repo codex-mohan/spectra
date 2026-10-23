@@ -479,6 +479,54 @@ Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 - [ ] Add no-op edit loop detection so repeated byte-identical patches become hard failures instead of silent cycles
 - [ ] Startup/onboarding polish: animated ASCII splash, gradient logo/welcome card, provider setup wizard scenes, and animated provider sign-in feedback
 
+**Subagent orchestration and recovery (research from Oh My Pi):**
+
+Spectra already accepts structured `tasks[]`, starts background child sessions, tracks `running | completed | error | cancelled`, and accepts `task_id` for extensions or a follow-up run. However, `tasks[]` is currently combined into one prompt for one child rather than fanning out to independent agents. The parent has no model-facing live status or timed wait tool, and `runSubagent()` creates a fresh `Agent` for each call, so passing a previous `task_id` does not restore the child's actual conversation. Background runs also mark a returned `SubagentResult.error` as completed when the runner does not throw.
+
+Oh My Pi's `task` tool fans out one child per assignment, returns stable agent/job IDs, exposes live progress and a concise transcript, and retains finished agents as `idle` before parking and reviving them from saved sessions. Its `job` tool provides immediate snapshots plus a bounded poll that wakes on the **first** watched job to settle or on timeout. Its `irc` tool lets the parent inspect peers and send messages to running or parked agents. Spectra should support an explicit **wait-for-all** mode in addition to first-completion polling, because the requested parent pause should end as soon as every watched child settles, even if the timer has not expired.
+
+- [ ] Fan out each `tasks[]` item as an independent child with its own stable ID, role, assignment, session, result, and bounded concurrency; preserve shared `context` without merging assignments into one child prompt
+- [ ] Make subagent instructions a validated, documented contract: shared goal/constraints/context, then per-child target/change/acceptance/reporting; show each specialist role in the child prompt and status view
+- [ ] Add a model-facing status/list tool for parent-owned children showing queued/running/idle/parked/completed/failed/cancelled state, current activity, elapsed time, recent progress, errors, and links to saved transcripts/results while children are still running
+- [ ] Add a cancellable timed wait tool for selected child IDs (or all current children), with a live status snapshot and a bounded timeout; support both `first` and `all` completion conditions
+- [ ] In `all` mode, race the timer against the **last** watched child settling: cancel the remaining timer and resume the parent immediately when all children have completed, failed, or been cancelled; return a snapshot on timeout without stopping any child
+- [ ] Deliver background completion/failure to the parent exactly once, including results that finish while the parent is paused; prevent duplicate delivery when a wait call already consumed those results
+- [ ] Persist enough child state to resume the same conversation and tool context after success or recoverable failure, including process restart; distinguish retryable network/provider interruption from hard cancellation and avoid replaying already completed side effects
+- [ ] Let the parent steer a running child and follow up with an idle or parked child by ID; queue mid-run instructions safely, revive parked children on demand, and report a clear terminal reason when revival is impossible
+- [ ] Keep lifecycle transitions and UI status consistent across crashes, aborts, timeout, and restart; ensure an error result cannot be recorded as successful completion
+- [ ] Verify concurrent fan-out, mid-run inspection, first/all wait semantics (including all-finish-before-timeout), timeout without cancellation, single result delivery, and faithful resume after a simulated transient network failure
+
+**Reference files (subagent orchestration):**
+- `packages/coding-agent/src/prompts/tools/task.md` — delegation guidance and structured context/assignment contract
+- `packages/coding-agent/src/task/index.ts`, `task/executor.ts`, `task/parallel.ts` — fan-out, child execution, progress, and concurrency
+- `packages/coding-agent/src/tools/job.ts`, `async/job-manager.ts` — list/poll/cancel, early wake on first settlement, timed wait, completion delivery
+- `packages/coding-agent/src/tools/irc.ts`, `registry/agent-registry.ts`, `registry/agent-lifecycle.ts` — live peer state, messaging, parking, and revival
+- `docs/tools/task.md`, `docs/tools/job.md`, `docs/tools/irc.md` — behavior and important lifecycle limits
+
+**Mid-turn rule enforcement (TTSR — time-traveling stream rules):**
+
+Rules today are static: they load into the system prompt once and are never checked again. Oh My Pi turns the same markdown-plus-frontmatter files into an armed policy engine that fires while the model is still writing, which catches a violation at the moment it is produced instead of after the file is on disk.
+
+- [ ] Rule files: accept `condition` regexes, `astCondition` ast-grep patterns (edit/write streams only), `scope` tokens (`text`, `thinking`, `tool:edit(*.ts)`), and a per-rule `interruptMode` of `never | prose-only | tool-only | always`
+- [ ] Rule providers: merge project rules over a lowest-priority bundled defaults provider, preserve source provenance, and offer a switch that drops every bundled rule
+- [ ] Streaming matcher: evaluate conditions against assistant text deltas, thinking deltas, and tool-argument deltas, exposing both incremental `checkDelta` and full-buffer `checkSnapshot`
+- [ ] Interrupting enforcement: abort and rewind the stream on a match so the violating output never lands, then inject `<system-interrupt reason="rule_violation" rule="…" path="…">`
+- [ ] Non-interrupting enforcement: let the tool run and attach `<system-reminder reason="rule_violation" rule="…" path="…">` to that tool's result through the after-tool-call hook
+- [ ] Injection provenance: every injected notice must state that it is the harness enforcing project rules and not untrusted content, so file content and worker output can never be mistaken for a rule
+- [ ] Fire-once bookkeeping: mark a rule as injected, restore injected names on session resume so a rule does not nag every turn, and allow deliberate re-reminding after a message gap
+- [ ] Reachability precomputation: skip rules that cannot fire in the current scope or have no ast conditions, so the streaming hot path stays cheap
+- [ ] Path and glob scoping: match rule `globs` against the file paths in the tool call, not only against the argument text
+- [ ] Emit rule interruption as its own agent event so the TUI can show what was blocked and which rule blocked it
+
+**Reference files (mid-turn rule enforcement):**
+- `packages/coding-agent/src/capability/rule.ts` — `Rule` contract, frontmatter, condition/scope/interruptMode parsing
+- `packages/coding-agent/src/capability/rule-buckets.ts` — provider priority and the bundled-rules switch
+- `packages/coding-agent/src/export/ttsr.ts` — `TtsrManager`: delta/snapshot matching, scope and glob resolution, injected bookkeeping, buffer reset
+- `packages/coding-agent/src/prompts/system/ttsr-tool-reminder.md` — non-interrupting notice template
+- `packages/coding-agent/src/prompts/system/ttsr-interrupt.md` — interrupting notice template
+- `packages/coding-agent/src/session/agent-session.ts` — stream matching hook, after-tool-call folding, abort/retry/resume
+- `packages/coding-agent/src/discovery/builtin-rules/` — bundled default rules
+
 **Subscription and quota tracking from Oh My Pi:**
 - [ ] Normalize provider usage into `UsageReport`, `UsageLimit`, `UsageWindow`, `UsageAmount`, and `UsageScope` types
 - [ ] Add usage providers for OpenAI Codex, OpenCode Go, Claude/Anthropic, Gemini CLI, GitHub Copilot, Kimi Code, MiniMax Code, GLM/Z.AI, and Alibaba/Qwen plans
@@ -507,3 +555,184 @@ Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 The following are deferred until the core system is stable and functional:
 
 - [ ] **Session branching** — deep-copy sessions like git branches, list branches, switch between them. High complexity, low urgency.
+
+## 15. Model catalog and cost accuracy (planned)
+
+Reference implementation studied in full: `C:\Users\wwwmo\reference-projects\oh-my-pi` (catalog generation, discovery protocols, model registry, credentials, pricing). This section is self-contained so another session can execute it without re-doing the research.
+
+**Status:** Phase 0 shipped. Phases 1–8 planned.
+
+### Why
+
+Three user-visible failures drove this plan:
+
+1. Codex showed stale models because the pinned client version was never sent to `/codex/models` (fixed) and because `packages/ai` serves stale `dist/`.
+2. The model list depends entirely on a regenerated bundle plus an on-demand fetch with silent fallback — wrong or missing rows are invisible.
+3. The status-bar cost is inaccurate: cache tokens are never priced, pricing is provider-blind, and cost is recomputed in the UI instead of stored.
+
+### Current state (file:line evidence)
+
+| Area | Today | File |
+|---|---|---|
+| Bundled catalog | `{id,name,contextWindow}` only | `packages/ai/src/models.ts`, `packages/ai/scripts/generate-models.ts` |
+| Provider contract | `discoverModels` returns `{models}` or throws | `packages/ai/src/registry.ts:9-29` |
+| Runtime cache | scope key + `authoritative`, no TTL, writes on failure | `packages/code/src/services/model-catalog.ts:424-506` |
+| Resolution | on demand, silent fallback to bundle | `packages/code/src/services/model-service.ts:96-125` |
+| Context window | bundled-only lookup | `packages/code/src/tui/utils/model-config.ts:68-84` |
+| Pricing | global id-keyed table, last provider wins, fuzzy prefix match | `packages/ai/src/pricing.ts:25-94` |
+| Cost display | recomputed in UI from `input/output` only | `packages/code/src/tui/hooks/use-chat-submit.ts:578`, `packages/code/src/tui/utils/session-messages.ts:42-54`, `packages/code/src/tui/app.tsx:232-239` |
+| Subagent cost | sums `usage.cost`, never set → always 0 | `packages/agent/src/subagent.ts:97-107` |
+| Package resolution | `packages/ai` exports `dist/`; stale builds are invisible | `packages/ai/package.json` |
+
+### Target architecture
+
+- `packages/ai` stays pure: discovery protocols, normalization, cost math, row shape.
+- `packages/code` owns state: registry layers, SQLite cache, credentials, UI.
+- One row owns identity, transport, limits, capabilities, and cost.
+- Cost is computed once at provider finalization into `usage.cost`, persisted with the message, and only summed downstream.
+- Every fallback is visible: cached age, auth state, discovery error.
+
+### Phases
+
+#### Phase 0 — Cost correctness (shipped)
+
+- [x] Extend `Model` with `cost?: ModelCost` (`maxTokens` already existed). Bundled rows stay lean: the runtime provider-scoped table supplies cards until Phase 1 adds cost to generated rows.
+- [x] `pricing.ts`: provider-scoped lookup (`provider\0model`, `openai-codex`→`openai` and `opencode-zen`→`opencode` aliases), hardcoded table last, fuzzy `startsWith` matching removed.
+- [x] `calculateUsageCost(model, usage)` prices input/output/cacheRead/cacheWrite; OpenAI `inputUncached` split; `longContext.inputThreshold` promotion (service-tier multiplier deferred).
+- [x] `Usage.inputUncached` added; OpenAI completions/responses set `prompt_tokens − cached_tokens`, Anthropic leaves it undefined because `input` already excludes cache.
+- [x] Every provider sets `usage.cost` at finalization, on both success and error paths.
+- [x] UI reads the stored cost: `use-chat-submit` and `session-messages` no longer reprice; session reload is stable.
+- [x] Status bar shows `Free` only for `pricingStatus === 'free'`; unknown renders nothing; `session-stats-dialog` matches.
+- [ ] Cache cost breakdown in `session-stats-dialog` (needs per-component sums plumbed).
+- [x] `usage-store` records `cacheReadTokens`/`cacheWriteTokens` and includes them in token totals and windows.
+
+**Phase 0 notes:** legacy messages without `usage.cost` aggregate as `$0` (no retroactive repricing); bundled rows still lack cost until Phase 1; the pricing table loads once per process and is not refreshed.
+
+**Acceptance:** Anthropic cache-heavy fixture priced correctly; OpenAI cached tokens billed at cache rate; session reload keeps identical cost; subagent cost non-zero; unknown model shows `—`.
+
+#### Phase 1 — Row shape + discovery contract
+
+- [ ] Row: `{id,name,api?,baseUrl?,contextWindow?,maxTokens?,reasoning?,input?,supportsTools?,cost?}`
+- [ ] `discoverModels` returns `{models} | null | []` (`null` = failed, `[]` = authoritative empty)
+- [ ] `DiscoveryHttpError(status, url)` + `isAuthRejection`
+- [ ] Shared normalizer: tolerant envelope, field precedence (`max_model_len` → `context_length` → limits → native → bundled → default), output-cap clamp, modalities, non-chat kind routing
+- [ ] Update all in-tree `discoverModels` and `register-builtins` wrappers
+
+**Acceptance:** tri-state tests, envelope variants, no throw on 404.
+
+#### Phase 2 — Runtime model registry
+
+- [ ] New `packages/code/src/services/model-registry.ts`: bundled → cache → live; authoritative prunes bundled chat rows only
+- [ ] Strategies `offline | online-if-uncached | online`; fetch TTL 2 h, non-authoritative retry 5 min, freshness computed at read
+- [ ] Cache schema v2: `{scope_key, provider_id, account_id, base_url, models, fetched_at, authoritative, materialization_policy, models_hash}`; write only on successful fetch; on failure keep prior rows and mark non-authoritative
+- [ ] Per-provider `ProviderDiscoveryState {status, stale, fetchedAt, source, error}`
+- [ ] Startup hydrate → background refresh → UI re-read; coalesce per provider; 15 s timeout
+- [ ] `model-service.ts` becomes a thin adapter; delete catch-all fallback
+
+**Acceptance:** offline cold start renders cached rows; failure preserves rows and reports status; picker opens with zero network.
+
+#### Phase 3 — Credentials and multi-account
+
+- [ ] `auth-store` accepts `Credential | Credential[]` (backwards-compatible read); account key = `accountId ?? email`
+- [ ] Two-tier keys: `peek` (no refresh, skips expired OAuth) and `get` (single-flight refresh, 60 s skew, persist rotation)
+- [ ] Discovery escalation: peek empty + stored OAuth → refresh; log and fall back on failure
+- [ ] Multi-account for `openai-codex`: enumerate, fetch per account, union by id, skip 401/403 accounts, abort on transient failure; `accountAccess` → `ChatGPT-Account-Id`
+- [ ] `unauthenticated` status when a non-keyless provider has no credential
+
+**Acceptance:** expired Codex token discovers live models; revoked account skipped; transient failure keeps prior catalog.
+
+#### Phase 4 — Provider coverage
+
+- [ ] Generic OpenAI-compatible normalizer + `filterModel`/`transformModel` hooks; collapse duplicated wrappers
+- [ ] Anthropic `/v1/models` (`x-api-key` vs Bearer, beta headers, maxTokens 8192)
+- [ ] Gemini native `/v1beta/models` (pagination, `generateContent`)
+- [ ] Ollama native `/api/tags` + `/api/show`; llama.cpp `/models` + `/props` (`-1` sentinel); LM Studio `/api/v0/models`
+- [ ] LiteLLM rich endpoints → `/v1/models` fallback; proxy `supported_endpoint_types`
+- [ ] Copilot tiered billing + `-1m` sibling (only if the provider ships)
+
+**Acceptance:** fixture test per protocol; no hand-rolled `/models` fetches left.
+
+#### Phase 5 — Catalog generation hygiene
+
+- [ ] Provider table as typed data (`providerId`, `defaultModel`, `envVars`, `discovery`, `seedRows`, `bundle: always|fallback|empty|never`)
+- [ ] Ordered generator phases: models.dev → endpoint discovery (reuse runtime normalizers) → seeds → previous snapshot → derive → dedupe → **sort** → write
+- [ ] `--provider <id>` partial regeneration; hard error on empty slice
+- [ ] Authoritative-empty non-authoritative; `stale` results are failures; retired-provider list
+- [ ] Dist freshness guard (CI/build check or `prepack`) so stale `dist/` cannot ship
+- [ ] Parity test: two consecutive regens are byte-identical
+
+**Acceptance:** double regen = no diff; `--provider openai-codex` touches one block; CI fails on stale dist.
+
+#### Phase 6 — UI / CLI surface
+
+- [ ] `spectra models ls|find|refresh|<provider> [--json] [--kind]`
+- [ ] Picker/dialog: cached age, `needs sign-in`, discovery error, provider status dots
+- [ ] `models doctor`: credential, cache age, discovery result, actionable fix
+- [ ] Status bar: cost breakdown in stats, context % from registry row, `~` when estimated
+
+**Acceptance:** command tests; actionable error for a bad key; picker never blocks.
+
+#### Phase 7 — Request-time consistency
+
+- [ ] `lookupContextWindow` reads the registry row (cache/live first), bundled only as fallback
+- [ ] `compaction` and `contextUsage` consume the same row (`contextWindow`, `maxTokens`)
+- [ ] Post-discovery rebind when the window changed + warning drain
+- [ ] Model selection validates against the registry with an actionable error
+
+**Acceptance:** live window drives % and compaction threshold.
+
+#### Phase 8 — Validation and rollout
+
+- [ ] Test matrix: per-provider discovery fixtures, cache policy, credential refresh, cost math, session restore, CLI
+- [ ] Perf: cached read < 10 ms for 200 rows; background refresh never blocks first paint
+- [ ] Docs (`docs/public/llms.txt`, provider docs) + changesets per phase
+- [ ] Rollout 0 → 1 → 2 → 3 → (4 in slices) → 5 → 6 → 7; each phase independently revertible
+
+### Non-goals
+
+KDL/compat rule engine; 77 provider-specific mappers; Cursor/Devin protobuf transports; Factory Droid flag discovery; GitLab GraphQL; `models.yml` user discovery config; multi-account beyond Codex until requested.
+
+### Risks
+
+| Risk | Mitigation |
+|---|---|
+| Provider forgets `usage.cost` → silent 0 | per-provider test asserting a paid fixture has cost > 0 |
+| Usage semantics drift | explicit `inputUncached`, provider assertions |
+| Cache schema migration | version bump; old rows ignored, not deleted |
+| Background refresh races UI | single in-flight promise per provider |
+| Row bloat in `models.ts` | ~10 fields; measure size before/after |
+
+### Pitfalls discovered during research (do not repeat)
+
+- `packages/ai` resolves through `dist/` — always rebuild before testing runtime behavior, or add a freshness guard.
+- Codex `/codex/models` is **version-gated**: `client_version` and `version` header pinned to `0.159.0`; a stale pin silently hides newer SKUs.
+- OpenAI `usage.input` **includes** cached tokens; Anthropic excludes them. Pricing `input` as reported overcharges OpenAI cached tokens and undercharges Anthropic cache reads.
+- `pricing.ts` is id-only: models.dev iteration makes the last provider win for a shared model id; bidirectional `startsWith` can bind a different SKU.
+- `isFreeModel` returns `true` when pricing is unknown — never display "Free" from a missing card.
+- React effect cleanup keyed on a prop identity (`registerHandler` from `app.tsx`) can abort in-flight work; re-registering must not cancel.
+- `models.ts` regeneration is order-unstable (Map iteration) — sort before emit or diffs churn.
+
+### Reference pointers (oh-my-pi)
+
+- `packages/catalog/scripts/generate-models.ts` — source strata, bundle policy, partial regen
+- `packages/catalog/src/provider-models/descriptors.ts` — provider descriptor shape
+- `packages/catalog/src/discovery/codex.ts` — client_version, `-wm` twins, context floors
+- `packages/catalog/src/model-manager.ts` — strategies, TTLs, `{models, stale, source}` result
+- `packages/catalog/src/model-cache.ts` — cache schema, side freshness row, fingerprints
+- `packages/coding-agent/src/config/model-registry.ts` — layers, refresh, status, background
+- `packages/coding-agent/src/config/model-discovery.ts` — configured-provider protocols
+- `packages/coding-agent/src/config/model-provider-discovery.ts` — credential-scoped discovery, multi-account union
+- `packages/coding-agent/src/cli/models-cli.ts` — CLI surface and JSON contract
+- `packages/coding-agent/src/config/model-resolver.ts` — matching engine
+- `packages/ai/src/auth/cascade.ts` — peek vs get credential precedence
+
+### Next action
+
+Phase 1: widen the model row (`api`, `baseUrl`, `maxTokens`, `reasoning`, `input`, `cost`) and return `{models} | null | []` from `discoverModels` so "authoritative empty" is expressible. Phase 0's remaining item (cache cost breakdown in the stats dialog) is optional and can ride along.
+
+### Already shipped (do not redo)
+
+- `6365cdf` `ai(fix)` send the pinned client version when discovering Codex models
+- `962f17b` `ai(chore)` regenerate model catalog (Codex 5 → 8 models)
+- `0a4db17` `code(fix)` stop the OAuth dialog from cancelling its own login on re-render
+- `f13dd1e` `code(fix)` dual-loopback OAuth callback, abort frees port 1455, exchange retry, pixel callback page

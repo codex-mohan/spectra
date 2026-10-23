@@ -54,6 +54,23 @@ describe('usage store', () => {
 		]);
 	});
 
+	it('counts cache tokens toward token windows and totals', () => {
+		recordUsageCost({
+			recordedAt: 1,
+			provider: 'opencode-go',
+			model: 'deepseek-v4',
+			inputTokens: 100,
+			outputTokens: 50,
+			cacheReadTokens: 400,
+			cacheWriteTokens: 50,
+			costUsd: 0.1,
+		}, tmpDir);
+
+		const report = buildProviderUsageReport('opencode-go', readUsageEntries(tmpDir), Date.now());
+
+		expect(report.totalTokens).toBe(600);
+	});
+
 	it('builds OpenCode Go usage windows from observed costs', () => {
 		const now = 40 * 24 * 60 * 60 * 1000;
 		const hour = 60 * 60 * 1000;

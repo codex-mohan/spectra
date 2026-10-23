@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { c } from '../theme.js';
 import { ModalFrame } from './modal-frame.js';
-import { formatCost, formatTokens, isFreeModel } from '@mohanscodex/spectra-ai';
+import { formatCost, formatTokens, getPricingStatus } from '@mohanscodex/spectra-ai';
 import { lookupContextWindow } from '../utils/model-config.js';
 import type { SessionTurnTokens } from '../utils/session-messages.js';
 
@@ -75,7 +75,7 @@ export function SessionStatsDialog({
 		: null;
 	const cost = costSoFar > 0
 		? formatCost(costSoFar)
-		: selectedModel && isFreeModel(selectedModel)
+		: selectedModel && provider && getPricingStatus({ provider, id: selectedModel }) === 'free'
 			? 'Free'
 			: 'n/a';
 	const costPerTurn = costSoFar > 0 && turnCount > 0 ? `$${(costSoFar / turnCount).toFixed(4)}/turn` : null;

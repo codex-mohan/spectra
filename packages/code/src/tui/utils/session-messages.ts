@@ -1,5 +1,4 @@
 import type { FileContent, Message } from '@mohanscodex/spectra-ai';
-import { calculateCost } from '@mohanscodex/spectra-ai';
 import type { ChatMessage } from '../types.js';
 import { genId } from '../utils.js';
 import { getFileVisual } from './file-visuals.js';
@@ -43,14 +42,7 @@ export function sdkMessagesToChatMessages(data: {
 		if (m.role === 'assistant' && m.usage) {
 			maxInputTokens = Math.max(maxInputTokens, m.usage.input || 0);
 			outputTokens += m.usage.output || 0;
-			const turnModel = m.model || data.model;
-			if (turnModel) {
-				const turnCost = calculateCost(turnModel, {
-					input: m.usage.input || 0,
-					output: m.usage.output || 0,
-				});
-				costSoFar += turnCost.total;
-			}
+			costSoFar += m.usage.cost?.total ?? 0;
 		}
 	}
 

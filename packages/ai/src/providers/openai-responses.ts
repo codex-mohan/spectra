@@ -25,6 +25,7 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
+import { calculateUsageCost } from '../pricing.js';
 import {
 	imageDataUrl,
 	normalizeProviderError,
@@ -299,11 +300,13 @@ export function createOpenAIResponsesProvider(config: OpenAIResponsesProviderCon
 							}
 							if (response?.usage) {
 								const cachedTokens = response.usage.input_tokens_details?.cached_tokens || 0;
+								const inputTokens = response.usage.input_tokens || 0;
 								output.usage = {
-									input: response.usage.input_tokens || 0,
+									input: inputTokens,
 									output: response.usage.output_tokens || 0,
 									cacheRead: cachedTokens,
 									cacheWrite: 0,
+									inputUncached: Math.max(0, inputTokens - cachedTokens),
 									totalTokens: response.usage.total_tokens || 0,
 								};
 							}
@@ -322,6 +325,7 @@ export function createOpenAIResponsesProvider(config: OpenAIResponsesProviderCon
 						throw new Error('Request was aborted');
 					}
 
+					output.usage.cost = calculateUsageCost(model, output.usage);
 					stream.push({ type: 'done', reason: output.stopReason, message: output });
 					stream.end();
 				} catch (error) {
@@ -329,6 +333,7 @@ export function createOpenAIResponsesProvider(config: OpenAIResponsesProviderCon
 					const details = normalizeProviderError(error, { aborted: output.stopReason === 'aborted' });
 					output.errorMessage = details.message;
 					output.metadata = { ...output.metadata, error: details };
+					output.usage.cost = calculateUsageCost(model, output.usage);
 					stream.push({ type: 'error', reason: output.stopReason, error: output });
 					stream.end();
 				}

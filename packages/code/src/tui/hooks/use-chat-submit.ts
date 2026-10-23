@@ -2,7 +2,7 @@ import { useRef, useCallback, useMemo } from 'react';
 import type { ChatMessage, ContentBlock } from '../types.js';
 import type { Message, AssistantMessage, FileContent, TextContent } from '@mohanscodex/spectra-ai';
 import type { PromptSubmitPayload } from '../prompt-bar.js';
-import { calculateCost, stream } from '@mohanscodex/spectra-ai';
+import { stream } from '@mohanscodex/spectra-ai';
 import type { SessionStore } from '../../services/session-store.js';
 import type { SessionManager } from '../../services/session-manager.js';
 import type { SnapshotManager } from '../../services/snapshot-manager.js';
@@ -575,8 +575,8 @@ Return ONLY the title text, nothing else.`;
 							? contextUsage.nonMessageTokens + contextUsage.messagesTokens
 							: m.usage.input;
 						sessionState.setTokenUsageIn(runSessionId, (p) => ({ input: currentContextTokens, output: p.output + ot }));
-						const turnCost = calculateCost(persistedTurn.model, { input: m.usage.input, output: m.usage.output });
-						if (turnCost.total > 0) sessionState.addCostIn(runSessionId, turnCost.total);
+						const turnCost = m.usage.cost?.total ?? 0;
+						if (turnCost > 0) sessionState.addCostIn(runSessionId, turnCost);
 						recordUsageCost({
 							recordedAt: Date.now(),
 							provider: persistedTurn.provider,
@@ -584,7 +584,9 @@ Return ONLY the title text, nothing else.`;
 							sessionId: runSessionId,
 							inputTokens: m.usage.input,
 							outputTokens: m.usage.output,
-							costUsd: turnCost.total,
+							cacheReadTokens: m.usage.cacheRead,
+							cacheWriteTokens: m.usage.cacheWrite,
+							costUsd: turnCost,
 						});
 						currentAssistantId = null;
 						streamingIdRef.current = null;

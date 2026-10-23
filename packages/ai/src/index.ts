@@ -13,13 +13,13 @@ export { getProviderModels } from './models.js';
 export type { ModelEntry } from './models.js';
 export {
 	getModelPricing,
-	isFreeModel,
-	calculateCost,
+	getPricingStatus,
+	calculateUsageCost,
 	formatCost,
 	formatTokens,
 	loadPricingFromModelsDev,
 } from './pricing.js';
-export type { ModelPricing } from './pricing.js';
+export type { ModelPricing, PricingStatus, UsagePricingInput } from './pricing.js';
 export type {
 	TextContent,
 	ThinkingContent,
@@ -28,6 +28,8 @@ export type {
 	ToolCall,
 	StopReason,
 	Usage,
+	UsageCost,
+	ModelCost,
 	ProviderErrorKind,
 	ProviderErrorDetails,
 	ProviderErrorMetadata,

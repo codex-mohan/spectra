@@ -15,6 +15,7 @@ import type {
 	ToolCall,
 } from '../types.js';
 import { AssistantMessageEventStream } from '../event-stream.js';
+import { calculateUsageCost } from '../pricing.js';
 import {
 	imageDataUrl,
 	normalizeProviderError,
@@ -318,6 +319,7 @@ export function createOpenAICompletionsProvider() {
 						throw new Error('Request was aborted');
 					}
 
+					output.usage.cost = calculateUsageCost(model, output.usage);
 					stream.push({ type: 'done', reason: output.stopReason, message: output });
 					stream.end();
 				} catch (error) {
@@ -325,6 +327,7 @@ export function createOpenAICompletionsProvider() {
 					const details = normalizeProviderError(error, { aborted: output.stopReason === 'aborted' });
 					output.errorMessage = details.message;
 					output.metadata = { ...output.metadata, error: details };
+					output.usage.cost = calculateUsageCost(model, output.usage);
 					stream.push({ type: 'error', reason: output.stopReason, error: output });
 					stream.end();
 				}
@@ -598,6 +601,7 @@ function parseChunkUsage(rawUsage: {
 		output: rawUsage.completion_tokens || 0,
 		cacheRead: cachedTokens,
 		cacheWrite: cacheWriteTokens,
+		inputUncached: Math.max(0, promptTokens - cachedTokens),
 		totalTokens: promptTokens + (rawUsage.completion_tokens || 0),
 	};
 }

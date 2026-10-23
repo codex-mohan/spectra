@@ -20,6 +20,10 @@ export interface UsageCostEntry {
 	sessionId?: string;
 	inputTokens: number;
 	outputTokens: number;
+	/** Prompt tokens served from the provider cache. */
+	cacheReadTokens?: number;
+	/** Prompt tokens written into the provider cache. */
+	cacheWriteTokens?: number;
 	costUsd: number;
 }
 
@@ -320,7 +324,9 @@ function sumWindow(entries: UsageCostEntry[], window: UsageWindowLimit, nowMs: n
 	let firstRecordedAt: number | undefined;
 	for (const entry of entries) {
 		if (entry.recordedAt < sinceMs) continue;
-		used += window.unit === 'usd' ? entry.costUsd : entry.inputTokens + entry.outputTokens;
+		used += window.unit === 'usd'
+			? entry.costUsd
+			: entry.inputTokens + entry.outputTokens + (entry.cacheReadTokens ?? 0) + (entry.cacheWriteTokens ?? 0);
 		if (firstRecordedAt === undefined || entry.recordedAt < firstRecordedAt) firstRecordedAt = entry.recordedAt;
 	}
 	return { used, resetsAt: firstRecordedAt === undefined ? undefined : firstRecordedAt + window.durationMs };
@@ -370,7 +376,10 @@ export function buildProviderUsageReport(
 	const plan = CODING_PLAN_LIMITS[provider];
 	const providerEntries = entries.filter((entry) => entry.provider === provider);
 	const totalCostUsd = providerEntries.reduce((sum, entry) => sum + entry.costUsd, 0);
-	const totalTokens = providerEntries.reduce((sum, entry) => sum + entry.inputTokens + entry.outputTokens, 0);
+	const totalTokens = providerEntries.reduce(
+		(sum, entry) => sum + entry.inputTokens + entry.outputTokens + (entry.cacheReadTokens ?? 0) + (entry.cacheWriteTokens ?? 0),
+		0,
+	);
 	const windows = (plan?.windows ?? []).map((window) => {
 		const { used, resetsAt } = sumWindow(providerEntries, window, nowMs);
 		const roundedUsed = window.unit === 'usd' ? Number(used.toFixed(6)) : Math.round(used);
@@ -417,7 +426,10 @@ function reportFromLiveUsage(report: UsageReport, entries: UsageCostEntry[]): Pr
 		source: 'live',
 		entries: providerEntries.length,
 		totalCostUsd: providerEntries.reduce((sum, entry) => sum + entry.costUsd, 0),
-		totalTokens: providerEntries.reduce((sum, entry) => sum + entry.inputTokens + entry.outputTokens, 0),
+		totalTokens: providerEntries.reduce(
+			(sum, entry) => sum + entry.inputTokens + entry.outputTokens + (entry.cacheReadTokens ?? 0) + (entry.cacheWriteTokens ?? 0),
+			0,
+		),
 		windows: report.limits.map((limit) => usageWindowReportFromLimit(limit, report)),
 		notes: report.notes ?? [],
 		fetchedAt: report.fetchedAt,
