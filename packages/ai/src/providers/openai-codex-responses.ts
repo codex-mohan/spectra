@@ -5,6 +5,16 @@ import type { DiscoveryContext, DiscoveryResult, ModelInfo } from '../registry.j
 /** ChatGPT subscription backend used by the Codex Responses transport. */
 export const OPENAI_CODEX_RESPONSES_BASE_URL = 'https://chatgpt.com/backend-api/codex';
 
+/**
+ * Pinned Codex client version, mirroring `@openai/codex`.
+ *
+ * The backend version-gates the model list by this value: discovery without
+ * `client_version` is rejected with 400, and an older pin silently hides newer
+ * SKUs (GPT-6.1 Sol is absent at 0.155.1 and listed at 0.159.0). Keep it in
+ * step with the Codex CLI when models go missing after a release.
+ */
+export const CODEX_CLIENT_VERSION = '0.159.0';
+
 interface CodexModelPayload {
 	slug?: unknown;
 	display_name?: unknown;
@@ -52,10 +62,12 @@ async function discoverOpenAICodexModels(context: DiscoveryContext): Promise<Dis
 	if (!context.apiKey) throw new Error('Codex model discovery requires an OAuth access token');
 	const baseUrl = (context.baseUrl || OPENAI_CODEX_RESPONSES_BASE_URL).replace(/\/+$/, '');
 	const url = new URL(`${baseUrl}/models`);
+	url.searchParams.set('client_version', CODEX_CLIENT_VERSION);
 	const response = await fetch(url, {
 		headers: {
 			...context.headers,
 			Authorization: `Bearer ${context.apiKey}`,
+			version: CODEX_CLIENT_VERSION,
 		},
 		signal: AbortSignal.timeout(5000),
 	});

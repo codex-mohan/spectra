@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerProvider, getProvider, listProviders, stream, getModels } from '../registry.js';
 import { createAnthropicProvider } from '../providers/anthropic.js';
 import {
+	CODEX_CLIENT_VERSION,
 	createOpenAICodexResponsesProvider,
 	OPENAI_CODEX_PROVIDER_CONFIG,
 	OPENAI_CODEX_RESPONSES_BASE_URL,
@@ -133,6 +134,28 @@ describe('openai-codex model catalog', () => {
 			contextWindow: 272_000,
 			supportedInputs: ['text', 'image'],
 		}]);
+	});
+
+	it('requests the Codex model list with the pinned client version', async () => {
+		const requestSpy = vi.fn(async (_url: URL, _init?: RequestInit) => new Response(JSON.stringify({ models: [{
+			slug: 'gpt-6.1-sol',
+			display_name: 'GPT-6.1-Sol',
+			visibility: 'list',
+			supported_in_api: true,
+			context_window: 272_000,
+		}] }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+		const originalFetch = globalThis.fetch;
+		globalThis.fetch = requestSpy as typeof fetch;
+		try {
+			const provider = createOpenAICodexResponsesProvider();
+			const result = await provider.discoverModels!({ apiKey: 'oauth-token' });
+			const [url, init] = requestSpy.mock.calls[0]!;
+			expect(url.searchParams.get('client_version')).toBe(CODEX_CLIENT_VERSION);
+			expect((init?.headers as Record<string, string> | undefined)?.version).toBe(CODEX_CLIENT_VERSION);
+			expect(result?.models.map((m) => m.id)).toEqual(['gpt-6.1-sol']);
+		} finally {
+			globalThis.fetch = originalFetch;
+		}
 	});
 
 	it('should return a non-empty model list for openai-codex', async () => {
