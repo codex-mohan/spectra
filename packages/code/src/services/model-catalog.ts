@@ -2,8 +2,8 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { createHash } from 'crypto';
 import { getGlobalDataDir } from '../utils/paths.js';
-import { getProviderModels, discoverProviderModels } from '@mohanscodex/spectra-ai';
-import type { ModelInfo, DiscoveryContext } from '@mohanscodex/spectra-ai';
+import { getProviderModels, discoverProviderModels, isDiscoveryFailure } from '@mohanscodex/spectra-ai';
+import type { ModelInfo, DiscoveryContext, DiscoveryOutcome } from '@mohanscodex/spectra-ai';
 
 // ── Cache types ──────────────────────────────────────────────────────────────
 
@@ -372,7 +372,7 @@ function hydrateCachedModel(record: CachedModelRecord): ModelInfo {
 export type DiscoverModelsFn = (
 	providerId: string,
 	context: DiscoveryContext,
-) => Promise<{ models: ModelInfo[]; fetchedAt?: number } | undefined>;
+) => Promise<DiscoveryOutcome | undefined>;
 
 // ── Resolver ─────────────────────────────────────────────────────────────────
 
@@ -447,18 +447,18 @@ export async function resolveModelCatalog(
 	const cachedEntry = store.getEntry(scopeKey);
 	const cached = cachedEntry?.models.map(hydrateCachedModel) ?? [];
 
-	// 3. Fresh discovery
-	let fresh: ModelInfo[] = [];
-	let discoverySucceeded = false;
+	// 3. Fresh discovery. A failed attempt (null-ish outcome) keeps cached and
+	// bundled rows; a successful empty roster is authoritative only for this
+	// cycle and is never pinned as authoritative in the cache.
+	let outcome: DiscoveryOutcome | undefined;
 	try {
-		const result = await discoverModels(providerId, credentialContext ?? {});
-		if (result?.models && result.models.length > 0) {
-			fresh = result.models;
-			discoverySucceeded = true;
-		}
+		outcome = await discoverModels(providerId, credentialContext ?? {});
 	} catch {
-		// Discovery failed: retain cached data, don't update fresh.
+		outcome = { models: [], error: { message: 'Discovery threw' } };
 	}
+	const fresh: ModelInfo[] = outcome && !isDiscoveryFailure(outcome) ? outcome.models : [];
+	const discoverySucceeded = outcome !== undefined && !isDiscoveryFailure(outcome);
+	const hasFreshModels = discoverySucceeded && fresh.length > 0;
 
 	// 4. Merge: fresh overrides by ID, then cache fills gaps, bundled is baseline
 	const byId: Record<string, ModelInfo> = {};
@@ -467,7 +467,7 @@ export async function resolveModelCatalog(
 	for (const m of fresh) byId[m.id] = m;
 
 	let models: ModelInfo[];
-	if (authoritative && discoverySucceeded) {
+	if (authoritative && hasFreshModels) {
 		const freshIds = new Set(fresh.map((m) => m.id));
 		models = Object.values(byId).filter((m) => freshIds.has(m.id));
 	} else {
@@ -489,7 +489,7 @@ export async function resolveModelCatalog(
 		baseUrl,
 		models: mergedRecords,
 		fetchedAt: nowMs,
-		authoritative: authoritative && discoverySucceeded,
+		authoritative: authoritative && hasFreshModels,
 		version: CACHE_VERSION,
 	};
 

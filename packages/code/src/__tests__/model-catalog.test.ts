@@ -117,6 +117,38 @@ describe('model catalog cache', () => {
 		});
 	});
 
+	// ── Discovery outcomes ──────────────────────────────────────────────────
+
+	describe('discovery outcomes', () => {
+		it('keeps bundled rows and does not claim authority when discovery fails', async () => {
+			const result = await resolveModelCatalog({
+				providerId: 'anthropic',
+				credentialContext: { apiKey: 'test' },
+				dataDir: tmpDir,
+				authoritative: true,
+				discoverModels: async () => ({ models: [], error: { message: 'HTTP 500', status: 500 } }),
+			});
+
+			expect(result.discoveryUsed).toBe(false);
+			expect(result.models.length).toBeGreaterThan(0);
+			expect(result.cacheEntry.authoritative).toBe(false);
+		});
+
+		it('does not pin authority for an empty successful roster', async () => {
+			const result = await resolveModelCatalog({
+				providerId: 'anthropic',
+				credentialContext: { apiKey: 'test' },
+				dataDir: tmpDir,
+				authoritative: true,
+				discoverModels: async () => ({ models: [], fetchedAt: Date.now() }),
+			});
+
+			expect(result.discoveryUsed).toBe(true);
+			expect(result.models.length).toBeGreaterThan(0);
+			expect(result.cacheEntry.authoritative).toBe(false);
+		});
+	});
+
 	// ── Live metadata overrides ─────────────────────────────────────────────
 
 	describe('live metadata overrides', () => {

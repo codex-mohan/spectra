@@ -560,7 +560,7 @@ The following are deferred until the core system is stable and functional:
 
 Reference implementation studied in full: `C:\Users\wwwmo\reference-projects\oh-my-pi` (catalog generation, discovery protocols, model registry, credentials, pricing). This section is self-contained so another session can execute it without re-doing the research.
 
-**Status:** Phase 0 shipped. Phases 1–8 planned.
+**Status:** Phase 0 and Phase 1 shipped. Phases 2–8 planned.
 
 ### Why
 
@@ -612,13 +612,16 @@ Three user-visible failures drove this plan:
 
 **Acceptance:** Anthropic cache-heavy fixture priced correctly; OpenAI cached tokens billed at cache rate; session reload keeps identical cost; subagent cost non-zero; unknown model shows `—`.
 
-#### Phase 1 — Row shape + discovery contract
+#### Phase 1 — Row shape + discovery contract (shipped)
 
-- [ ] Row: `{id,name,api?,baseUrl?,contextWindow?,maxTokens?,reasoning?,input?,supportsTools?,cost?}`
-- [ ] `discoverModels` returns `{models} | null | []` (`null` = failed, `[]` = authoritative empty)
-- [ ] `DiscoveryHttpError(status, url)` + `isAuthRejection`
-- [ ] Shared normalizer: tolerant envelope, field precedence (`max_model_len` → `context_length` → limits → native → bundled → default), output-cap clamp, modalities, non-chat kind routing
-- [ ] Update all in-tree `discoverModels` and `register-builtins` wrappers
+- [x] Row: `ModelInfo` gained `api`, `baseUrl`, `maxTokens`, `reasoning`, and `cost`; modalities stay on the existing `supportedInputs` field so there is no second modality convention.
+- [x] `discoverModels` returns `DiscoveryOutcome = DiscoveryResult | DiscoveryFailure`: `{ models, fetchedAt }` for a roster (empty included) or `{ models: [], error: { message, status? } }` for a failure. Providers never throw.
+- [x] `isDiscoveryFailure` / `isDiscoveryAuthRejection` guards exported.
+- [x] Shared normalizer (`packages/ai/src/discovery/shared.ts`): envelope extraction (`data|models|result|items`), context precedence (`max_model_len` → `context_length` → limits sum → fallback), output-cap clamp, modality and tool detection.
+- [x] In-tree providers migrated (`openai-completions`, `openrouter`, `openai-codex-responses`, `register-builtins` wrappers); the duplicate `wrapOpenAIProviderWithLiveModels` was deleted.
+- [x] `resolveModelCatalog` keeps bundled rows on failure and never pins authority for an empty successful roster.
+
+**Phase 1 notes:** non-chat kind routing was not needed by any in-tree provider and is deferred to Phase 4; a separate `input` field was not added beside `supportedInputs`.
 
 **Acceptance:** tri-state tests, envelope variants, no throw on 404.
 
@@ -730,7 +733,7 @@ KDL/compat rule engine; 77 provider-specific mappers; Cursor/Devin protobuf tran
 
 ### Next action
 
-Phase 1: widen the model row (`api`, `baseUrl`, `maxTokens`, `reasoning`, `input`, `cost`) and return `{models} | null | []` from `discoverModels` so "authoritative empty" is expressible. Phase 0's remaining item (cache cost breakdown in the stats dialog) is optional and can ride along.
+Phase 2: promote `model-catalog.ts` into a registry with refresh strategies (`offline | online-if-uncached | online`), a 2 h fetch TTL and 5 min non-authoritative retry, read-time freshness, per-provider discovery status, startup hydration plus background refresh, and no cache writes on failure.
 
 ### Already shipped (do not redo)
 

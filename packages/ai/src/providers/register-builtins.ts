@@ -1,5 +1,6 @@
 import { registerProvider } from '../registry.js';
-import type { Provider, DiscoveryContext, DiscoveryResult, ModelInfo } from '../registry.js';
+import type { Provider, DiscoveryContext, DiscoveryOutcome, ModelInfo } from '../registry.js';
+import { normalizeModelRows } from '../discovery/shared.js';
 import { createAnthropicProvider } from './anthropic.js';
 import { createOpenAICompletionsProvider, type OpenAICompletionsOptions } from './openai-completions.js';
 import { createOpenAIResponsesProvider } from './openai-responses.js';
@@ -17,31 +18,23 @@ function bundledModels(providerName: string): ModelInfo[] {
 	return getProviderModels(providerName).map((m) => ({ id: m.id, name: m.name, contextWindow: m.contextWindow }));
 }
 
-interface LiveApiModel {
-	id: string;
-	name: string;
-	context_length?: number;
-	supported_parameters?: string[];
-	supported_inputs?: string[];
-}
-
-async function fetchLiveModels(baseUrl: string, headers?: Record<string, string>): Promise<ModelInfo[]> {
-	const res = await fetch(`${baseUrl}/models`, {
-		signal: AbortSignal.timeout(5000),
-		headers,
-	});
-	if (!res.ok) throw new Error(`Model discovery failed: ${res.status}`);
-	const json = await res.json();
-	const list = (json.data || []) as LiveApiModel[];
-	return list
-		.map((m) => ({
-			id: m.id,
-			name: m.name || m.id,
-			contextWindow: m.context_length,
-			supportsTools: m.supported_parameters?.includes('tools'),
-			supportedInputs: m.supported_inputs,
-		}))
-		.sort((a, b) => a.name.localeCompare(b.name));
+async function fetchLiveModels(baseUrl: string, headers?: Record<string, string>): Promise<DiscoveryOutcome> {
+	const url = `${baseUrl}/models`;
+	let res: Response;
+	try {
+		res = await fetch(url, {
+			signal: AbortSignal.timeout(5000),
+			headers,
+		});
+	} catch (error) {
+		return { models: [], error: { message: error instanceof Error ? error.message : String(error) } };
+	}
+	if (!res.ok) return { models: [], error: { message: `HTTP ${res.status} from ${url}`, status: res.status } };
+	try {
+		return { models: normalizeModelRows(await res.json()), fetchedAt: Date.now() };
+	} catch (error) {
+		return { models: [], error: { message: error instanceof Error ? error.message : String(error) } };
+	}
 }
 
 function wrapOpenAIProvider(name: string, baseUrl: string): Provider {
@@ -49,32 +42,12 @@ function wrapOpenAIProvider(name: string, baseUrl: string): Provider {
 	return {
 		name,
 		listModels: () => bundledModels(name),
-		async discoverModels(context: DiscoveryContext): Promise<DiscoveryResult> {
+		async discoverModels(context: DiscoveryContext): Promise<DiscoveryOutcome> {
 			const headers: Record<string, string> = { ...context.headers };
 			if (context.apiKey) {
 				headers['Authorization'] = `Bearer ${context.apiKey}`;
 			}
-			const live = await fetchLiveModels(context.baseUrl || baseUrl, headers);
-			return { models: live, fetchedAt: Date.now() };
-		},
-		stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
-			return inner.stream({ ...model, baseUrl: model.baseUrl || baseUrl }, context, options);
-		},
-	};
-}
-
-function wrapOpenAIProviderWithLiveModels(name: string, baseUrl: string): Provider {
-	const inner = createOpenAICompletionsProvider();
-	return {
-		name,
-		listModels: () => bundledModels(name),
-		async discoverModels(context: DiscoveryContext): Promise<DiscoveryResult> {
-			const headers: Record<string, string> = { ...context.headers };
-			if (context.apiKey) {
-				headers['Authorization'] = `Bearer ${context.apiKey}`;
-			}
-			const live = await fetchLiveModels(context.baseUrl || baseUrl, headers);
-			return { models: live, fetchedAt: Date.now() };
+			return fetchLiveModels(context.baseUrl || baseUrl, headers);
 		},
 		stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
 			return inner.stream({ ...model, baseUrl: model.baseUrl || baseUrl }, context, options);
@@ -123,26 +96,26 @@ export function initProviders(): void {
 	registerProvider(wrapSnowflakeProvider('snowflake-cortex'));
 
 	// Coding plan providers
-	registerProvider(wrapOpenAIProviderWithLiveModels('opencode-go', 'https://opencode.ai/zen/go/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('alibaba-coding-plan', 'https://coding-intl.dashscope.aliyuncs.com/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('alibaba-coding-plan-cn', 'https://coding.dashscope.aliyuncs.com/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('minimax-coding-plan', 'https://api.minimax.io/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('minimax-coding-plan-cn', 'https://api.minimaxi.com/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('zai-coding-plan', 'https://api.z.ai/api/coding/paas/v4'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('zhipuai-coding-plan', 'https://open.bigmodel.cn/api/paas/v4'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('kimi-coding-plan', 'https://api.kimi.com/coding/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('kimi-code', 'https://api.kimi.com/coding/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('minimax-code', 'https://api.minimax.io/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('minimax-code-cn', 'https://api.minimaxi.com/v1'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('zhipu-coding-plan', 'https://open.bigmodel.cn/api/coding/paas/v4'));
-	registerProvider(wrapOpenAIProviderWithLiveModels('opencode-zen', 'https://opencode.ai/zen/v1'));
+	registerProvider(wrapOpenAIProvider('opencode-go', 'https://opencode.ai/zen/go/v1'));
+	registerProvider(wrapOpenAIProvider('alibaba-coding-plan', 'https://coding-intl.dashscope.aliyuncs.com/v1'));
+	registerProvider(wrapOpenAIProvider('alibaba-coding-plan-cn', 'https://coding.dashscope.aliyuncs.com/v1'));
+	registerProvider(wrapOpenAIProvider('minimax-coding-plan', 'https://api.minimax.io/v1'));
+	registerProvider(wrapOpenAIProvider('minimax-coding-plan-cn', 'https://api.minimaxi.com/v1'));
+	registerProvider(wrapOpenAIProvider('zai-coding-plan', 'https://api.z.ai/api/coding/paas/v4'));
+	registerProvider(wrapOpenAIProvider('zhipuai-coding-plan', 'https://open.bigmodel.cn/api/paas/v4'));
+	registerProvider(wrapOpenAIProvider('kimi-coding-plan', 'https://api.kimi.com/coding/v1'));
+	registerProvider(wrapOpenAIProvider('kimi-code', 'https://api.kimi.com/coding/v1'));
+	registerProvider(wrapOpenAIProvider('minimax-code', 'https://api.minimax.io/v1'));
+	registerProvider(wrapOpenAIProvider('minimax-code-cn', 'https://api.minimaxi.com/v1'));
+	registerProvider(wrapOpenAIProvider('zhipu-coding-plan', 'https://open.bigmodel.cn/api/coding/paas/v4'));
+	registerProvider(wrapOpenAIProvider('opencode-zen', 'https://opencode.ai/zen/v1'));
 
 	// Local OpenAI-compatible runtimes
-	registerProvider(wrapOpenAIProviderWithLiveModels('ollama', envBaseUrl('OLLAMA_BASE_URL', 'http://127.0.0.1:11434/v1')));
-	registerProvider(wrapOpenAIProviderWithLiveModels('lm-studio', envBaseUrl('LM_STUDIO_BASE_URL', 'http://127.0.0.1:1234/v1')));
-	registerProvider(wrapOpenAIProviderWithLiveModels('llama-cpp', envBaseUrl('LLAMA_CPP_BASE_URL', 'http://127.0.0.1:8080/v1')));
-	registerProvider(wrapOpenAIProviderWithLiveModels('vllm', envBaseUrl('VLLM_BASE_URL', 'http://127.0.0.1:8000/v1')));
-	registerProvider(wrapOpenAIProviderWithLiveModels('sglang', envBaseUrl('SGLANG_BASE_URL', 'http://127.0.0.1:30000/v1')));
+	registerProvider(wrapOpenAIProvider('ollama', envBaseUrl('OLLAMA_BASE_URL', 'http://127.0.0.1:11434/v1')));
+	registerProvider(wrapOpenAIProvider('lm-studio', envBaseUrl('LM_STUDIO_BASE_URL', 'http://127.0.0.1:1234/v1')));
+	registerProvider(wrapOpenAIProvider('llama-cpp', envBaseUrl('LLAMA_CPP_BASE_URL', 'http://127.0.0.1:8080/v1')));
+	registerProvider(wrapOpenAIProvider('vllm', envBaseUrl('VLLM_BASE_URL', 'http://127.0.0.1:8000/v1')));
+	registerProvider(wrapOpenAIProvider('sglang', envBaseUrl('SGLANG_BASE_URL', 'http://127.0.0.1:30000/v1')));
 }
 
 initProviders();

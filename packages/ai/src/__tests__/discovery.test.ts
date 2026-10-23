@@ -1,9 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import {
 	discoverProviderModels,
 	getProvider,
 	registerProvider,
 	getModels,
+	isDiscoveryAuthRejection,
+	isDiscoveryFailure,
 	type Provider,
 	type DiscoveryContext,
 	type DiscoveryResult,
@@ -42,10 +44,11 @@ describe('Discovery contract', () => {
 
 		const result = await discoverProviderModels('__test-with-discovery', { apiKey: 'test-key' });
 		expect(result).toBeDefined();
-		expect(result!.models).toHaveLength(1);
-		expect(result!.models[0].id).toBe('m1');
-		expect(result!.models[0].contextWindow).toBe(16384);
-		expect(result!.fetchedAt).toBe(123);
+		if (!result || isDiscoveryFailure(result)) throw new Error('expected a successful discovery');
+		expect(result.models).toHaveLength(1);
+		expect(result.models[0].id).toBe('m1');
+		expect(result.models[0].contextWindow).toBe(16384);
+		expect(result.fetchedAt).toBe(123);
 	});
 
 	it('discoverProviderModels passes context through to discoverModels', async () => {
@@ -55,7 +58,7 @@ describe('Discovery contract', () => {
 			stream: (() => {}) as any,
 			discoverModels: (ctx: DiscoveryContext): DiscoveryResult => {
 				receivedCtx = ctx;
-				return { models: [] };
+				return { models: [], fetchedAt: 0 };
 			},
 		};
 		registerProvider(stub);
@@ -99,6 +102,8 @@ describe('Enriched ModelInfo', () => {
 });
 
 describe('OpenRouter discovery', () => {
+	afterEach(() => vi.unstubAllGlobals());
+
 	it('has discoverModels defined', () => {
 		const provider = getProvider('openrouter');
 		expect(provider).toBeDefined();
@@ -117,15 +122,38 @@ describe('OpenRouter discovery', () => {
 		}
 	});
 
-	it('discoverModels returns a DiscoveryResult with fetchedAt', async () => {
-		const provider = getProvider('openrouter');
-		// discoverModels with no key should still return bundled fallback
-		const result = await provider!.discoverModels!({});
-		expect(result).toBeDefined();
-		expect(result!.models).toBeDefined();
-		expect(Array.isArray(result!.models)).toBe(true);
-		expect(result!.fetchedAt).toBeDefined();
-		expect(typeof result!.fetchedAt).toBe('number');
+	it('normalizes the gateway envelope and stamps fetchedAt', async () => {
+		vi.stubGlobal('fetch', async () => new Response(JSON.stringify({
+			data: [{
+				id: 'vendor/alpha',
+				name: 'Alpha',
+				context_length: 200_000,
+				supported_parameters: ['tools'],
+				architecture: { input_modalities: ['text', 'image'] },
+				top_provider: { max_completion_tokens: 32_000 },
+			}],
+		}), { status: 200 }));
+
+		const result = await getProvider('openrouter')!.discoverModels!({ apiKey: 'sk' });
+		expect(isDiscoveryFailure(result)).toBe(false);
+		if (isDiscoveryFailure(result)) return;
+		expect(result.fetchedAt).toBeGreaterThan(0);
+		expect(result.models).toEqual([{
+			id: 'vendor/alpha',
+			name: 'Alpha',
+			contextWindow: 200_000,
+			maxTokens: 32_000,
+			supportsTools: true,
+			supportedInputs: ['text', 'image'],
+		}]);
+	});
+
+	it('reports an auth rejection instead of throwing', async () => {
+		vi.stubGlobal('fetch', async () => new Response('denied', { status: 401 }));
+
+		const result = await getProvider('openrouter')!.discoverModels!({});
+		expect(isDiscoveryFailure(result)).toBe(true);
+		expect(isDiscoveryAuthRejection(result)).toBe(true);
 	});
 });
 

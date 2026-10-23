@@ -1,6 +1,6 @@
 import { createOpenAIResponsesProvider } from './openai-responses.js';
 import type { OpenAIResponsesProviderConfig } from './openai-responses.js';
-import type { DiscoveryContext, DiscoveryResult, ModelInfo } from '../registry.js';
+import type { DiscoveryContext, DiscoveryOutcome, ModelInfo } from '../registry.js';
 
 /** ChatGPT subscription backend used by the Codex Responses transport. */
 export const OPENAI_CODEX_RESPONSES_BASE_URL = 'https://chatgpt.com/backend-api/codex';
@@ -58,21 +58,34 @@ export function parseOpenAICodexModels(payload: unknown): ModelInfo[] {
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function discoverOpenAICodexModels(context: DiscoveryContext): Promise<DiscoveryResult> {
-	if (!context.apiKey) throw new Error('Codex model discovery requires an OAuth access token');
+async function discoverOpenAICodexModels(context: DiscoveryContext): Promise<DiscoveryOutcome> {
+	if (!context.apiKey) {
+		return { models: [], error: { message: 'Codex model discovery requires an OAuth access token', status: 401 } };
+	}
 	const baseUrl = (context.baseUrl || OPENAI_CODEX_RESPONSES_BASE_URL).replace(/\/+$/, '');
 	const url = new URL(`${baseUrl}/models`);
 	url.searchParams.set('client_version', CODEX_CLIENT_VERSION);
-	const response = await fetch(url, {
-		headers: {
-			...context.headers,
-			Authorization: `Bearer ${context.apiKey}`,
-			version: CODEX_CLIENT_VERSION,
-		},
-		signal: AbortSignal.timeout(5000),
-	});
-	if (!response.ok) throw new Error(`Codex model discovery failed: ${response.status}`);
-	return { models: parseOpenAICodexModels(await response.json()), fetchedAt: Date.now() };
+	let response: Response;
+	try {
+		response = await fetch(url, {
+			headers: {
+				...context.headers,
+				Authorization: `Bearer ${context.apiKey}`,
+				version: CODEX_CLIENT_VERSION,
+			},
+			signal: AbortSignal.timeout(5000),
+		});
+	} catch (error) {
+		return { models: [], error: { message: error instanceof Error ? error.message : String(error) } };
+	}
+	if (!response.ok) {
+		return { models: [], error: { message: `HTTP ${response.status} from ${url}`, status: response.status } };
+	}
+	try {
+		return { models: parseOpenAICodexModels(await response.json()), fetchedAt: Date.now() };
+	} catch (error) {
+		return { models: [], error: { message: error instanceof Error ? error.message : String(error) } };
+	}
 }
 
 

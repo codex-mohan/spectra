@@ -26,7 +26,8 @@ import {
 	toolResultText,
 } from './shared.js';
 import { getProviderModels } from '../models.js';
-import type { DiscoveryContext, DiscoveryResult, ModelInfo } from '../registry.js';
+import type { DiscoveryContext, DiscoveryOutcome } from '../registry.js';
+import { normalizeModelRows } from '../discovery/shared.js';
 
 const LOCAL_NO_AUTH_PROVIDERS: Record<string, string> = {
 	ollama: 'ollama-local',
@@ -89,21 +90,25 @@ export function createOpenAICompletionsProvider() {
 			'application/json', 'application/xml',
 		],
 		listModels: () => getProviderModels('openai').map((m) => ({ id: m.id, name: m.name, contextWindow: m.contextWindow })),
-		async discoverModels(context: DiscoveryContext): Promise<DiscoveryResult> {
+		async discoverModels(context: DiscoveryContext): Promise<DiscoveryOutcome> {
 			const headers: Record<string, string> = { ...context.headers };
 			if (context.apiKey) headers.Authorization = `Bearer ${context.apiKey}`;
 			const baseUrl = (context.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
-			const response = await fetch(`${baseUrl}/models`, {
-				signal: AbortSignal.timeout(5000),
-				headers,
-			});
-			if (!response.ok) throw new Error(`Model discovery failed: ${response.status}`);
-			const payload = await response.json() as { data?: Array<{ id?: unknown }> };
-			const models: ModelInfo[] = (payload.data ?? [])
-				.filter((model): model is { id: string } => typeof model.id === 'string')
-				.map((model) => ({ id: model.id, name: model.id }))
-				.sort((a, b) => a.name.localeCompare(b.name));
-			return { models, fetchedAt: Date.now() };
+			const url = `${baseUrl}/models`;
+			let response: Response;
+			try {
+				response = await fetch(url, { signal: AbortSignal.timeout(5000), headers });
+			} catch (error) {
+				return { models: [], error: { message: error instanceof Error ? error.message : String(error) } };
+			}
+			if (!response.ok) {
+				return { models: [], error: { message: `HTTP ${response.status} from ${url}`, status: response.status } };
+			}
+			try {
+				return { models: normalizeModelRows(await response.json()), fetchedAt: Date.now() };
+			} catch (error) {
+				return { models: [], error: { message: error instanceof Error ? error.message : String(error) } };
+			}
 		},
 	stream(model: Model, context: Context, options?: OpenAICompletionsOptions): AssistantMessageEventStream {
 			const stream = new AssistantMessageEventStream();
