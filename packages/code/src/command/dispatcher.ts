@@ -119,6 +119,7 @@ export function adaptLegacyCmdItem(item: LegacyCmdItemLike): CommandDefinition {
 		title: item.label,
 		description: item.desc,
 		category: item.cat,
+		icon: item.icon,
 		source: 'builtin',
 		sourceInfo: { label: 'Spectra built-in' },
 		argCompleter: item.argCompleter

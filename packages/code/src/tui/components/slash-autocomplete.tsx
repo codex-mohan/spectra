@@ -1,6 +1,7 @@
 import { MenuRowText } from './menu-row-text.js';
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
+import { iconForCommand } from '../utils/icons.js';
 import type { ResolvedCommand } from '../command-types.js';
 
 export interface SlashAutocompleteProps {
@@ -46,6 +47,7 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 				items.slice(visibleWindow.start, visibleWindow.end).map((item, offset) => {
 					const actualIndex = visibleWindow.start + offset;
 					const isSel = actualIndex === selected;
+					const icon = iconForCommand(item.definition);
 					return (
 						<box
 							key={item.definition.id}
@@ -58,7 +60,10 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 							justifyContent="space-between"
 							alignItems="center"
 						>
-							<MenuRowText width={Math.max(0, width - 2)} title={[`/${item.invocation}`, item.definition.title !== item.invocation ? item.definition.title : ''].filter(Boolean).join(' ')} detail={item.definition.description} selected={isSel} />
+							<box flexDirection="row" alignItems="center" width={Math.max(0, width - 2)}>
+								<text width={2} fg={icon.color}>{icon.glyph}</text>
+								<MenuRowText width={Math.max(0, width - 4)} title={[`/${item.invocation}`, item.definition.title !== item.invocation ? item.definition.title : ''].filter(Boolean).join(' ')} detail={item.definition.description} selected={isSel} />
+							</box>
 						</box>
 					);
 				})

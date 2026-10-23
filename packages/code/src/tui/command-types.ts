@@ -47,6 +47,8 @@ export interface CmdItem {
 	label: string;
 	desc: string;
 	cat?: string;
+	/** Icon key from the TUI icon table; omit to derive it from the id. */
+	icon?: string;
 	action: (ctx: CommandRunContext) => void | Promise<void>;
 	slashName?: string;
 	slashAliases?: string[];

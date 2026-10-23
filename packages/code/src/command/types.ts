@@ -61,6 +61,9 @@ export interface CommandDefinition {
 	/** Category for palette grouping. */
 	readonly category?: string;
 
+	/** Optional icon key resolved by the TUI host (presentation metadata). */
+	readonly icon?: string;
+
 	/** Where this command originated. */
 	readonly source: CommandSource;
 
@@ -112,6 +115,8 @@ export interface LegacyCmdItemLike {
 	readonly label: string;
 	readonly desc: string;
 	readonly cat?: string;
+	/** Optional icon key resolved by the TUI host. */
+	readonly icon?: string;
 	readonly action: (ctx: { source: 'palette' | 'slash'; args: string }) => void | Promise<void>;
 	readonly slashName?: string;
 	readonly slashAliases?: string[];

@@ -2,6 +2,7 @@ import { MenuRowText } from './menu-row-text.js';
 import { useMemo } from 'react';
 import { c } from '../theme.js';
 import { getCenteredWindow } from '../utils/selection-window.js';
+import { iconForCommand } from '../utils/icons.js';
 import type { ResolvedCommand } from '../command-types.js';
 
 
@@ -46,6 +47,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 			}
 			const isSelected = i === selected;
 			if (isSelected) selectedRowIndex = r.length;
+			const icon = iconForCommand(def);
 			r.push(
 				<box
 					key={def.id}
@@ -58,7 +60,10 @@ export function CommandPalette(props: CommandPaletteProps) {
 					justifyContent="space-between"
 					alignItems="center"
 				>
-					<MenuRowText width={Math.max(0, mw - 5)} title={def.title} detail={def.description} selected={isSelected} />
+					<box flexDirection="row" alignItems="center" width={Math.max(0, mw - 5)}>
+						<text width={2} fg={icon.color}>{icon.glyph}</text>
+						<MenuRowText width={Math.max(0, mw - 7)} title={def.title} detail={def.description} selected={isSelected} />
+					</box>
 				</box>,
 			);
 		}
