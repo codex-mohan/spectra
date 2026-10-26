@@ -2,7 +2,7 @@ import { c } from '../tokens.js';
 import { hasNerdFont } from './file-visuals.js';
 
 export interface IconSpec {
-	/** Nerd Font glyph (Font Awesome range). Absent → the emoji is always used. */
+	/** Nerd Font Material Design glyph, the same family the file badges use. */
 	nerd?: string;
 	/** Plain-default emoji fallback when Nerd Font coverage is unavailable. */
 	emoji: string;
@@ -12,61 +12,61 @@ export interface IconSpec {
 
 /** Icon per builtin command id. */
 const ICON_BY_ID: Record<string, IconSpec> = {
-	new: { nerd: '\uf067', emoji: '➕', color: c.success },
-	sessions: { nerd: '\uf03a', emoji: '🗂', color: c.subtext },
-	'delete-session': { nerd: '\uf1f8', emoji: '🗑', color: c.error },
-	'rename-session': { nerd: '\uf044', emoji: '✏', color: c.warn },
-	'fork-session': { nerd: '\uf126', emoji: '🔀', color: c.blue },
-	'archive-session': { nerd: '\uf187', emoji: '📦', color: c.subtext },
-	clear: { nerd: '\uf00d', emoji: '🧹', color: c.warn },
-	todo: { nerd: '\uf046', emoji: '☑', color: c.accent },
-	search: { nerd: '\uf002', emoji: '🔍', color: c.info },
-	export: { nerd: '\uf019', emoji: '💾', color: c.subtext },
-	history: { nerd: '\uf1da', emoji: '🕘', color: c.subtext },
-	compress: { nerd: '\uf066', emoji: '📉', color: c.warn },
-	provider: { nerd: '\uf0e8', emoji: '🔌', color: c.accent },
-	'manage-providers': { nerd: '\uf085', emoji: '⚙', color: c.subtext },
-	'switch-model': { nerd: '\uf2db', emoji: '🧠', color: c.accent },
-	'switch-agent': { nerd: '\uf544', emoji: '🤖', color: c.blue },
-	'cycle-effort': { nerd: '\uf0e7', emoji: '⚡', color: c.warn },
-	'change-effort': { nerd: '\uf0e7', emoji: '⚡', color: c.warn },
-	'toggle-mcp': { nerd: '\uf12e', emoji: '🧩', color: c.purple },
-	'background-tasks': { nerd: '\uf013', emoji: '⚙', color: c.subtext },
-	memory: { nerd: '\uf1c0', emoji: '🧠', color: c.purple },
-	skills: { nerd: '\uf0d0', emoji: '✨', color: c.accent },
-	'toggle-thinking': { nerd: '\uf0eb', emoji: '💡', color: c.warn },
-	'toggle-tools': { nerd: '\uf06e', emoji: '👁', color: c.subtext },
-	home: { nerd: '\uf015', emoji: '🏠', color: c.subtext },
-	'session-stats': { nerd: '\uf080', emoji: '📊', color: c.accent },
-	'context-usage': { nerd: '\uf02d', emoji: '📚', color: c.info },
-	usage: { nerd: '\uf201', emoji: '📈', color: c.success },
-	commit: { nerd: '\uf00c', emoji: '✅', color: c.success },
-	review: { nerd: '\uf002', emoji: '🔍', color: c.blue },
-	explain: { nerd: '\uf02d', emoji: '📖', color: c.info },
-	'build-fix': { nerd: '\uf0ad', emoji: '🔧', color: c.warn },
-	theme: { nerd: '\uf1fc', emoji: '🎨', color: c.pink },
-	permissions: { nerd: '\uf023', emoji: '🔒', color: c.warn },
-	settings: { nerd: '\uf013', emoji: '⚙', color: c.subtext },
-	doctor: { nerd: '\uf0f1', emoji: '🩺', color: c.info },
-	debug: { nerd: '\uf188', emoji: '🐞', color: c.warn },
-	about: { nerd: '\uf05a', emoji: 'ℹ', color: c.subtext },
-	help: { nerd: '\uf059', emoji: '❓', color: c.info },
-	quit: { nerd: '\uf011', emoji: '🚪', color: c.error },
+	new: { nerd: '\u{f0415}', emoji: '➕', color: c.success }, // md-plus
+	sessions: { nerd: '\u{f0279}', emoji: '🗂', color: c.subtext }, // md-format_list_bulleted
+	'delete-session': { nerd: '\u{f0a79}', emoji: '🗑', color: c.error }, // md-trash_can
+	'rename-session': { nerd: '\u{f03eb}', emoji: '✏', color: c.warn }, // md-pencil
+	'fork-session': { nerd: '\u{f04c1}', emoji: '🔀', color: c.blue }, // md-source_fork
+	'archive-session': { nerd: '\u{f003c}', emoji: '📦', color: c.subtext }, // md-archive
+	clear: { nerd: '\u{f00e2}', emoji: '🧹', color: c.warn }, // md-broom
+	todo: { nerd: '\u{f0132}', emoji: '☑', color: c.accent }, // md-checkbox_marked
+	search: { nerd: '\u{f0349}', emoji: '🔍', color: c.info }, // md-magnify
+	export: { nerd: '\u{f01da}', emoji: '💾', color: c.subtext }, // md-download
+	history: { nerd: '\u{f02da}', emoji: '🕘', color: c.subtext }, // md-history
+	compress: { nerd: '\u{f084d}', emoji: '📉', color: c.warn }, // md-arrow_collapse_vertical
+	provider: { nerd: '\u{f06a5}', emoji: '🔌', color: c.accent }, // md-power_plug
+	'manage-providers': { nerd: '\u{f0493}', emoji: '⚙', color: c.subtext }, // md-cog
+	'switch-model': { nerd: '\u{f061a}', emoji: '🧠', color: c.accent }, // md-chip
+	'switch-agent': { nerd: '\u{f06a9}', emoji: '🤖', color: c.blue }, // md-robot
+	'cycle-effort': { nerd: '\u{f140b}', emoji: '⚡', color: c.warn }, // md-lightning_bolt
+	'change-effort': { nerd: '\u{f140b}', emoji: '⚡', color: c.warn }, // md-lightning_bolt
+	'toggle-mcp': { nerd: '\u{f0431}', emoji: '🧩', color: c.purple }, // md-puzzle
+	'background-tasks': { nerd: '\u{f0756}', emoji: '⚙', color: c.subtext }, // md-format_list_checks
+	memory: { nerd: '\u{f01bc}', emoji: '🧠', color: c.purple }, // md-database
+	skills: { nerd: '\u{f1844}', emoji: '✨', color: c.accent }, // md-magic_staff
+	'toggle-thinking': { nerd: '\u{f0335}', emoji: '💡', color: c.warn }, // md-lightbulb
+	'toggle-tools': { nerd: '\u{f0208}', emoji: '👁', color: c.subtext }, // md-eye
+	home: { nerd: '\u{f02dc}', emoji: '🏠', color: c.subtext }, // md-home
+	'session-stats': { nerd: '\u{f0128}', emoji: '📊', color: c.accent }, // md-chart_bar
+	'context-usage': { nerd: '\u{f05da}', emoji: '📚', color: c.info }, // md-book_open_page_variant
+	usage: { nerd: '\u{f012a}', emoji: '📈', color: c.success }, // md-chart_line
+	commit: { nerd: '\u{f012c}', emoji: '✅', color: c.success }, // md-check
+	review: { nerd: '\u{f0349}', emoji: '🔍', color: c.blue }, // md-magnify
+	explain: { nerd: '\u{f05da}', emoji: '📖', color: c.info }, // md-book_open_page_variant
+	'build-fix': { nerd: '\u{f05b7}', emoji: '🔧', color: c.warn }, // md-wrench
+	theme: { nerd: '\u{f03d8}', emoji: '🎨', color: c.pink }, // md-palette
+	permissions: { nerd: '\u{f033e}', emoji: '🔒', color: c.warn }, // md-lock
+	settings: { nerd: '\u{f0493}', emoji: '⚙', color: c.subtext }, // md-cog
+	doctor: { nerd: '\u{f04d9}', emoji: '🩺', color: c.info }, // md-stethoscope
+	debug: { nerd: '\u{f00e4}', emoji: '🐞', color: c.warn }, // md-bug
+	about: { nerd: '\u{f02fc}', emoji: 'ℹ', color: c.subtext }, // md-information
+	help: { nerd: '\u{f02d7}', emoji: '❓', color: c.info }, // md-help_circle
+	quit: { nerd: '\u{f0425}', emoji: '🚪', color: c.error }, // md-power
 };
 
 /** Icon by command source when no id mapping exists. */
 const ICON_BY_SOURCE: Record<string, IconSpec> = {
-	skill: { nerd: '\uf0d0', emoji: '✨', color: c.accent },
-	template: { nerd: '\uf15c', emoji: '📄', color: c.subtext },
-	builtin: { nerd: '\uf120', emoji: '⌘', color: c.dim },
+	skill: { nerd: '\u{f1844}', emoji: '✨', color: c.accent }, // md-magic_staff
+	template: { nerd: '\u{f09ee}', emoji: '📄', color: c.subtext }, // md-file_document_outline
+	builtin: { nerd: '\u{f018d}', emoji: '⌘', color: c.dim }, // md-console
 };
 
 const FALLBACK_ICON = ICON_BY_SOURCE.builtin!;
 
 /**
- * Resolve a flat command icon. Nerd Font glyphs are used while
- * {@link hasNerdFont} reports coverage (`SPECTRA_NERD_FONT` / `NO_NERD_FONT`);
- * otherwise the plain emoji fallback is returned.
+ * Resolve a flat command icon from the same Material Design family the file
+ * badges use. Falls back to the plain emoji when {@link hasNerdFont} reports no
+ * Nerd Font coverage.
  */
 export function iconForCommand(
 	command: { id: string; source?: string; icon?: string },

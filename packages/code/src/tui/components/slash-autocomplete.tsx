@@ -1,7 +1,7 @@
-import { MenuRowText } from './menu-row-text.js';
 import { c } from '../theme.js';
 import { PromptAnchoredMenu } from './prompt-anchored-menu.js';
 import { iconForCommand } from '../utils/icons.js';
+import { truncateMenuText } from '../utils/menu-text.js';
 import type { ResolvedCommand } from '../command-types.js';
 
 export interface SlashAutocompleteProps {
@@ -60,10 +60,11 @@ export function SlashAutocomplete(props: SlashAutocompleteProps) {
 							justifyContent="space-between"
 							alignItems="center"
 						>
-							<box flexDirection="row" alignItems="center" width={Math.max(0, width - 2)}>
-								<text width={2} fg={icon.color}>{icon.glyph}</text>
-								<MenuRowText width={Math.max(0, width - 4)} title={[`/${item.invocation}`, item.definition.title !== item.invocation ? item.definition.title : ''].filter(Boolean).join(' ')} detail={item.definition.description} selected={isSel} />
-							</box>
+							<text wrapMode="none" overflow="hidden">
+								<span fg={icon.color}>{`${icon.glyph} `}</span>
+								<span fg={isSel ? c.accent : c.text}>{item.invocation.padEnd(18)}</span>
+								<span fg={c.subtext}>{truncateMenuText(item.definition.description, Math.max(0, width - 24))}</span>
+							</text>
 						</box>
 					);
 				})
