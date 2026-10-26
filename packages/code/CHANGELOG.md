@@ -1,5 +1,33 @@
 # @mohanscodex/spectra-code
 
+## 0.7.0
+
+### Minor Changes
+
+- [`f13dd1e`](https://github.com/codex-mohan/spectra/commit/f13dd1ea070a70e52e6a4fb9c022d4dbf1c4e2da) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Redesign the OAuth loopback callback page as an animated pixel field over Spectra's palette — drifting chunky pixels on canvas, stepped dither and grid layers, pixel-corner status card, with `prefers-reduced-motion` respected.
+
+  Fix first-attempt ChatGPT Codex login failures. The OAuth dialog cancelled its own login: the `registerHandler` prop is a fresh closure on every app re-render, so the key-handler effect's cleanup aborted the in-flight `loginCodex` and the rejection was swallowed — the dialog parked on "Starting login..." and never produced an authorization URL, on every attempt. Re-registering no longer cancels (only unmounting does), and non-cancel failures now surface instead of staying silent. Also: bind the callback server on both loopback families (`localhost` resolves to `::1` first and the code landed on the wrong listener), cancel the pending callback and free port 1455 on abort (a cancelled login leaked the port for minutes, failing the retry), remove the callback-server startup timeout race, and retry the token exchange once on transport failure.
+
+- [`dd59796`](https://github.com/codex-mohan/spectra/commit/dd597964f870db7cc8a3a6a44e2ae8a62b67251d) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Manage MCP servers from the TUI: add, edit, delete, connect, and retest with project or global scope, a verified preset catalog, JSON import from an `mcpServers` block, and quoted argument parsing for paths containing spaces. Connected servers now expose their tools to the TUI agent behind an `mcp` permission. Session stats report cache read/write tokens, tool calls, average turn time, and the autocompact reserve.
+
+- [`acc942a`](https://github.com/codex-mohan/spectra/commit/acc942ab1ddd25f3cd27c5eadbc2f2aade5c36a9) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Add a session-aware unified `read` resource router for skills, rules, agent outputs, artifacts, history, memory, MCP resources, GitHub items, SSH files, vault files, and Spectra documentation. Add shared selectors and recoverable artifact spilling across files and protocol resources.
+
+### Patch Changes
+
+- [`98d2365`](https://github.com/codex-mohan/spectra/commit/98d236553e184013b2e1d65574510a48feff51c1) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Price each assistant turn once, at provider finalization, and store it on the message so the status bar sums what was actually billed instead of recomputing a guess.
+
+  Pricing is now provider-scoped: the same model id on different providers no longer shares one card, `openai-codex` resolves through the `openai` rate card, and fuzzy id matching is gone. Cache reads and writes are priced, and OpenAI prompts bill only the uncached portion at input rates while Anthropic keeps reporting cache tokens separately. Unknown models report `unknown` instead of `Free`, and observed usage entries record cache tokens.
+
+  API note: `calculateCost`/`isFreeModel` are replaced by `calculateUsageCost`/`getPricingStatus`; `Usage` gains `inputUncached` and a named `UsageCost`; `Model` gains `cost`.
+
+- [`89e777c`](https://github.com/codex-mohan/spectra/commit/89e777cce9ea2ca0ca81f978c80e0c5b4ff8995e) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Model discovery now reports an outcome instead of throwing: either a roster (an empty roster means the provider authoritatively lists nothing) or a failure carrying the HTTP status. Providers normalize rows through one shared helper that understands the envelope shapes gateways use, context/output limits, modalities, and tool support. `ModelInfo` gained `api`, `baseUrl`, `maxTokens`, `reasoning`, and `cost`, and the duplicate OpenAI-compatible wrapper was removed.
+
+  The catalog keeps bundled rows when discovery fails and no longer pins authority in the cache for an empty successful roster.
+
+- Updated dependencies [[`98d2365`](https://github.com/codex-mohan/spectra/commit/98d236553e184013b2e1d65574510a48feff51c1), [`89e777c`](https://github.com/codex-mohan/spectra/commit/89e777cce9ea2ca0ca81f978c80e0c5b4ff8995e)]:
+  - @mohanscodex/spectra-ai@0.7.0
+  - @mohanscodex/spectra-agent@0.7.0
+
 ## 0.6.2
 
 ### Patch Changes

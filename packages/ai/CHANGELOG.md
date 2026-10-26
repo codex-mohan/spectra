@@ -1,5 +1,19 @@
 # @mohanscodex/spectra-ai
 
+## 0.7.0
+
+### Patch Changes
+
+- [`98d2365`](https://github.com/codex-mohan/spectra/commit/98d236553e184013b2e1d65574510a48feff51c1) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Price each assistant turn once, at provider finalization, and store it on the message so the status bar sums what was actually billed instead of recomputing a guess.
+
+  Pricing is now provider-scoped: the same model id on different providers no longer shares one card, `openai-codex` resolves through the `openai` rate card, and fuzzy id matching is gone. Cache reads and writes are priced, and OpenAI prompts bill only the uncached portion at input rates while Anthropic keeps reporting cache tokens separately. Unknown models report `unknown` instead of `Free`, and observed usage entries record cache tokens.
+
+  API note: `calculateCost`/`isFreeModel` are replaced by `calculateUsageCost`/`getPricingStatus`; `Usage` gains `inputUncached` and a named `UsageCost`; `Model` gains `cost`.
+
+- [`89e777c`](https://github.com/codex-mohan/spectra/commit/89e777cce9ea2ca0ca81f978c80e0c5b4ff8995e) Thanks [@codex-mohan](https://github.com/codex-mohan)! - Model discovery now reports an outcome instead of throwing: either a roster (an empty roster means the provider authoritatively lists nothing) or a failure carrying the HTTP status. Providers normalize rows through one shared helper that understands the envelope shapes gateways use, context/output limits, modalities, and tool support. `ModelInfo` gained `api`, `baseUrl`, `maxTokens`, `reasoning`, and `cost`, and the duplicate OpenAI-compatible wrapper was removed.
+
+  The catalog keeps bundled rows when discovery fails and no longer pins authority in the cache for an empty successful roster.
+
 ## 0.6.2
 
 ### Patch Changes
