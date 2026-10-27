@@ -202,6 +202,16 @@ spectra/
 - TypeScript: `vitest --run` in each package
 - No Python SDK tests yet (TODO)
 
+### Feature Documentation and Phase Tracking
+
+Every user-visible subsystem has a contract page at `docs/features/<feature>.md`, listed in `docs/features/README.md`. Start from `docs/features/_TEMPLATE.md`; the page records source entry points, registration and gating, inputs, outputs, flow, state, security, errors, limitations, and tests.
+
+- **Any change to a feature updates its page in the same commit.** New feature → new page plus an index row.
+- **`PHASES.md` is the only status tracker** — current phase, planned phases, acceptance criteria, out-of-scope items. Update it whenever a phase starts, blocks, or completes.
+- **`TODO.md` is an idea backlog only.** When an idea is scheduled, move it to `PHASES.md` with acceptance criteria. Do not track active work in `TODO.md`.
+- **A phase is done only when** `bun run lint`, `bun run test`, and `bun run build` pass, the affected feature pages are updated, and the status table is flipped in the same commit.
+- **Do not start the next phase while the current one is open.** Mark a stalled phase `blocked` with the reason instead of moving on.
+
 ### Pre-Commit CI Verification
 
 **Always run before committing to prevent CI failures.** The CI pipeline runs lint → test → build on every push to `main`.
@@ -333,6 +343,7 @@ Current cached reference projects:
 - `pi-mono-ref` — pi-mono reference implementation
 - `smallcode` — smallcode reference
 - `terax-ai` — terax-ai TUI framework
+- `oh-my-pi` — reference coding agent (per-feature docs under `docs/`, session model, tools)
 
 ## Architecture
 
@@ -423,7 +434,9 @@ No project skills found. Add skills to any of `.claude/skills/`, `.agents/skills
 | Coding TUI app | `packages/code/` (CLI + React/OpenTUI frontend; `bun run dev` to launch) |
 | Rust SDK | `crates/spectra-rs/` (core), `crates/spectra-http/` (clients) |
 | Documentation | `docs/` (VitePress) |
-| Roadmap / TODO | `TODO.md` (items marked done only when user explicitly requests a feature or bugfix) |
+| Feature contracts | `docs/features/` (one page per subsystem, indexed in `README.md`) |
+| Phase ledger | `PHASES.md` (active + planned phases, acceptance criteria, status) |
+| Roadmap / TODO | `TODO.md` (idea backlog only; scheduled work lives in `PHASES.md`) |
 | LLM-friendly docs | `docs/public/llms.txt` |
 
 ### When a Developer Asks About Spectra

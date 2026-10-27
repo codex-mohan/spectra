@@ -1,5 +1,7 @@
 # Spectra Roadmap
 
+> **Scope split:** this file is an idea backlog only. Scheduled work, status, and acceptance criteria live in [`PHASES.md`](PHASES.md); feature contracts live in [`docs/features/`](docs/features/README.md). When an item here is scheduled, move it to `PHASES.md` instead of tracking it in both places.
+
 ## 1. Context compaction
 
 Automatic context management that summarizes old conversation history when approaching token limits, preserving recent turns verbatim.
@@ -453,6 +455,8 @@ Enable users to attach files (images, audio, video, text, PDFs, etc.) directly i
 - `packages/llm/src/protocols/shared.ts` — `IMAGE_MIMES`, `validateMedia()`
 
 ## 13. Oh My Pi reference adoption
+
+> Scheduled subsets live in `PHASES.md`: code intelligence → Phase 3, background jobs/tasks/IRC → Phase 4, browser automation → Phase 6, input/exit contract → Phase 1. Items below remain backlog until a phase is started; then move the detail there.
 
 Reference checkout: `C:\Users\wwwmo\reference-projects\oh-my-pi`.
 
