@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { c } from './theme.js';
 
 const TIPS = [
-	'Type {highlight}:q{/highlight} to exit Spectra Code',
+	'Press {highlight}Ctrl+C{/highlight} to clear the draft; twice on an empty prompt exits',
 	'Press {highlight}Tab{/highlight} to cycle between Build, Plan, Debug, and Explore agents',
 	'Press {highlight}Ctrl+P{/highlight} to open the command palette',
 	'Press {highlight}Ctrl+L{/highlight} to clear the conversation',

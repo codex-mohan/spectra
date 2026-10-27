@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { layoutFooter, resolveFooterStatus, truncateFooterLabel } from '../tui/footer-status.js';
 
-const idle = { isLoading: false, status: 'Ready', permissionPending: false, questionPending: false, interruptArmed: false, runningTools: 0 };
+const idle = { isLoading: false, status: 'Ready', permissionPending: false, questionPending: false, runningTools: 0 };
 
 describe('footer activity', () => {
 	it('keeps Ready free of stale detail and clears steering detail once consumed', () => {
@@ -24,7 +24,6 @@ describe('footer activity', () => {
 		expect(resolveFooterStatus({ ...idle, status: 'Interrupted' }).tone).toBe('warn');
 		expect(resolveFooterStatus(idle).tone).toBe('success');
 		expect(resolveFooterStatus({ ...idle, isLoading: true, runningTools: 1 })).toMatchObject({ text: 'Running tools', tone: 'accent', busy: true });
-		expect(resolveFooterStatus({ ...idle, isLoading: true, interruptArmed: true }).message).toBe('Press Esc again to interrupt');
 	});
 });
 

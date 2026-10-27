@@ -67,7 +67,6 @@ interface UseChatSubmitDeps {
 	setDraftText: (t: string) => void;
 	setSlashSelected: (i: number) => void;
 	setSubmitKey: (fn: (k: number) => number) => void;
-	setInterruptKey: (k: number) => void;
 	setRevertPoint: (id: string | null) => void;
 	discardRevert: () => void;
 	setDialogStep: (step: any) => void;
@@ -108,7 +107,6 @@ export function useChatSubmit(deps: UseChatSubmitDeps) {
 		setDraftText,
 		setSlashSelected,
 		setSubmitKey,
-		setInterruptKey,
 		setRevertPoint,
 	discardRevert,
 	setDialogStep,
@@ -719,7 +717,6 @@ Return ONLY the title text, nothing else.`;
 			} finally {
 				preEditSnapshotRef.current = undefined;
 				sessionState.setLoadingIn(runSessionId, false);
-				setInterruptKey(0);
 				streamingSessionsRef.current.delete(runSessionId);
 				isStreamingRef.current = streamingSessionsRef.current.size > 0;
 				streamingIdRef.current = null;
@@ -751,7 +748,6 @@ Return ONLY the title text, nothing else.`;
 			currentTurnMsgIdRef,
 			setRoute,
 			setSubmitKey,
-			setInterruptKey,
 			setRevertPoint,
 			discardRevert,
 			promptHistoryService,

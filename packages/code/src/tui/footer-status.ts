@@ -11,14 +11,12 @@ export function resolveFooterStatus(input: {
 	status: string;
 	permissionPending: boolean;
 	questionPending: boolean;
-	interruptArmed: boolean;
 	runningTools: number;
 	pendingSteering?: number;
 }): FooterStatus {
 	if (input.permissionPending) return { text: 'Waiting', message: 'Permission required', tone: 'warn', busy: false };
 	if (input.questionPending) return { text: 'Waiting', message: 'Your answer is needed', tone: 'warn', busy: false };
 	if (input.isLoading) {
-		if (input.interruptArmed) return { text: 'Streaming', message: 'Press Esc again to interrupt', tone: 'warn', busy: true };
 		return {
 			text: input.runningTools > 0 ? 'Running tools' : 'Streaming', tone: 'accent', busy: true,
 			message: input.pendingSteering ? 'Steering queued for next step' : '',

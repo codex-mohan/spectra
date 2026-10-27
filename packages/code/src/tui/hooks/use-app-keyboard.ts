@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useEffect, type RefObject } from 'react';
 import { useKeyboard } from '@opentui/react';
-import type { CliRenderer } from '@opentui/core';
 import type { ArgCompletion, ResolvedCommand } from '../command-types.js';
 import type { ChatMessage } from '../types.js';
 import type { PromptHistoryService } from '../../services/prompt-history.js';
@@ -8,12 +7,12 @@ import { cycleEffort } from '../variant-cycle.js';
 import { slashHead } from '../slash-commands.js';
 import { titlecase } from '../utils.js';
 import { showToast } from '../components/toast.js';
-
-const INTERRUPT_CONFIRM_MS = 3000;
+import { resolveEscapeAction } from '../input/escape-ladder.js';
 
 interface UseAppKeyboardDeps {
-	renderer: CliRenderer;
 	isStreamingRef: React.MutableRefObject<boolean>;
+	onCtrlC?: () => void;
+	onCtrlD?: () => void;
 	currentTurnStartRef: React.MutableRefObject<number | null>;
 	currentTurnMsgIdRef: React.MutableRefObject<string | null>;
 	revertPoint: string | null;
@@ -48,8 +47,6 @@ interface UseAppKeyboardDeps {
 	onDismissMidSlash: () => void;
 	/** Called after Enter completes a mid-text skill token. */
 	onSkillCompleted?: (text: string) => void;
-
-	interruptKey: number;
 	selectedAgent: string;
 	primaryAgents: string[];
 	thinkingEffort: string | undefined;
@@ -67,7 +64,6 @@ interface UseAppKeyboardDeps {
 	setSlashSelected: React.Dispatch<React.SetStateAction<number>>;
 	setSlashArgSelected: React.Dispatch<React.SetStateAction<number>>;
 	setNavKey: React.Dispatch<React.SetStateAction<number>>;
-	setInterruptKey: React.Dispatch<React.SetStateAction<number>>;
 	setSelectedAgent: React.Dispatch<React.SetStateAction<string>>;
 	setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 	setStatus: React.Dispatch<React.SetStateAction<string>>;
@@ -83,8 +79,9 @@ interface UseAppKeyboardDeps {
 
 export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 	const {
-		renderer,
 		isStreamingRef,
+		onCtrlC,
+		onCtrlD,
 		currentTurnStartRef,
 		currentTurnMsgIdRef,
 		revertPoint,
@@ -113,7 +110,6 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		slashRange,
 		onDismissMidSlash,
 		onSkillCompleted,
-		interruptKey,
 		selectedAgent,
 		primaryAgents,
 		thinkingEffort,
@@ -129,7 +125,6 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 		setSlashSelected,
 		setSlashArgSelected,
 		setNavKey,
-		setInterruptKey,
 		setSelectedAgent,
 		setMessages,
 		setStatus,
@@ -142,7 +137,6 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 	} = deps;
 
 	const lastCursorRef = useRef<number>(-1);
-	const interruptArmedAtRef = useRef<number>(0);
 
 	useKeyboard((key) => {
 		// PermissionDialog owns its keyboard listener; the shared handler may
@@ -265,7 +259,11 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			}
 		}
 		if (key.ctrl && key.name === 'c') {
-			renderer.destroy();
+			onCtrlC?.();
+			return;
+		}
+		if (key.ctrl && key.name === 'd') {
+			onCtrlD?.();
 			return;
 		}
 		if (key.ctrl && key.name === 'y') {
@@ -275,46 +273,30 @@ export function useAppKeyboard(deps: UseAppKeyboardDeps) {
 			return;
 		}
 		if (key.name === 'escape') {
-			if (fileAtActive) return;
-			if (isStreamingRef.current) {
-				const now = performance.now();
-				const isInterruptArmed =
-					interruptArmedAtRef.current > 0 && now - interruptArmedAtRef.current <= INTERRUPT_CONFIRM_MS;
-
-				if (isInterruptArmed) {
-					if (sessionId.current) {
-						abortSession(sessionId.current);
-					}
-					const duration =
-						currentTurnStartRef.current === null
-							? undefined
-							: Math.round(performance.now() - currentTurnStartRef.current);
-					if (currentTurnMsgIdRef.current) {
-						updateMessage(currentTurnMsgIdRef.current, {
-							turnStatus: 'interrupted',
-							streaming: false,
-							turnDurationMs: duration,
-						});
-					}
-					if (sessionId.current) {
-						updateLastAssistantMeta(sessionId.current, { turnStatus: 'interrupted', turnDurationMs: duration });
-					}
-					interruptArmedAtRef.current = 0;
-					setInterruptKey(0);
-					setStatus('Interrupted');
-					return;
+			const action = resolveEscapeAction({
+				fileAtActive,
+				isStreaming: isStreamingRef.current,
+				hasDraft: draftText.trim().length > 0,
+			});
+			if (action === 'interrupt') {
+				if (sessionId.current) {
+					abortSession(sessionId.current);
 				}
-
-				interruptArmedAtRef.current = now;
-				setInterruptKey(1);
-				setStatus('Press Esc again to interrupt');
-				setTimeout(() => {
-					if (interruptArmedAtRef.current !== now) return;
-					interruptArmedAtRef.current = 0;
-					setInterruptKey(0);
-					if (isStreamingRef.current) setStatus('Streaming...');
-				}, INTERRUPT_CONFIRM_MS);
-				return;
+				const duration =
+					currentTurnStartRef.current === null
+						? undefined
+						: Math.round(performance.now() - currentTurnStartRef.current);
+				if (currentTurnMsgIdRef.current) {
+					updateMessage(currentTurnMsgIdRef.current, {
+						turnStatus: 'interrupted',
+						streaming: false,
+						turnDurationMs: duration,
+					});
+				}
+				if (sessionId.current) {
+					updateLastAssistantMeta(sessionId.current, { turnStatus: 'interrupted', turnDurationMs: duration });
+				}
+				setStatus('Interrupted');
 			}
 			return;
 		}

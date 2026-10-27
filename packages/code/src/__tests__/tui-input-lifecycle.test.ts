@@ -62,7 +62,7 @@ describe('drafts typed during a response', () => {
 			isStreamingRef: ref(false), currentTurnStartRef: ref(null), currentTurnMsgIdRef: ref(null),
 			setDraftText: (text: string) => { draft = text; }, setSubmitKey: resetInput,
 			setSlashSelected: vi.fn(), setTokPerSec: vi.fn(), setElapsedMs: vi.fn(),
-			setRoute: vi.fn(), setInterruptKey: vi.fn(),
+			setRoute: vi.fn(),
 			getOrCreateAgent: async () => ({
 				async *run() {
 					started();

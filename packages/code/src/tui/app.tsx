@@ -53,7 +53,7 @@ import { checkForUpdate } from './utils/update-check.js';
 import { VERSION } from './utils/version.js';
 import { setTerminalTitle, formatSessionTitle } from './utils/terminal-title.js';
 import { loadConfig, type CustomProviderConfig } from '../services/config.js';
-import { listConnectedServers } from '../integrations/mcp/index.js';
+import { listConnectedServers, shutdownAllServers } from '../integrations/mcp/index.js';
 import { registerAllCustomProviders } from '../services/custom-providers.js';
 import { PermissionDialog } from './ui/permission-dialog.js';
 import { PLACEHOLDERS } from './app-constants.js';
@@ -71,6 +71,8 @@ import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 import { backgroundTasks } from '../services/background-tasks.js';
+import { saveDraft, consumeDraft } from '../services/draft-store.js';
+import { createExitGate, type ExitReason } from './input/exit.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
 import { createContextBreakdown, restoreLatestContextSnapshot } from '../services/context-usage.js';
 import type { AskHandler, AskToolDetails, AskToolInput } from '../tools/ask.js';
@@ -117,7 +119,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [placeholderIdx, setPlaceholderIdx] = useState(0);
 	const [navKey, setNavKey] = useState(0);
 	const [homeKey, setHomeKey] = useState(0);
-	const [interruptKey, setInterruptKey] = useState(0);
 	const [msgControls, setMsgControls] = useState<ChatMessage | null>(null);
 	const [revertPoint, setRevertPoint] = useState<string | null>(null);
 	const [draftText, setDraftText] = useState('');
@@ -261,6 +262,17 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const currentTurnMsgIdRef = useRef<string | null>(null);
 	const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }));
 	const promptHistoryService = useRef(new PromptHistoryService());
+	const draftTextRef = useRef('');
+	const shuttingDownRef = useRef(false);
+	const shutdownRef = useRef<(reason: ExitReason) => void>(() => {});
+	const exitGateRef = useRef<ReturnType<typeof createExitGate> | null>(null);
+
+	const restoreDraft = useCallback((id: string) => {
+		const draft = consumeDraft(id);
+		if (!draft) return;
+		setDraftText(draft);
+		setTimeout(() => promptBarRef.current?.setText(draft, draft.length), 0);
+	}, []);
 
 	const [securityConfig] = useState(() => {
 		const cfg = loadConfig();
@@ -602,7 +614,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setDraftText,
 		setSlashSelected,
 		setSubmitKey,
-		setInterruptKey,
 		setRevertPoint,
 		discardRevert,
 		setDialogStep,
@@ -674,7 +685,8 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		securityRef.current?.getReadTracker().reset();
 		securityRef.current?.getDoomLoop().reset();
 		setTerminalTitle(formatSessionTitle(childData.title));
-	}, [sessionState, sessionStore, sessionId, restoreSessionHistory, customProviders, securityRef]);
+		restoreDraft(childId);
+	}, [sessionState, sessionStore, sessionId, restoreSessionHistory, customProviders, securityRef, restoreDraft]);
 
 	const exitChildView = useCallback(() => {
 		const parentId = parentSessionIdRef.current;
@@ -694,6 +706,47 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		parentSessionIdRef.current = sessionId.current;
 		switchToChildSession(childSessionId);
 	}, [switchToChildSession, sessionId]);
+
+	useEffect(() => {
+		draftTextRef.current = draftText;
+	}, [draftText]);
+
+	const shutdown = useCallback((_reason: ExitReason) => {
+		if (shuttingDownRef.current) return;
+		shuttingDownRef.current = true;
+		const id = sessionId.current;
+		if (id) saveDraft(id, draftTextRef.current);
+
+		const destroy = () => renderer.destroy();
+		const timer = setTimeout(destroy, 2000);
+		void (async () => {
+			try {
+				if (id && isStreamingRef.current) abortSession(id);
+			} catch { /* shutdown never throws */ }
+			try { await shutdownAllServers(); } catch { /* ignore */ }
+			try { sessionStore.current.close(); } catch { /* ignore */ }
+			try {
+				for (const task of backgroundTasks.getAll()) {
+					if (task.status === 'running' && task.parentSessionId === id) backgroundTasks.cancel(task.id);
+				}
+			} catch { /* ignore */ }
+		})().finally(() => {
+			clearTimeout(timer);
+			destroy();
+		});
+	}, [renderer, abortSession]);
+
+	shutdownRef.current = shutdown;
+	if (!exitGateRef.current) {
+		exitGateRef.current = createExitGate({
+			hasDraft: () => draftTextRef.current.trim().length > 0,
+			clearDraft: () => {
+				setDraftText('');
+				promptBarRef.current?.setText('');
+			},
+			exit: (reason) => shutdownRef.current(reason),
+		});
+	}
 
 	// ─── Child view keyboard navigation ───
 	useKeyboard(
@@ -836,8 +889,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	// --- Keyboard ---
 	useAppKeyboard({
-		renderer,
 		isStreamingRef,
+		onCtrlC: () => exitGateRef.current?.ctrlC(),
+		onCtrlD: () => exitGateRef.current?.ctrlD(),
 		currentTurnStartRef,
 		currentTurnMsgIdRef,
 		revertPoint,
@@ -867,7 +921,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			completionGuardRef.current = { text, at: performance.now() };
 		},
 		promptHistoryService,
-		interruptKey,
 		selectedAgent,
 		primaryAgents: agentCatalog.primary,
 		thinkingEffort,
@@ -884,7 +937,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		setSlashSelected,
 		setSlashArgSelected,
 		setNavKey,
-		setInterruptKey,
 		setSelectedAgent,
 		setMessages,
 		setStatus,
@@ -930,7 +982,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						{(status === 'Error' || status === 'Interrupted') && (
 							<ActivityFooter width={Math.max(0, Math.min(32, termWidth - 8))}
 								isLoading={isLoading} status={status} permissionPending={!!permissionRequest}
-								questionPending={!!askRequest} interruptArmed={interruptKey === 1}
+								questionPending={!!askRequest}
 								runningTools={0} spinner={SPINNER[spinnerFrame]} metrics="" />
 						)}
 						<box height={1} />
@@ -1054,7 +1106,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							pendingSteering={pendingSteering.length}
 							permissionPending={!!permissionRequest}
 							questionPending={!!askRequest}
-							interruptArmed={interruptKey === 1}
 							runningTools={messages.filter((message) => message.role === 'tool' && message.streaming && message.toolExecutionStarted).length}
 							spinner={SPINNER[spinnerFrame]}
 							metrics={(() => {
@@ -1172,6 +1223,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						securityRef.current?.getDoomLoop().reset();
 						showToast(`Loaded: ${data.title.slice(0, 40)}`, 'info');
 						setTerminalTitle(formatSessionTitle(data.title));
+						restoreDraft(data.id);
 					}}
 					onDelete={(id) => {
 						sessionStore.current.delete(id);

@@ -34,7 +34,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | Phase | Scope | Size | Status | Depends on |
 |---|---|---|---|---|
 | 0 | Documentation and phase infrastructure | M | done | — |
-| 1 | Input and exit contract | S | planned | 0 |
+| 1 | Input and exit contract | S | done | 0 |
 | 2 | Web search + shared network egress | M | planned | 1 |
 | 3 | LSP tool and edit diagnostics | L | planned | 1 |
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | planned | 1 |
@@ -114,7 +114,7 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 2. Add `tui/input/exit.ts`: `clearDraft()`, `exitNow()`, 500 ms `lastClearAt`, single `shutdown()`.
 3. Wire `use-app-keyboard.ts` to the ladder; delete `interruptArmed` and the two-press path; update footer hints to `esc interrupt`.
 4. Implement `shutdown(reason)`: idempotent; 2 s cleanup budget — abort stream → flush session → close MCP clients → cancel background tasks → save draft → `renderer.destroy()` last.
-5. Add `services/draft-store.ts`: `save(sessionId, text)`, `consume(sessionId)`, `clear(sessionId)` at `<configDir>/drafts/<sessionId>.txt`; save on shutdown, consume on resume/`--continue` init, clear on submit.
+5. Add `services/draft-store.ts`: `save(sessionId, text)`, `consume(sessionId)`, `clear(sessionId)` at `<configDir>/drafts/<sessionId>.txt`; save on shutdown, consume when a session is loaded, clear on submit.
 6. Bind Ctrl+D to exit; Ctrl+C clears when text exists, arms exit when empty.
 7. Remove the `:q` tip. Keep Ctrl+L clear-conversation tip.
 8. Write `docs/features/input-lifecycle.md` with the ladder table and exit sequence.
@@ -124,7 +124,7 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 ### Verification
 
 - `bun run test` — `tui-input-lifecycle`, `prompt-submit-lifecycle`, new `exit-contract`.
-- Manual TUI: launch, type text, Esc (alive), Esc empty (alive), submit a stream + Esc once (aborts), Ctrl+C with draft (clears), Ctrl+C twice (exit 0), relaunch `--continue` (draft restored), `grep -r ":q" src/` empty.
+- Manual TUI: launch, type text, Esc (alive), Esc empty (alive), submit a stream + Esc once (aborts), Ctrl+C with draft (clears), Ctrl+C twice (exit 0), Ctrl+D (exit 0), `grep -r ":q" src/` empty; draft restore is covered by unit tests because no provider is configured in the smoke environment.
 
 **Acceptance**
 

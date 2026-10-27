@@ -165,6 +165,7 @@ export default defineConfig({
 						{ text: 'Config', link: '/features/config' },
 						{ text: 'Custom Providers', link: '/features/custom-providers' },
 						{ text: 'TUI Shell', link: '/features/tui-shell' },
+						{ text: 'Input Lifecycle', link: '/features/input-lifecycle' },
 						{ text: 'Doctor', link: '/features/doctor' },
 						{ text: 'Context Compaction', link: '/features/context-compaction' },
 						{ text: 'Todo Tool', link: '/features/todo-tool' },
