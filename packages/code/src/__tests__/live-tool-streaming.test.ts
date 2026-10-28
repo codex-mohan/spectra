@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { getToolStreamingDisplay } from '../tools/index.js';
 import { isRecord, parseToolArguments, toolResultText } from '../tui/live-tool-streaming.js';
-import { MessageView } from '../tui/components/message.js';
+import { renderMessageView } from '../tui/components/message.js';
 
 vi.mock('@opentui/core', () => ({
 	RGBA: { fromHex: (color: string) => color },
@@ -70,7 +70,7 @@ describe('live tool streaming', () => {
 	});
 
 	it('renders partial write content through the streaming code view', () => {
-		const view = MessageView({
+		const view = renderMessageView({
 			msg: {
 				id: 'write-1',
 				role: 'tool',
@@ -93,7 +93,7 @@ describe('live tool streaming', () => {
 	});
 
 	it('renders partial edit match and replacement as streaming code', () => {
-		const view = MessageView({
+		const view = renderMessageView({
 			msg: {
 				id: 'edit-1',
 				role: 'tool',

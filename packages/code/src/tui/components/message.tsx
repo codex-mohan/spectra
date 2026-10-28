@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { c, mdStyle, mdStyleMuted } from '../theme.js';
 import type { ChatMessage, ContentBlock, TodoPhase, TodoState, TodoStatus } from '../types.js';
 import type { PromptAttachment } from '../prompt-bar.js';
@@ -612,19 +612,19 @@ function FindSkillsToolView({ args, output, isError, marginTop }: { args: Record
 	);
 }
 
-export function MessageView({
+export function renderMessageView({
 	msg,
 	showThinking = true,
 	isFirst = false,
 	isRevertPoint = false,
-	onClick,
+	onMessageClick,
 	onTaskClick,
 }: {
 	msg: ChatMessage;
 	showThinking?: boolean;
 	isFirst?: boolean;
 	isRevertPoint?: boolean;
-	onClick?: () => void;
+	onMessageClick?: (msg: ChatMessage) => void;
 	onTaskClick?: (childSessionId: string) => void;
 }) {
 	const mt = isFirst ? 0 : 1;
@@ -640,7 +640,7 @@ export function MessageView({
 				borderColor={isRevertPoint ? c.warn : c.user}
 				paddingLeft={2}
 				paddingRight={1}
-				onMouseUp={onClick}
+				onMouseUp={onMessageClick ? () => onMessageClick(msg) : undefined}
 			>
 				<text fg={c.user} attributes={1} height={1}>
 					You
@@ -711,27 +711,37 @@ export function MessageView({
 								<>
 									{hasThinking &&
 										thinkBlocks.map((block, i) => (
+											msg.streaming ? (
+												<text key={`think-${i}`} fg={c.dim} wrapMode="word" marginTop={i === 0 ? 0 : 1}>
+													{block.content}
+												</text>
+											) : (
+												<markdown
+													key={`think-${i}`}
+													content={block.content}
+													syntaxStyle={mdStyleMuted}
+													conceal={true}
+													width="100%"
+													tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
+													marginTop={i === 0 ? 0 : 1}
+												/>
+											)
+										))}
+									{mdContent ? (
+										msg.streaming ? (
+											<text fg={c.text} wrapMode="word" marginTop={hasThinking ? 1 : 0}>
+												{mdContent}
+											</text>
+										) : (
 											<markdown
-												key={`think-${i}`}
-												content={block.content}
-												syntaxStyle={mdStyleMuted}
-												streaming={!!msg.streaming}
+												content={mdContent}
+												syntaxStyle={mdStyle}
 												conceal={true}
 												width="100%"
 												tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
-												marginTop={i === 0 ? 0 : 1}
+												marginTop={hasThinking ? 1 : 0}
 											/>
-										))}
-									{mdContent ? (
-										<markdown
-											content={mdContent}
-											syntaxStyle={mdStyle}
-											streaming={!!msg.streaming}
-											conceal={true}
-											width="100%"
-											tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
-											marginTop={hasThinking ? 1 : 0}
-										/>
+										)
 									) : null}
 								</>
 							);
@@ -1186,3 +1196,7 @@ export function MessageView({
 		</box>
 	);
 }
+
+
+/** Memoized so streaming deltas only re-render the message that changed. */
+export const MessageView = memo(renderMessageView);

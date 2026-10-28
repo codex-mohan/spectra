@@ -1044,7 +1044,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							showThinking={showThinking}
 							showToolCalls={showToolCalls}
 							revertPoint={revertPoint}
-							onMessageClick={(msg) => setMsgControls(msg)}
+							onMessageClick={setMsgControls}
 							onTaskClick={handleViewChildSession}
 						/>
 					</box>

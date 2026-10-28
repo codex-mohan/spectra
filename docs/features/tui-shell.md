@@ -42,6 +42,7 @@
 
 - Render tree: OpenTUI `box`/`text`/`textarea`/`scrollbox` nodes; the shell writes UI through the renderer rather than stdout.
 - Overlays emitted in JSX order after the route body: command palette, slash/arg/file autocomplete, one `dialogStep` dialog, update dialog, message controls, permission dialog, ask menu, toast container (`app.tsx:1069-1492`).
+- `MessageView` is memoized; only the message whose object changed re-renders. The transcript's scrollbox uses viewport culling.
 - Transcript messages are persisted through `SessionStore.addMessage`/`save`; assistant metadata gains `turnDurationMs`, `turnTokens`, `patch`, `contextUsage`, `turnStatus` (`use-chat-submit.ts:540-590`).
 - Terminal title is set at mount and on session load/switch (`setTerminalTitle`, `formatSessionTitle`).
 - Home footer left segment: folder glyph + path (home shortened to `~`, separator-normalized), `›`, branch glyph + branch, ahead/behind, then `!conflicts`, `*changed`, `?untracked`. Refresh runs on mount, every 5 s, and when a turn finishes; it is asynchronous and never blocks the render loop. Transient git failures keep the last good status and only clear after three consecutive misses.
@@ -56,7 +57,7 @@
 5. `handleSubmit` first tries slash dispatch when the text starts with `/` and has no attachments; unresolved heads produce a warning toast; otherwise it forwards to `submitPrompt` (`use-chat-submit.ts:781-810`).
 6. `submitPrompt` snapshots the turn configuration from refs, creates a session on first send, persists the user message, marks the session loading, routes to chat, and resolves the per-session agent (`use-chat-submit.ts:234-450`).
 7. Streaming projects `agent.run()` events into UI messages: assistant placeholder on `message_start`, text/blocks and partial tool arguments on `message_update`, final usage/duration/cost on assistant `message_end`, tool rows on `tool_execution_start|update|end`, and `Ready`/`Error` on `agent_end` (`use-chat-submit.ts:451-680`).
-8. While `isLoading`, an 80 ms spinner interval advances `SPINNER` and calls `renderer.requestLive()`; cleanup calls `renderer.dropLive()` (`app.tsx:382-391`).
+8. While `isLoading`, an 80 ms spinner interval advances `SPINNER` and calls `renderer.requestLive()`; cleanup calls `renderer.dropLive()` (`app.tsx:382-391`). Streaming deltas are coalesced into one state commit per animation frame; the transcript renders streamed text as plain wrapped text until the message settles, then switches to `<markdown>`.
 9. Overlays are gated by state: `showCmd`, `dialogStep`, `updateVersion`, `msgControls`, `permissionRequest`, `askRequest`; the prompt is unfocused while `showCmd`, `dialogStep`, `msgControls`, `permissionRequest`, or `askRequest` is set, and `updateVersion` does not affect focus (`app.tsx:922`, `:1039`).
 10. Child view: `ChatArea.onTaskClick` calls `handleViewChildSession`, which records the parent id and `switchToChildSession` loads the child transcript/state, restores its agent history, resets read/doom-loop trackers, and retitles the terminal (`app.tsx:637-696`).
 11. Child-view keys are handled before the main keyboard hook: `Esc` exits (ignored while streaming), `p` moves to the parent, `[`/`]` cycle siblings; overlay states suppress child keys (`app.tsx:699-752`).

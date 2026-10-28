@@ -41,7 +41,7 @@ export function ChatArea({
 				stickyStart="bottom"
 				scrollY={true}
 				backgroundColor={c.bg}
-				viewportCulling={false}
+				viewportCulling={true}
 				focusable={false}
 				paddingRight={2}
 				verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.sbTrack, foregroundColor: c.sbThumb } }}
@@ -60,7 +60,7 @@ export function ChatArea({
 							showThinking={showThinking}
 							isFirst={i === 0}
 							isRevertPoint={msg.id === revertPoint}
-							onClick={msg.role === 'user' ? () => onMessageClick?.(msg) : undefined}
+							onMessageClick={onMessageClick}
 							onTaskClick={onTaskClick}
 						/>
 					))

@@ -132,6 +132,37 @@ interface QueuedSteeringDisplay {
 	const steeringMessagesRef = useRef(new Set<Message>());
 	const steeringDisplaysRef = useRef(new Map<Message, QueuedSteeringDisplay>());
 
+	// Streaming deltas are coalesced to one commit per animation frame. The
+	// renderer replaces global.requestAnimationFrame with its own frame clock,
+	// so this never outpaces targetFps and never caps smoothness with a timer.
+	const queuedPatches = useRef(new Map<string, Partial<ChatMessage>>());
+	const framePending = useRef(false);
+	const patchSessionRef = useRef<string | null>(null);
+
+	const flushQueuedPatches = useCallback(() => {
+		framePending.current = false;
+		const targetSessionId = patchSessionRef.current;
+		if (!targetSessionId || queuedPatches.current.size === 0) return;
+		const patches = new Map(queuedPatches.current);
+		queuedPatches.current.clear();
+		sessionState.setMessagesIn(targetSessionId, (previous) => previous.map((message) => {
+			const patch = patches.get(message.id);
+			return patch ? { ...message, ...patch } : message;
+		}));
+	}, [sessionState]);
+
+	const queuePatch = useCallback((targetSessionId: string, msgId: string, patch: Partial<ChatMessage>) => {
+		patchSessionRef.current = targetSessionId;
+		queuedPatches.current.set(msgId, { ...(queuedPatches.current.get(msgId) ?? {}), ...patch });
+		if (framePending.current) return;
+		framePending.current = true;
+		if (typeof requestAnimationFrame === 'function') {
+			requestAnimationFrame(() => flushQueuedPatches());
+		} else {
+			setTimeout(flushQueuedPatches, 16);
+		}
+	}, [flushQueuedPatches]);
+
 
 	function persistMessage(targetSessionId: string, sdkMsg: Message) {
 		if (!targetSessionId) return;
@@ -340,6 +371,7 @@ Return ONLY the title text, nothing else.`;
 
 			// Capture the session ID for this run — all events target THIS session
 			const runSessionId = sessionId.current!;
+			patchSessionRef.current = runSessionId;
 
 			// Build message content: text + file attachments
 			const userContent: Message['content'] = attachments.length > 0
@@ -432,7 +464,7 @@ Return ONLY the title text, nothing else.`;
 						toolArgumentsComplete: argumentsComplete,
 					};
 					if (existingId) {
-						sessionState.updateMessageIn(runSessionId, existingId, patch);
+						queuePatch(runSessionId, existingId, patch);
 						return;
 					}
 					const tuiId = genId();
@@ -486,7 +518,7 @@ Return ONLY the title text, nothing else.`;
 							.filter((b): b is ContentBlock & { type: 'text' } => b.type === 'text')
 							.map((b) => b.content)
 							.join('\n');
-						sessionState.updateMessageIn(runSessionId, currentAssistantId, { content: textContent, blocks });
+						queuePatch(runSessionId, currentAssistantId, { content: textContent, blocks });
 						const assistantEvent = ev.assistantMessageEvent;
 						if (
 							assistantEvent.type === 'toolcall_start'
@@ -530,6 +562,7 @@ Return ONLY the title text, nothing else.`;
 							.map((b) => b.content)
 							.join('\n');
 						const duration = performance.now() - (currentTurnStartRef.current ?? start);
+						flushQueuedPatches();
 						sessionState.updateMessageIn(runSessionId, currentAssistantId, {
 							content: textContent,
 							blocks: displayBlocks,
@@ -715,6 +748,7 @@ Return ONLY the title text, nothing else.`;
 				updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
 				sessionState.setStatusIn(runSessionId, 'Error');
 			} finally {
+				flushQueuedPatches();
 				preEditSnapshotRef.current = undefined;
 				sessionState.setLoadingIn(runSessionId, false);
 				streamingSessionsRef.current.delete(runSessionId);
