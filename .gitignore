@@ -63,3 +63,6 @@ trace_query.py
 # graphify (knowledge graph output)
 graphify-out/
 .graphify_*
+
+# VitePress dev cache
+docs/.vitepress/cache/
