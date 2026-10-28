@@ -1,5 +1,5 @@
 import { c } from '../tokens.js';
-import { hasNerdFont } from './file-visuals.js';
+import { hasNerdFont } from './nerd-font.js';
 
 export interface IconSpec {
 	/** Nerd Font Material Design glyph, the same family the file badges use. */
@@ -62,6 +62,20 @@ const ICON_BY_SOURCE: Record<string, IconSpec> = {
 };
 
 const FALLBACK_ICON = ICON_BY_SOURCE.builtin!;
+
+/** Footer glyphs from the same Material Design family as the file badges. */
+const STATUS_GLYPHS = {
+	folder: { nerd: '\u{f024b}', plain: '▸' },
+	branch: { nerd: '\u{f062c}', plain: '⑂' },
+	chevron: { nerd: '\u{f0142}', plain: '›' },
+} as const;
+
+export type StatusGlyphName = keyof typeof STATUS_GLYPHS;
+
+export function glyphFor(name: StatusGlyphName): string {
+	const spec = STATUS_GLYPHS[name];
+	return hasNerdFont() ? spec.nerd : spec.plain;
+}
 
 /**
  * Resolve a flat command icon from the same Material Design family the file

@@ -9,6 +9,7 @@
 - Prompt: `packages/code/src/tui/prompt-bar.tsx` — `PromptBar`, attachment extmarks, paste handling, submit lifecycle.
 - Hooks: `packages/code/src/tui/hooks/use-agent.ts` — per-session `Agent` construction/configuration/restore/abort; `packages/code/src/tui/hooks/use-chat-submit.ts` — submit, steering, `agent.run()` event projection.
 - Chrome: `packages/code/src/tui/footer-status.ts` — pure footer status precedence and width budget; `packages/code/src/tui/ui/modal-frame.tsx` — absolute overlay frame.
+- Home footer: `packages/code/src/tui/components/git-status.tsx` — `GitStatusSegment`; `packages/code/src/tui/utils/git-status-layout.ts` — pure layout/priority rules; `packages/code/src/tui/hooks/use-git-status.ts` — polling and dedupe; `packages/code/src/services/git-status.ts` — porcelain v2 reader.
 - Collaborators:
   - `packages/code/src/tui/hooks/use-session-state.ts` — per-session UI state store (messages, loading, tokens, cost, pending queues).
   - `packages/code/src/tui/hooks/use-app-keyboard.ts` — key routing, including `dialogKeyHandler` ownership.
@@ -34,6 +35,7 @@
 | `PromptBar.onSubmitIntercept` | `(text) => boolean` | no | Returning `true` consumes the submit without sending (mid-text skill completion). |
 | `PromptBar.inputKey` | `string \| number` | yes | Textarea remount key; includes `submitKey` and `navKey` and differs between home and chat, so submitting or changing routes resets the input. |
 | `PromptBar.width` | `number \| 'auto'` | no | Home uses `min(68, termWidth - 8)`; chat uses `termWidth - 4`. |
+| `GitStatusSegment.maxWidth` | `number` | yes | Space left of the version label; the segment drops sync, counts, branch, then truncates the path to fit. |
 | `ModalFrame.width` / `height` / `top` | `number` / `number` / `'center' \| 'upper'` | yes | Overlay size and vertical placement; width is clamped to `termWidth - 4`. |
 
 ## Outputs
@@ -42,12 +44,13 @@
 - Overlays emitted in JSX order after the route body: command palette, slash/arg/file autocomplete, one `dialogStep` dialog, update dialog, message controls, permission dialog, ask menu, toast container (`app.tsx:1069-1492`).
 - Transcript messages are persisted through `SessionStore.addMessage`/`save`; assistant metadata gains `turnDurationMs`, `turnTokens`, `patch`, `contextUsage`, `turnStatus` (`use-chat-submit.ts:540-590`).
 - Terminal title is set at mount and on session load/switch (`setTerminalTitle`, `formatSessionTitle`).
+- Home footer left segment: folder glyph + path (home shortened to `~`, separator-normalized), `›`, branch glyph + branch, ahead/behind, then `!conflicts`, `*changed`, `?untracked`. Refresh runs on mount, every 5 s, and when a turn finishes; identical status does not re-render.
 - Clipboard writes occur on terminal selection and when installing an update copies `UPDATE_COMMAND`.
 
 ## Flow
 
 1. `launchTui()` prefixes `console.error` output with `[spectra]`, installs rejection/exception loggers, registers parsers, creates the renderer, renders `App`, and resolves only when the renderer is destroyed (`tui/index.tsx:12-44`).
-2. `App` reads `useTerminalDimensions()` for width/height and is state-driven: `route` is `'home' | 'chat'`; `home` renders `HomeTitle`, a centered `PromptBar`, hints, a stats row, `Tips`, and a `cwd:branch` footer; `chat` renders `ChatArea`, `PendingQueue`, the prompt (or `SubagentNav` in a child view), and `ActivityFooter` (`app.tsx:95`, `:902-1065`).
+2. `App` reads `useTerminalDimensions()` for width/height and is state-driven: `route` is `'home' | 'chat'`; `home` renders `HomeTitle`, a centered `PromptBar`, hints, a stats row, `Tips`, and a git-aware footer; `chat` renders `ChatArea`, `PendingQueue`, the prompt (or `SubagentNav` in a child view), and `ActivityFooter` (`app.tsx:95`, `:902-1065`).
 3. Prompt typing updates `draftText`/`draftCursor`; front-of-prompt slash input drives `SlashAutocomplete`, argument input drives `ArgAutocomplete` after `argCompleter`, and `@` drives `FileAutocomplete` (`app.tsx:755-805`).
 4. `PromptBar.handleSubmit` strips attachment badge text, trims, syncs extmarks, runs the intercept hook, clears extmarks, then calls `onSubmit` (`prompt-bar.tsx:265-279`).
 5. `handleSubmit` first tries slash dispatch when the text starts with `/` and has no attachments; unresolved heads produce a warning toast; otherwise it forwards to `submitPrompt` (`use-chat-submit.ts:781-810`).
@@ -57,7 +60,15 @@
 9. Overlays are gated by state: `showCmd`, `dialogStep`, `updateVersion`, `msgControls`, `permissionRequest`, `askRequest`; the prompt is unfocused while `showCmd`, `dialogStep`, `msgControls`, `permissionRequest`, or `askRequest` is set, and `updateVersion` does not affect focus (`app.tsx:922`, `:1039`).
 10. Child view: `ChatArea.onTaskClick` calls `handleViewChildSession`, which records the parent id and `switchToChildSession` loads the child transcript/state, restores its agent history, resets read/doom-loop trackers, and retitles the terminal (`app.tsx:637-696`).
 11. Child-view keys are handled before the main keyboard hook: `Esc` exits (ignored while streaming), `p` moves to the parent, `[`/`]` cycle siblings; overlay states suppress child keys (`app.tsx:699-752`).
-12. Shutdown is renderer-driven: `/exit` (`tui/commands.ts:1025-1033`) calls `renderer.destroy()`, which resolves `launchTui`.
+12. Exit runs one idempotent `shutdown()`: save the draft, abort the streaming turn, close MCP servers, close the SQLite session store, cancel owned background tasks, then destroy the renderer (2 s fallback). Ctrl+C clears a draft and exits on the second press within 500 ms; Ctrl+D exits. `/exit` remains renderer-driven (`tui/commands.ts:1025-1033`).
+
+## Footer layout rules
+
+- Repository: `folder path › branch-glow branch ahead behind !conflict *changed ?untracked`.
+- Counts: `!` = conflicted, `*` = staged + modified, `?` = untracked.
+- Detached HEAD shows the short oid plus `(detached)`; no branch segment outside a repository.
+- Priority when narrow: version label, sync, untracked, changed, branch, path detail. Conflicts are never dropped.
+- Glyphs come from `glyphFor()`; Nerd Font glyphs with plain fallbacks, never emoji.
 
 ## State / persistence
 

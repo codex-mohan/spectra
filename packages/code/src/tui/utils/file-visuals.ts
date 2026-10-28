@@ -1,4 +1,5 @@
 import { c } from '../theme.js';
+import { hasNerdFont } from './nerd-font.js';
 import { EXTENSION_TO_MIME } from './file-data.js';
 import { formatAttachmentMetadata } from './attachment-reference.js';
 export { formatAttachmentMetadata } from './attachment-reference.js';
@@ -176,15 +177,7 @@ export function getFileVisual(input: { filename: string; mime: string }): FileVi
 	return FALLBACK;
 }
 
-/**
- * Prefer Nerd Font glyphs. Set SPECTRA_NERD_FONT=0/false or NO_NERD_FONT=1
- * to force emoji fallback in terminals without Nerd Font coverage.
- */
-export function hasNerdFont(): boolean {
-	const forced = process.env.SPECTRA_NERD_FONT;
-	if (forced != null) return forced !== '0' && forced.toLowerCase() !== 'false';
-	return process.env.NO_NERD_FONT !== '1';
-}
+export { hasNerdFont } from './nerd-font.js';
 
 export function getDisplayIcon(input: { filename: string; mime: string }): string {
 	return hasNerdFont() ? getFileVisual(input).icon : getFallbackIcon(input);

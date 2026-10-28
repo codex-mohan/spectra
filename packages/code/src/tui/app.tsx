@@ -1,7 +1,6 @@
 import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTerminalDimensions, useKeyboard } from '@opentui/react';
 import type { CliRenderer } from '@opentui/core';
-import { execFileSync } from 'child_process';
 import { c, SPINNER } from './theme.js';
 import { ChatArea } from './components/chat-area.js';
 import { ActivityFooter } from './components/activity-footer.js';
@@ -67,6 +66,8 @@ import { useRevert } from './hooks/use-revert.js';
 import { useAgent, createSessionFactory, createSessionSecurityManager } from './hooks/use-agent.js';
 import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
+import { useGitStatus } from './hooks/use-git-status.js';
+import { GitStatusSegment } from './components/git-status.js';
 import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
@@ -340,19 +341,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const mcpCount = useMemo(() => listConnectedServers().length, [dialogStep]);
 	const customProviderCount = Object.keys(customProviders).length;
 
-	const cwdLabel = useMemo(() => {
-		const home = process.env.HOME || process.env.USERPROFILE || '';
-		const dir = process.cwd().replace(home, '~');
-		try {
-		const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
-				encoding: 'utf-8',
-				timeout: 2000,
-				stdio: ['pipe', 'pipe', 'ignore'],
-			}).trim();
-			if (branch) return `${dir}:${branch}`;
-		} catch {}
-		return dir;
-	}, []);
+	const { status: gitStatus } = useGitStatus(process.cwd(), isLoading);
 
 	// --- Effects ---
 	useEffect(() => {
@@ -1027,12 +1016,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						height={1}
 						marginBottom={1}
 					>
-						<box flexDirection="row" gap={4}>
-							<text fg={c.dim} overflow="hidden" wrapMode="none">
-								{cwdLabel}
-							</text>
-						</box>
-						<box flexDirection="row" gap={1} alignItems="center">
+						<GitStatusSegment
+							cwd={process.cwd()}
+							status={gitStatus}
+							maxWidth={Math.max(0, termWidth - 4 - `Spectra Code v${APP_VERSION}`.length - 2)}
+						/>
+						<box flexDirection="row" gap={1} alignItems="center" flexShrink={0}>
 							<text fg={c.dim}>Spectra Code</text>
 							<text fg={c.dim}>v{APP_VERSION}</text>
 						</box>
