@@ -711,37 +711,27 @@ export function renderMessageView({
 								<>
 									{hasThinking &&
 										thinkBlocks.map((block, i) => (
-											msg.streaming ? (
-												<text key={`think-${i}`} fg={c.dim} wrapMode="word" marginTop={i === 0 ? 0 : 1}>
-													{block.content}
-												</text>
-											) : (
-												<markdown
-													key={`think-${i}`}
-													content={block.content}
-													syntaxStyle={mdStyleMuted}
-													conceal={true}
-													width="100%"
-													tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
-													marginTop={i === 0 ? 0 : 1}
-												/>
-											)
-										))}
-									{mdContent ? (
-										msg.streaming ? (
-											<text fg={c.text} wrapMode="word" marginTop={hasThinking ? 1 : 0}>
-												{mdContent}
-											</text>
-										) : (
 											<markdown
-												content={mdContent}
-												syntaxStyle={mdStyle}
+												key={`think-${i}`}
+												content={block.content}
+												syntaxStyle={mdStyleMuted}
+												streaming={!!msg.streaming}
 												conceal={true}
 												width="100%"
 												tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
-												marginTop={hasThinking ? 1 : 0}
+												marginTop={i === 0 ? 0 : 1}
 											/>
-										)
+										))}
+									{mdContent ? (
+										<markdown
+											content={mdContent}
+											syntaxStyle={mdStyle}
+											streaming={!!msg.streaming}
+											conceal={true}
+											width="100%"
+											tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
+											marginTop={hasThinking ? 1 : 0}
+										/>
 									) : null}
 								</>
 							);

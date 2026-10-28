@@ -37,6 +37,7 @@ function GradientMark() {
 				}
 				return (
 					<box key={`s-row-${rowIndex}`} flexDirection="row" height={1}>
+						<text>{' '.repeat(row.indexOf(row.trim()))}</text>
 						{runs.map((run, runIndex) => (
 							<text key={`s-run-${rowIndex}-${runIndex}`} fg={run.color}>{run.text}</text>
 						))}
@@ -90,10 +91,7 @@ export function AboutDialog({ onClose, termWidth, termHeight, registerHandler }:
 						<text fg={c.text} attributes={1}>Spectra Code</text>
 						<text fg={c.dim}>v{VERSION}</text>
 					</box>
-					<box flexDirection="column">
-						<text fg={c.subtext}>Minimal, ultra-fast</text>
-						<text fg={c.subtext}>multi-language AI agent</text>
-					</box>
+					<text fg={c.subtext}>{'Minimal, ultra-fast\nmulti-language AI agent'}</text>
 					<box flexDirection="column">
 						<MetaRow label="Runtime" value={runtime} />
 						<MetaRow label="Platform" value={platform} />

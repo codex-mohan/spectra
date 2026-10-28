@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { memo, useRef, useEffect, useState, useCallback } from 'react';
 import { SyntaxStyle } from '@opentui/core';
 import type { FileContent } from '@mohanscodex/spectra-ai';
 import { c } from './theme.js';
@@ -147,7 +147,7 @@ function stripAttachmentText(text: string, textarea: TextareaLike | null): strin
 	return result.replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n').replace(/[ \t]{2,}/g, ' ');
 }
 
-export function PromptBar(props: PromptBarProps) {
+export function renderPromptBar(props: PromptBarProps) {
 	const {
 		isLoading, inputKey, placeholder, onSubmit, hasModel,
 		agent, model, provider, thinkingEffort, initialValue, width,
@@ -381,3 +381,5 @@ export function PromptBar(props: PromptBarProps) {
 		</box>
 	);
 }
+
+export const PromptBar = memo(renderPromptBar);

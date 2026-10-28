@@ -4,12 +4,13 @@ vi.mock('react', () => ({
 	useRef: (current: unknown) => ({ current }),
 	useCallback: (fn: unknown) => fn,
 	useEffect: () => {},
+	memo: (fn: unknown) => fn,
 	useState: (value: unknown) => [value, () => {}],
 }));
 vi.mock('@opentui/core', () => ({ SyntaxStyle: {} }));
 vi.mock('../tui/theme.js', async () => import('../tui/tokens.js'));
 
-import { PromptBar } from '../tui/prompt-bar.js';
+import { renderPromptBar } from '../tui/prompt-bar.js';
 
 function findTextarea(node: any): any {
 	if (!node || typeof node !== 'object') return undefined;
@@ -31,7 +32,7 @@ describe('prompt submission lifecycle', () => {
 			marks = [];
 		});
 		const onSubmit = vi.fn(() => { destroyed = true; });
-		const tree = PromptBar({
+		const tree = renderPromptBar({
 			isLoading: false, inputKey: 0, placeholder: 'Reply', onSubmit,
 			hasModel: true, agent: 'build', model: 'model', provider: 'provider',
 		});

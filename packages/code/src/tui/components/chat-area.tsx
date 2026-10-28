@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { c } from '../theme.js';
 import { MessageView } from './message.js';
 import type { ChatMessage } from '../types.js';
 
-export function ChatArea({
+function ChatAreaImpl({
 	messages,
 	showThinking = true,
 	showToolCalls = true,
@@ -76,3 +77,6 @@ export function ChatArea({
 		</box>
 	);
 }
+
+/** Memoized: draft typing and streaming updates must not reconcile the whole transcript. */
+export const ChatArea = memo(ChatAreaImpl);

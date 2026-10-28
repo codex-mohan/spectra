@@ -263,6 +263,22 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const currentTurnMsgIdRef = useRef<string | null>(null);
 	const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }));
 	const promptHistoryService = useRef(new PromptHistoryService());
+	const updatePromptPosition = useCallback((pos: { top: number; left: number; width: number }) => {
+		setPromptPosition((previous) => (
+			previous.top === pos.top && previous.left === pos.left && previous.width === pos.width ? previous : pos
+		));
+	}, []);
+	const handlePromptTextChange = useCallback((text: string, cursor: number) => {
+		setDraftText(text);
+		setDraftCursor(cursor);
+		setMidSlashDismissed(false);
+	}, []);
+	const handleGetTextarea = useCallback((ref: unknown) => {
+		promptTextareaRef.current = ref;
+	}, []);
+	const handleGetPromptBar = useCallback((ref: PromptBarRef) => {
+		promptBarRef.current = ref;
+	}, []);
 	const draftTextRef = useRef('');
 	const shuttingDownRef = useRef(false);
 	const shutdownRef = useRef<(reason: ExitReason) => void>(() => {});
@@ -382,9 +398,13 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	useEffect(() => {
 		if (!isLoading) return;
 		const id = setInterval(() => setSpinnerFrame((f) => (f + 1) % SPINNER.length), 80);
+		// Render streaming at 60 fps; restore the idle 30 fps afterwards.
+		const idleFps = renderer.targetFps;
+		renderer.targetFps = 60;
 		renderer.requestLive();
 		return () => {
 			clearInterval(id);
+			renderer.targetFps = idleFps;
 			renderer.dropLive();
 		};
 	}, [isLoading, renderer]);
@@ -961,12 +981,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 							initialValue={revertDraftRef.current || ''}
 							width={Math.min(68, termWidth - 8)}
 							focused={!dialogStep && !askRequest && !showCmd && !msgControls && !permissionRequest}
-							onTextChange={(t, c) => { setDraftText(t); setDraftCursor(c); setMidSlashDismissed(false); }}
-							onGetTextarea={(r) => {
-								promptTextareaRef.current = r;
-							}}
-							onPositionChange={setPromptPosition}
-							onGetPromptBar={(r) => { promptBarRef.current = r; }}
+							onTextChange={handlePromptTextChange}
+							onGetTextarea={handleGetTextarea}
+							onPositionChange={updatePromptPosition}
+							onGetPromptBar={handleGetPromptBar}
 						/>
 						{(status === 'Error' || status === 'Interrupted') && (
 							<ActivityFooter width={Math.max(0, Math.min(32, termWidth - 8))}
@@ -1078,12 +1096,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								tokenUsage={tokenUsage}
 								width={termWidth - 4}
 								focused={!dialogStep && !askRequest && !showCmd && !msgControls && !permissionRequest}
-								onTextChange={(t, c) => { setDraftText(t); setDraftCursor(c); setMidSlashDismissed(false); }}
-								onGetTextarea={(r) => {
-									promptTextareaRef.current = r;
-								}}
-								onPositionChange={setPromptPosition}
-								onGetPromptBar={(r) => { promptBarRef.current = r; }}
+								onTextChange={handlePromptTextChange}
+								onGetTextarea={handleGetTextarea}
+								onPositionChange={updatePromptPosition}
+								onGetPromptBar={handleGetPromptBar}
 							/>
 							
 						)}

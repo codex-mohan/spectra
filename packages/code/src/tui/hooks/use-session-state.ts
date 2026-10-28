@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ChatMessage, PendingQueueMessage } from '../types.js';
 import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 
@@ -194,8 +194,13 @@ export function useSessionState() {
 		set(id, patch);
 	}
 
-	return {
-		activeSessionId: activeIdRef.current,
+	// Stable identity: every function closes over refs and the stable forceRender
+	// setter, so consumers can depend on `sessionState` without re-creating their
+	// callbacks (and the memoized PromptBar/ChatArea) on every render.
+	return useMemo(() => ({
+		get activeSessionId() {
+			return activeIdRef.current;
+		},
 		switchSession,
 		getState,
 		set,
@@ -219,5 +224,5 @@ export function useSessionState() {
 		get activeState() {
 			return getState(activeIdRef.current);
 		},
-	};
+	}), []);
 }
