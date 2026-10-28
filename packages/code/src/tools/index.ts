@@ -5,7 +5,8 @@ import { writeTool } from './write.js';
 import { createEditTool } from './edit.js';
 import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
-import { webFetchTool } from './web-fetch.js';
+import { createWebFetchTool } from './web-fetch.js';
+import { createWebSearchTool } from './web-search/index.js';
 import { memoryTool } from './memory.js';
 import { proposeSkillTool } from './propose-skill.js';
 import { createTaskTool } from './task.js';
@@ -36,6 +37,7 @@ function createBuiltinTools(
 	editOptions: Parameters<typeof createEditTool>[0] = {},
 ): SpectraTool<any>[] {
 	const snapshots = readOptions.snapshots ?? editOptions.snapshots ?? new ReadSnapshotStore();
+	const guard = readOptions.ssrfGuard;
 	return [
 		shellTool,
 		createReadTool({ ...readOptions, snapshots }),
@@ -43,7 +45,8 @@ function createBuiltinTools(
 		createEditTool({ ...editOptions, snapshots }),
 		grepTool,
 		globTool,
-		webFetchTool,
+		createWebFetchTool(guard),
+		createWebSearchTool(guard),
 		memoryTool,
 		proposeSkillTool,
 		createAskTool(askHandler),
@@ -59,13 +62,22 @@ export function getToolStreamingDisplay(toolName: string): SpectraTool['streamin
 }
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
-const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'propose_skill', 'task', 'ask', 'web_fetch', 'webfetch']);
+const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'propose_skill', 'task', 'ask']);
 
 function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool['execute'] {
 	const tracker = security.getReadTracker();
 	const doomLoop = security.getDoomLoop();
 
 	return async (args, ctx) => {
+		if (tool.name === 'web_fetch' || tool.name === 'webfetch') {
+			const url = typeof args?.url === 'string' ? args.url : undefined;
+			try {
+				if (url) new URL(url);
+			} catch {
+				return { content: [{ type: 'text', text: `Invalid URL: ${url}` }], isError: true };
+			}
+		}
+
 		const loopResult = doomLoop.recordToolCall(tool.name, args);
 		if (!loopResult.ok) {
 			return { content: [{ type: 'text', text: loopResult.message }], isError: true };

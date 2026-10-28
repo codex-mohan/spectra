@@ -2,47 +2,59 @@ import { z } from 'zod';
 import type { SpectraTool } from './types.js';
 import { errorResult, textResult } from './utils.js';
 import { APP_USER_AGENT } from '../services/app-version.js';
+import { SsrfGuard } from '../security/ssrf-guard.js';
+import { safeFetch } from './network.js';
 
-export const webFetchTool: SpectraTool = {
-	name: 'web_fetch',
-	capabilities: { reads: false, writes: false },
-	description: `Fetch content from a URL and return it as markdown text.
+export function createWebFetchTool(guard: SsrfGuard = new SsrfGuard()): SpectraTool {
+	return {
+		name: 'web_fetch',
+		capabilities: { reads: false, writes: false },
+		description: `Fetch content from a URL and return it as markdown text.
 Useful for reading documentation, API responses, or any web content.
-Handles HTML to markdown conversion, PDF text extraction, and image descriptions.`,
-	displayName: (args: { url: string }) => new URL(args.url).hostname,
-	parameters: z.object({
-		url: z.string().describe('The URL to fetch content from'),
-		maxLength: z.number().optional().describe('Maximum characters to return'),
-	}),
-	execute: async ({ url, maxLength }) => {
-		try {
-			new URL(url);
-		} catch {
-			return errorResult(`Invalid URL: ${url}`);
-		}
+Handles HTML to markdown conversion, JSON formatting, and byte-capped responses.`,
+		displayName: (args: { url: string }) => {
+			try {
+				return new URL(args.url).hostname;
+			} catch {
+				return args.url;
+			}
+		},
+		parameters: z.object({
+			url: z.string().describe('The URL to fetch content from'),
+			maxLength: z.number().optional().describe('Maximum characters to return'),
+		}),
+		execute: async ({ url, maxLength }) => {
+			try {
+				new URL(url);
+			} catch {
+				return errorResult(`Invalid URL: ${url}`);
+			}
 
-		try {
-			const response = await fetch(url, {
+			const result = await safeFetch(url, guard, {
 				headers: { 'User-Agent': APP_USER_AGENT },
-				signal: AbortSignal.timeout(15000),
+				timeoutMs: 15_000,
+				maxBytes: 2 * 1024 * 1024,
 			});
+			if (!result.ok) return errorResult(result.error);
 
-			if (!response.ok) {
+			const response = result.response;
+			if (response.status < 200 || response.status >= 300) {
 				return errorResult(`HTTP ${response.status}: ${response.statusText}`);
 			}
 
-			const contentType = response.headers.get('content-type') || '';
 			let content: string;
-
-			if (contentType.includes('text/html')) {
-				const html = await response.text();
-				content = htmlToMarkdown(html);
-			} else if (contentType.includes('application/json')) {
-				const json = await response.json();
-				content = JSON.stringify(json, null, 2);
+			if (response.contentType.includes('text/html')) {
+				content = htmlToMarkdown(response.text);
+			} else if (response.contentType.includes('application/json')) {
+				try {
+					content = JSON.stringify(JSON.parse(response.text), null, 2);
+				} catch {
+					content = response.text;
+				}
 			} else {
-				content = await response.text();
+				content = response.text;
 			}
+			if (response.truncated) content += '\n...(response truncated)';
 
 			const limit = maxLength || 10000;
 			if (content.length > limit) {
@@ -50,15 +62,11 @@ Handles HTML to markdown conversion, PDF text extraction, and image descriptions
 			}
 
 			return textResult(content);
-		} catch (err: unknown) {
-			const error = err as { name?: string; message?: string };
-			if (error.name === 'TimeoutError') {
-				return errorResult('Request timed out after 15 seconds.');
-			}
-			return errorResult(`Failed to fetch URL: ${error.message || 'unknown error'}`);
-		}
-	},
-};
+		},
+	};
+}
+
+export const webFetchTool = createWebFetchTool();
 
 function htmlToMarkdown(html: string): string {
 	let text = html

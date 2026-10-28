@@ -13,6 +13,21 @@ export interface CustomProviderConfig {
 
 import type { PermissionConfig, SecurityConfig } from '../security/types.js';
 
+export type WebSearchProviderId = 'brave' | 'tavily';
+
+export interface WebSearchConfig {
+	/** Providers tried in order. Defaults to brave then tavily. */
+	providers?: WebSearchProviderId[];
+	/** 1-10, default 5. */
+	maxResults?: number;
+	/** Per-provider timeout in milliseconds. Default 60000, max 300000. */
+	timeoutMs?: number;
+}
+
+export interface ToolsConfig {
+	webSearch?: WebSearchConfig;
+}
+
 export interface SpectraConfig {
 	model?: string;
 	smallModel?: string;
@@ -32,6 +47,7 @@ export interface SpectraConfig {
 	skills?: SkillsConfig;
 	commands?: CommandConfig;
 	references?: ProjectReferenceConfig[];
+	tools?: ToolsConfig;
 }
 
 export interface ProjectReferenceConfig {

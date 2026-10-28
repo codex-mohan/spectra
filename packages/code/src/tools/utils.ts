@@ -1,8 +1,11 @@
 import type { ToolResult } from '@mohanscodex/spectra-agent';
 import { spawn } from 'child_process';
 
-export function textResult(text: string): ToolResult {
-	return { content: [{ type: 'text', text } as { type: 'text'; text: string }] };
+export function textResult<TDetails = unknown>(text: string, details?: TDetails): ToolResult<TDetails> {
+	return {
+		content: [{ type: 'text', text } as { type: 'text'; text: string }],
+		...(details === undefined ? {} : { details }),
+	};
 }
 
 export function errorResult(message: string): ToolResult {

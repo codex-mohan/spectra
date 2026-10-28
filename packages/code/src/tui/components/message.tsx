@@ -385,6 +385,111 @@ function MemoryToolView({ args, output, isError, marginTop }: { args: Record<str
 
 const SKILL_COLOR = '#C4A0E0';
 
+const MAX_SEARCH_SOURCES = 3;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function WebSearchToolView(props: {
+	args: Record<string, unknown>;
+	details: unknown;
+	output: string;
+	isError: boolean;
+	streaming: boolean;
+	marginTop: number;
+}) {
+	const details = isRecord(props.details) ? props.details : {};
+	const results = Array.isArray(details.results) ? details.results.filter(isRecord) : [];
+	const notes = Array.isArray(details.notes) ? details.notes.filter((note): note is string => typeof note === 'string') : [];
+	const provider = typeof details.provider === 'string' ? details.provider : '';
+	const elapsed = typeof details.elapsedMs === 'number' ? details.elapsedMs : undefined;
+	const query = String(props.args.query ?? '');
+	const [expanded, setExpanded] = useState(false);
+
+	const borderColor = props.isError ? c.error : c.info;
+	const visible = expanded ? results : results.slice(0, MAX_SEARCH_SOURCES);
+	const hidden = Math.max(0, results.length - visible.length);
+	const pending = props.streaming && !props.output;
+
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={props.marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={borderColor}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={borderColor}>{props.isError ? '!' : '⌕'}</text>
+				<text fg={borderColor} attributes={1}>Web search</text>
+				<text fg={c.text} overflow="hidden" wrapMode="none" flexShrink={1}>{query ? `"${query}"` : ''}</text>
+				<text fg={c.dim}>· {results.length} results</text>
+				{props.isError ? <text fg={c.error}>✗</text> : pending ? null : <text fg={c.success}>✓</text>}
+			</box>
+
+			<box flexDirection="column" paddingLeft={2} gap={0}>
+				{pending ? (
+					<text fg={c.accent}>searching…</text>
+				) : props.isError ? (
+					<text fg={c.error}>{props.output || 'Search failed'}</text>
+				) : results.length === 0 ? (
+					<text fg={c.dim}>{notes.length > 0 ? 'No results after relaxing query constraints' : 'No results'}</text>
+				) : (
+					visible.map((result, index) => {
+						const title = typeof result.title === 'string' ? result.title : '';
+						const url = typeof result.url === 'string' ? result.url : '';
+						const snippet = typeof result.snippet === 'string' ? result.snippet : '';
+						const age = typeof result.publishedAt === 'string' ? result.publishedAt : '';
+						return (
+							<box key={`${url}-${index}`} flexDirection="column" marginTop={index === 0 ? 0 : 1}>
+								<box flexDirection="row" gap={1}>
+									<text fg={c.dim}>{index + 1}</text>
+									<text fg={c.text} overflow="hidden" wrapMode="none">{title || url}</text>
+									{age ? <text fg={c.dim}>· {age}</text> : null}
+								</box>
+								<box flexDirection="row" paddingLeft={2}>
+									<text fg={c.dim} overflow="hidden" wrapMode="none">{url}</text>
+								</box>
+								{snippet ? (
+									<box paddingLeft={2}>
+										<text fg={c.dim} wrapMode="none">{snippet}</text>
+									</box>
+								) : null}
+							</box>
+						);
+					})
+				)}
+				{hidden > 0 ? (
+					<box marginTop={1} onMouseDown={() => setExpanded(true)}>
+						<text fg={c.dim}>… {hidden} more sources · click to expand</text>
+					</box>
+				) : expanded && results.length > MAX_SEARCH_SOURCES ? (
+					<box marginTop={1} onMouseDown={() => setExpanded(false)}>
+						<text fg={c.dim}>click to collapse</text>
+					</box>
+				) : null}
+				{notes.map((note, index) => (
+					<text key={`note-${index}`} fg={c.warn}>Note: {note}</text>
+				))}
+			</box>
+
+			{(provider || elapsed !== undefined) ? (
+				<box flexDirection="row" paddingLeft={1} gap={1}>
+					{provider ? <text fg={c.dim}>{provider}</text> : null}
+					{provider && elapsed !== undefined ? <text fg={c.dim}>·</text> : null}
+					{elapsed !== undefined ? <text fg={c.dim}>{elapsed >= 1000 ? `${(elapsed / 1000).toFixed(1)}s` : `${elapsed}ms`}</text> : null}
+				</box>
+			) : null}
+		</box>
+	);
+}
+
 /** Parse find_skills output into a structured list. */
 function parseFindSkillsOutput(output: string): { query: string; matches: { name: string; desc: string }[] } {
 	if (output.includes('No skills available') || output.includes('Provide a query')) {
@@ -1010,11 +1115,24 @@ export function MessageView({
 			);
 		}
 
+		if (tName === 'web_search') {
+			return (
+				<WebSearchToolView
+					args={argsObj}
+					details={msg.toolDetails}
+					output={output}
+					isError={toolError}
+					streaming={msg.streaming === true}
+					marginTop={mt}
+				/>
+			);
+		}
+
 		if (tName === 'web_fetch') {
 			const url = argsObj.url || argsStr;
 			const displayTitle = toolError ? (url ? `Fetch failed: ${url}` : 'Fetch failed') : url ? `Fetch ${url}` : 'Fetch';
 			const fetchColor = toolError ? c.error : c.info;
-			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} titleColor={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'} />;
+			if (!output) return <InlineTool icon={toolError ? '!' : '↗'} title={displayTitle} color={fetchColor} titleColor={fetchColor} marginTop={mt} status={toolError ? 'error' : msg.streaming ? undefined : 'success'} />;
 			return (
 				<BlockTool title={displayTitle} titleColor={fetchColor} borderColor={fetchColor} marginTop={mt} status={toolError ? 'error' : 'success'}>
 					<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />

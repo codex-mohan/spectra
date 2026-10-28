@@ -24,7 +24,7 @@ Rules:
 | Shell tool | [shell.md](shell.md) | `packages/code/src/tools/shell.ts` | 0 | documented |
 | Search tools | [search.md](search.md) | `packages/code/src/tools/glob.ts`, `grep.ts` | 0 | documented |
 | Web fetch | [web-fetch.md](web-fetch.md) | `packages/code/src/tools/web-fetch.ts` | 0 | documented |
-| Web search | `web-search.md` | `packages/code/src/tools/web-search/` (new) | 2 | planned |
+| Web search | [web-search.md](web-search.md) | `packages/code/src/tools/web-search/` | 2 | documented |
 | LSP | `lsp.md` | `packages/code/src/lsp/`, `packages/code/src/tools/lsp.ts` (new) | 3 | planned |
 | Browser | `browser.md` | `packages/code/src/browser/` (new) | 6 | planned |
 | MCP client | [mcp-client.md](mcp-client.md) | `packages/code/src/integrations/mcp/` | 0 | documented |

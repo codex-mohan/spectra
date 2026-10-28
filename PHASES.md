@@ -35,7 +35,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 |---|---|---|---|---|
 | 0 | Documentation and phase infrastructure | M | done | — |
 | 1 | Input and exit contract | S | done | 0 |
-| 2 | Web search + shared network egress | M | planned | 1 |
+| 2 | Web search + shared network egress | M | done | 1 |
 | 3 | LSP tool and edit diagnostics | L | planned | 1 |
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | planned | 1 |
 | 5 | Settings registry, tabbed UI, config CLI | L | planned | 1 |
