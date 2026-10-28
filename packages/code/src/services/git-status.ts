@@ -1,4 +1,5 @@
-import { execFileSync } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
+import { promisify } from 'util';
 
 export interface GitStatus {
 	branch: string;
@@ -73,16 +74,33 @@ export function readGitStatus(cwd = process.cwd()): GitStatus | null {
 	const options = {
 		cwd,
 		encoding: 'utf8' as const,
-		timeout: 2000,
+		timeout: 5000,
 		stdio: ['ignore', 'pipe', 'ignore'] as ['ignore', 'pipe', 'ignore'],
 		windowsHide: true,
 	};
 	try {
-		const porcelain = execFileSync('git', ['status', '--porcelain=v2', '--branch'], options);
+		const porcelain = execFileSync('git', ['--no-optional-locks', 'status', '--porcelain=v2', '--branch'], options);
 		return parsePorcelainV2(porcelain);
 	} catch {
 		return null;
 	}
+}
+
+/**
+ * Keep the last good status through transient git failures (index contention,
+ * timeouts while another process works in the repository). Only after three
+ * consecutive misses is the repository treated as unavailable.
+ */
+export function reconcileGitStatus(
+	previous: GitStatus | null,
+	next: GitStatus | null,
+	consecutiveFailures: number,
+): { status: GitStatus | null; failures: number } {
+	if (next) {
+		return { status: sameGitStatus(previous, next) ? previous : next, failures: 0 };
+	}
+	const failures = consecutiveFailures + 1;
+	return { status: failures >= 3 ? null : previous, failures };
 }
 
 export function sameGitStatus(a: GitStatus | null, b: GitStatus | null): boolean {
@@ -96,4 +114,21 @@ export function sameGitStatus(a: GitStatus | null, b: GitStatus | null): boolean
 		&& a.modified === b.modified
 		&& a.untracked === b.untracked
 		&& a.conflicted === b.conflicted;
+}
+
+
+const execFileAsync = promisify(execFile);
+
+/** Non-blocking variant used by the footer poll so `git status` never stalls the render loop. */
+export async function readGitStatusAsync(cwd = process.cwd()): Promise<GitStatus | null> {
+	try {
+		const { stdout } = await execFileAsync(
+			'git',
+			['--no-optional-locks', 'status', '--porcelain=v2', '--branch'],
+			{ cwd, encoding: 'utf8', timeout: 5000, windowsHide: true, maxBuffer: 10 * 1024 * 1024 },
+		);
+		return parsePorcelainV2(stdout);
+	} catch {
+		return null;
+	}
 }

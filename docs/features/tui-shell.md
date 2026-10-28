@@ -44,7 +44,7 @@
 - Overlays emitted in JSX order after the route body: command palette, slash/arg/file autocomplete, one `dialogStep` dialog, update dialog, message controls, permission dialog, ask menu, toast container (`app.tsx:1069-1492`).
 - Transcript messages are persisted through `SessionStore.addMessage`/`save`; assistant metadata gains `turnDurationMs`, `turnTokens`, `patch`, `contextUsage`, `turnStatus` (`use-chat-submit.ts:540-590`).
 - Terminal title is set at mount and on session load/switch (`setTerminalTitle`, `formatSessionTitle`).
-- Home footer left segment: folder glyph + path (home shortened to `~`, separator-normalized), `›`, branch glyph + branch, ahead/behind, then `!conflicts`, `*changed`, `?untracked`. Refresh runs on mount, every 5 s, and when a turn finishes; identical status does not re-render.
+- Home footer left segment: folder glyph + path (home shortened to `~`, separator-normalized), `›`, branch glyph + branch, ahead/behind, then `!conflicts`, `*changed`, `?untracked`. Refresh runs on mount, every 5 s, and when a turn finishes; it is asynchronous and never blocks the render loop. Transient git failures keep the last good status and only clear after three consecutive misses.
 - Clipboard writes occur on terminal selection and when installing an update copies `UPDATE_COMMAND`.
 
 ## Flow

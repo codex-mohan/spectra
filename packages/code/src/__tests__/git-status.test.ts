@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { parsePorcelainV2, readGitStatus } from '../services/git-status.js';
+import { parsePorcelainV2, readGitStatus, reconcileGitStatus } from '../services/git-status.js';
 import { formatCwd, layoutGitStatus, renderedWidth, tailPath } from '../tui/utils/git-status-layout.js';
 
 const STATUS = {
@@ -47,6 +47,31 @@ describe('porcelain v2 parsing', () => {
 		const status = parsePorcelainV2('# branch.oid 0123456789abcdef\n# branch.head (detached)\n');
 		expect(status.detached).toBe(true);
 		expect(status.branch).toBe('0123456');
+	});
+});
+
+describe('poll reconciliation', () => {
+	const good = {
+		branch: 'main', detached: false, ahead: 0, behind: 0,
+		staged: 0, modified: 0, untracked: 0, conflicted: 0,
+	};
+
+	it('keeps the last good status through transient failures', () => {
+		let result = reconcileGitStatus(good, null, 0);
+		expect(result.status).toBe(good);
+		expect(result.failures).toBe(1);
+		result = reconcileGitStatus(result.status, null, result.failures);
+		expect(result.status).toBe(good);
+		expect(result.failures).toBe(2);
+		result = reconcileGitStatus(result.status, null, result.failures);
+		expect(result.status).toBeNull();
+		expect(result.failures).toBe(3);
+	});
+
+	it('resets the failure count after a successful read', () => {
+		const result = reconcileGitStatus(good, { ...good, modified: 1 }, 2);
+		expect(result.failures).toBe(0);
+		expect(result.status?.modified).toBe(1);
 	});
 });
 
