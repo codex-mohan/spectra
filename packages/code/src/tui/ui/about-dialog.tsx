@@ -93,7 +93,7 @@ export function AboutDialog({ onClose, termWidth, termHeight, registerHandler }:
 							height={1}
 							onMouseUp={() => { void open('https://github.com/codex-mohan/spectra').catch(() => {}); }}
 						>
-							<text fg={c.info}>github.com/codex-mohan/spectra</text>
+							<text fg={c.info}>https://github.com/codex-mohan/spectra</text>
 						</box>
 					)}
 				</box>
