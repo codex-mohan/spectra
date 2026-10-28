@@ -4,9 +4,10 @@ import { readGitStatus, readGitStatusAsync, reconcileGitStatus, type GitStatus }
 const REFRESH_MS = 5000;
 
 export function useGitStatus(cwd: string, isLoading: boolean) {
-	const initial = useRef<GitStatus | null>(readGitStatus(cwd));
-	const [status, setStatus] = useState<GitStatus | null>(initial.current);
-	const statusRef = useRef<GitStatus | null>(initial.current);
+	// Lazy initializer: readGitStatus is synchronous and must run once, not on
+	// every render (a ref argument is evaluated eagerly).
+	const [status, setStatus] = useState<GitStatus | null>(() => readGitStatus(cwd));
+	const statusRef = useRef<GitStatus | null>(status);
 	const failures = useRef(0);
 	const wasLoading = useRef(isLoading);
 

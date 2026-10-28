@@ -164,8 +164,13 @@ export function renderPromptBar(props: PromptBarProps) {
 
 	const syncAttachments = useCallback(() => {
 		const next = syncAttachmentsFromExtmarks(textareaRef.current);
+		const previous = attachmentsRef.current;
 		attachmentsRef.current = next;
-		setAttachments(next);
+		const same = next.length === previous.length && next.every((attachment, index) => {
+			const other = previous[index];
+			return attachment.url === other?.url && attachment.badge.label === other?.badge.label && attachment.type === other?.type;
+		});
+		if (!same) setAttachments(next);
 		return next;
 	}, []);
 
@@ -232,13 +237,13 @@ export function renderPromptBar(props: PromptBarProps) {
 		if (!textarea?.plainText) {
 			syncAttachments();
 			onTextChange?.('', 0);
-			setCharCount(0);
-			setShowHint(false);
+			setShowHint((previous) => (previous ? false : previous));
 			return;
 		}
 		const text = stripAttachmentText(textarea.plainText, textarea);
-		setCharCount(text.length);
-		setShowHint(text.length >= COMPACT_THRESHOLD);
+		const hint = text.length >= COMPACT_THRESHOLD;
+		setShowHint((previous) => (previous === hint ? previous : hint));
+		if (hint) setCharCount(text.length);
 		syncAttachments();
 		onTextChange?.(text, textarea.cursorOffset ?? text.length);
 	}, [onTextChange, syncAttachments]);

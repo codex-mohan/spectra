@@ -67,6 +67,8 @@ import { useAgent, createSessionFactory, createSessionSecurityManager } from './
 import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
 import { useGitStatus } from './hooks/use-git-status.js';
+import { shouldCommitDraft } from './utils/draft-commit.js';
+import { useLazyRef } from './utils/lazy-ref.js';
 import { GitStatusSegment } from './components/git-status.js';
 import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
@@ -250,7 +252,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	// --- Refs ---
 	const promptTextareaRef = useRef<unknown>(null);
 	const promptBarRef = useRef<PromptBarRef | null>(null);
-	const sessionStore = useRef(new SessionStore());
+	const sessionStore = useLazyRef(() => new SessionStore());
 	const sessionId = useRef<string | null>(null);
 	const dialogKeyHandler = useRef<((key: unknown) => void) | null>(null);
 	const askPendingRef = useRef<{
@@ -261,14 +263,19 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const isStreamingRef = useRef(false);
 	const currentTurnStartRef = useRef<number | null>(null);
 	const currentTurnMsgIdRef = useRef<string | null>(null);
-	const snapshotManager = useRef(new SnapshotManager({ workdir: process.cwd() }));
-	const promptHistoryService = useRef(new PromptHistoryService());
+	const snapshotManager = useLazyRef(() => new SnapshotManager({ workdir: process.cwd() }));
+	const promptHistoryService = useLazyRef(() => new PromptHistoryService());
 	const updatePromptPosition = useCallback((pos: { top: number; left: number; width: number }) => {
 		setPromptPosition((previous) => (
 			previous.top === pos.top && previous.left === pos.left && previous.width === pos.width ? previous : pos
 		));
 	}, []);
+	const draftCommittedRef = useRef(false);
 	const handlePromptTextChange = useCallback((text: string, cursor: number) => {
+		draftTextRef.current = text;
+		const relevant = shouldCommitDraft(text);
+		if (!relevant && !draftCommittedRef.current) return;
+		draftCommittedRef.current = relevant;
 		setDraftText(text);
 		setDraftCursor(cursor);
 		setMidSlashDismissed(false);
@@ -398,13 +405,9 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	useEffect(() => {
 		if (!isLoading) return;
 		const id = setInterval(() => setSpinnerFrame((f) => (f + 1) % SPINNER.length), 80);
-		// Render streaming at 60 fps; restore the idle 30 fps afterwards.
-		const idleFps = renderer.targetFps;
-		renderer.targetFps = 60;
 		renderer.requestLive();
 		return () => {
 			clearInterval(id);
-			renderer.targetFps = idleFps;
 			renderer.dropLive();
 		};
 	}, [isLoading, renderer]);
