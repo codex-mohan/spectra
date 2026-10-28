@@ -62,7 +62,7 @@ export const c = {
 	bgThink: '#141420',
 	bgTool: '#141420',
 	bgInput: '#12121A',
-	bgOverlay: '#08080ECC',
+	bgOverlay: '#08080E',
 	bgSelect: '#2E2E50',
 
 	sbThumb: '#2A2A3A',
