@@ -24,7 +24,8 @@
 | --- | --- | --- |
 | `tools.approvalMode` | `always-ask \| write \| yolo` | Default `write`. |
 | `tools.approval.<tool>` | `allow \| deny \| prompt` | Per-tool override. `shell` aliases `bash`; `lsp_write` falls back to `lsp`. |
-| `permission` | map of tool → pattern → action | Legacy but authoritative for targets; `edit`/`write` share the write permission. |
+| `permission` | map of tool → pattern → action | Map form; evaluated before the rule array. |
+| `permissions` | array of `{ name, pattern, allow }` | Rule-array form; also honored, evaluated after the map. |
 | `security` | object | Write guard, blocked/allowed paths, SSRF, doom-loop thresholds. |
 
 Mode matrix:
@@ -57,6 +58,7 @@ Mode matrix:
 ## State / persistence
 
 - Session grants live in memory. “Always allow” persists scoped rules to `spectra.json` via the config service.
+- Permission config is read live with a 1 s cache, so edits apply without restarting. Session grants and safety guards stay in memory.
 - External-directory approvals are directory-scoped.
 
 ## Security
@@ -85,7 +87,7 @@ Mode matrix:
 - Non-interactive hosts (ACP, CI) must configure `tools.approval` or run `approvalMode: yolo`; there is no implicit prompt.
 - Custom AgentTools loaded outside `createBuiltinTools` do not pass through the wrapper.
 - Permission patterns are wildcard-based, not a full glob engine.
-- Mode changes require a restart (config is read at manager creation).
+- Security guards (write guard, path safety, SSRF) are constructed once at startup; only permission rules and approval mode are live-reloaded.
 
 ## Tests
 

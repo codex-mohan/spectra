@@ -9,6 +9,7 @@ import type {
 	ToolCapabilities,
 } from './types.js';
 import { evaluate, fromConfig } from './permissions.js';
+import type { PermissionRule } from '../services/config.js';
 import { approvalModeFromConfig, decideApproval, type ApprovalDecision, type ApprovalMode, type ApprovalTier } from './approval.js';
 import { PathSafety } from './path-safety.js';
 import { ReadTracker } from './read-tracker.js';
@@ -172,10 +173,21 @@ interface PendingRequest {
 
 type PermissionListener = (req: PermissionRequest) => void;
 
+export interface SecurityConfigSource {
+	permission?: PermissionConfig;
+	permissions?: PermissionRule[];
+	approvalMode?: ApprovalMode;
+	approval?: Record<string, ApprovalDecision>;
+}
+
 interface PermissionManagerOptions {
 	config?: PermissionConfig;
 	approvalMode?: ApprovalMode;
 	approval?: Record<string, ApprovalDecision>;
+	/** Read the live config so permission edits apply without a restart. */
+	source?: () => SecurityConfigSource;
+	/** Cache window for `source`, in milliseconds. Default 1000. */
+	sourceTtlMs?: number;
 	security?: SecurityConfig;
 	sessionRuleset?: Ruleset;
 	restoredApprovals?: Ruleset;
@@ -185,7 +197,31 @@ interface PermissionManagerOptions {
 }
 
 export function createSecurityManager(options: PermissionManagerOptions = {}) {
-	const configRuleset = options.config ? fromConfig(options.config) : [];
+	let cachedSource: SecurityConfigSource | undefined;
+	let cachedSourceAt = 0;
+	function source(): SecurityConfigSource {
+		if (!options.source) {
+			return { permission: options.config, approvalMode: options.approvalMode, approval: options.approval };
+		}
+		const now = Date.now();
+		if (!cachedSource || now - cachedSourceAt >= (options.sourceTtlMs ?? 1000)) {
+			cachedSource = options.source();
+			cachedSourceAt = now;
+		}
+		return cachedSource;
+	}
+
+	function rulesFromSource(input: SecurityConfigSource): Ruleset {
+		const fromMap = input.permission ? fromConfig(input.permission) : [];
+		const fromArray: Ruleset = (input.permissions ?? []).map((rule) => ({
+			permission: rule.name,
+			pattern: rule.pattern,
+			action: rule.allow === false ? 'deny' : 'allow',
+		}));
+		return [...fromMap, ...fromArray];
+	}
+
+	const configRuleset = rulesFromSource(source());
 	const sessionRuleset = options.sessionRuleset ?? [];
 	const restoredFromDisk = options.restoredApprovals ?? [];
 
@@ -201,8 +237,6 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 	const ssrfGuard = new SsrfGuard(options.security?.ssrf);
 
 	const cwd = options.cwd ?? process.cwd();
-	const approvalMode = approvalModeFromConfig(options.approvalMode);
-	const approvalPolicies = options.approval ?? {};
 
 	let approvedRuleset: Ruleset = [...restoredFromDisk];
 	const pendingRequests = new Map<string, PendingRequest>();
@@ -219,7 +253,8 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 	}
 
 	function getRuleset(): Ruleset {
-		return [...configRuleset, ...approvedRuleset, ...sessionRuleset];
+		const live = options.source ? rulesFromSource(source()) : configRuleset;
+		return [...live, ...approvedRuleset, ...sessionRuleset];
 	}
 
 	function setListener(fn: PermissionListener | null): void {
@@ -278,6 +313,9 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 		}
 
 		const tier = options?.tier ?? 'write';
+		const live = source();
+		const approvalMode = approvalModeFromConfig(live.approvalMode);
+		const approvalPolicies = live.approval ?? {};
 		const alias = permission === 'shell' ? 'bash' : permission === 'lsp_write' ? 'lsp' : undefined;
 		const toolPolicy = approvalPolicies[permission]
 			?? (alias ? approvalPolicies[alias] : undefined)

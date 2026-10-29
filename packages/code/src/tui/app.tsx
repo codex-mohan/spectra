@@ -309,6 +309,16 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			security: cfg.security,
 			approvalMode: cfg.tools?.approvalMode,
 			approval: cfg.tools?.approval,
+			// Read live so permission edits apply without restarting.
+			source: () => {
+				const live = loadConfig();
+				return {
+					permission: live.permission,
+					permissions: live.permissions,
+					approvalMode: live.tools?.approvalMode,
+					approval: live.tools?.approval,
+				};
+			},
 		};
 	});
 	const [agentCatalog, setAgentCatalog] = useState<AgentCatalog>(() => getBuiltinCatalog());

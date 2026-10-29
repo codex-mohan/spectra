@@ -65,3 +65,44 @@ describe('rules and policies', () => {
 		expect(patterns).not.toContain('*');
 	});
 });
+
+describe('live config', () => {
+	it('applies permission edits without recreating the manager', async () => {
+		let mode: 'always-ask' | 'write' | 'yolo' = 'always-ask';
+		let permission: Record<string, unknown> = {};
+		const security = createSecurityManager({
+			source: () => ({ permission, approvalMode: mode }),
+			sourceTtlMs: 0,
+			cwd: process.cwd(),
+		});
+
+		await expect(security.checkPermission('write', ['a.ts'], 'write', '', { tier: 'write' })).rejects.toThrow('no interactive approval');
+
+		permission = { write: { '*': 'allow' } };
+		await expect(security.checkPermission('write', ['a.ts'], 'write', '', { tier: 'write' })).resolves.toBeUndefined();
+	});
+
+	it('honors the permissions rule array', async () => {
+		const security = createSecurityManager({
+			source: () => ({
+				approvalMode: 'always-ask',
+				permissions: [{ name: 'shell', pattern: 'npm test *', allow: true }],
+			}),
+			sourceTtlMs: 0,
+			cwd: process.cwd(),
+		});
+		await expect(security.checkPermission('shell', ['npm test --run'], 'shell', '', { tier: 'exec' })).resolves.toBeUndefined();
+	});
+
+	it('drops stale cached config after the TTL', async () => {
+		let mode: 'always-ask' | 'write' | 'yolo' = 'write';
+		const security = createSecurityManager({
+			source: () => ({ approvalMode: mode }),
+			sourceTtlMs: 0,
+			cwd: process.cwd(),
+		});
+		await expect(security.checkPermission('shell', ['ls'], 'shell', '', { tier: 'exec' })).rejects.toThrow('no interactive approval');
+		mode = 'yolo';
+		await expect(security.checkPermission('shell', ['ls'], 'shell', '', { tier: 'exec' })).resolves.toBeUndefined();
+	});
+});

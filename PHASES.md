@@ -249,7 +249,7 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 
 **Goal:** replace tool-name prompts with capability tiers and modes.
 
-**Delivered:** `read`/`write`/`exec`/`network` tiers, `always-ask`/`write`/`yolo` modes with **default `write`**, tool policy overrides (`tools.approval`), all-target rule evaluation (any deny wins), external-path prompts independent of mode, scoped “always” grants (file/dir/command/host/action), immediate failure without an interactive UI, actionable denial reasons, `bash` no longer auto-allowed, `lsp`/`lsp_write` action classes, and `shell`/`bash` policy aliasing.
+**Delivered:** `read`/`write`/`exec`/`network` tiers, `always-ask`/`write`/`yolo` modes with **default `write`**, tool policy overrides (`tools.approval`), all-target rule evaluation (any deny wins), external-path prompts independent of mode, scoped “always” grants (file/dir/command/host/action), immediate failure without an interactive UI, actionable denial reasons, `bash` no longer auto-allowed, `lsp`/`lsp_write` action classes, `shell`/`bash` policy aliasing, live config reload (1 s cache), and `permissions` rule-array support.
 
 ---
 
