@@ -46,6 +46,8 @@ export interface ChatMessage {
 	blocks?: ContentBlock[];
 	/** Additional metadata for the message */
 	meta?: string;
+	/** System-injected note rendered compactly (late diagnostics). */
+	hiddenSystem?: boolean;
 	/** Whether the message is being streamed */
 	streaming?: boolean;
 	/** Stable identity and structured arguments for a tool invocation. */

@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 import { relative } from 'path';
 import { createTwoFilesPatch } from 'diff';
 import { fileURLToPath } from 'url';
@@ -118,4 +119,51 @@ export function previewWorkspaceEdits(edits: WorkspaceTextEdit[]): string {
 	}
 
 	return previews.join('\n');
+}
+
+
+export interface FileOperation {
+	kind: 'create' | 'rename' | 'delete';
+	path: string;
+	oldPath?: string;
+}
+
+/** Extract create/rename/delete operations from `documentChanges`. */
+export function extractFileOperations(edit: unknown): FileOperation[] {
+	if (!isRecord(edit) || !Array.isArray(edit.documentChanges)) return [];
+	const operations: FileOperation[] = [];
+	for (const change of edit.documentChanges) {
+		if (!isRecord(change) || typeof change.kind !== 'string') continue;
+		if (change.kind === 'create' && typeof change.uri === 'string') {
+			operations.push({ kind: 'create', path: fileURLToPath(change.uri) });
+		} else if (change.kind === 'rename' && typeof change.oldUri === 'string' && typeof change.newUri === 'string') {
+			operations.push({ kind: 'rename', path: fileURLToPath(change.newUri), oldPath: fileURLToPath(change.oldUri) });
+		} else if (change.kind === 'delete' && typeof change.uri === 'string') {
+			operations.push({ kind: 'delete', path: fileURLToPath(change.uri) });
+		}
+	}
+	return operations;
+}
+
+export function applyFileOperations(operations: FileOperation[], validatePath: (path: string) => string | null): string[] {
+	const applied: string[] = [];
+	for (const operation of operations) {
+		for (const path of [operation.path, operation.oldPath].filter((value): value is string => Boolean(value))) {
+			const problem = validatePath(path);
+			if (problem) throw new Error(problem);
+		}
+		if (operation.kind === 'create') {
+			mkdirSync(dirname(operation.path), { recursive: true });
+			if (!existsSync(operation.path)) writeFileSync(operation.path, '', 'utf8');
+			applied.push(`create ${operation.path}`);
+		} else if (operation.kind === 'rename' && operation.oldPath) {
+			mkdirSync(dirname(operation.path), { recursive: true });
+			renameSync(operation.oldPath, operation.path);
+			applied.push(`rename ${operation.oldPath} → ${operation.path}`);
+		} else if (operation.kind === 'delete') {
+			rmSync(operation.path, { force: true });
+			applied.push(`delete ${operation.path}`);
+		}
+	}
+	return applied;
 }

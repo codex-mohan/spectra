@@ -1,10 +1,11 @@
 import { existsSync } from 'fs';
 import { relative, resolve } from 'path';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { isInsideWorkingDir } from '../security/wildcard.js';
 import { PathSafety } from '../security/path-safety.js';
 import type { LspConfig } from '../services/config.js';
 import { LspClient } from './client.js';
+import { ensureMuxDaemon } from './mux/client.js';
 import { findServerForFile, findWorkspaceRoot, resolveLspSettings, type ResolvedLspSettings } from './servers.js';
 import type { Diagnostic } from './protocol.js';
 
@@ -69,21 +70,38 @@ export class LspManager {
 		}
 
 		const languageId = match.server.languageId ?? 'plaintext';
-		const client = new LspClient({
+		const socketPath = this.settings.shared ? await ensureMuxDaemon(root) : null;
+		const buildClient = (muxSocket?: string) => new LspClient({
 			id: key,
 			name: match.id,
 			root,
 			server: match.server,
 			requestTimeout: this.settings.requestTimeout,
 			workspaceSettings: this.settings.settings,
+			...(muxSocket ? { socketPath: muxSocket } : {}),
 		});
+
+		let client = buildClient(socketPath ?? undefined);
 		try {
 			await client.start();
 		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new Error(
-				`${match.id} is not available (${message}). Install "${match.server.command}" or configure tools.lsp.servers.`,
-			);
+			if (socketPath) {
+				// Daemon link failed; fall back to a private server.
+				client = buildClient();
+				try {
+					await client.start();
+				} catch (fallbackError) {
+					const message = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+					throw new Error(
+						`${match.id} is not available (${message}). Install "${match.server.command}" or configure tools.lsp.servers.`,
+					);
+				}
+			} else {
+				const message = error instanceof Error ? error.message : String(error);
+				throw new Error(
+					`${match.id} is not available (${message}). Install "${match.server.command}" or configure tools.lsp.servers.`,
+				);
+			}
 		}
 		client.openDocument(resolvedFile, languageId);
 		const managed: ManagedClient = { key, client, serverId: match.id, root, languageId };
@@ -98,7 +116,7 @@ export class LspManager {
 		return { result, managed };
 	}
 
-	async diagnostics(file: string, signal?: AbortSignal): Promise<DiagnosticsResult> {
+	async diagnostics(file: string, signal?: AbortSignal, afterVersion?: number): Promise<DiagnosticsResult> {
 		const resolved = resolve(file);
 		const managed = await this.ensureClient(resolved);
 
@@ -113,17 +131,50 @@ export class LspManager {
 			}
 		}
 
-		const deadline = Date.now() + this.settings.diagnostics.waitMs;
-		for (;;) {
-			const diagnostics = managed.client.getDiagnostics(resolved);
-			if (diagnostics.length > 0 || Date.now() >= deadline) {
-				return { diagnostics, server: managed.serverId, source: diagnostics.length > 0 ? 'push' : 'none' };
-			}
-			await new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 50));
+		const diagnostics = await managed.client.waitForDiagnostics(resolved, {
+			afterVersion,
+			timeoutMs: this.settings.diagnostics.waitMs,
+		});
+		return { diagnostics, server: managed.serverId, source: diagnostics.length > 0 ? 'push' : 'none' };
+	}
+
+	documentVersion(file: string): number | undefined {
+		const resolved = resolve(file);
+		for (const managed of this.clients.values()) {
+			const version = managed.client.documentVersion(resolved);
+			if (version !== undefined) return version;
 		}
+		return undefined;
 	}
 
 	async workspaceDiagnostics(files: string[], signal?: AbortSignal): Promise<Array<{ file: string; diagnostics: Diagnostic[]; server: string }>> {
+		// Prefer the protocol's workspace pull when the servers support it.
+		const managedClients = new Map<string, ManagedClient>();
+		for (const file of files) {
+			try {
+				const managed = await this.ensureClient(file);
+				managedClients.set(managed.key, managed);
+			} catch {
+				// Files without a server fall through to the sweep/filter.
+			}
+		}
+		const protocolResults: Array<{ file: string; diagnostics: Diagnostic[]; server: string }> = [];
+		let usedProtocol = false;
+		for (const managed of managedClients.values()) {
+			try {
+				const pulled = await managed.client.pullWorkspaceDiagnostics(signal);
+				if (pulled === null) continue;
+				usedProtocol = true;
+				for (const item of pulled) {
+					if (item.diagnostics.length === 0) continue;
+					protocolResults.push({ file: fileURLToPath(item.uri), diagnostics: item.diagnostics, server: managed.serverId });
+				}
+			} catch {
+				// Fall back to the per-file sweep.
+			}
+		}
+		if (usedProtocol) return protocolResults.sort((a, b) => a.file.localeCompare(b.file));
+
 		const results: Array<{ file: string; diagnostics: Diagnostic[]; server: string }> = [];
 		const queue = [...files];
 		const concurrency = this.settings.diagnostics.workspaceConcurrency;
@@ -177,6 +228,11 @@ export class LspManager {
 	saveDocument(file: string): void {
 		const resolved = resolve(file);
 		for (const managed of this.clients.values()) managed.client.saveDocument(resolved);
+	}
+
+	notifyWatchedFile(file: string, type: 1 | 2 | 3): void {
+		const resolved = resolve(file);
+		for (const managed of this.clients.values()) managed.client.notifyWatchedFile(resolved, type);
 	}
 
 	peekDiagnostics(file: string): Diagnostic[] {

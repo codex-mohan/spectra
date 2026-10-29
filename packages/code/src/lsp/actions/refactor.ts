@@ -1,7 +1,7 @@
 import { renameSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { applyWorkspaceEdits, extractWorkspaceEdits, previewWorkspaceEdits, type WorkspaceTextEdit } from '../edits.js';
+import { applyFileOperations, applyWorkspaceEdits, extractFileOperations, extractWorkspaceEdits, previewWorkspaceEdits, type WorkspaceTextEdit } from '../edits.js';
 import { formatCodeActions } from '../format.js';
 import { resolvePosition } from './position.js';
 import { requireFile, type ActionContext, type ActionResult } from './types.js';
@@ -18,6 +18,16 @@ export async function runRenameAction(context: ActionContext): Promise<ActionRes
 	const file = requireFile(context.args);
 	if (!context.args.new_name) throw new Error('rename requires new_name');
 	const position = resolvePosition(file, context.args.line, context.args.symbol);
+	try {
+		const prepared = await context.manager.request(file, 'textDocument/prepareRename', {
+			textDocument: { uri: pathToFileURL(file).toString() },
+			position,
+		}, context.signal);
+		if (prepared.result === null) throw new Error('the server refuses to rename this symbol');
+	} catch (error) {
+		if (error instanceof Error && error.message.includes('refuses')) throw error;
+	}
+
 	const { result, managed } = await context.manager.request(file, 'textDocument/rename', {
 		textDocument: { uri: pathToFileURL(file).toString() },
 		position,
@@ -25,7 +35,11 @@ export async function runRenameAction(context: ActionContext): Promise<ActionRes
 	}, context.signal);
 
 	const edits = extractWorkspaceEdits(result);
-	if (edits.length === 0) return { text: 'No edits returned by the server.', details: { action: 'rename', server: managed.serverId, success: false } };
+	const fileOperations = extractFileOperations(result);
+	if (edits.length === 0 && fileOperations.length === 0) {
+		return { text: 'No edits returned by the server.', details: { action: 'rename', server: managed.serverId, success: false } };
+	}
+	if (context.args.apply === true) applyFileOperations(fileOperations, validate(context));
 
 	if (context.args.apply === true) {
 		const applied = applyWorkspaceEdits(edits, validate(context));
@@ -93,9 +107,18 @@ export async function runCodeActionsAction(context: ActionContext): Promise<Acti
 	}
 
 	const index = Math.max(1, Number(context.args.query) || 1) - 1;
-	const action = actions[index];
+	let action = actions[index];
 	if (!isRecord(action)) throw new Error(`No code action at index ${index + 1}`);
+	if (!isRecord(action.edit) && action.data !== undefined) {
+		try {
+			const resolved = await managed.client.request('codeAction/resolve', action, context.signal);
+			if (isRecord(resolved)) action = resolved;
+		} catch {
+			// Some servers reject resolve; fall back to the listed action.
+		}
+	}
 	if (isRecord(action.edit)) {
+		applyFileOperations(extractFileOperations(action.edit), validate(context));
 		const edits = extractWorkspaceEdits(action.edit);
 		const applied = applyWorkspaceEdits(edits, validate(context));
 		return {

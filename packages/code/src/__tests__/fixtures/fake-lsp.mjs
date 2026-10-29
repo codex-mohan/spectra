@@ -12,13 +12,20 @@ function location(uri, line = 0, character = 0) {
 	return { uri, range: { start: { line, character }, end: { line, character: character + 3 } } };
 }
 
+function publish(uri, version, text) {
+	const diagnostics = [{ range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } }, severity: 2, message: 'Pushed warning', source: 'fake' }];
+	const sendIt = () => send({ jsonrpc: '2.0', method: 'textDocument/publishDiagnostics', params: { uri, version, diagnostics } });
+	if (String(text).includes('SLOW')) setTimeout(sendIt, 300);
+	else sendIt();
+}
+
 function handle(message) {
 	if (message.id !== undefined && message.method) {
 		switch (message.method) {
 			case 'initialize':
 				return send({ jsonrpc: '2.0', id: message.id, result: { capabilities: {
 					textDocumentSync: 1,
-					diagnosticProvider: { interFileDependencies: false, workspaceDiagnostics: false },
+					diagnosticProvider: { interFileDependencies: false, workspaceDiagnostics: true },
 					definitionProvider: true,
 					referencesProvider: true,
 					hoverProvider: true,
@@ -38,6 +45,8 @@ function handle(message) {
 				return send({ jsonrpc: '2.0', id: message.id, result: [{ name: 'foo', kind: 12, range: { start: { line: 0, character: 0 }, end: { line: 0, character: 3 } }, selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 3 } } }] });
 			case 'workspace/symbol':
 				return send({ jsonrpc: '2.0', id: message.id, result: [{ name: 'bar', kind: 5, location: location(message.params.query.startsWith('bar') ? 'file:///tmp/bar.ts' : 'file:///tmp/foo.ts') }] });
+			case 'textDocument/prepareRename':
+				return send({ jsonrpc: '2.0', id: message.id, result: { range: { start: { line: 0, character: 0 }, end: { line: 0, character: 3 } }, placeholder: 'foo' } });
 			case 'textDocument/rename':
 				return send({ jsonrpc: '2.0', id: message.id, result: { changes: { [message.params.textDocument.uri]: [{ range: { start: { line: 0, character: 0 }, end: { line: 0, character: 3 } }, newText: message.params.newName }] } } });
 			case 'workspace/willRenameFiles':
@@ -51,6 +60,8 @@ function handle(message) {
 				const document = documents.get(message.params.textDocument.uri) ?? { text: '' };
 				return send({ jsonrpc: '2.0', id: message.id, result: [{ range: { start: { line: 0, character: 0 }, end: { line: 999, character: 0 } }, newText: `${document.text.trimEnd()}\n` }] });
 			}
+			case 'workspace/diagnostic':
+				return send({ jsonrpc: '2.0', id: message.id, result: { items: [] } });
 			case 'textDocument/diagnostic':
 				return send({ jsonrpc: '2.0', id: message.id, result: { items: [{ range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } }, severity: 1, message: 'Pulled error', source: 'fake' }] } });
 			case 'workspace/executeCommand':
@@ -64,7 +75,12 @@ function handle(message) {
 
 	if (message.method === 'textDocument/didOpen') {
 		documents.set(message.params.textDocument.uri, { text: message.params.textDocument.text });
-		send({ jsonrpc: '2.0', method: 'textDocument/publishDiagnostics', params: { uri: message.params.textDocument.uri, diagnostics: [{ range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } }, severity: 2, message: 'Pushed warning', source: 'fake' }] } });
+		publish(message.params.textDocument.uri, message.params.textDocument.version ?? 1, message.params.textDocument.text);
+	}
+	if (message.method === 'textDocument/didChange') {
+		const text = message.params.contentChanges?.[0]?.text ?? '';
+		documents.set(message.params.textDocument.uri, { text });
+		publish(message.params.textDocument.uri, message.params.textDocument.version ?? 1, text);
 	}
 	if (message.method === 'exit') process.exit(0);
 }

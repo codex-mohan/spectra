@@ -68,6 +68,7 @@ import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
 import { useGitStatus } from './hooks/use-git-status.js';
 import { shouldCommitDraft } from './utils/draft-commit.js';
+import { diagnosticsInbox, formatDiagnosticsEntry } from '../services/diagnostics-inbox.js';
 import { useLazyRef } from './utils/lazy-ref.js';
 import { GitStatusSegment } from './components/git-status.js';
 import { useSessionState } from './hooks/use-session-state.js';
@@ -366,6 +367,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const { status: gitStatus } = useGitStatus(process.cwd(), isLoading);
 
+
 	// --- Effects ---
 	useEffect(() => {
 		setTerminalTitle('Spectra');
@@ -475,6 +477,26 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		snapshotManager,
 		promptTextareaRef,
 	});
+
+	useEffect(() => diagnosticsInbox.subscribe((entry) => {
+		const activeSession = sessionId.current;
+		if (!activeSession) return;
+		const text = formatDiagnosticsEntry(entry);
+		sessionState.addMessageTo(activeSession, {
+			id: `lsp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+			role: 'user',
+			content: text,
+			hiddenSystem: true,
+			meta: 'LSP diagnostics',
+		});
+		sessionStore.current.addMessage(activeSession, {
+			role: 'user',
+			content: [{ type: 'text', text }],
+			timestamp: Date.now(),
+		});
+		if (isStreamingRef.current) agentsMapRef.current.get(activeSession)?.steer(text);
+		else agentsMapRef.current.get(activeSession)?.appendMessage(text);
+	}), [sessionState, agentsMapRef]);
 
 	const handleCycleVariant = useCallback(() => {
 		if (!provider) {

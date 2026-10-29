@@ -194,6 +194,8 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 
 ## Phase 3 — LSP tool and edit diagnostics
 
+**Delivered beyond the original scope:** project mux daemon (cross-process shared servers), writethrough format/diagnostics for every write and edit, inline + deferred diagnostics with ledger dedupe injected into the session, Biome adapter, watched-file notifications, `prepareRename`, `codeAction/resolve`, document-create/rename/delete operations, workspace pull diagnostics, position-encoding advertisement, `willSave`/`didSave`, and separate `lsp`/`lsp_write` approvals.
+
 **Goal:** code intelligence from real servers plus post-edit diagnostics.
 
 ### Reference (oh-my-pi)

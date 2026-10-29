@@ -10,6 +10,8 @@ import { runNavigationAction, runSymbolsAction } from '../lsp/actions/navigation
 import { runCodeActionsAction, runFormatAction, runRenameAction, runRenameFileAction } from '../lsp/actions/refactor.js';
 import type { ActionContext, ActionResult, LspArgs } from '../lsp/actions/types.js';
 
+export const LSP_WRITE_ACTIONS = new Set(['rename', 'rename_file', 'code_actions', 'format', 'reload', 'request']);
+
 const ACTIONS = [
 	'diagnostics',
 	'definition',

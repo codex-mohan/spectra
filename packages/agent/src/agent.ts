@@ -237,6 +237,11 @@ export class Agent {
 		this.steeringQueue.enqueue(msg);
 	}
 
+	/** Append to canonical history without starting a run (late diagnostics, reminders). */
+	appendMessage(input: string | Message): void {
+		for (const message of this.normalizeInput(input)) this._messages.push(message);
+	}
+
 	followUp(message: string | Message): void {
 		const msg =
 			typeof message === 'string' ? { role: 'user' as const, content: message, timestamp: Date.now() } : message;

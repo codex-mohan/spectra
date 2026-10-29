@@ -1,15 +1,17 @@
 import { existsSync } from 'fs';
 import { dirname, extname, join, resolve } from 'path';
 import { homedir } from 'os';
-import type { LspConfig, LspServerConfig } from '../services/config.js';
+import type { LspConfig, LspLinterConfig, LspServerConfig } from '../services/config.js';
 
 export interface ResolvedLspSettings {
 	enabled: boolean;
 	requestTimeout: number;
 	diagnosticsOnWrite: boolean;
+	shared: boolean;
 	formatOnWrite: boolean;
 	diagnostics: { waitMs: number; pull: boolean; workspaceConcurrency: number };
 	settings: Record<string, unknown>;
+	linters: { biome: LspLinterConfig };
 	servers: Record<string, LspServerConfig>;
 }
 
@@ -119,6 +121,7 @@ export function resolveLspSettings(config?: LspConfig): ResolvedLspSettings {
 		enabled: config?.enabled ?? true,
 		requestTimeout: Math.min(300_000, Math.max(1_000, config?.requestTimeout ?? 20_000)),
 		diagnosticsOnWrite: config?.diagnosticsOnWrite ?? true,
+		shared: config?.shared ?? true,
 		formatOnWrite: config?.formatOnWrite ?? false,
 		diagnostics: {
 			waitMs: Math.min(10_000, Math.max(0, config?.diagnostics?.waitMs ?? 1500)),
@@ -126,6 +129,7 @@ export function resolveLspSettings(config?: LspConfig): ResolvedLspSettings {
 			workspaceConcurrency: Math.min(8, Math.max(1, config?.diagnostics?.workspaceConcurrency ?? 4)),
 		},
 		settings: config?.settings ?? {},
+		linters: { biome: config?.linters?.biome ?? {} },
 		servers: { ...DEFAULT_SERVERS, ...(config?.servers ?? {}) },
 	};
 }

@@ -7,7 +7,7 @@ import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
 import { createWebFetchTool } from './web-fetch.js';
 import { createWebSearchTool } from './web-search/index.js';
-import { createLspTool } from './lsp.js';
+import { createLspTool, LSP_WRITE_ACTIONS } from './lsp.js';
 import { applyLspAfterWrite } from '../lsp/post-write.js';
 import { loadConfig } from '../services/config.js';
 import { memoryTool } from './memory.js';
@@ -89,7 +89,18 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 
 		const patterns = security.extractToolPatterns(tool.name, args);
 
-		if (SKIP_PERMISSION_CHECK.has(tool.name)) {
+		if (tool.name === 'lsp') {
+			const action = typeof args?.action === 'string' ? args.action : '*';
+			const permission = LSP_WRITE_ACTIONS.has(action) ? 'lsp_write' : 'lsp';
+			try {
+				await security.checkPermission(permission, [action], tool.name, `lsp ${action}`);
+			} catch (err) {
+				if (err instanceof PermissionDeniedError) {
+					return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
+				}
+				throw err;
+			}
+		} else if (SKIP_PERMISSION_CHECK.has(tool.name)) {
 			// Session-local state tools do not touch the filesystem, shell, network, or external resources.
 		} else if (FILE_TOOL_NAMES.has(tool.name)) {
 			for (const extPath of patterns.externalPaths) {

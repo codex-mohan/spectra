@@ -2,7 +2,8 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { readFileSync } from 'fs';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type { LspServerConfig } from '../services/config.js';
-import { JsonRpcConnection } from './connection.js';
+import { JsonRpcConnection, type RpcConnection } from './connection.js';
+import { connectMux } from './mux/client.js';
 import type { Diagnostic, ServerCapabilities } from './protocol.js';
 
 export interface LspClientOptions {
@@ -12,6 +13,7 @@ export interface LspClientOptions {
 	server: LspServerConfig;
 	requestTimeout: number;
 	workspaceSettings?: Record<string, unknown>;
+	socketPath?: string;
 }
 
 export class LspClient {
@@ -21,12 +23,16 @@ export class LspClient {
 	private readonly server: LspServerConfig;
 	private readonly requestTimeout: number;
 	private readonly workspaceSettings: Record<string, unknown>;
+	private readonly socketPath?: string;
 	private child: ChildProcessWithoutNullStreams | null = null;
-	private connection: JsonRpcConnection | null = null;
+	private connection: RpcConnection | null = null;
 	private capabilities: ServerCapabilities = {};
 	private documents = new Map<string, { languageId: string; version: number }>();
-	private diagnostics = new Map<string, Diagnostic[]>();
+	private diagnostics = new Map<string, { diagnostics: Diagnostic[]; version?: number; receivedAt: number }>();
 	private stderr = '';
+	private progress = new Map<string | number, unknown>();
+	private registrations: unknown[] = [];
+	private positionEncoding = 'utf-16';
 	private disposed = false;
 
 	constructor(options: LspClientOptions) {
@@ -36,23 +42,34 @@ export class LspClient {
 		this.server = options.server;
 		this.requestTimeout = options.requestTimeout;
 		this.workspaceSettings = options.workspaceSettings ?? {};
+		this.socketPath = options.socketPath;
 	}
 
 	async start(): Promise<void> {
-		const child = spawn(this.server.command, this.server.args ?? [], {
-			cwd: this.root,
-			stdio: ['pipe', 'pipe', 'pipe'],
-			windowsHide: true,
-		});
-		this.child = child;
-		child.stderr.on('data', (chunk: Buffer) => {
-			this.stderr = `${this.stderr}${chunk.toString('utf8')}`.slice(-4000);
-		});
+		const handlers = {
+			onNotification: (method: string, params: unknown) => this.onNotification(method, params),
+			onRequest: (method: string, params: unknown) => this.onRequest(method, params),
+		};
 
-		const connection = new JsonRpcConnection(child, {
-			onNotification: (method, params) => this.onNotification(method, params),
-			onRequest: (method, params) => this.onRequest(method, params),
-		});
+		let connection: RpcConnection;
+		if (this.socketPath) {
+			connection = await connectMux(this.socketPath, {
+				command: this.server.command,
+				args: this.server.args ?? [],
+				cwd: this.root,
+			}, handlers, this.requestTimeout);
+		} else {
+			const child = spawn(this.server.command, this.server.args ?? [], {
+				cwd: this.root,
+				stdio: ['pipe', 'pipe', 'pipe'],
+				windowsHide: true,
+			});
+			this.child = child;
+			child.stderr.on('data', (chunk: Buffer) => {
+				this.stderr = `${this.stderr}${chunk.toString('utf8')}`.slice(-4000);
+			});
+			connection = new JsonRpcConnection(child, handlers);
+		}
 		this.connection = connection;
 
 		const initialized = await connection.request('initialize', {
@@ -72,6 +89,7 @@ export class LspClient {
 					formatting: {},
 					rangeFormatting: {},
 				},
+				general: { positionEncodings: ['utf-16'] },
 				workspace: {
 					workspaceFolders: true,
 					workspaceEdit: { documentChanges: true },
@@ -81,17 +99,29 @@ export class LspClient {
 				},
 			},
 			workspaceFolders: [{ uri: pathToFileURL(this.root).toString(), name: this.name }],
+			...(this.server.initializationOptions ? { initializationOptions: this.server.initializationOptions } : {}),
 		}, { timeoutMs: this.requestTimeout });
 
 		this.capabilities = isRecord(initialized) && isRecord(initialized.capabilities)
 			? initialized.capabilities as ServerCapabilities
 			: {};
+		if (isRecord(initialized) && typeof initialized.positionEncoding === 'string') {
+			this.positionEncoding = initialized.positionEncoding;
+		}
 		connection.notify('initialized', {});
 		connection.notify('workspace/didChangeConfiguration', { settings: this.workspaceSettings });
 	}
 
 	get serverCapabilities(): ServerCapabilities {
 		return this.capabilities;
+	}
+
+	get negotiatedPositionEncoding(): string {
+		return this.positionEncoding;
+	}
+
+	get progressSnapshot(): Array<[string | number, unknown]> {
+		return [...this.progress.entries()];
 	}
 
 	get lastStderr(): string {
@@ -140,11 +170,59 @@ export class LspClient {
 	saveDocument(path: string): void {
 		const uri = pathToFileURL(path).toString();
 		if (!this.documents.has(uri)) return;
+		this.notify('textDocument/willSave', { textDocument: { uri }, reason: 1 });
 		this.notify('textDocument/didSave', { textDocument: { uri }, text: readFileSync(path, 'utf8') });
 	}
 
+	notifyWatchedFile(path: string, type: 1 | 2 | 3): void {
+		if (!this.documents.has(pathToFileURL(path).toString()) && this.documents.size === 0) return;
+		this.notify('workspace/didChangeWatchedFiles', {
+			changes: [{ uri: pathToFileURL(path).toString(), type }],
+		});
+	}
+
 	getDiagnostics(path: string): Diagnostic[] {
-		return this.diagnostics.get(pathToFileURL(path).toString()) ?? [];
+		return this.diagnostics.get(pathToFileURL(path).toString())?.diagnostics ?? [];
+	}
+
+	documentVersion(path: string): number | undefined {
+		return this.documents.get(pathToFileURL(path).toString())?.version;
+	}
+
+	async waitForDiagnostics(
+		path: string,
+		options: { afterVersion?: number; timeoutMs: number },
+	): Promise<Diagnostic[]> {
+		const uri = pathToFileURL(path).toString();
+		const deadline = Date.now() + options.timeoutMs;
+		const startedAt = Date.now();
+		for (;;) {
+			const entry = this.diagnostics.get(uri);
+			if (entry) {
+				const freshByVersion = options.afterVersion === undefined
+					|| entry.version === undefined
+					|| entry.version >= options.afterVersion;
+				const freshByTime = entry.receivedAt >= startedAt;
+				if (freshByVersion && freshByTime) return entry.diagnostics;
+			}
+			if (Date.now() >= deadline) return entry?.diagnostics ?? [];
+			await new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 40));
+		}
+	}
+
+	async pullWorkspaceDiagnostics(signal?: AbortSignal): Promise<Array<{ uri: string; diagnostics: Diagnostic[] }> | null> {
+		const provider = this.capabilities.diagnosticProvider;
+		if (!provider || typeof provider !== 'object' || provider.workspaceDiagnostics !== true) return null;
+		const result = await this.request('workspace/diagnostic', { previousResultIds: [] }, signal);
+		if (!isRecord(result) || !Array.isArray(result.items)) return null;
+		const collected: Array<{ uri: string; diagnostics: Diagnostic[] }> = [];
+		for (const item of result.items) {
+			if (!isRecord(item) || typeof item.uri !== 'string') continue;
+			if (item.kind === 'full' && Array.isArray(item.items)) {
+				collected.push({ uri: item.uri, diagnostics: item.items as Diagnostic[] });
+			}
+		}
+		return collected;
 	}
 
 	async pullDiagnostics(path: string, signal?: AbortSignal): Promise<Diagnostic[] | null> {
@@ -167,11 +245,13 @@ export class LspClient {
 			connection?.dispose();
 			return;
 		}
-		try {
-			connection?.notify('shutdown', null);
-			connection?.notify('exit', null);
-		} catch {
-			// Server already gone.
+		if (!this.socketPath) {
+			try {
+				connection?.notify('shutdown', null);
+				connection?.notify('exit', null);
+			} catch {
+				// Server already gone.
+			}
 		}
 		connection?.dispose();
 		await new Promise<void>((resolvePromise) => {
@@ -191,8 +271,16 @@ export class LspClient {
 	}
 
 	private onNotification(method: string, params: unknown): void {
+		if (method === '$/progress' && isRecord(params) && (typeof params.token === 'string' || typeof params.token === 'number')) {
+			this.progress.set(params.token, params.value);
+			return;
+		}
 		if (method === 'textDocument/publishDiagnostics' && isRecord(params) && typeof params.uri === 'string') {
-			this.diagnostics.set(params.uri, Array.isArray(params.diagnostics) ? params.diagnostics as Diagnostic[] : []);
+			this.diagnostics.set(params.uri, {
+				diagnostics: Array.isArray(params.diagnostics) ? params.diagnostics as Diagnostic[] : [],
+				...(typeof params.version === 'number' ? { version: params.version } : {}),
+				receivedAt: Date.now(),
+			});
 		}
 	}
 
@@ -205,7 +293,12 @@ export class LspClient {
 					return this.workspaceSettings[item.section] ?? null;
 				});
 			}
-			case 'client/registerCapability':
+			case 'client/registerCapability': {
+				if (isRecord(params) && Array.isArray(params.registrations)) {
+					this.registrations.push(...params.registrations);
+				}
+				return null;
+			}
 			case 'window/workDoneProgress/create':
 			case 'workspace/workspaceFolders':
 				return method === 'workspace/workspaceFolders'

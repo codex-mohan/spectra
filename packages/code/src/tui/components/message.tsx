@@ -629,6 +629,26 @@ export function renderMessageView({
 }) {
 	const mt = isFirst ? 0 : 1;
 
+	if (msg.role === 'user' && msg.hiddenSystem) {
+		const [header, ...rest] = msg.content.split('\n');
+		return (
+			<box
+				flexDirection="column"
+				marginTop={mt}
+				backgroundColor={c.bgTool}
+				border={['left']}
+				customBorderChars={SB}
+				borderColor={c.info}
+				paddingLeft={2}
+				paddingRight={1}
+			>
+				<text fg={c.info} attributes={1}>LSP</text>
+				<text fg={c.dim}>{header}</text>
+				{rest.length > 0 && <TruncatedContent text={rest.join('\n')} maxLines={4} />}
+			</box>
+		);
+	}
+
 	if (msg.role === 'user') {
 		return (
 			<box

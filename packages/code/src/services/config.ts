@@ -30,6 +30,13 @@ export interface LspServerConfig {
 	filetypes?: string[];
 	rootMarkers?: string[];
 	languageId?: string;
+	initializationOptions?: Record<string, unknown>;
+}
+
+export interface LspLinterConfig {
+	enabled?: boolean;
+	command?: string;
+	args?: string[];
 }
 
 export interface LspConfig {
@@ -38,12 +45,16 @@ export interface LspConfig {
 	requestTimeout?: number;
 	/** Append diagnostics to write/edit results. Default true. */
 	diagnosticsOnWrite?: boolean;
+	/** Share servers through the project mux daemon. Default true. */
+	shared?: boolean;
 	/** Format files on write through LSP. Default false. */
 	formatOnWrite?: boolean;
 	/** Diagnostic freshness budget and pull preference. */
 	diagnostics?: { waitMs?: number; pull?: boolean; workspaceConcurrency?: number };
 	/** Values returned for `workspace/configuration` sections. */
 	settings?: Record<string, unknown>;
+	/** External CLI linters merged with LSP diagnostics. */
+	linters?: { biome?: LspLinterConfig };
 	/** Override or add servers keyed by server id. */
 	servers?: Record<string, LspServerConfig>;
 }
