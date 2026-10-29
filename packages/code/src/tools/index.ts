@@ -23,6 +23,7 @@ import { listConnectedServers } from '../integrations/mcp/index.js';
 import { createMcpAgentTools } from './mcp-tool.js';
 import { loadCustomTools } from '../integrations/custom-tools/index.js';
 import type { SecurityManager } from '../security/index.js';
+import type { ApprovalTier } from '../security/approval.js';
 import { PermissionDeniedError } from '../security/index.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
 import { incrementUseCount, getEvolvingSkillId } from '../services/skill-store.js';
@@ -66,7 +67,33 @@ export function getToolStreamingDisplay(toolName: string): SpectraTool['streamin
 }
 
 const FILE_TOOL_NAMES = new Set(['read', 'write', 'edit', 'grep', 'glob', 'bash', 'shell']);
-const SKIP_PERMISSION_CHECK = new Set(['todo', 'memory', 'propose_skill', 'task', 'ask']);
+
+function approvalTier(toolName: string, action = ''): ApprovalTier {
+	switch (toolName) {
+		case 'read':
+		case 'glob':
+		case 'grep':
+		case 'ask':
+			return 'read';
+		case 'lsp':
+			return LSP_WRITE_ACTIONS.has(action) ? 'write' : 'read';
+		case 'write':
+		case 'edit':
+		case 'todo':
+		case 'memory':
+		case 'propose_skill':
+		case 'task':
+			return 'write';
+		case 'shell':
+		case 'bash':
+			return 'exec';
+		case 'web_fetch':
+		case 'web_search':
+			return 'network';
+		default:
+			return 'exec';
+	}
+}
 
 function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool['execute'] {
 	const tracker = security.getReadTracker();
@@ -89,61 +116,38 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 
 		const patterns = security.extractToolPatterns(tool.name, args);
 
-		if (tool.name === 'lsp') {
-			const action = typeof args?.action === 'string' ? args.action : '*';
-			const permission = LSP_WRITE_ACTIONS.has(action) ? 'lsp_write' : 'lsp';
-			const file = typeof args?.file === 'string' ? args.file : undefined;
-			const symbol = typeof args?.symbol === 'string' ? args.symbol : undefined;
-			const rename = typeof args?.new_name === 'string' ? args.new_name : undefined;
-			const detail = [
-				`lsp ${action}`,
-				file,
-				symbol ? `(${symbol})` : undefined,
-				rename ? `→ ${rename}` : undefined,
-			].filter(Boolean).join(' · ');
+		const action = typeof args?.action === 'string' ? args.action : '';
+		const lspWrite = tool.name === 'lsp' && LSP_WRITE_ACTIONS.has(action);
+		const permission = tool.name === 'lsp' ? (lspWrite ? 'lsp_write' : 'lsp') : tool.name;
+		const tier = approvalTier(tool.name, action);
+		const file = typeof args?.file === 'string' ? args.file : undefined;
+		const symbol = typeof args?.symbol === 'string' ? args.symbol : undefined;
+		const rename = typeof args?.new_name === 'string' ? args.new_name : undefined;
+		const detail = tool.name === 'lsp'
+			? [`lsp ${action}`, file, symbol ? `(${symbol})` : undefined, rename ? `→ ${rename}` : undefined].filter(Boolean).join(' · ')
+			: patterns.toolPatterns[0];
+
+		for (const extPath of patterns.externalPaths) {
 			try {
-				await security.checkPermission(permission, [action], tool.name, detail);
+				await security.checkPermission('external_directory', [extPath], tool.name, extPath, { tier: 'write', external: true });
 			} catch (err) {
 				if (err instanceof PermissionDeniedError) {
-					return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
+					return { content: [{ type: 'text', text: `External file access denied: ${err.message}` }], isError: true };
 				}
 				throw err;
 			}
-		} else if (SKIP_PERMISSION_CHECK.has(tool.name)) {
-			// Session-local state tools do not touch the filesystem, shell, network, or external resources.
-		} else if (FILE_TOOL_NAMES.has(tool.name)) {
-			for (const extPath of patterns.externalPaths) {
-				try {
-					await security.checkPermission('external_directory', [extPath], tool.name, extPath);
-				} catch (err) {
-					if (err instanceof PermissionDeniedError) {
-						return {
-							content: [{ type: 'text', text: `External file access denied: ${err.message}` }],
-							isError: true,
-						};
-					}
-					throw err;
-				}
+		}
+
+		const targets = tool.name === 'lsp'
+			? [action || 'lsp']
+			: patterns.pathPatterns.length > 0 ? patterns.pathPatterns : patterns.toolPatterns;
+		try {
+			await security.checkPermission(permission, targets, tool.name, detail, { tier });
+		} catch (err) {
+			if (err instanceof PermissionDeniedError) {
+				return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
 			}
-			if (patterns.pathPatterns.length === 0) {
-				try {
-					await security.checkPermission(tool.name, patterns.toolPatterns, tool.name, patterns.toolPatterns[0]);
-				} catch (err) {
-					if (err instanceof PermissionDeniedError) {
-						return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
-					}
-					throw err;
-				}
-			}
-		} else {
-			try {
-				await security.checkPermission(tool.name, patterns.toolPatterns, tool.name, patterns.toolPatterns[0]);
-			} catch (err) {
-				if (err instanceof PermissionDeniedError) {
-					return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
-				}
-				throw err;
-			}
+			throw err;
 		}
 
 		for (const pathPattern of patterns.pathPatterns) {

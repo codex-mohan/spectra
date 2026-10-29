@@ -9,6 +9,7 @@ import type {
 	ToolCapabilities,
 } from './types.js';
 import { evaluate, fromConfig } from './permissions.js';
+import { approvalModeFromConfig, decideApproval, type ApprovalDecision, type ApprovalMode, type ApprovalTier } from './approval.js';
 import { PathSafety } from './path-safety.js';
 import { ReadTracker } from './read-tracker.js';
 import { DoomLoopDetector } from './doom-loop.js';
@@ -151,8 +152,9 @@ export class PermissionDeniedError extends Error {
 	constructor(
 		public readonly permission: string,
 		public readonly pattern: string,
+		public readonly reason?: string,
 	) {
-		super(`Permission denied: '${permission}' for '${pattern}'`);
+		super(`Permission denied: '${permission}' for '${pattern}'${reason ? ` (${reason})` : ''}`);
 		this.name = 'PermissionDeniedError';
 	}
 }
@@ -172,6 +174,8 @@ type PermissionListener = (req: PermissionRequest) => void;
 
 interface PermissionManagerOptions {
 	config?: PermissionConfig;
+	approvalMode?: ApprovalMode;
+	approval?: Record<string, ApprovalDecision>;
 	security?: SecurityConfig;
 	sessionRuleset?: Ruleset;
 	restoredApprovals?: Ruleset;
@@ -197,6 +201,8 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 	const ssrfGuard = new SsrfGuard(options.security?.ssrf);
 
 	const cwd = options.cwd ?? process.cwd();
+	const approvalMode = approvalModeFromConfig(options.approvalMode);
+	const approvalPolicies = options.approval ?? {};
 
 	let approvedRuleset: Ruleset = [...restoredFromDisk];
 	const pendingRequests = new Map<string, PendingRequest>();
@@ -258,61 +264,53 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 		}
 	}
 
-	function internalPathsOnly(permission: string, patterns: string[]): boolean {
-		if (!FILE_TOOL_NAMES.has(permission) && permission !== 'external_directory') {
-			return false;
-		}
-		return patterns.every((p) => {
-			if (p === '*') return false;
-			try {
-				return isInsideWorkingDir(p, cwd);
-			} catch {
-				return false;
-			}
-		});
-	}
-
 	async function checkPermission(
 		permission: string,
 		patterns: string[],
 		tool?: string,
 		details?: string,
+		options?: { tier?: ApprovalTier; external?: boolean; safety?: 'deny' | 'prompt' },
 	): Promise<void> {
-		const isBash = permission === 'bash' || permission === 'shell';
-
-		if (isBash) {
-			const command = patterns[0] ?? '';
-			if (isBashBlocked(command)) {
-				throw new PermissionDeniedError(permission, command);
-			}
+		const targets = patterns.length > 0 ? patterns : ['*'];
+		let safety = options?.safety;
+		if ((permission === 'bash' || permission === 'shell') && isBashBlocked(targets[0] ?? '')) {
+			safety = 'deny';
 		}
 
-		const ruleset = getRuleset();
+		const tier = options?.tier ?? 'write';
+		const alias = permission === 'shell' ? 'bash' : permission === 'lsp_write' ? 'lsp' : undefined;
+		const toolPolicy = approvalPolicies[permission]
+			?? (alias ? approvalPolicies[alias] : undefined)
+			?? approvalPolicies[tool ?? permission];
+		const result = decideApproval({
+			tier,
+			mode: approvalMode,
+			toolName: tool ?? permission,
+			permission,
+			targets,
+			rules: getRuleset(),
+			toolPolicy,
+			safety,
+			external: options?.external,
+		});
 
-		for (const pattern of patterns) {
-			const rule = evaluate(permission, pattern, ruleset);
+		if (result.decision === 'deny') {
+			throw new PermissionDeniedError(permission, result.target ?? targets[0], result.reason);
+		}
+		if (result.decision === 'allow') return;
 
-			if (rule.action === 'deny') {
-				throw new PermissionDeniedError(permission, pattern);
-			}
-
-			if (rule.action === 'allow') {
-				return;
-			}
+		if (!listener) {
+			throw new PermissionDeniedError(
+				permission,
+				result.target ?? targets[0],
+				`${result.reason}; no interactive approval is available. Configure tools.approval or run with approvalMode=yolo`,
+			);
 		}
 
-		if (isBash) {
-			return;
-		}
-
-		if (internalPathsOnly(permission, patterns)) {
-			return;
-		}
-
-		await requestApproval(permission, patterns[0], tool, details ?? patterns[0]);
+		await requestApproval(permission, result.target ?? targets[0], tool, details ?? targets[0], result.reason);
 	}
 
-	async function requestApproval(permission: string, pattern: string, tool?: string, details?: string): Promise<void> {
+	async function requestApproval(permission: string, pattern: string, tool?: string, details?: string, reason?: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			const id = Math.random().toString(36).slice(2, 10);
 			const alwaysPatterns = generateAlwaysPatterns(permission, pattern);
@@ -322,7 +320,7 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 				permission,
 				pattern,
 				tool: tool ?? permission,
-				details: details ?? pattern,
+				details: reason ? `${details ?? pattern} · ${reason}` : (details ?? pattern),
 				always: alwaysPatterns,
 				resolve,
 				reject,
@@ -335,7 +333,7 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 				permission,
 				pattern,
 				tool: tool ?? permission,
-				details: details ?? pattern,
+				details: reason ? `${details ?? pattern} · ${reason}` : (details ?? pattern),
 				always: alwaysPatterns,
 			});
 
@@ -399,7 +397,14 @@ export function createSecurityManager(options: PermissionManagerOptions = {}) {
 		}
 
 		if (FILE_TOOL_NAMES.has(permission)) {
-			return ['*'];
+			try {
+				const resolved = canonicalPath(pattern, cwd);
+				const stat = statSync(resolved);
+				if (stat.isDirectory()) return [pattern, ensureDirGlob(resolved)];
+				return [pattern];
+			} catch {
+				return [pattern];
+			}
 		}
 
 		if (permission === 'bash') {

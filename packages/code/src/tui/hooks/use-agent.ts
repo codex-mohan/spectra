@@ -36,7 +36,7 @@ import type { CompactionModelInfo } from '../../services/compaction.js';
 
 interface UseAgentDeps {
 	securityRef: React.MutableRefObject<SecurityManager | null>;
-	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig };
+	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig; approvalMode?: 'always-ask' | 'write' | 'yolo'; approval?: Record<string, 'allow' | 'deny' | 'prompt'> };
 	enqueuePermission: (req: PermissionRequest) => void;
 	sessionStore: React.MutableRefObject<SessionStore>;
 	sessionId: React.MutableRefObject<string | null>;
@@ -60,6 +60,8 @@ export function useAgent(deps: UseAgentDeps) {
 			const manager = createSecurityManager({
 				config: securityConfig.permission,
 				security: securityConfig.security,
+				approvalMode: securityConfig.approvalMode,
+				approval: securityConfig.approval,
 				cwd,
 				onWarning: (message) => showToast(message, 'warn'),
 				onPersist: (rules) => {
@@ -398,12 +400,14 @@ export function useAgent(deps: UseAgentDeps) {
 }
 
 export function createSessionSecurityManager(
-	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
+	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig; approvalMode?: 'always-ask' | 'write' | 'yolo'; approval?: Record<string, 'allow' | 'deny' | 'prompt'> },
 	enqueuePermission: (req: PermissionRequest) => void,
 ): SecurityManager {
 	const manager = createSecurityManager({
 		config: securityConfig.permission,
 		security: securityConfig.security,
+		approvalMode: securityConfig.approvalMode,
+		approval: securityConfig.approval,
 		cwd: process.cwd(),
 		onWarning: (message) => showToast(message, 'warn'),
 		onPersist: (rules) => {
@@ -433,7 +437,7 @@ export function createSessionSecurityManager(
 }
 
 export function createSessionFactory(
-	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig },
+	securityConfig: { permission?: PermissionConfig; security?: SecurityConfig; approvalMode?: 'always-ask' | 'write' | 'yolo'; approval?: Record<string, 'allow' | 'deny' | 'prompt'> },
 	enqueuePermission: (req: PermissionRequest) => void,
 	sessionStore?: SessionStore,
 ) {

@@ -59,9 +59,16 @@ export interface LspConfig {
 	servers?: Record<string, LspServerConfig>;
 }
 
+export type ApprovalModeConfig = 'always-ask' | 'write' | 'yolo';
+export type ApprovalPolicyConfig = 'allow' | 'deny' | 'prompt';
+
 export interface ToolsConfig {
 	webSearch?: WebSearchConfig;
 	lsp?: LspConfig;
+	/** Default approval mode. Defaults to `write`. */
+	approvalMode?: ApprovalModeConfig;
+	/** Per-tool policy overrides, keyed by tool name (`bash`, `web_search`, `lsp`, `lsp_write`, ...). */
+	approval?: Record<string, ApprovalPolicyConfig>;
 }
 
 export interface SpectraConfig {

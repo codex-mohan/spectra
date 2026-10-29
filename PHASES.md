@@ -37,6 +37,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 1 | Input and exit contract | S | done | 0 |
 | 2 | Web search + shared network egress | M | done | 1 |
 | 3 | LSP tool and edit diagnostics | L | done | 1 |
+| 3.5 | Permission approval model (tiers, modes, scoped grants) | M | done | 2 |
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | planned | 1 |
 | 5 | Settings registry, tabbed UI, config CLI | L | planned | 1 |
 | 6 | Browser automation | L | planned | 5 |
@@ -241,6 +242,14 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 - Diagnostics after `write`/`edit` appear inline or next turn.
 
 **Non-goals:** DAP, formatting, broker sharing, workspace-wide diagnostics fan-out.
+
+---
+
+## Phase 3.5 — Permission approval model
+
+**Goal:** replace tool-name prompts with capability tiers and modes.
+
+**Delivered:** `read`/`write`/`exec`/`network` tiers, `always-ask`/`write`/`yolo` modes with **default `write`**, tool policy overrides (`tools.approval`), all-target rule evaluation (any deny wins), external-path prompts independent of mode, scoped “always” grants (file/dir/command/host/action), immediate failure without an interactive UI, actionable denial reasons, `bash` no longer auto-allowed, `lsp`/`lsp_write` action classes, and `shell`/`bash` policy aliasing.
 
 ---
 

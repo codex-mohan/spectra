@@ -304,7 +304,12 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const [securityConfig] = useState(() => {
 		const cfg = loadConfig();
-		return { permission: cfg.permission, security: cfg.security };
+		return {
+			permission: cfg.permission,
+			security: cfg.security,
+			approvalMode: cfg.tools?.approvalMode,
+			approval: cfg.tools?.approval,
+		};
 	});
 	const [agentCatalog, setAgentCatalog] = useState<AgentCatalog>(() => getBuiltinCatalog());
 
