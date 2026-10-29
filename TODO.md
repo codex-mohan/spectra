@@ -745,3 +745,9 @@ Phase 2: promote `model-catalog.ts` into a registry with refresh strategies (`of
 - `962f17b` `ai(chore)` regenerate model catalog (Codex 5 → 8 models)
 - `0a4db17` `code(fix)` stop the OAuth dialog from cancelling its own login on re-render
 - `f13dd1e` `code(fix)` dual-loopback OAuth callback, abort frees port 1455, exchange retry, pixel callback page
+
+
+## 16. Known issues (deferred)
+
+- [ ] Streaming markdown tail renders raw syntax (`###`, `**`) for up to one frame. OpenTUI's `streaming` mode keeps the last block provisional; evaluate `streaming={false}` per update vs `internalBlockMode: "top-level"` with a real stream.
+- [ ] Documentation site overhaul: the VitePress site is visually weak, uses emoji-heavy defaults, and does not index the coding app (`packages/code`) at all. Needs a designed theme, real navigation, and a `spectra-code` section.

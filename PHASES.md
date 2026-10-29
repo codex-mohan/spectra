@@ -36,7 +36,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 0 | Documentation and phase infrastructure | M | done | — |
 | 1 | Input and exit contract | S | done | 0 |
 | 2 | Web search + shared network egress | M | done | 1 |
-| 3 | LSP tool and edit diagnostics | L | planned | 1 |
+| 3 | LSP tool and edit diagnostics | L | in progress | 1 |
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | planned | 1 |
 | 5 | Settings registry, tabbed UI, config CLI | L | planned | 1 |
 | 6 | Browser automation | L | planned | 5 |
@@ -182,6 +182,13 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 - `web_fetch` prompts under the default `ask` policy.
 
 **Non-goals:** scrapers, model-grounded search, role chains, caching.
+
+### Follow-on fixes delivered before Phase 3
+
+- **Home footer:** folder/branch Nerd Font glyphs, ahead/behind, changed/untracked/conflict counts, width-aware truncation, async polling, last-good retention through transient git failures.
+- **About panel:** gradient S mark, compact six-row layout, live runtime/platform/config values, clickable repository URL.
+- **Runtime performance:** removed `useRef(expensive())` eager evaluation (git status ran synchronously on every render), lazy `SessionStore`/`PromptHistoryService`/`SnapshotManager`, per-frame delta coalescing, memoized transcript/composer, stable session-state API, draft state committed only for `/` and `@` input.
+- **Known issue (deferred):** the streaming markdown tail can render raw syntax for up to one frame because OpenTUI's `streaming` mode keeps the trailing block provisional. Candidate fixes: `streaming={false}` per update, or `internalBlockMode: "top-level"`.
 
 ---
 
