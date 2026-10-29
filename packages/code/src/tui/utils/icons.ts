@@ -70,7 +70,7 @@ const STATUS_GLYPHS = {
 	chevron: { nerd: '\u{f0142}', plain: '›' },
 	sessions: { nerd: '\u{f0279}', plain: '◈' },
 	agents: { nerd: '\u{f06a9}', plain: '◉' },
-	tools: { nerd: '\u{f0493}', plain: '◆' },
+	tools: { nerd: '\u{f05b7}', plain: '⚒' },
 	lsp: { nerd: '\u{f0349}', plain: '⌕' },
 	mcp: { nerd: '\u{f0431}', plain: '⬢' },
 } as const;
