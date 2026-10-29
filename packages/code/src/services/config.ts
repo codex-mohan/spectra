@@ -24,8 +24,33 @@ export interface WebSearchConfig {
 	timeoutMs?: number;
 }
 
+export interface LspServerConfig {
+	command: string;
+	args?: string[];
+	filetypes?: string[];
+	rootMarkers?: string[];
+	languageId?: string;
+}
+
+export interface LspConfig {
+	enabled?: boolean;
+	/** Milliseconds for a single LSP request. Default 20000. */
+	requestTimeout?: number;
+	/** Append diagnostics to write/edit results. Default true. */
+	diagnosticsOnWrite?: boolean;
+	/** Format files on write through LSP. Default false. */
+	formatOnWrite?: boolean;
+	/** Diagnostic freshness budget and pull preference. */
+	diagnostics?: { waitMs?: number; pull?: boolean; workspaceConcurrency?: number };
+	/** Values returned for `workspace/configuration` sections. */
+	settings?: Record<string, unknown>;
+	/** Override or add servers keyed by server id. */
+	servers?: Record<string, LspServerConfig>;
+}
+
 export interface ToolsConfig {
 	webSearch?: WebSearchConfig;
+	lsp?: LspConfig;
 }
 
 export interface SpectraConfig {

@@ -7,6 +7,9 @@ import { grepTool } from './grep.js';
 import { globTool } from './glob.js';
 import { createWebFetchTool } from './web-fetch.js';
 import { createWebSearchTool } from './web-search/index.js';
+import { createLspTool } from './lsp.js';
+import { applyLspAfterWrite } from '../lsp/post-write.js';
+import { loadConfig } from '../services/config.js';
 import { memoryTool } from './memory.js';
 import { proposeSkillTool } from './propose-skill.js';
 import { createTaskTool } from './task.js';
@@ -47,6 +50,7 @@ function createBuiltinTools(
 		globTool,
 		createWebFetchTool(guard),
 		createWebSearchTool(guard),
+		createLspTool(),
 		memoryTool,
 		proposeSkillTool,
 		createAskTool(askHandler),
@@ -153,7 +157,26 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 			}
 		}
 
-		const result = await tool.execute(args, ctx);
+		let result = await tool.execute(args, ctx);
+
+		if (result.isError !== true && (tool.name === 'write' || tool.name === 'edit')) {
+			const target = typeof args?.path === 'string' ? args.path : typeof args?.file_path === 'string' ? args.file_path : undefined;
+			if (target) {
+				try {
+					const post = await applyLspAfterWrite(target, loadConfig().tools?.lsp);
+					if (post.text) {
+						result = {
+							...result,
+							content: result.content.map((part) => (
+								part.type === 'text' ? { ...part, text: `${part.text}${post.text}` } : part
+							)),
+						};
+					}
+				} catch {
+					// LSP post-processing must never fail a successful write.
+				}
+			}
+		}
 
 		const toolOk = result.isError !== true;
 		const loopCheck = doomLoop.recordToolResult(tool.name, toolOk);

@@ -155,6 +155,7 @@ export default defineConfig({
 						{ text: 'Search', link: '/features/search' },
 						{ text: 'Web Fetch', link: '/features/web-fetch' },
 						{ text: 'Web Search', link: '/features/web-search' },
+						{ text: 'LSP', link: '/features/lsp' },
 						{ text: 'MCP Client', link: '/features/mcp-client' },
 						{ text: 'ACP Server', link: '/features/acp-server' },
 						{ text: 'Permissions', link: '/features/permissions' },
