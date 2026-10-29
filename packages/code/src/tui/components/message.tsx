@@ -3,10 +3,12 @@ import { c, mdStyle, mdStyleMuted } from '../theme.js';
 import type { ChatMessage, ContentBlock, TodoPhase, TodoState, TodoStatus } from '../types.js';
 import type { PromptAttachment } from '../prompt-bar.js';
 import stripAnsi from 'strip-ansi';
-import { basename } from 'path';
+import { basename, isAbsolute, relative } from 'path';
+import clipboard from 'clipboardy';
 import { filetype } from '../utils/filetype.js';
 import { formatAttachmentBadge, formatAttachmentMetadata, getDisplayIcon, getFileIcon, getFileVisual } from '../utils/file-visuals.js';
 import { askToolDetailsSchema, type AskQuestionResult } from '../../tools/ask.js';
+import { showToast } from './toast.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -490,6 +492,207 @@ function WebSearchToolView(props: {
 	);
 }
 
+/** Dedicated card for the `lsp` tool: grouped diagnostics, clickable locations, diffs. */
+function LspToolView(props: {
+	args: Record<string, unknown>;
+	details: unknown;
+	output: string;
+	isError: boolean;
+	streaming: boolean;
+	marginTop: number;
+}) {
+	const action = String(props.args.action ?? 'lsp');
+	const rawFile = typeof props.args.file === 'string' ? props.args.file : '';
+	const file = rawFile && isAbsolute(rawFile) ? relative(process.cwd(), rawFile) : rawFile;
+	const newName = typeof props.args.new_name === 'string' ? props.args.new_name : '';
+	const [expanded, setExpanded] = useState(false);
+	const lines = props.output.split('\n').filter((line) => line.length > 0);
+
+	const locationEntries = lines
+		.map((line) => {
+			const match = /^(.*?):(\d+):(\d+)$/.exec(line);
+			return match ? { file: match[1], line: Number(match[2]), column: Number(match[3]) } : null;
+		})
+		.filter((entry): entry is { file: string; line: number; column: number } => entry !== null);
+
+	const diagnosticEntries = lines
+		.map((line) => {
+			const match = /^(.*?):(\d+):(\d+)\s+(error|warning|info|hint):\s*(.*)$/i.exec(line);
+			return match
+				? { file: match[1], line: Number(match[2]), column: Number(match[3]), level: match[4].toLowerCase(), message: match[5] }
+				: null;
+		})
+		.filter((entry): entry is { file: string; line: number; column: number; level: string; message: string } => entry !== null);
+
+	const severityRank: Record<string, number> = { error: 0, warning: 1, info: 2, hint: 3 };
+	const sortedDiagnostics = [...diagnosticEntries].sort((a, b) => (
+		(severityRank[a.level] ?? 4) - (severityRank[b.level] ?? 4) || a.line - b.line
+	));
+	const counts = diagnosticEntries.reduce<Record<string, number>>((totals, entry) => {
+		totals[entry.level] = (totals[entry.level] ?? 0) + 1;
+		return totals;
+	}, {});
+	const summary = Object.entries(counts).map(([level, count]) => `${count} ${level}${count === 1 ? '' : 's'}`).join(', ');
+	const server = props.details && typeof props.details === 'object' && 'server' in props.details && typeof props.details.server === 'string'
+		? props.details.server
+		: '';
+
+	const looksLikeDiff = /^--- |\n--- |^Index: |\nIndex: /.test(props.output);
+	const cleanDiagnostics = action === 'diagnostics' && props.output.trim() === 'No diagnostics.';
+	const noResults = props.output.trim() === 'No locations found.' || props.output.trim() === 'No symbols.';
+
+	const copy = (line: string) => {
+		try {
+			clipboard.writeSync(line);
+			showToast(`Copied ${line}`, 'success');
+		} catch {
+			// Clipboard may be unavailable over SSH.
+		}
+	};
+
+	if (!props.isError && !props.streaming && (cleanDiagnostics || noResults)) {
+		const label = cleanDiagnostics ? 'clean' : 'no results';
+		return (
+			<InlineTool
+				icon="⌕"
+				title={`lsp ${action}${file ? ` ${file}` : ''}`}
+				titleContent={(
+					<box flexDirection="row" gap={1}>
+						<text fg={c.info}>⌕ lsp {action}</text>
+						{file ? <text fg={c.dim}>{file}</text> : null}
+						<text fg={c.dim}>· {label}</text>
+					</box>
+				)}
+				color={c.info}
+				marginTop={props.marginTop}
+				status="success"
+			/>
+		);
+	}
+
+	const visible = expanded ? lines : lines.slice(0, 12);
+	const hidden = Math.max(0, lines.length - visible.length);
+	const pending = props.streaming && !props.output;
+	const target = file || (rawFile === '*' ? '*' : '');
+	const headerMeta = summary || (locationEntries.length > 0 ? `${locationEntries.length} location${locationEntries.length === 1 ? '' : 's'}` : '');
+
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={props.marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={props.isError ? c.error : c.info}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1}>
+				<text fg={props.isError ? c.error : c.info}>{props.isError ? '!' : '⌕'}</text>
+				<text fg={props.isError ? c.error : c.info} attributes={1}>LSP</text>
+				<text fg={c.text}>{action}</text>
+				{target ? <text fg={c.dim}>· {target}</text> : null}
+				{newName ? <text fg={c.warn}>→ {newName}</text> : null}
+				{headerMeta ? <text fg={c.dim}>· {headerMeta}</text> : null}
+				{props.streaming ? <text fg={c.dim}>· preview</text> : null}
+				{props.isError ? <text fg={c.error}>✗</text> : pending ? null : <text fg={c.success}>✓</text>}
+			</box>
+
+			<box flexDirection="column" paddingLeft={2}>
+				{pending ? (
+					<text fg={c.accent}>querying server…</text>
+				) : props.isError ? (
+					<text fg={c.error}>{props.output || 'LSP request failed'}</text>
+				) : action === 'hover' && props.output ? (
+					<markdown
+						content={props.output}
+						syntaxStyle={mdStyle}
+						conceal={true}
+						width="100%"
+						tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
+					/>
+				) : sortedDiagnostics.length > 0 ? (
+					<>
+						{sortedDiagnostics.slice(0, expanded ? sortedDiagnostics.length : 8).map((entry, index) => {
+							const color = entry.level === 'error' ? c.error : entry.level === 'warning' ? c.warn : c.dim;
+							return (
+								<box key={`lsp-diag-${index}`} onMouseUp={() => copy(`${entry.file}:${entry.line}:${entry.column}`)}>
+									<text fg={c.dim}>{entry.file}:{entry.line}:{entry.column}</text>
+									<text fg={color}> {entry.level}</text>
+									<text fg={c.text}> {entry.message}</text>
+								</box>
+							);
+						})}
+						{!expanded && sortedDiagnostics.length > 8 ? (
+							<box marginTop={1} onMouseDown={() => setExpanded(true)}>
+								<text fg={c.dim}>… {sortedDiagnostics.length - 8} more · click to expand</text>
+							</box>
+						) : null}
+					</>
+				) : looksLikeDiff ? (
+					<DiffContent text={props.output} filePath={file || undefined} />
+				) : locationEntries.length > 0 ? (
+					<>
+						{groupLocations(locationEntries, expanded ? locationEntries.length : 12).map((group) => (
+							<box key={group.file} flexDirection="column">
+								<text fg={c.text}>{group.file}</text>
+								{group.entries.map((entry, index) => (
+									<box key={`lsp-loc-${group.file}-${index}`} paddingLeft={2} onMouseUp={() => copy(`${entry.file}:${entry.line}:${entry.column}`)}>
+										<text fg={c.info}>{entry.line}:{entry.column}</text>
+									</box>
+								))}
+							</box>
+						))}
+						{!expanded && locationEntries.length > 12 ? (
+							<box marginTop={1} onMouseDown={() => setExpanded(true)}>
+								<text fg={c.dim}>… {locationEntries.length - 12} more locations · click to expand</text>
+							</box>
+						) : null}
+					</>
+				) : (
+					visible.map((line, index) => (
+						<text key={`lsp-${index}`} fg={c.text} wrapMode="none">{line}</text>
+					))
+				)}
+				{hidden > 0 && sortedDiagnostics.length === 0 && locationEntries.length === 0 ? (
+					<box marginTop={1} onMouseDown={() => setExpanded(true)}>
+						<text fg={c.dim}>… {hidden} more lines · click to expand</text>
+					</box>
+				) : expanded && lines.length > 12 && sortedDiagnostics.length === 0 && locationEntries.length === 0 ? (
+					<box marginTop={1} onMouseDown={() => setExpanded(false)}>
+						<text fg={c.dim}>click to collapse</text>
+					</box>
+				) : null}
+			</box>
+
+			{!pending && !props.isError ? (
+				<box flexDirection="row" paddingLeft={1} gap={1}>
+					{server ? <text fg={c.dim}>{server}</text> : null}
+					{server && (summary || locationEntries.length > 0) ? <text fg={c.dim}>·</text> : null}
+					{summary ? <text fg={c.dim}>{summary}</text> : null}
+					{locationEntries.length > 0 ? <text fg={c.dim}>{locationEntries.length} locations · click to copy</text> : null}
+					{looksLikeDiff ? <text fg={c.dim}>click to expand diff</text> : null}
+				</box>
+			) : null}
+		</box>
+	);
+}
+
+function groupLocations(
+	entries: Array<{ file: string; line: number; column: number }>,
+	limit: number,
+): Array<{ file: string; entries: Array<{ file: string; line: number; column: number }> }> {
+	const groups = new Map<string, Array<{ file: string; line: number; column: number }>>();
+	for (const entry of entries.slice(0, limit)) {
+		const list = groups.get(entry.file) ?? [];
+		list.push(entry);
+		groups.set(entry.file, list);
+	}
+	return [...groups.entries()].map(([file, list]) => ({ file, entries: list }));
+}
+
 /** Parse find_skills output into a structured list. */
 function parseFindSkillsOutput(output: string): { query: string; matches: { name: string; desc: string }[] } {
 	if (output.includes('No skills available') || output.includes('Provide a query')) {
@@ -642,8 +845,12 @@ export function renderMessageView({
 				paddingLeft={2}
 				paddingRight={1}
 			>
-				<text fg={c.info} attributes={1}>LSP</text>
-				<text fg={c.dim}>{header}</text>
+				<box flexDirection="row" gap={1}>
+					<text fg={c.info}>{'⌁'} LSP</text>
+					<text fg={c.dim}>late diagnostics</text>
+					<text fg={c.dim}>· {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</text>
+				</box>
+				<text fg={c.dim}>{header.replace(/^LSP diagnostics for /, '')}</text>
 				{rest.length > 0 && <TruncatedContent text={rest.join('\n')} maxLines={4} />}
 			</box>
 		);
@@ -1132,6 +1339,19 @@ export function renderMessageView({
 						<text fg={toolError ? c.error : c.dim} paddingLeft={1}>{toolError ? 'Edit failed with no output' : 'Edit applied'}</text>
 					)}
 				</box>
+			);
+		}
+
+		if (tName === 'lsp') {
+			return (
+				<LspToolView
+					args={argsObj}
+					details={msg.toolDetails}
+					output={output}
+					isError={toolError}
+					streaming={msg.streaming === true}
+					marginTop={mt}
+				/>
 			);
 		}
 

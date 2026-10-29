@@ -78,6 +78,17 @@
 8. Diagnostics that miss the budget are deduped per file and delivered to the inbox; the app appends them to the transcript and steers (streaming) or appends to agent history (idle).
 9. Biome diagnostics are collected per file and merged with server diagnostics before dedupe.
 
+## Transcript UI
+
+- Call line: `⌕ lsp <action> <target> …` while running; no raw JSON.
+- Result card: left border `c.info`, header `LSP`, action, target, rename arrow, summary, `✓/✗`.
+- Diagnostics are grouped by severity (errors first), colored, and each line copies `file:line:col` on click.
+- Navigation results are grouped by file with clickable locations.
+- Hover renders markdown; rename/format previews use the diff component; clean diagnostics and empty results render inline.
+- Late diagnostics use a distinguished `⌁ LSP · late diagnostics · HH:MM` note, expandable, and are injected into the model context.
+- Home stats show `⌕ N LSP` while servers are running; stat glyphs use the Nerd Font set with plain fallbacks.
+- Write actions prompt under `lsp_write` and include the file/symbol/rename target in the prompt details.
+
 ## Mux
 
 - One daemon per project listens on `SPECTRA_LSP_MUX_SOCKET`.

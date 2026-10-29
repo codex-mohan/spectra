@@ -92,8 +92,17 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 		if (tool.name === 'lsp') {
 			const action = typeof args?.action === 'string' ? args.action : '*';
 			const permission = LSP_WRITE_ACTIONS.has(action) ? 'lsp_write' : 'lsp';
+			const file = typeof args?.file === 'string' ? args.file : undefined;
+			const symbol = typeof args?.symbol === 'string' ? args.symbol : undefined;
+			const rename = typeof args?.new_name === 'string' ? args.new_name : undefined;
+			const detail = [
+				`lsp ${action}`,
+				file,
+				symbol ? `(${symbol})` : undefined,
+				rename ? `→ ${rename}` : undefined,
+			].filter(Boolean).join(' · ');
 			try {
-				await security.checkPermission(permission, [action], tool.name, `lsp ${action}`);
+				await security.checkPermission(permission, [action], tool.name, detail);
 			} catch (err) {
 				if (err instanceof PermissionDeniedError) {
 					return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };

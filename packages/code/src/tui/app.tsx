@@ -67,10 +67,13 @@ import { useAgent, createSessionFactory, createSessionSecurityManager } from './
 import { useChatSubmit } from './hooks/use-chat-submit.js';
 import { useAppKeyboard } from './hooks/use-app-keyboard.js';
 import { useGitStatus } from './hooks/use-git-status.js';
+import { useLspStatus } from './hooks/use-lsp-status.js';
 import { shouldCommitDraft } from './utils/draft-commit.js';
 import { diagnosticsInbox, formatDiagnosticsEntry } from '../services/diagnostics-inbox.js';
 import { useLazyRef } from './utils/lazy-ref.js';
 import { GitStatusSegment } from './components/git-status.js';
+import { glyphFor } from './utils/icons.js';
+import { getToolStats } from '../tools/index.js';
 import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
@@ -366,6 +369,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const customProviderCount = Object.keys(customProviders).length;
 
 	const { status: gitStatus } = useGitStatus(process.cwd(), isLoading);
+	const lspCount = useLspStatus();
 
 
 	// --- Effects ---
@@ -1037,13 +1041,14 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 						<box height={1} />
 						<box flexDirection="row" gap={4} alignItems="center">
 							{[
-								{ icon: '◈', label: `${sessionStore.current.list(process.cwd()).length} sessions` },
-								{ icon: '◉', label: `${agentCatalog.primary.length} agents` },
-								{ icon: '◆', label: '7 tools' },
-								{ icon: '⬢', label: `${mcpCount} MCP` },
+								{ icon: glyphFor('sessions'), color: c.subtext, label: `${sessionStore.current.list(process.cwd()).length} sessions` },
+								{ icon: glyphFor('agents'), color: c.blue, label: `${agentCatalog.primary.length} agents` },
+								{ icon: glyphFor('tools'), color: c.warn, label: `${getToolStats().builtin} tools` },
+								...(lspCount > 0 ? [{ icon: glyphFor('lsp'), color: c.info, label: `${lspCount} LSP` }] : []),
+								{ icon: glyphFor('mcp'), color: c.purple, label: `${mcpCount} MCP` },
 							].map((s) => (
 								<box key={s.label} flexDirection="row" gap={1} alignItems="center">
-									<text fg={c.accent}>{s.icon}</text>
+									<text fg={s.color}>{s.icon}</text>
 									<text fg={c.dim}>{s.label}</text>
 								</box>
 							))}

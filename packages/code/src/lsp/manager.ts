@@ -279,3 +279,9 @@ export function getLspManager(config?: LspConfig): LspManager {
 export function resetLspManager(): void {
 	shared = null;
 }
+
+
+/** Running servers without constructing a manager. */
+export function peekLspStatus(): Array<{ server: string; root: string; running: boolean }> {
+	return shared?.describe() ?? [];
+}
