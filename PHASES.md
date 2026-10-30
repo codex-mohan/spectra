@@ -253,102 +253,149 @@ Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (per
 
 ---
 
-## Phase 4 — Subagent lifecycle: fan-out, background, steer, pause, resume, restart
+## Phase 4 — Subagent lifecycle, jobs, auto-background
 
-**Goal:** children are first-class jobs the parent can start in the background, inspect, steer mid-run, pause, resume, restart, cancel, and wait on — with state that survives process restart.
+**Goal:** children and long-running tools are first-class jobs the parent can start, inspect, steer, pause, resume, restart, cancel, and wait on — including promoting a foreground process to the background when the user sends a new message mid-run.
 
 ### Reference (oh-my-pi)
 
-- Batch `{ context, tasks[] }`: one spawn per item; `context` required; item `name`, `agent`, `task`, optional `outputSchema`/`schemaMode`/`tools`/`isolated`; unique names.
-- `AsyncJobManager` one job per spawn; job status `running|completed|failed|cancelled`, queueing is a `queued` flag; per-owner delivery sink.
-- `task.maxConcurrency` default 32 via a session `Semaphore`.
-- `wait` has an **empty schema**; first settled owned job/message/interrupt; 30-min cap; consumes delivery; 500 ms snapshots.
-- Live steering and inspection ride `agent://` and `proc://`; agent refs are `running|idle|parked|aborted`; idle agents park and revive from persisted JSONL.
-- Failed spawn throws `TaskJobError` → `failed`; agent remains interrogable.
-- Artifacts `<id>.md`, `<id>.jsonl`.
+- Batch `{ context, tasks[] }`: one spawn per item; unique names; per-item agent/output schema.
+- `AsyncJobManager` one job per spawn; status `running|completed|failed|cancelled` plus a `queued` flag; per-owner delivery sink.
+- `wait` has an empty schema, returns on the first settled owned job or message, 30-minute cap, consumes delivery.
+- Live steering and inspection ride `agent://` and `proc://`; idle agents park and revive from JSONL.
+- `auto-background.ts`: long-running bash is promoted on an incoming message; the tool result becomes `Backgrounded as job <id>; result will be delivered automatically.` and the process keeps running.
+- Failed spawn → `failed`; agent remains interrogable.
 
 ### Spectra current state
 
-- `background-tasks.ts`: `running|completed|error|cancelled`; no delivery tracking, no pause/resume, no persistence.
-- `task.ts`: `tasks[]` merged into one prompt; one child; `background` returns a `task_id`; `task_id` replay into a **new** agent; background path records `complete()` on `result.error`.
-- No job/wait/IRC tools; `/background-tasks` only promotes/cancels.
-- The agent harness has no process-freeze primitive: a running turn can only be stopped at a step boundary and resumed from its persisted transcript.
+- `backgroundTasks` registry: `running|completed|error|cancelled`, no persistence, no delivery ledger, no pause/resume.
+- `task` merges `tasks[]` into one prompt and one child; `background` returns a `task_id`; `task_id` replay starts a new agent; `result.error` is recorded as completed.
+- No `job`/`irc` tools; `/background-tasks` only promotes/cancels.
+- `submitPrompt` while streaming queues steering; a long foreground tool still blocks the next step until it finishes.
 
-### Target lifecycle
+### Concurrency model (the part that must be boring)
+
+**Single-writer rule.** Only `JobRegistry` mutates job state. Tool execution code never writes status directly; it calls `transition(jobId, expected, next, patch)`.
+
+**Ownership.** Every job carries `ownerSessionId`. Delivery, pause, resume, restart, and probe are scoped to the owner. A session switch does not redirect deliveries.
+
+**Generations.** Each run attempt has `generation` (monotonic). Callbacks from an older generation (`complete`, `error`, `progress`, deferred diagnostics) are ignored after `restart` or `resume`. The abort controller is per generation.
+
+**Exactly-once delivery.** A job has `deliveredAt`. Completion marks `settledAt`; the delivery engine claims with a CAS (`deliveredAt IS NULL`), then injects. `wait` consumes by setting `consumedAt`; a job cannot be both consumed and delivered.
+
+**Promotion token.** A foreground execution races `executionPromise` against `promotionSignal`. First to settle sets `outcome` (`inline` or `promoted`) via a token object; the loser is a no-op. Promotion never aborts the underlying work.
+
+**Serialized persistence.** All SQLite writes go through one async queue per store; no interleaved transactions.
+
+**No cross-await state reads.** Transition decisions read state from the registry, not from a stale local copy captured before an await.
+
+### Auto-background semantics
+
+Triggers (config `tasks.autoBackground`):
+
+```jsonc
+{
+  "tasks": {
+    "autoBackground": {
+      "onUserMessage": true,      // default
+      "afterMs": 0,               // 0 = off
+      "outputThresholdBytes": 65536
+    }
+  }
+}
+```
+
+- **Incoming message while a foreground tool runs:** the session submits a *promotion request* for the active tool call before queueing steering. If the tool has not already produced a result, its job is registered and the tool returns `Backgrounded as job <id>; result will be delivered automatically.` Steering still applies at the next step boundary.
+- **Threshold promotion:** `afterMs`/`outputThresholdBytes` promote without a message; disabled by default.
+- Promotion does not apply to tools marked non-backgroundable (`read`, `edit`, `write`, `lsp`, permission dialogs). Only `shell`, `task`, `browser` (later), and background-capable tools.
+- If the tool settles at the same moment as promotion, execution wins: promotion is discarded, no job, no duplicate result.
+- If the user cancels the turn after promotion, the job keeps running unless the cancel reason is `user-abort`; then it is cancelled.
+
+### Job state machine
 
 ```
 queued -> running -> paused -> running -> completed
-                  \-> cancelled        \-> failed
-completed|failed|cancelled|paused --restart--> queued
+             |          |
+             +-> failed |-> cancelled
+completed|failed|cancelled|paused -> queued (restart)
 ```
 
-- **Background** (`task background:true`): returns immediately with a job id; result delivered once as a follow-up.
-- **Steer** (`job send` / `irc send`): message injected at the next step boundary; running child folds it into context; idle/paused child wakes with it.
-- **Pause** (`job pause`): cooperative. `queued` → `paused` immediately (removed from the queue). `running` → finish the current tool call, abort the turn, persist transcript, `paused`. Never freezes mid-token; no tool is left running.
-- **Resume** (`job resume`): starts a run from the persisted transcript, optionally with a new instruction.
-- **Restart** (`job restart`): `from: 'start' | 'checkpoint'` (default `start`). `start` re-runs the original task prompt with a fresh agent; `checkpoint` resumes from the last persisted transcript.
-- **Cancel** (`job cancel`): terminal `cancelled`, aborts the active run, removes it from the queue.
-- **Wait** (`job wait`): `ids?`, `mode: first|all`, bounded timeout; consumes delivery; never cancels.
-- **Probe** (`job probe`, `job transcript`): read-only inspection that never consumes delivery. `probe` returns state, current turn/tool, elapsed, retry attempts, token/request usage, last 8 KB of output, and artifact paths. `transcript` returns paged child messages, working while the child runs (in-memory buffer) and after it settles or the process restarts (persisted session). Bounded output (500 KB / 5 000 lines), with the full transcript available at its session path.
+`transition(jobId, allowedFrom[], next, patch)` is single-shot. `pause` sets `pauseRequested`; the runner applies it at the next step boundary after the active tool call finishes, persists messages, then transitions to `paused`.
+
+### Job tool (`tools/job.ts`)
+
+| Op | Contract |
+| --- | --- |
+| `list` | Owned jobs with status, elapsed, agent, description. |
+| `status` | One job: state, activity, attempts, usage, timestamps. |
+| `probe` | Read-only live detail: current turn/tool, retry attempts, last 8 KB output. Never consumes delivery. |
+| `transcript` | Paged messages from memory while running, from the session file after settle. Bounded 500 KB / 5 000 lines. |
+| `wait` | `ids?`, `mode: first|all` (default `all`), `timeoutMs` 30 s / max 300 s. Returns a snapshot; timeout never cancels. Marks returned terminal jobs consumed. |
+| `send` | Queue a message: running → next step boundary; paused/idle → revive; completed → reject. |
+| `pause` | Queued → paused immediately. Running → finish current tool, abort turn with `paused`, persist, transition. |
+| `resume` | New generation from persisted messages, optional instruction. |
+| `restart` | `from: start|checkpoint`; new generation; `start` clears transcript and reuses original prompt. |
+| `cancel` | Terminal; abort current generation; remove from queue. |
+
+### Race table (must have tests)
+
+| Race | Resolution |
+| --- | --- |
+| Tool completes as promotion fires | Execution wins by token; no job. |
+| Promotion fires after tool returned | Promotion request rejected (no active tool). |
+| New message while already promoted | Steering only; no second promotion. |
+| `wait` returns job while completion delivery is in flight | Delivery claim is CAS; exactly one path wins. |
+| `cancel` vs completion | Terminal CAS; loser ignored. |
+| Pause during tool execution | `pauseRequested`; transition after tool settles. |
+| `restart` while running | Abort generation N, await settle, start N+1; stale callbacks ignored. |
+| Resume while previous generation still cleaning up | `settling` guard; resume waits or returns “still pausing”. |
+| Process exits with running jobs | Startup marks orphans `paused` with reason `interrupted by exit`. |
+| Duplicate completion after resume | Generation check rejects. |
+| Probe during transcript write | Snapshot copy; never blocks the runner. |
+| Session switch | Delivery only to `ownerSessionId`; no cross-session injection. |
+| Two `job wait` calls | Both get snapshots; consumption is idempotent. |
+| Child settles before registry insert | Insert-then-attach; runner started only after insert. |
+
+### Persistence
+
+`jobs` table: `id`, `parent_session_id`, `child_session_id`, `agent`, `description`, `prompt`, `state`, `pause_requested`, `queued_at`, `started_at`, `finished_at`, `settled_at`, `delivered_at`, `consumed_at`, `generation`, `result`, `error`, `retry_attempts`, `last_checkpoint_at`.
 
 ### Failure handling
 
-Reference mechanics (`docs/non-compaction-retry-policy.md`, `task/executor.ts`, `task/restore.ts`):
+Carried from the earlier plan: classification (retryable vs permanent), replay-safety veto, wall clock, soft request budget, stall timeout, missing-report reminders, interrupted-turn repair, crash → `failed`, parent Esc → cancel, parent exit → pause.
 
-| Failure | Reference behavior | Spectra requirement |
-|---|---|---|
-| Transient provider/transport (timeout, 429, 5xx, stream reset, socket close) | Classify via `AIError`; bounded retries with jittered backoff; abortable; attempt counter reset on success | Classify, retry with jitter, cap attempts, record attempts; abortable |
-| Permanent (auth, invalid request, context overflow, refusal) | No retry; surface or switch model | No retry; `failed` with the classified reason |
-| Failure after committed output | Replay-safety veto: no retry when visible text/images/tool calls already landed; preserve the turn and continue | Same veto; preserve partial output rather than replay side effects |
-| Proven-unexecuted tool calls | Synthetic `executed:false` results, then reissue | Synthetic results, then reissue |
-| Wall-clock / runaway | `task.maxRuntimeMs` hard stop; soft request budget force-stops at 1.5× with partial findings | `tasks.maxRuntimeMs` + `tasks.softRequestBudget`; `failed` with partial preserved |
-| Stream stall | Idle-stall detection, preserve-and-continue | `tasks.stallTimeoutMs`; mark stalled, preserve, then `failed` or retry |
-| Missing final report | Up to 3 reminders, then a warning and completion | Same |
-| Parent interrupt / exit | Tool-call abort cancels children; hard abort → `aborted` | Esc on parent cancels running children; parent exit marks them `paused` |
-| Process restart with interrupted turn | `restoreInterruptedTurn()` appends synthetic tool results for dangling calls plus an abort notice, then continues; `task/restore.ts` also restores its subagents | Same repair before resume; orphaned jobs become `paused` |
-| Child crash/throw | Job `failed`, output/error preserved, output still delivered with a follow-up hint | Same; `failed`, never `completed` |
+### UI
+
+- `/background-tasks`: status, elapsed, pause/resume/restart/cancel, probe.
+- Transcript card for `task`/`job`: one row per child, status color, click to probe.
+- Footer: count of running jobs for the session.
+
+### Tests
+
+- Registry transition matrix, including illegal transitions.
+- Promotion at completion, promotion after completion, promotion while already promoted.
+- New message during long tool: steering delivered, job created, result delivered once.
+- `wait` first/all/timeout; consumption prevents duplicate delivery.
+- Pause/resume/restart with generation isolation; stale completion ignored.
+- Orphan recovery on startup.
+- Probe/transcript without consumption.
+- Failure: retry, failure after committed output, wall clock, stall, crash.
+- Load: 3 children, one paused, one cancelled, one completed; delivery ordering by settlement.
 
 ### Steps
 
-1. Rework `services/background-tasks.ts`: states `queued|running|paused|completed|failed|cancelled`; `pauseRequested`; stored `taskPrompt`, `startedAt`, `finishedAt`, `lastCheckpointAt`; delivery ledger (`consumed`); per-parent queries.
-2. Persist job records (SQLite `jobs` table: id, parent session, agent, prompt, state, timestamps, result, error). On startup, any `running`/`queued` record becomes `paused` with reason `interrupted by exit`.
-3. Rewrite `tools/task.ts` spawn planning: one child per item, unique names, shared `context`, per-item agent; semaphore cap 4 (max 8); foreground vs background is per item.
-4. Fix classification: `result.error` → `failed`; user cancel → `cancelled`; pause-driven abort → `paused` (not `cancelled`).
-5. Add `tools/job.ts`: `list`, `status`, `probe`, `transcript`, `wait` (`ids?`, `mode: first|all`, `timeoutMs` 30 s/300 s), `send`, `pause`, `resume`, `restart`, `cancel`.
-6. Implement pause at the step boundary: set `pauseRequested`, let the active tool finish, abort the turn with a pause reason, persist messages, transition once.
-7. Implement resume/restart on top of `runSubagent(resumeMessages)`; `restart from:'start'` clears the transcript and reuses the stored prompt.
-8. Add `tools/irc.ts`: `list`, `send` for live steering (same wake paths as `job send`).
-9. Deliver unconsumed settlements once as follow-up messages; skip consumed ones; never deliver a `paused` child as finished.
-10. Extend `/background-tasks` (state, elapsed, pause/resume/restart/cancel); `docs/features/{subagents,job,irc}.md`.
-11. Add `services/subagent-recovery.ts`: error classification (retryable vs permanent), replay-safety guard, jittered backoff on top of the existing `Agent` retry hook, attempt bookkeeping, and interruption repair (synthetic results for dangling tool calls + abort notice).
-12. Add `tasks.{maxRuntimeMs,softRequestBudget,stallTimeoutMs}` config and enforce them per spawn; force-stop keeps partial output and records `failed` with a reason.
-13. Persist `retryAttempts`, `abortReason`, and `lastCheckpointAt`; surface them in `job status` and `/background-tasks`.
+1. Schema + `JobRegistry` with transitions, generations, delivery fields, serialized SQLite queue.
+2. Delivery engine (claim → inject → mark) and consumption integration.
+3. `task` fan-out: one child per item, insert-then-run, per-child abort controller.
+4. `job` tool with all operations and bounded outputs.
+5. Auto-background: promotion request hook in `submitPrompt`, race in the tool wrapper, config.
+6. Pause at step boundary; resume/restart with generation guards.
+7. `irc` tool for steering.
+8. Failure handling module (classification, replay safety, budgets, repair).
+9. UI: `/background-tasks`, transcript cards, footer count.
+10. Tests above.
 
-**Adaptation:** the reference has idle/park/revive but no explicit pause or restart; Spectra adds cooperative pause, resume, and restart-from-start because those are the operations a parent actually needs. `wait` gains `mode: all` per `TODO.md` §13. Spectra needs `job`/`irc` tools because it has no internal-URL surface. Caps are 4/8, not 32. No `isolated` worktrees, no `solutionSpace`/effort routing.
-
-### Verification
-
-- `bun run test` — registry transitions (single terminal, pause from queued vs running, restart resets state); fan-out with a stub runner; `first`/`all` fake timers; early resolve; timeout snapshot; once-only delivery; failed-on-error; pause at step boundary; resume continues transcript; restart-from-start uses the original prompt; startup marks orphans paused.
-- Manual: spawn 3 children in background; `job send` one; pause one; resume it; restart another; cancel one; `wait all`.
-
-**Acceptance**
-
-- Three assignments → three background children with distinct ids.
-- `job list` shows live state; `job send` arrives at the next step boundary.
-- `pause` on a running child ends at a step boundary, no tool left running, state persisted; `resume` continues the same conversation.
-- `pause` on a queued child takes it out of the queue; `resume` re-queues it.
-- `restart from:'start'` runs the original task again; `from:'checkpoint'` continues the transcript.
-- Process restart marks orphans `paused`; `resume` still works.
-- Cancel is terminal; `result.error` → `failed`; exactly one delivery per settlement.
-- Retryable failures retry with jittered backoff and record attempts; permanent failures fail fast without retry.
-- A failure after committed text/tool output is not replayed; partial output is preserved.
-- Wall-clock and soft-budget stops produce `failed` with a reason and keep partial output.
-- Resume after an interrupted turn repairs dangling tool calls (synthetic results + abort notice) before continuing.
-- Parent Esc cancels running children; parent exit pauses them.
-
-**Non-goals:** worktree isolation, nested hubs, pausing inside a single tool call.
-
----
+**Non-goals:** worktree isolation, cross-process job daemon, pausing inside a single tool call.
 
 ## Phase 5 — Settings registry, tabbed UI, config CLI
 
