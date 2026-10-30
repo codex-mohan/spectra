@@ -1,33 +1,121 @@
 import { z } from 'zod';
+import type { Message } from '@mohanscodex/spectra-ai';
 import type { SpectraTool } from './types.js';
-import { textResult, errorResult } from './utils.js';
+import { errorResult, textResult } from './utils.js';
 import { getAgentDefinition, getSubagents, filterToolsByAgent } from '../agents/index.js';
 import type { AgentDefinition } from '../agents/types.js';
 import type { AgentRegistryConfig } from '../agents/registry.js';
 import type { SecurityManager } from '../security/index.js';
 import type { SessionStore } from '../services/session-store.js';
-import { backgroundTasks } from '../services/background-tasks.js';
+import { jobRegistry, type JobRecord } from '../services/job-registry.js';
+import { registerJobHandle, unregisterJobHandle, getActiveAgent, setActiveAgent, clearActiveAgent } from '../services/job-control.js';
 import { loadContext, buildContextMessages, type ContextComposeOptions } from '../services/context.js';
 import { loadConfig, type ProjectReferenceConfig } from '../services/config.js';
 import { runSubagent, type SubagentConfig } from '@mohanscodex/spectra-agent';
-export function buildSubagentSystemPrompt(cwd?: string, options: Omit<ContextComposeOptions, 'cwd'> = {}): string {
-	return loadContext(cwd, options).systemPrompt;
-}
 
 const DEFAULT_REPORTING = `Return a concise final report with: outcome, important details, work completed, checks performed or intentionally skipped, and blockers. Only mention files, code changes, or tests when they are relevant to the assignment.`;
 
-interface SubagentContextOptions {
-	cwd: string;
-	sessionStartedAt?: Date;
-	references?: readonly ProjectReferenceConfig[];
+interface StructuredTask {
+	id?: string;
+	name?: string;
+	role?: string;
+	description?: string;
+	agent?: string;
+	assignment: string;
+	reporting?: string;
+}
+
+interface TaskArgs {
+	context?: string;
+	tasks?: StructuredTask[];
+	agent?: string;
+	subagent_type?: string;
+	prompt?: string;
+	description?: string;
+	reporting?: string;
+	background?: boolean;
+	task_id?: string;
+}
+
+const structuredTaskSchema = z.object({
+	id: z.string().optional().describe('Stable task id'),
+	name: z.string().optional().describe('Stable job id suffix'),
+	role: z.string().optional().describe('Specialist role for this item'),
+	description: z.string().optional().describe('Short UI label'),
+	agent: z.string().optional().describe('Subagent type for this item'),
+	assignment: z.string().describe('Concrete assignment'),
+	reporting: z.string().optional().describe('Reporting instructions'),
+});
+
+export interface NormalizedTask {
+	id: string;
+	role?: string;
+	description: string;
+	assignment: string;
+	reporting?: string;
+	agent?: string;
+}
+
+export interface NormalizedTaskRequest {
+	agent: string;
+	description: string;
+	context?: string;
+	tasks: NormalizedTask[];
+	reporting?: string;
+	background?: boolean;
+	taskId?: string;
+}
+
+export function normalizeTaskArgs(args: TaskArgs): NormalizedTaskRequest {
+	const agent = args.agent || args.subagent_type;
+	if (!agent) throw new Error('Missing required parameter: agent');
+	const tasks: NormalizedTask[] = args.tasks?.length
+		? args.tasks.map((task, index) => ({
+			id: task.id || task.name || `Task${index + 1}`,
+			role: task.role,
+			description: task.description || task.name || `Task ${index + 1}`,
+			assignment: task.assignment,
+			reporting: task.reporting,
+			agent: task.agent,
+		}))
+		: [{
+			id: 'Task1',
+			description: args.description || 'Task',
+			assignment: args.prompt || '',
+			agent,
+		}];
+	if (tasks.some((task) => task.assignment.trim().length === 0)) throw new Error('Each task requires a non-empty assignment');
+	return {
+		agent,
+		description: args.description || (tasks.length === 1 ? tasks[0].description : `${tasks.length} tasks`),
+		context: args.context,
+		tasks,
+		reporting: args.reporting,
+		background: args.background,
+		taskId: args.task_id,
+	};
+}
+
+export function buildTaskPrompt(task: StructuredTask | NormalizedTask, context: string | undefined, reporting: string | undefined, agentReporting: string | undefined): string {
+	const sections: string[] = [];
+	if (task.role) sections.push(`# Role\n${task.role}`);
+	if (context?.trim()) sections.push(`# Context\n${context.trim()}`);
+	sections.push(`# Assignment\n${task.assignment.trim()}`);
+	sections.push(`# Reporting\n${(task.reporting || reporting || agentReporting || DEFAULT_REPORTING).trim()}`);
+	return sections.join('\n\n');
+}
+
+export function buildSubagentSystemPrompt(cwd?: string, options: Omit<ContextComposeOptions, 'cwd'> = {}): string {
+	return loadContext(cwd, options).systemPrompt;
 }
 
 function createSubagentConfig(
 	config: AgentRegistryConfig,
 	def: AgentDefinition,
 	tools: NonNullable<SubagentConfig['tools']>,
-	context: SubagentContextOptions,
+	context: { cwd: string; sessionStartedAt?: Date; references?: readonly ProjectReferenceConfig[]; sessionId?: string },
 	signal?: AbortSignal,
+	extra: Partial<SubagentConfig> = {},
 ): SubagentConfig {
 	return {
 		model: config.model,
@@ -41,128 +129,36 @@ function createSubagentConfig(
 		contextMessages: buildContextMessages(def.prompt),
 		...(def.maxTurns ? { maxTurns: def.maxTurns } : {}),
 		...(signal ? { signal } : {}),
+		...(context.sessionId ? { sessionId: context.sessionId } : {}),
 		getApiKey: config.getApiKey,
+		...extra,
 	};
 }
 
-export interface StructuredTask {
-	id?: string;
-	role?: string;
-	description?: string;
-	assignment: string;
-	reporting?: string;
+function hasCommittedOutput(messages: Message[]): boolean {
+	return messages.some((message) => message.role === 'assistant' && (
+		message.content.some((part) => part.type === 'text' && part.text.trim().length > 0)
+		|| message.content.some((part) => part.type === 'toolCall')
+	));
 }
 
-export interface TaskArgs {
-	description?: string;
-	prompt?: string;
-	subagent_type?: string;
-	agent?: string;
-	context?: string;
-	tasks?: StructuredTask[];
-	reporting?: string;
-	background?: boolean;
-	task_id?: string;
+function isRetryable(error: string | undefined): boolean {
+	if (!error) return false;
+	return /timeout|timed out|429|500|502|503|504|socket|network|fetch failed|ECONN|ETIMEDOUT|overloaded/i.test(error);
 }
 
-export interface NormalizedTask {
-	id: string;
-	role?: string;
-	description: string;
-	assignment: string;
-	reporting?: string;
-}
-
-export interface NormalizedTaskRequest {
-	agent: string;
-	description: string;
-	context?: string;
-	tasks: NormalizedTask[];
-	reporting?: string;
-	background?: boolean;
-	taskId?: string;
-}
-
-const structuredTaskSchema = z.object({
-	id: z.string().optional().describe('Stable task id, useful for UI labels and result correlation'),
-	role: z.string().optional().describe('Specialist role/persona for this task'),
-	description: z.string().optional().describe('Short UI label for this task'),
-	assignment: z.string().describe('The concrete task assignment'),
-	reporting: z.string().optional().describe('Task-specific reporting instructions, overriding the agent default'),
-});
-
-export function normalizeTaskArgs(args: TaskArgs): NormalizedTaskRequest {
-	const agent = args.agent || args.subagent_type;
-	if (!agent) throw new Error('Missing required parameter: agent');
-
-	const tasks = args.tasks?.length
-		? args.tasks.map((task, index) => ({
-			id: task.id || `Task${index + 1}`,
-			role: task.role,
-			description: task.description || task.id || `Task ${index + 1}`,
-			assignment: task.assignment,
-			reporting: task.reporting,
-		}))
-		: [{
-			id: 'Task1',
-			description: args.description || 'Task',
-			assignment: args.prompt || '',
-		}];
-
-	if (tasks.some((task) => task.assignment.trim().length === 0)) {
-		throw new Error('Each task requires a non-empty assignment');
-	}
-
-	return {
-		agent,
-		description: args.description || (tasks.length === 1 ? tasks[0].description : `${tasks.length} tasks`),
-		context: args.context,
-		tasks,
-		reporting: args.reporting,
-		background: args.background,
-		taskId: args.task_id,
-	};
-}
-
-export function buildTaskPrompt(
-	task: NormalizedTask,
-	context: string | undefined,
-	reporting: string | undefined,
-	agentReporting: string | undefined,
-): string {
-	const sections: string[] = [];
-	if (task.role) sections.push(`# Role\n${task.role}`);
-	if (context?.trim()) sections.push(`# Context\n${context.trim()}`);
-	sections.push(`# Assignment\n${task.assignment.trim()}`);
-	sections.push(`# Reporting\n${(task.reporting || reporting || agentReporting || DEFAULT_REPORTING).trim()}`);
-	return sections.join('\n\n');
-}
-
-function combineTaskPrompts(tasks: NormalizedTask[], context: string | undefined, reporting: string | undefined, agentReporting: string | undefined): string {
-	if (tasks.length === 1) return buildTaskPrompt(tasks[0], context, reporting, agentReporting);
-	return tasks.map((task) => `## ${task.id}: ${task.description}\n\n${buildTaskPrompt(task, context, reporting, agentReporting)}`).join('\n\n');
-}
-
-
-function descriptionForTaskTool(): string {
-	const subagents = getSubagents();
-	const subagentList = subagents.map((name) => {
-		const def = getAgentDefinition(name);
-		return `- **${name}**: ${def?.description ?? ''}`;
-	}).join('\n');
-
-	return `Launch a new agent to handle complex, multistep tasks autonomously.
-
-When to use the Task tool:
-${subagentList}
-
-Usage notes:
-1. Launch multiple agents concurrently whenever possible, to maximize performance
-2. Each agent invocation starts with a fresh context
-3. The agent's outputs should generally be trusted
-4. State the expected scope clearly: research, writing, coding, command execution, analysis, or another concrete outcome
-5. Set background=true to run the agent in the background (returns immediately with a task_id)
-6. Pass task_id to resume or extend a previous task (running tasks queue additional work)`;
+async function mapLimit<T, R>(items: T[], limit: number, run: (item: T, index: number) => Promise<R>): Promise<R[]> {
+	const results = new Array<R>(items.length);
+	let next = 0;
+	const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+		for (;;) {
+			const index = next++;
+			if (index >= items.length) return;
+			results[index] = await run(items[index], index);
+		}
+	});
+	await Promise.all(workers);
+	return results;
 }
 
 export function createTaskTool(
@@ -174,273 +170,224 @@ export function createTaskTool(
 	return {
 		name: 'task',
 		capabilities: { reads: false, writes: false },
-		description: descriptionForTaskTool(),
-		displayName: (args: TaskArgs) => {
-			const agent = args.agent || args.subagent_type || 'subagent';
-			return `@${agent} ${args.description || ''}`.slice(0, 60);
-		},
+		description: `Launch one or more subagents. Each tasks[] item runs as an independent job with its own id, session, and result.
+Set background=true to return immediately with job ids; use the job tool to inspect, wait, steer, pause, resume, restart, or cancel.`,
+		displayName: (args: TaskArgs) => args.tasks?.length ? `${args.tasks.length} tasks` : (args.description || 'task'),
 		parameters: z.object({
-			description: z.string().optional().describe('A short (3-5 words) description of the task or task group'),
-			prompt: z.string().optional().describe('Legacy single task prompt'),
-			subagent_type: z.string().optional().describe('Legacy specialized agent selector'),
-			agent: z.string().optional().describe('The specialized subagent to use'),
-			context: z.string().optional().describe('Shared context prepended to every task assignment'),
-			tasks: z.array(structuredTaskSchema).optional().describe('One or more task assignments for the selected agent'),
-			reporting: z.string().optional().describe('Reporting instructions overriding the selected agent default'),
-			background: z.boolean().optional().describe('Run in background (returns immediately with a task_id)'),
-			task_id: z.string().optional().describe('Resume or extend a previous task by its id'),
+			context: z.string().optional().describe('Shared background for every task'),
+			tasks: z.array(structuredTaskSchema).optional().describe('One independent subagent per item'),
+			agent: z.string().optional().describe('Default subagent type'),
+			subagent_type: z.string().optional().describe('Legacy alias for agent'),
+			prompt: z.string().optional().describe('Single task assignment'),
+			description: z.string().optional().describe('Short label for a single task'),
+			reporting: z.string().optional().describe('Reporting instructions'),
+			background: z.boolean().optional().describe('Run in the background'),
+			task_id: z.string().optional().describe('Resume an existing task job'),
 		}),
-
-		execute: async (args, ctx) => {
-			let request: NormalizedTaskRequest;
-			try {
-				request = normalizeTaskArgs(args as TaskArgs);
-			} catch (err) {
-				return errorResult(err instanceof Error ? err.message : String(err));
+		execute: async (args: TaskArgs, ctx) => {
+			const owner = ctx.sessionId ?? parentSessionId;
+			if (!owner) {
+				const candidate = args.agent || args.subagent_type || args.tasks?.[0]?.agent;
+				if (candidate && !getAgentDefinition(candidate)) {
+					return errorResult(`Unknown subagent "${candidate}". Available: ${getSubagents().join(', ')}`);
+				}
+				return errorResult('task requires a parent session');
 			}
 
-			const subagent_type = request.agent;
-			const description = request.description;
-			const background = request.background;
-			const task_id = request.taskId;
-
-			const def = getAgentDefinition(request.agent);
-			if (!def) {
-				const available = getSubagents().join(', ');
-				return errorResult(`Unknown subagent "${subagent_type}". Available: ${available}`);
+			if (args.task_id) {
+				const existing = jobRegistry.get(args.task_id);
+				if (!existing) return errorResult(`Unknown task_id: ${args.task_id}`);
+				const handle = (await import('../services/job-control.js')).getJobHandle(args.task_id);
+				if (!handle) return errorResult(`Task ${args.task_id} cannot resume (not live in this process).`);
+				await handle.resume(args.prompt);
+				return textResult(`Resumed ${args.task_id}.`, { childSessionId: args.task_id });
 			}
-			if (def.mode === 'primary') {
-				return errorResult(
-					`"${subagent_type}" is a primary agent, not a subagent. Available subagents: ${getSubagents().join(', ')}`,
+
+			const items: StructuredTask[] = args.tasks?.length
+				? args.tasks.map((item, index) => ({
+					...item,
+					description: item.description || item.name || `Task ${index + 1}`,
+				}))
+				: [{
+					agent: args.agent || args.subagent_type,
+					description: args.description || 'Task',
+					assignment: args.prompt || '',
+				}];
+
+			if (items.some((item) => !item.assignment.trim())) return errorResult('Each task requires a non-empty assignment');
+			const defaultAgent = args.agent || args.subagent_type;
+			const names = new Set<string>();
+
+			const prepared: Array<{ item: StructuredTask; agentName: string; def: AgentDefinition; childId?: string; jobId: string; prompt: string }> = [];
+			for (const [index, item] of items.entries()) {
+				const agentName = item.agent || defaultAgent;
+				if (!agentName) return errorResult('task requires an agent for every item');
+				if (names.has(agentName + (item.name ?? '')) && item.name) return errorResult(`Duplicate task name: ${item.name}`);
+				if (item.name) names.add(agentName + item.name);
+				const def = getAgentDefinition(agentName);
+				if (!def) return errorResult(`Unknown subagent "${agentName}". Available: ${getSubagents().join(', ')}`);
+				if (def.mode === 'primary') return errorResult(`"${agentName}" is a primary agent, not a subagent. Available: ${getSubagents().join(', ')}`);
+
+				const description = item.description || item.name || `Task ${index + 1}`;
+				const child = sessionStore?.createChild(owner, {
+					title: `${agentName}: ${description}`.slice(0, 80),
+					agent: agentName,
+					model: config.model.id,
+					provider: config.model.provider,
+				});
+				const jobId = child?.id ?? `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+				const prompt = buildTaskPrompt(item, args.context, args.reporting, def.reporting);
+				jobRegistry.create({
+					id: jobId,
+					parentSessionId: owner,
+					...(child ? { childSessionId: child.id } : {}),
+					agent: agentName,
+					description,
+					prompt,
+				});
+				prepared.push({ item, agentName, def, childId: child?.id, jobId, prompt });
+			}
+
+			const session = sessionStore?.get(owner);
+			const cwd = session?.directory || process.cwd();
+			const loadedConfig = loadConfig(cwd);
+			const references = loadedConfig.references;
+			const concurrency = Math.min(16, Math.max(1, loadedConfig.tasks?.maxConcurrency ?? 4));
+			const maxRuntimeMs = loadedConfig.tasks?.maxRuntimeMs;
+			const controllers = new Map<string, AbortController>();
+
+			const runAttempt = async (entry: typeof prepared[number], text: string, resumeMessages?: Message[]): Promise<void> => {
+				const job = jobRegistry.get(entry.jobId);
+				if (!job) return;
+				const generation = jobRegistry.nextGeneration(entry.jobId);
+				if (!jobRegistry.transition(entry.jobId, ['queued', 'paused', 'failed', 'completed'], 'running', { error: undefined })) return;
+
+				const controller = new AbortController();
+				controllers.set(entry.jobId, controller);
+				const tools = filterToolsByAgent(
+					(await import('./index.js')).createAllToolsWithSecurity(security, config, sessionStore, entry.childId ?? entry.jobId),
+					entry.agentName,
+				).filter((tool) => tool.name !== 'propose_skill');
+
+				const deadline = maxRuntimeMs ? setTimeout(() => controller.abort(), maxRuntimeMs) : undefined;
+				let attempt = 0;
+				let result;
+				for (;;) {
+					attempt++;
+					try {
+						result = await runSubagent(
+						createSubagentConfig(config, entry.def, tools, {
+							cwd,
+							sessionStartedAt: session?.created ? new Date(session.created) : undefined,
+							references,
+							sessionId: entry.childId,
+						}, controller.signal, {
+							...(resumeMessages && attempt === 1 ? { resumeMessages } : {}),
+							onAgent: (agent) => setActiveAgent(entry.jobId, agent),
+						}),
+							text,
+						);
+					} catch (error) {
+						clearTimeout(deadline);
+						const message = error instanceof Error ? error.message : String(error);
+						jobRegistry.fail(entry.jobId, generation, message);
+						return;
+					}
+					if (entry.childId && sessionStore) {
+						const startIndex = resumeMessages?.length ?? 0;
+						for (const message of result.messages.slice(startIndex)) sessionStore.addMessage(entry.childId, message);
+					}
+					jobRegistry.update(entry.jobId, { retryAttempts: attempt - 1 });
+					if (!result.error || result.text.trim() || attempt >= 2 || !isRetryable(result.error) || hasCommittedOutput(result.messages)) break;
+					await new Promise<void>((resolve) => setTimeout(resolve, 500));
+				}
+
+				clearTimeout(deadline);
+				clearActiveAgent(entry.jobId);
+				controllers.delete(entry.jobId);
+				const current = jobRegistry.get(entry.jobId);
+				if (!current || current.state === 'cancelled') return;
+				if (result.paused) {
+					jobRegistry.transition(entry.jobId, ['running'], 'paused', { pauseRequested: false });
+					return;
+				}
+				if (current.pauseRequested) {
+					jobRegistry.pauseAtBoundary(entry.jobId, generation);
+					return;
+				}
+				if (result.error && !result.text.trim()) jobRegistry.fail(entry.jobId, generation, result.error);
+				else jobRegistry.complete(entry.jobId, generation, result.text || '(no output)');
+			};
+
+			for (const entry of prepared) {
+				const job = jobRegistry.get(entry.jobId)!;
+				const originalPrompt = entry.prompt;
+				registerJobHandle(entry.jobId, {
+					pause: () => {
+						jobRegistry.pause(entry.jobId);
+						getActiveAgent(entry.jobId)?.requestPause();
+						return true;
+					},
+					cancel: () => {
+						jobRegistry.cancel(entry.jobId);
+						controllers.get(entry.jobId)?.abort();
+						unregisterJobHandle(entry.jobId);
+						return true;
+					},
+					send: (message: string) => {
+						const active = getActiveAgent(entry.jobId);
+						if (active) {
+							active.steer(message);
+							return true;
+						}
+						if (jobRegistry.get(entry.jobId)?.state === 'paused') {
+							void runAttempt(entry, message, childMessages(entry));
+							return true;
+						}
+						return false;
+					},
+					resume: async (instruction?: string) => {
+						const current = jobRegistry.get(entry.jobId);
+						if (current && current.state !== 'paused') return;
+						await runAttempt(entry, instruction?.trim() || 'Continue from where you left off.', childMessages(entry));
+					},
+					restart: async (from) => {
+						const messages = from === 'checkpoint' ? childMessages(entry) : undefined;
+						if (from === 'start') clearChildMessages(entry);
+						await runAttempt(entry, originalPrompt, messages);
+					},
+					currentActivity: () => (getActiveAgent(entry.jobId) ? 'running' : undefined),
+				});
+			}
+
+			function childMessages(entry: typeof prepared[number]): Message[] {
+				if (!entry.childId) return [];
+				const child = sessionStore?.get(entry.childId);
+				return (child?.messages ?? []) as Message[];
+			}
+			function clearChildMessages(entry: typeof prepared[number]): void {
+				if (!entry.childId) return;
+				const child = sessionStore?.get(entry.childId);
+				if (!child) return;
+				child.messages = [];
+				sessionStore?.save(child);
+			}
+
+			if (args.background) {
+				void mapLimit(prepared, concurrency, (entry) => runAttempt(entry, entry.prompt));
+				return textResult(
+					`Started ${prepared.length} background task(s):\n${prepared.map((entry) => `- ${entry.jobId} (${entry.agentName}) ${entry.item.description}`).join('\n')}\nUse the job tool to inspect or wait.`,
+					{ jobs: prepared.map((entry) => entry.jobId) },
 				);
 			}
-			const prompt = combineTaskPrompts(request.tasks, request.context, request.reporting, def.reporting);
 
-
-			try {
-				const { createAllToolsWithSecurity } = await import('./index.js');
-
-				const buildSubTools = (parentId: string | undefined) => {
-					const allTools = createAllToolsWithSecurity(security, config, sessionStore, parentId);
-					// Only the visible primary TUI agent may add reviewable skill proposals.
-					return filterToolsByAgent(allTools, subagent_type).filter((tool) => tool.name !== 'propose_skill');
-				};
-				const configForSession = (tools: NonNullable<SubagentConfig['tools']>, signal?: AbortSignal, childSessionId?: string) => {
-					const session = childSessionId ? sessionStore?.get(childSessionId) : parentSessionId ? sessionStore?.get(parentSessionId) : undefined;
-					const cwd = session?.directory || process.cwd();
-					return createSubagentConfig(config, def, tools, {
-						cwd,
-						sessionStartedAt: session?.created ? new Date(session.created) : undefined,
-						references: loadConfig(cwd).references,
-					}, signal);
-				};
-
-				// ─── Phase 4/5: task_id handling (extend / resume) ─────────────────
-				if (task_id) {
-					const existing = backgroundTasks.get(task_id);
-					if (existing && existing.status === 'running') {
-						// Phase 4: extend — queue new work for a running task
-						if (backgroundTasks.extend(task_id, prompt)) {
-							return textResult(
-								`Extending task ${task_id} with new work. It will run after the current work completes.`,
-							);
-						}
-					} else if (existing && (existing.status === 'completed' || existing.status === 'error')) {
-						if (sessionStore && existing.parentSessionId) {
-							const childData = sessionStore.get(task_id);
-							if (childData) {
-								backgroundTasks.start({
-									id: task_id,
-									parentSessionId: existing.parentSessionId,
-									agentType: subagent_type,
-									description,
-									status: 'running',
-									startedAt: Date.now(),
-									background: false,
-								});
-								const tools = buildSubTools(task_id);
-								const resumeResult = await runSubagent(
-									configForSession(tools, ctx.signal, task_id),
-									prompt,
-								);
-								for (const m of resumeResult.messages) sessionStore.addMessage(task_id, m);
-								backgroundTasks.complete(task_id, resumeResult.text || resumeResult.error || '', resumeResult.messages);
-								const text = resumeResult.text || (resumeResult.error ? `Error: ${resumeResult.error}` : '');
-								return {
-									content: [{ type: 'text' as const, text: text || 'Subagent completed' }],
-									details: { childSessionId: task_id, resumed: true, agentType: subagent_type },
-								};
-							}
-						}
-					}
-				}
-
-				const hasParent = !!(sessionStore && parentSessionId);
-
-				// Helper to create + persist child session, returning its id (or undefined)
-				const createChildSession = (): string | undefined => {
-					if (!sessionStore || !parentSessionId) return undefined;
-					const child = sessionStore.createChild(parentSessionId, {
-						title: `${subagent_type}: ${description}`.slice(0, 80),
-						agent: subagent_type,
-						model: config.model.id,
-						provider: config.model.provider,
-					});
-					return child.id;
-				};
-
-				// Helper that runs runSubagent and persists messages to the child session
-				const runAndPersist = async (childId: string) => {
-					const tools = buildSubTools(childId);
-					const result = await runSubagent(
-						configForSession(tools, ctx.signal, childId),
-						prompt,
-					);
-					if (sessionStore) {
-						for (const m of result.messages) sessionStore.addMessage(childId, m);
-					}
-					return result;
-				};
-
-				// ─── Phase 2: background mode ───────────────────────────────────
-				if (background) {
-					if (!hasParent) {
-						return errorResult('Background tasks require a parent session (no sessionStore/parentSessionId available).');
-					}
-					const childId = createChildSession();
-					if (!childId) return errorResult('Failed to create child session for background task.');
-
-					backgroundTasks.start({
-						id: childId,
-						parentSessionId,
-						agentType: subagent_type,
-						description,
-						status: 'running',
-						startedAt: Date.now(),
-						background: true,
-					});
-
-					// Spawn async — don't await. Drain any queued extensions after completion.
-					(async () => {
-						try {
-							let result = await runAndPersist(childId);
-							let resultText = result.text || result.error || '';
-							const extensions = backgroundTasks.drainExtensions(childId);
-							for (const extPrompt of extensions) {
-								const extTools = buildSubTools(childId);
-								const extResult = await runSubagent(
-									configForSession(extTools, undefined, childId),
-									extPrompt,
-								);
-								if (sessionStore) {
-									for (const m of extResult.messages) sessionStore.addMessage(childId, m);
-								}
-								resultText = extResult.text || extResult.error || resultText;
-								result = extResult;
-							}
-							backgroundTasks.complete(childId, resultText, result.messages);
-						} catch (err) {
-							backgroundTasks.error(childId, err instanceof Error ? err.message : String(err));
-						}
-					})().catch(() => {
-						backgroundTasks.error(childId, 'Unhandled background task error');
-					});
-
-					return {
-						content: [{ type: 'text' as const, text: `Background task started: ${description} (task_id: ${childId})` }],
-						details: { childSessionId: childId, background: true, agentType: subagent_type },
-					};
-				}
-
-				// ─── Phase 1/3: foreground (with optional promotion) ────────────
-				const childId = createChildSession();
-
-				if (!childId) {
-					// No session available — run inline like the legacy path
-					const tools = buildSubTools(undefined);
-					const result = await runSubagent(
-						configForSession(tools, ctx.signal),
-						prompt,
-					);
-					const resultText = (result.text || '').trim();
-					return textResult(resultText || `Subagent @${subagent_type} completed with no text output.`);
-				}
-
-				const childPromise = runAndPersist(childId);
-
-				// Promotion support: if registered in backgroundTasks, race against promotion signal
-				backgroundTasks.start({
-					id: childId,
-					parentSessionId: parentSessionId!,
-					agentType: subagent_type,
-					description,
-					status: 'running',
-					startedAt: Date.now(),
-					background: false,
-				});
-
-				let promotionPromise: Promise<'promoted'> | undefined;
-				let pollInterval: ReturnType<typeof setInterval> | undefined;
-				let cleanupPromotion: (() => void) | undefined;
-
-				const checkPromotion = () =>
-					new Promise<'promoted'>((resolve) => {
-						pollInterval = setInterval(() => {
-							if (backgroundTasks.isPromoted(childId)) {
-								if (pollInterval) clearInterval(pollInterval);
-								resolve('promoted');
-							}
-						}, 100);
-					});
-
-				promotionPromise = checkPromotion();
-				cleanupPromotion = () => {
-					if (pollInterval) clearInterval(pollInterval);
-				};
-
-				const raceOutcome = await Promise.race([
-					childPromise.then(() => 'completed' as const),
-					promotionPromise,
-				]);
-				cleanupPromotion();
-
-				if (raceOutcome === 'promoted') {
-					// Detach to background — let the promise continue, then complete the task registry
-					childPromise
-						.then((res) => {
-							backgroundTasks.complete(childId, res.text || res.error || '', res.messages);
-						})
-						.catch((err) => {
-							backgroundTasks.error(childId, err instanceof Error ? err.message : String(err));
-						});
-					return {
-						content: [{ type: 'text' as const, text: `Moved foreground task to background: ${description} (task_id: ${childId})` }],
-						details: { childSessionId: childId, background: true, promoted: true, agentType: subagent_type },
-					};
-				}
-
-				// Foreground completed normally
-				const result = await childPromise;
-				const resultText = (result.text || '').trim();
-				const errText = result.error;
-				backgroundTasks.complete(childId, resultText || errText || '', result.messages);
-
-				if (result.aborted && ctx.signal?.aborted) {
-					return textResult(`Subagent @${subagent_type} was interrupted.`);
-				}
-				if (errText && !resultText) {
-					return errorResult(`Subagent @${subagent_type} failed: ${errText}`);
-				}
-				return {
-					content: [{ type: 'text' as const, text: resultText || `Subagent @${subagent_type} completed with no text output.` }],
-					details: { childSessionId: childId, agentType: subagent_type },
-				};
-			} catch (err) {
-				if (ctx.signal?.aborted) {
-					return textResult(`Subagent @${subagent_type} was interrupted.`);
-				}
-				return errorResult(`Subagent @${subagent_type} failed: ${err instanceof Error ? err.message : String(err)}`);
-			}
+			await mapLimit(prepared, concurrency, (entry) => runAttempt(entry, entry.prompt));
+			const results = prepared.map((entry) => jobRegistry.get(entry.jobId)).filter((job): job is JobRecord => Boolean(job));
+			const failed = results.filter((job) => job.state === 'failed');
+			const text = results.map((job) => `## ${job.description}\n${job.result ?? job.error ?? '(no output)'}`).join('\n\n');
+			return failed.length > 0 && results.every((job) => job.state === 'failed')
+				? errorResult(text)
+				: textResult(text, { results: results.map((job) => ({ id: job.id, state: job.state, childSessionId: job.childSessionId })) });
 		},
 	};
 }

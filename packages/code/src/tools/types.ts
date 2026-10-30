@@ -21,6 +21,8 @@ export interface SpectraTool<TArgs extends z.ZodType = z.ZodTypeAny> {
 }
 
 export type ToolContext = {
+	/** Owning session id, provided by the agent runtime when available. */
+	sessionId?: string;
 	toolCallId: string;
 	signal?: AbortSignal;
 	onUpdate?: ToolUpdateCallback;

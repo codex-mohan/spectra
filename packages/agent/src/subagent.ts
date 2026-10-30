@@ -17,6 +17,8 @@ export interface SubagentConfig extends AgentConfig {
 	streamOptions?: StreamOptions;
 	convertToLlm?: (messages: Message[]) => Message[] | Promise<Message[]>;
 	maxRetryDelayMs?: number;
+	resumeMessages?: Message[];
+	onAgent?: (agent: Agent) => void;
 }
 
 export interface SubagentResult {
@@ -25,6 +27,7 @@ export interface SubagentResult {
 	messages: Message[];
 	aborted: boolean;
 	error?: string;
+	paused?: boolean;
 }
 
 const ZERO_USAGE: Usage = {
@@ -57,8 +60,14 @@ export async function runSubagent(config: SubagentConfig, prompt: string): Promi
 		contextMessages: config.contextMessages,
 	});
 
+	if (config.resumeMessages && config.resumeMessages.length > 0) {
+		child.restoreHistory(config.resumeMessages);
+	}
+	config.onAgent?.(child);
+
 	const controller = new AbortController();
 	let aborted = false;
+	let paused = false;
 
 	if (config.signal) {
 		if (config.signal.aborted) {
@@ -86,6 +95,7 @@ export async function runSubagent(config: SubagentConfig, prompt: string): Promi
 	try {
 		for await (const event of child.run(prompt, { signal: controller.signal })) {
 			config.onEvent?.(event);
+			if (event.type === 'agent_end' && event.paused) paused = true;
 
 			if (event.type === 'message_end' && event.message.role === 'assistant') {
 				const msg = event.message as AssistantMessage;
@@ -136,6 +146,7 @@ export async function runSubagent(config: SubagentConfig, prompt: string): Promi
 		usage,
 		messages: child.messages,
 		aborted: aborted || budgetExceeded || controller.signal.aborted,
+		...(paused ? { paused: true } : {}),
 		error: budgetExceeded
 			? `Budget exceeded: maxTokens (${budget?.maxTokens}) reached`
 			: childError,

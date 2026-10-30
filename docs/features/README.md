@@ -34,9 +34,9 @@ Rules:
 | Snapshots and revert | [snapshots.md](snapshots.md) | `packages/code/src/services/snapshot-manager.ts` | 0 | documented |
 | Commands and templates | [commands-templates.md](commands-templates.md) | `packages/code/src/command/` | 0 | documented |
 | Skills | [skills.md](skills.md) | `packages/code/src/services/skill-store.ts` | 0 | documented |
-| Subagents | `subagents.md` | `packages/code/src/tools/task.ts` | 4 | planned |
-| Job tool | `job.md` | `packages/code/src/tools/job.ts` (new) | 4 | planned |
-| Agent IRC | `irc.md` | `packages/code/src/tools/irc.ts` (new) | 4 | planned |
+| Subagents | [subagents.md](subagents.md) | `packages/code/src/tools/task.ts` | 4 | documented |
+| Job tool | [job.md](job.md) | `packages/code/src/tools/job.ts` | 4 | documented |
+| Agent IRC | [irc.md](irc.md) | `packages/code/src/tools/irc.ts` | 4 | documented |
 | Model service | [model-service.md](model-service.md) | `packages/code/src/services/model-service.ts` | 0 | documented |
 | Config | [config.md](config.md) | `packages/code/src/services/config.ts` | 0 | documented |
 | Custom providers and auth | [custom-providers.md](custom-providers.md) | `packages/code/src/services/custom-providers.ts`, `auth-store.ts` | 0 | documented |

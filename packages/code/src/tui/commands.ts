@@ -4,7 +4,7 @@ import { getEffortLabel } from './variant-cycle.js';
 import { titlecase } from './utils.js';
 import type { Message } from '@mohanscodex/spectra-ai';
 import { showToast } from './components/toast.js';
-import { backgroundTasks } from '../services/background-tasks.js';
+import { jobRegistry } from '../services/job-registry.js';
 import type { AgentCatalog } from '../agents/index.js';
 import type { TodoPhase, TodoState, TodoStatus, TodoTask } from './types.js';
 import { genId } from './utils.js';
@@ -779,15 +779,15 @@ export function buildCmdItems(opts: {
 			slashName: 'bg',
 			slashAliases: ['background', 'background-tasks'],
 			action: () => {
-				const running = backgroundTasks.getRunningForParent(opts.sessionIdRef.current || '');
-				if (running.length === 0) {
-					showToast('No running background tasks for this session', 'info');
+				const jobs = jobRegistry.forParent(opts.sessionIdRef.current || '')
+					.filter((job) => job.state === 'running' || job.state === 'paused' || job.state === 'queued');
+				if (jobs.length === 0) {
+					showToast('No active jobs for this session', 'info');
 					return;
 				}
-				for (const task of running) {
-					backgroundTasks.promote(task.id);
-				}
-				showToast(`Promoted ${running.length} task(s) to background`, 'success');
+				const summary = jobs.map((job) => `${job.id}:${job.state}`).join(' · ');
+				showToast(summary.slice(0, 120), 'info');
+				showToast('Use the job tool to wait, pause, resume, restart, or cancel', 'info');
 			},
 		},
 		// Memory

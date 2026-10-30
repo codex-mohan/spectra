@@ -22,6 +22,7 @@ import { recordUsageCost } from '../../services/usage-store.js';
 import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 import { formatAttachmentReferences } from '../utils/attachment-reference.js';
 import { getToolStreamingDisplay } from '../../tools/index.js';
+import { autoBackground } from '../../services/auto-background.js';
 import { isRecord, parseToolArguments, toolResultText } from '../live-tool-streaming.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
@@ -262,6 +263,7 @@ Return ONLY the title text, nothing else.`;
 	}
 	const submitPrompt = useCallback(
 		async (payload: PromptSubmitPayload) => {
+			autoBackground.requestPromotion();
 			const { text: trimmed, attachments } = payload;
 			const attachmentReferences = formatAttachmentReferences(attachments);
 			const promptText = [attachmentReferences, trimmed].filter(Boolean).join('\n\n');

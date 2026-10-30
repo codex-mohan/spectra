@@ -77,7 +77,7 @@ import { getToolStats } from '../tools/index.js';
 import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
-import { backgroundTasks } from '../services/background-tasks.js';
+import { jobRegistry } from '../services/job-registry.js';
 import { saveDraft, consumeDraft } from '../services/draft-store.js';
 import { createExitGate, type ExitReason } from './input/exit.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
@@ -118,6 +118,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [cmdSelected, setCmdSelected] = useState(0);
 	const [showThinking, setShowThinking] = useState(true);
 	const [showToolCalls, setShowToolCalls] = useState(true);
+	const [activeJobs, setActiveJobs] = useState(0);
 
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
@@ -387,6 +388,29 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const lspCount = useLspStatus();
 
 
+	useEffect(() => {
+		const deliver = (job: import('../services/job-registry.js').JobRecord) => {
+			if (!jobRegistry.claimDelivery(job.id)) return;
+			sessionManager.current.injectBackgroundResult(
+				job.parentSessionId,
+				job.childSessionId ?? job.id,
+				job.result ?? job.error ?? '',
+				job.agent,
+				job.description,
+			);
+		};
+		const unsubscribe = jobRegistry.onSettled(deliver);
+		for (const job of jobRegistry.undelivered()) deliver(job);
+		const timer = setInterval(() => {
+			const owner = sessionId.current;
+			setActiveJobs(owner ? jobRegistry.forParent(owner).filter((job) => job.state === 'queued' || job.state === 'running' || job.state === 'paused').length : 0);
+		}, 1500);
+		return () => {
+			unsubscribe();
+			clearInterval(timer);
+		};
+	}, []);
+
 	// --- Effects ---
 	useEffect(() => {
 		setTerminalTitle('Spectra');
@@ -449,27 +473,6 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			renderer.off?.('selection', handler);
 		};
 	}, [renderer]);
-
-	// ─── Phase 2/6: background task completion → inject result + toast ───
-	useEffect(() => {
-		const unsub = backgroundTasks.onCompletion((task) => {
-			if (task.status === 'completed') {
-				showToast(`Subagent @${task.agentType} completed: ${task.description}`.slice(0, 100), 'success');
-			} else if (task.status === 'error') {
-				showToast(`Subagent @${task.agentType} failed: ${task.error || 'unknown error'}`.slice(0, 100), 'error');
-			}
-			if (task.background) {
-				sessionManager.current.injectBackgroundResult(
-					task.parentSessionId,
-					task.id,
-					task.result || '',
-					task.agentType,
-					task.description,
-				);
-			}
-		});
-		return unsub;
-	}, []);
 
 	// ─── Child view keyboard handler is registered after switchToChildSession/exitChildView are defined ───
 
@@ -779,8 +782,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			try { await shutdownAllServers(); } catch { /* ignore */ }
 			try { sessionStore.current.close(); } catch { /* ignore */ }
 			try {
-				for (const task of backgroundTasks.getAll()) {
-					if (task.status === 'running' && task.parentSessionId === id) backgroundTasks.cancel(task.id);
+				if (id) {
+					for (const job of jobRegistry.forParent(id)) {
+						if (job.state === 'running' || job.state === 'queued') jobRegistry.pause(job.id);
+					}
 				}
 			} catch { /* ignore */ }
 		})().finally(() => {
@@ -1162,7 +1167,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 								const used = contextBreakdown?.usedTokens ?? tokenUsage.input;
 								if (used <= 0) return '';
 								const window = contextBreakdown?.contextWindow || lookupContextWindow(selectedModel || '', provider);
-								return [fmtCtx(used), window ? `(${Math.round(used / window * 100)}%)` : '', costDisplay].filter(Boolean).join(' ');
+								return [fmtCtx(used), window ? `(${Math.round(used / window * 100)}%)` : '', costDisplay, activeJobs > 0 ? `⚙${activeJobs}` : ''].filter(Boolean).join(' ');
 							})()}
 						/>
 					</box>

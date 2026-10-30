@@ -41,10 +41,21 @@ async function fetchCodexModels(): Promise<FetchModel[]> {
 				contextWindow: typeof model.context_window === 'number' ? model.context_window : undefined,
 			}));
 	} catch (error) {
-		console.warn('Failed to fetch Codex models:', error);
-		return [];
+		console.warn('Failed to fetch Codex models, using bundled fallback:', error);
+		return CODEX_FALLBACK_MODELS;
 	}
 }
+
+const CODEX_FALLBACK_MODELS: FetchModel[] = [
+	{ id: 'gpt-5.5', name: 'GPT-5.5', contextWindow: 272000 },
+	{ id: 'gpt-5.6-luna', name: 'GPT-5.6-Luna', contextWindow: 272000 },
+	{ id: 'gpt-5.6-sol', name: 'GPT-5.6-Sol', contextWindow: 272000 },
+	{ id: 'gpt-5.6-terra', name: 'GPT-5.6-Terra', contextWindow: 272000 },
+	{ id: 'gpt-6-astra', name: 'GPT-6-Astra', contextWindow: 272000 },
+	{ id: 'gpt-6-luna', name: 'GPT-6-Luna', contextWindow: 272000 },
+	{ id: 'gpt-6-sol', name: 'GPT-6-Sol', contextWindow: 272000 },
+	{ id: 'gpt-6.1-sol', name: 'GPT-6.1-Sol', contextWindow: 272000 },
+];
 
 async function fetchOpenRouterModels(): Promise<FetchModel[]> {
 	try {

@@ -15,6 +15,7 @@ export function defineTool<T extends z.ZodType, TDetails = unknown>(schema: {
 			toolCallId: string;
 			signal?: AbortSignal;
 			onUpdate?: ToolUpdateCallback<TDetails>;
+			sessionId?: string;
 		},
 	) => Promise<ToolResult<TDetails>>;
 }): AgentTool<TDetails> {
@@ -40,11 +41,13 @@ export function defineTool<T extends z.ZodType, TDetails = unknown>(schema: {
 			args: Record<string, unknown>,
 			signal?: AbortSignal,
 			onUpdate?: ToolUpdateCallback<TDetails>,
+			context?: { sessionId?: string },
 		) => {
 			return schema.execute(args as z.infer<T>, {
 				toolCallId,
 				signal,
 				onUpdate,
+				...(context?.sessionId ? { sessionId: context.sessionId } : {}),
 			});
 		},
 	};

@@ -111,7 +111,7 @@ export function useAgent(deps: UseAgentDeps) {
 			if (!customCfg && sProvider === 'snowflake-cortex' && cred?.type === 'oauth' && cred.accountId) {
 				resolvedBaseUrl = `https://${cred.accountId}.snowflakecomputing.com/api/v2/cortex/v1`;
 			}
-			const resolvedHeaders = resolveProviderHeaders(sProvider, cred, customCfg?.headers);
+			const resolvedHeaders = resolveProviderHeaders(sProvider, cred, customCfg?.headers, sid);
 
 			const def = getAgentDefinition(sAgent);
 			const manager = initSecurityManager(process.cwd());
@@ -185,6 +185,7 @@ export function useAgent(deps: UseAgentDeps) {
 				model: sModel,
 				provider: sProvider,
 				contextWindow,
+				headers: resolvedHeaders,
 				nonMessageTokens: initialSnapshot.nonMessageTokens,
 			});
 
@@ -318,6 +319,7 @@ export function useAgent(deps: UseAgentDeps) {
 
 			const agent = new Agent({
 				...runtimeConfig,
+				sessionId: sessionKey,
 				getApiKey: (p: string) => getAuthKey(p),
 				transformContext,
 				beforeModelCall,
@@ -454,6 +456,7 @@ export function createSessionFactory(
 	) => {
 		initProviders();
 		const customCfg = customProviders[provider];
+		const resolvedHeaders = resolveProviderHeaders(provider, readCredential(provider), customCfg?.headers, sessionId);
 
 		const def = getAgentDefinition(agentName);
 
@@ -464,7 +467,7 @@ export function createSessionFactory(
 				provider,
 				api: provider,
 				baseUrl: customCfg?.baseUrl,
-				headers: resolveProviderHeaders(provider, readCredential(provider), customCfg?.headers),
+				headers: resolvedHeaders,
 			},
 			getApiKey: (p: string) => getAuthKey(p),
 		};
@@ -524,6 +527,7 @@ export function createSessionFactory(
 				model,
 				provider,
 				contextWindow,
+				headers: resolvedHeaders,
 				nonMessageTokens: initialSnapshot.nonMessageTokens,
 			}),
 			(p: string) => getAuthKey(p),
@@ -541,13 +545,14 @@ export function createSessionFactory(
 
 
 		const agent = new Agent({
+			sessionId,
 			model: {
 				id: model,
 				name: model,
 				provider,
 				api: provider,
 				baseUrl: customCfg?.baseUrl,
-				headers: resolveProviderHeaders(provider, readCredential(provider), customCfg?.headers),
+				headers: resolvedHeaders,
 			},
 			systemPrompt,
 			contextMessages,

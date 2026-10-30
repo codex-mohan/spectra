@@ -145,6 +145,7 @@ export class Agent {
 	private tools = new Map<string, AgentTool>();
 	private listeners: AgentEventListener[] = [];
 	private abortController: AbortController | null = null;
+	private sessionId?: string;
 	private _isStreaming = false;
 	private _streamingMessage?: AssistantMessage;
 	private _pendingToolCalls = new Set<string>();
@@ -167,6 +168,7 @@ export class Agent {
 	private convertToLlmFn?: (messages: Message[]) => Message[] | Promise<Message[]>;
 	private maxRetryDelayMs: number;
 	private retryCount = 0;
+	private pauseRequested = false;
 	private provenanceConfig: ResolvedProvenanceConfig;
 	private onRetryHook?: (context: RetryContext) => RetryDecision | void;
 
@@ -187,6 +189,7 @@ export class Agent {
 		this.maxRetryDelayMs = config.maxRetryDelayMs ?? 30000;
 		this.provenanceConfig = resolveProvenanceConfig(config.provenance);
 		this.onRetryHook = config.onRetry;
+		this.sessionId = config.sessionId;
 		this.replaceRuntimeConfig(config);
 	}
 
@@ -252,6 +255,11 @@ export class Agent {
 		this.abortController?.abort();
 	}
 
+	/** Ask the loop to stop at the next turn boundary (after the active tool finishes). */
+	requestPause(): void {
+		this.pauseRequested = true;
+	}
+
 	reset(): void {
 		this._messages = [];
 		this._isStreaming = false;
@@ -285,6 +293,7 @@ export class Agent {
 		if (this._isStreaming) throw new Error('Agent is already processing a prompt');
 
 		this.abortController = new AbortController();
+		this.pauseRequested = false;
 
 		// Link external signal — aborting it aborts this agent
 		if (options?.signal) {
@@ -438,6 +447,11 @@ export class Agent {
 
 			if (toolCalls.length === 0) {
 				await emit({ type: 'turn_end', message: assistantMessage, toolResults: [] });
+				if (this.pauseRequested) {
+					this.pauseRequested = false;
+					await emit({ type: 'agent_end', messages: this._messages, paused: true });
+					return;
+				}
 				const drained = await this.drainEndOfTurnQueues(emit);
 				if (drained) {
 					turns = 0;
@@ -453,6 +467,11 @@ export class Agent {
 					: await this.executeToolCallsParallel(toolCalls, assistantMessage, emit);
 
 			await emit({ type: 'turn_end', message: assistantMessage, toolResults });
+			if (this.pauseRequested) {
+				this.pauseRequested = false;
+				await emit({ type: 'agent_end', messages: this._messages, paused: true });
+				return;
+			}
 
 			const drained = await this.drainSteeringQueue(emit);
 			if (drained) {
@@ -869,7 +888,7 @@ export class Agent {
 					partialResult: partial,
 				});
 			};
-			toolResult = await tool!.execute(toolCall.id, args, this.abortController?.signal, onUpdate);
+			toolResult = await tool!.execute(toolCall.id, args, this.abortController?.signal, onUpdate, { sessionId: this.sessionId });
 		} catch (err) {
 			toolResult = {
 				content: [{ type: 'text', text: err instanceof Error ? err.message : String(err) }],

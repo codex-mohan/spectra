@@ -69,7 +69,8 @@
 
 ## Limitations
 
-- No PTY, no stdin, no job control, no background execution; long-running interactive commands hang until timeout.
+- No PTY or stdin; interactive commands must complete or be cancelled.
+- A foreground shell call can be promoted to a job when the user sends a message mid-run; the tool returns a job id and the result is delivered later. Promotion is controlled by `tasks.autoBackground.onUserMessage`.
 - On Windows the tool always routes through PowerShell unless the resolved shell is `pwsh`/`powershell`; `cmd.exe` is never used, so cmd built-ins behave differently.
 - stdout and stderr are concatenated rather than interleaved by timestamp, so ordering between the two streams is approximate.
 - A killed process may still produce no exit event; the forced result then lacks the real exit code and may omit output written after the last stream chunk.

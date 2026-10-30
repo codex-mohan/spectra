@@ -25,6 +25,7 @@ export interface AgentTool<TDetails = unknown> {
 		args: Record<string, unknown>,
 		signal?: AbortSignal,
 		onUpdate?: ToolUpdateCallback<TDetails>,
+		context?: { sessionId?: string },
 	) => Promise<ToolResult<TDetails>>;
 }
 
@@ -86,7 +87,7 @@ export interface ProvenanceConfig {
 
 export type AgentEvent =
 	| { type: 'agent_start' }
-	| { type: 'agent_end'; messages: Message[] }
+	| { type: 'agent_end'; messages: Message[]; paused?: boolean }
 	| { type: 'turn_start' }
 	| { type: 'turn_end'; message: AssistantMessage; toolResults: ToolResultMessage[] }
 	| { type: 'message_start'; message: Message }
@@ -143,6 +144,7 @@ export interface BeforeModelCallResult {
 	contextMessages?: readonly ContextMessage[];
 }
 export interface AgentConfig {
+	sessionId?: string;
 	model: Model;
 	systemPrompt?: string;
 	tools?: readonly AgentTool[];

@@ -38,7 +38,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 2 | Web search + shared network egress | M | done | 1 |
 | 3 | LSP tool and edit diagnostics | L | done | 1 |
 | 3.5 | Permission approval model (tiers, modes, scoped grants) | M | done | 2 |
-| 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | planned | 1 |
+| 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | done | 1 |
 | 5 | Settings registry, tabbed UI, config CLI | L | planned | 1 |
 | 6 | Browser automation | L | planned | 5 |
 | 7 | Plugin system | XL | planned | 4, 5 |
@@ -396,6 +396,23 @@ Carried from the earlier plan: classification (retryable vs permanent), replay-s
 10. Tests above.
 
 **Non-goals:** worktree isolation, cross-process job daemon, pausing inside a single tool call.
+
+### Delivered
+
+- `JobRegistry` + `JobStore` (`bun:sqlite`/`better-sqlite3`) with compare-and-set transitions, generations, settlement/delivery/consumption, startup orphan recovery.
+- Auto-background promotion in the tool wrapper with a single-winner token; foreground `task` promotion and shell promotion share `autoBackground`.
+- `task` fan-out: one child and job per item, shared context, reporting precedence, bounded concurrency (`tasks.maxConcurrency`, default 4), wall clock (`tasks.maxRuntimeMs`), one retry for retryable transport errors with no committed output.
+- `job` tool: list/status/probe/transcript/wait/send/pause/resume/restart/cancel, owner scoping, 30 s default / 300 s max wait.
+- `irc` tool: steer running jobs or resume paused ones; inbox delivery.
+- Pause at the agent step boundary via `requestPause`; resume/restart restore child history with generation guards.
+- UI: `/background-tasks` lists active jobs, footer shows `⚙N` active jobs, completion delivery is exactly-once.
+- Tests: transition matrix, generation isolation, delivery claim/consume, orphan recovery, promotion waiter behavior, task prompt contract.
+
+### Remaining limitations
+
+- Auto-background thresholds (`afterMs`, `outputThresholdBytes`) are not implemented; only message-driven promotion is active.
+- Job transcripts are read from the child session store; there is no separate in-memory buffer while running.
+- `wait` polls; no push notification.
 
 ## Phase 5 — Settings registry, tabbed UI, config CLI
 

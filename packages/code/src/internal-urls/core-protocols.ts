@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Message } from '@mohanscodex/spectra-ai';
-import { backgroundTasks } from '../services/background-tasks.js';
+import { jobRegistry } from '../services/job-registry.js';
 import { loadContext } from '../services/context.js';
 import { getMemoryFileSpec, type MemoryTarget } from '../services/memory.js';
 import { loadAllSkills } from '../services/skill-catalog.js';
@@ -156,11 +156,11 @@ export class AgentProtocolHandler implements ProtocolHandler {
 	async resolve(url: InternalUrl, context: ResolveContext): Promise<InternalResource> {
 		const id = resourceName(url);
 		if (!id) throw new Error('agent:// requires a task or child-session ID');
-		const task = backgroundTasks.get(id);
+		const task = jobRegistry.get(id);
 		const session = context.sessionStore?.get(id);
 		if (!task && !session) throw new Error(`Agent output not found: ${id}`);
 		const value: unknown = task
-			? { id: task.id, status: task.status, agentType: task.agentType, description: task.description, result: task.result, error: task.error, messages: task.messages?.map(formatMessage) }
+			? { id: task.id, state: task.state, agent: task.agent, description: task.description, result: task.result, error: task.error }
 			: { id: session!.id, title: session!.title, agent: session!.agent, parentId: session!.parentId, messages: session!.messages.map(formatMessage) };
 		const extraction = resourcePath(url) || url.searchParams.get('q');
 		const selected = extraction ? queryJson(value, extraction) : value;
@@ -168,7 +168,7 @@ export class AgentProtocolHandler implements ProtocolHandler {
 	}
 
 	async complete(_query: string, context: ResolveContext): Promise<UrlCompletion[]> {
-		const ids = new Set(backgroundTasks.getAll().map((task) => task.id));
+		const ids = new Set(jobRegistry.all().map((task) => task.id));
 		for (const session of context.sessionStore?.list(context.cwd) ?? []) {
 			if (session.parentId) ids.add(session.id);
 		}

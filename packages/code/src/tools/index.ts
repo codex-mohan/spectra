@@ -8,7 +8,10 @@ import { globTool } from './glob.js';
 import { createWebFetchTool } from './web-fetch.js';
 import { createWebSearchTool } from './web-search/index.js';
 import { createLspTool, LSP_WRITE_ACTIONS } from './lsp.js';
+import { createJobTool, createIrcTool } from './job.js';
 import { applyLspAfterWrite } from '../lsp/post-write.js';
+import { jobRegistry } from '../services/job-registry.js';
+import { autoBackground } from '../services/auto-background.js';
 import { loadConfig } from '../services/config.js';
 import { memoryTool } from './memory.js';
 import { proposeSkillTool } from './propose-skill.js';
@@ -83,6 +86,8 @@ function approvalTier(toolName: string, action = ''): ApprovalTier {
 		case 'memory':
 		case 'propose_skill':
 		case 'task':
+		case 'job':
+		case 'irc':
 			return 'write';
 		case 'shell':
 		case 'bash':
@@ -181,7 +186,44 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 			}
 		}
 
-		let result = await tool.execute(args, ctx);
+		const backgroundable = (tool.name === 'shell' || tool.name === 'bash')
+			&& Boolean(ctx.sessionId)
+			&& (loadConfig().tasks?.autoBackground?.onUserMessage ?? true);
+
+		let result;
+		if (backgroundable) {
+			const promotion = autoBackground.prepare(ctx.signal);
+			const execution = tool.execute(args, ctx);
+			const outcome = await Promise.race([
+				execution.then((value) => ({ kind: 'done' as const, value })),
+				promotion.promise.then(() => ({ kind: 'promote' as const })),
+			]);
+			promotion.cancel();
+			if (outcome.kind === 'promote') {
+				const jobId = `tool-${ctx.toolCallId}`;
+				jobRegistry.create({
+					id: jobId,
+					parentSessionId: ctx.sessionId!,
+					agent: tool.name,
+					description: String(patterns.toolPatterns[0] ?? tool.name).slice(0, 120),
+					prompt: JSON.stringify(args),
+					state: 'running',
+				});
+				execution.then((value) => {
+					const text = value.content.filter((part) => part.type === 'text').map((part) => part.text).join('\n');
+					jobRegistry.complete(jobId, jobRegistry.get(jobId)?.generation ?? 0, text || (value.isError ? 'Tool failed' : '(no output)'));
+				}).catch((error: unknown) => {
+					jobRegistry.fail(jobId, jobRegistry.get(jobId)?.generation ?? 0, error instanceof Error ? error.message : String(error));
+				});
+				return {
+					content: [{ type: 'text', text: `Backgrounded as job ${jobId}; result will be delivered automatically.` }],
+					details: { jobId, background: true, tool: tool.name },
+				};
+			}
+			result = outcome.value;
+		} else {
+			result = await tool.execute(args, ctx);
+		}
 
 		if (result.isError !== true && (tool.name === 'write' || tool.name === 'edit')) {
 			const target = typeof args?.path === 'string' ? args.path : typeof args?.file_path === 'string' ? args.file_path : undefined;
@@ -368,6 +410,8 @@ export function createAllToolsWithSecurity(
 	if (config) {
 		tools.push(spectraToolToAgentTool(createTaskTool(config, security, sessionStore, parentSessionId), security));
 	}
+	tools.push(spectraToolToAgentTool(createJobTool(sessionStore, parentSessionId), security));
+	tools.push(spectraToolToAgentTool(createIrcTool(parentSessionId), security));
 	tools.push(...createGatedMcpTools(security));
 	return tools;
 }

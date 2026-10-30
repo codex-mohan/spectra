@@ -62,6 +62,18 @@ export interface LspConfig {
 export type ApprovalModeConfig = 'always-ask' | 'write' | 'yolo';
 export type ApprovalPolicyConfig = 'allow' | 'deny' | 'prompt';
 
+export interface AutoBackgroundConfig {
+	onUserMessage?: boolean;
+	afterMs?: number;
+	outputThresholdBytes?: number;
+}
+
+export interface TasksConfig {
+	autoBackground?: AutoBackgroundConfig;
+	maxRuntimeMs?: number;
+	maxConcurrency?: number;
+}
+
 export interface ToolsConfig {
 	webSearch?: WebSearchConfig;
 	lsp?: LspConfig;
@@ -91,6 +103,7 @@ export interface SpectraConfig {
 	commands?: CommandConfig;
 	references?: ProjectReferenceConfig[];
 	tools?: ToolsConfig;
+	tasks?: TasksConfig;
 }
 
 export interface ProjectReferenceConfig {
