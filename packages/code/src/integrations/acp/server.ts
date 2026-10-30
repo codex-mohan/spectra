@@ -1,7 +1,7 @@
 import { createInterface } from 'readline';
 import { Agent, type AgentEvent } from '@mohanscodex/spectra-agent';
 import { initProviders } from '@mohanscodex/spectra-ai';
-import type { Message, AssistantMessage, AssistantMessageEvent } from '@mohanscodex/spectra-ai';
+import type { Message, Model, AssistantMessage, AssistantMessageEvent } from '@mohanscodex/spectra-ai';
 import { loadContext, buildContextMessages, type ContextComposeOptions } from '../../services/context.js';
 import { loadConfig } from '../../services/config.js';
 import { AgentRegistry } from '../../agents/registry.js';
@@ -9,6 +9,7 @@ import { loadAgentCatalog, filterToolsByAgent } from '../../agents/index.js';
 import { createAllToolsWithExtensions } from '../../tools/index.js';
 import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
+import { resolveProviderHeaders } from '../../services/model-service.js';
 import { APP_VERSION } from '../../services/app-version.js';
 
 
@@ -139,25 +140,29 @@ export class ACPAdapter {
 				references: config.references,
 			});
 
+			const getApiKey = (p: string) => {
+				const cred = readAll()[p];
+				return cred?.type === 'api' ? cred.key : undefined;
+			};
+			const credential = readAll()[provider];
+			const model: Model = {
+				id: modelId,
+				name: modelId,
+				provider,
+				api: provider,
+				headers: resolveProviderHeaders(provider, credential, undefined, sessionId),
+			};
+
 			const agent = new Agent({
-				model: { id: modelId, name: modelId, provider, api: provider },
+				model,
 				systemPrompt,
 				contextMessages: buildContextMessages(def.prompt),
-				getApiKey: (p: string) => {
-					const cred = readAll()[p];
-					return cred?.type === 'api' ? cred.key : undefined;
-				},
+				getApiKey,
 				tools: agentTools,
 				maxTurns: def.maxTurns ?? 10,
 			});
 
-			AgentRegistry.setConfig({
-				model: { id: modelId, name: modelId, provider, api: provider },
-				getApiKey: (p: string) => {
-					const cred = readAll()[p];
-					return cred?.type === 'api' ? cred.key : undefined;
-				},
-			});
+			AgentRegistry.setConfig({ model, getApiKey });
 
 			this.sessions.set(sessionId, { id: sessionId, agent });
 			send(req.id!, { sessionId, serverInfo: { name: 'Spectra Code', version: APP_VERSION } });

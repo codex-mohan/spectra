@@ -38,6 +38,15 @@ describe('buildDiscoveryContext', () => {
 			headers: { 'ChatGPT-Account-Id': 'acct-123' },
 		});
 	});
+
+	it('identifies the client on OpenCode gateway discovery without a session id', () => {
+		const cred: Credential = { type: 'api', key: 'go-key' };
+		const ctx = buildDiscoveryContext('opencode-go', cred);
+		expect(ctx).toEqual({
+			apiKey: 'go-key',
+			headers: { 'User-Agent': APP_USER_AGENT },
+		});
+	});
 });
 
 // ── resolveProviderHeaders ──────────────────────────────────────────────────
@@ -160,6 +169,38 @@ describe('resolveProviderHeaders', () => {
 			'x-initiator': 'user',
 			'Openai-Intent': 'conversation-agent',
 		});
+	});
+
+	// ── OpenCode Zen gateway ─────────────────────────────────────────
+
+	it('adds the conversation session id for OpenCode Go', () => {
+		const cred: Credential = { type: 'api', key: 'go-key' };
+		const headers = resolveProviderHeaders('opencode-go', cred, undefined, 'sess-1');
+		expect(headers).toEqual({
+			Authorization: 'Bearer go-key',
+			'User-Agent': APP_USER_AGENT,
+			'x-opencode-session': 'sess-1',
+		});
+	});
+
+	it('adds the conversation session id for OpenCode Zen', () => {
+		const cred: Credential = { type: 'api', key: 'zen-key' };
+		const headers = resolveProviderHeaders('opencode-zen', cred, undefined, 'sess-2');
+		expect(headers!['x-opencode-session']).toBe('sess-2');
+		expect(headers!['User-Agent']).toBe(APP_USER_AGENT);
+	});
+
+	it('identifies the client without a session id for OpenCode', () => {
+		const cred: Credential = { type: 'api', key: 'go-key' };
+		const headers = resolveProviderHeaders('opencode-go', cred);
+		expect(headers!['User-Agent']).toBe(APP_USER_AGENT);
+		expect(headers!['x-opencode-session']).toBeUndefined();
+	});
+
+	it('does not leak the session header to other providers', () => {
+		const cred: Credential = { type: 'api', key: 'sk' };
+		const headers = resolveProviderHeaders('anthropic', cred, undefined, 'sess-1');
+		expect(headers).toEqual({ Authorization: 'Bearer sk' });
 	});
 
 	// ── Existing custom headers preserved ──────────────────────────────

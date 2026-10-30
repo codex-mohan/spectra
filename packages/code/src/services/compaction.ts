@@ -40,6 +40,8 @@ export interface CompactionModelInfo {
 	provider: string;
 	contextWindow?: number;
 	nonMessageTokens?: number;
+	/** Provider request headers (auth/routing) mirrored from the session model. */
+	headers?: Record<string, string>;
 }
 export interface CompactionCallbacks {
 	onCompacted?: (messages: readonly Message[]) => void | Promise<void>;
@@ -325,6 +327,7 @@ export function createTransformContextFn(
 				name: modelInfo.model,
 				provider: modelInfo.provider,
 				api: modelInfo.provider,
+				headers: modelInfo.headers,
 			};
 			const events = stream(
 				model,
