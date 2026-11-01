@@ -445,6 +445,35 @@ async function main() {
 		},
 	);
 
+	// Config commands
+	cli.command(
+		'config <action> [key] [value]',
+		'Inspect and edit configuration',
+		(y) =>
+			y
+				.positional('action', {
+					describe: 'Action to perform',
+					choices: ['list', 'get', 'set', 'reset', 'path'],
+					demandOption: true,
+				})
+				.positional('key', { describe: 'Setting path (dot notation)', type: 'string' })
+				.positional('value', { describe: 'Value for set', type: 'string' })
+				.option('scope', { describe: 'Config scope (global or project)', type: 'string' })
+				.option('json', { describe: 'Emit JSON', type: 'boolean' }),
+		async (argv) => {
+			const { runConfigCommand } = await import('./commands/config.js');
+			const result = runConfigCommand({
+				action: argv.action as 'list' | 'get' | 'set' | 'reset' | 'path',
+				key: argv.key as string | undefined,
+				value: argv.value as string | undefined,
+				scope: argv.scope as string | undefined,
+				json: argv.json as boolean | undefined,
+			});
+			process.stdout.write(`${result.output}\n`);
+			if (result.exitCode !== 0) process.exit(result.exitCode);
+		},
+	);
+
 	// Doctor command
 	cli.command(
 		'doctor',

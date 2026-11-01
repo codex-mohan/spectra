@@ -159,6 +159,7 @@ export default defineConfig({
 						{ text: 'Subagents', link: '/features/subagents' },
 						{ text: 'Job Tool', link: '/features/job' },
 						{ text: 'Agent IRC', link: '/features/irc' },
+						{ text: 'Settings', link: '/features/settings' },
 						{ text: 'MCP Client', link: '/features/mcp-client' },
 						{ text: 'ACP Server', link: '/features/acp-server' },
 						{ text: 'Permissions', link: '/features/permissions' },

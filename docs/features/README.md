@@ -42,7 +42,7 @@ Rules:
 | Custom providers and auth | [custom-providers.md](custom-providers.md) | `packages/code/src/services/custom-providers.ts`, `auth-store.ts` | 0 | documented |
 | TUI shell | [tui-shell.md](tui-shell.md) | `packages/code/src/tui/app.tsx` | 0 | documented |
 | Input lifecycle | [input-lifecycle.md](input-lifecycle.md) | `packages/code/src/tui/hooks/use-app-keyboard.ts` | 1 | documented |
-| Settings | `settings.md` | `packages/code/src/tui/ui/settings/` (new) | 5 | planned |
+| Settings | [settings.md](settings.md) | `packages/code/src/config/registry.ts`, `packages/code/src/tui/ui/settings-dialog.tsx` | 5 | documented |
 | Doctor | [doctor.md](doctor.md) | `packages/code/src/commands/doctor.ts` | 0 | documented |
 | Context compaction | [context-compaction.md](context-compaction.md) | `packages/code/src/services/compaction.ts` | 0 | documented |
 | Todo tool | [todo-tool.md](todo-tool.md) | `packages/code/src/tools/todo.ts` | 0 | documented |

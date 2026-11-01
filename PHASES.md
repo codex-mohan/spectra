@@ -40,7 +40,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 3.5 | Permission approval model (tiers, modes, scoped grants) | M | done | 2 |
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | done | 1 |
 | 4.5 | Loop and output guards: repetition, bloat, identical calls | M | done | 4 |
-| 5 | Settings registry, tabbed UI, config CLI | L | planned | 1 |
+| 5 | Settings registry, tabbed UI, config CLI | L | done | 1 |
 | 6 | Browser automation | L | planned | 5 |
 | 7 | Plugin system | XL | planned | 4, 5 |
 
@@ -487,6 +487,23 @@ Carried from the earlier plan: classification (retryable vs permanent), replay-s
 - No setting remains only in a legacy dialog.
 
 **Non-goals:** YAML migration, profiles, importing other harnesses' settings.
+
+### Delivered
+
+- `config/registry.ts`: 10 tabs, 47 settings, compile-time `SettingPath` checks, typed parsing/validation, defaults, secret and restart flags.
+- Scoped reads (`project > global > default`) and atomic locked writes that re-read before merging; 100 ms `SettingsWriter` debounce.
+- `watchConfigFiles` with 100 ms debounce and last-good behavior on invalid JSON.
+- `spectra config list|get|set|reset|path` with `--scope` and `--json`; secrets masked in `list`.
+- Ten-tab TUI editor (`ui/settings-dialog.tsx`): section labels, fuzzy search across tabs, scope toggle, changed/reset/restart badges, inline editing with validation.
+- Deep links: `/settings` (`/config`), `/theme`, `/permissions`.
+- Legacy controls remain shortcuts, but every config key is editable from the registry-driven editor; no setting is JSON-file-only.
+- Docs: `docs/features/settings.md`, `config.md`; registry/CLI tests.
+
+### Remaining limitations
+
+- Complex arrays/objects are edited as raw JSON rather than structured forms.
+- Theme values persist but the palette is static.
+- Restart badges are advisory.
 
 ---
 

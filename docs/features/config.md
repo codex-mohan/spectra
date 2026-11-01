@@ -5,6 +5,8 @@
 ## Source
 
 - Entry: `packages/code/src/services/config.ts` — `SpectraConfig` shape, `loadConfig`, `saveConfig`, merge rules, per-scope MCP helpers, effective model/provider defaults.
+- Entry: `packages/code/src/config/registry.ts` — settings metadata, typed parsing/validation, atomic scoped writes, watcher (`docs/features/settings.md`).
+- Entry: `packages/code/src/commands/config.ts` — `spectra config list|get|set|reset|path`.
 - Entry: `packages/code/src/utils/paths.ts` — `SPECTRA_HOME` resolution and directory discovery (`getSpectraHomeDir`, `discoverConfigDirs`, `discoverCompatibilityDirs`).
 - Collaborators:
   - `packages/code/src/cli.ts:304,327` — writes the merged config back after `spectra mcp add|remove`.
@@ -18,6 +20,14 @@
 - Enabled by: always; when no file exists `loadConfig` returns `{}` and callers apply defaults.
 - Roots: `SPECTRA_HOME` if set (resolved), else `~/.spectra` (`paths.ts:5-8`). `getGlobalConfigDir`, `getGlobalDataDir`, and `getSpectraHomeDir` all return that same root; cache lives in `<root>/cache`, state in `<root>/state`.
 - Permission profile: read for loading; write for the MCP and permission helpers.
+
+## Settings registry and CLI
+
+- `SETTINGS` enumerates every user-editable path with tab, section, type, default, options, secret/restart flags, and optional validator. Paths are compile-time checked against `SpectraConfig`.
+- `spectra config list` prints effective values with owning scope and masks secrets; `--json` emits the merged config.
+- `spectra config get <path>` reads the effective value; `set` and `reset` write one scope (`--scope global|project`, default global).
+- `/settings` opens the registry-driven TUI editor; edits write the project scope by default and can switch to global with `s`.
+- Writes are atomic (temp + rename) under a lock file and re-read the file first, so disjoint edits survive.
 
 ## Safety settings
 

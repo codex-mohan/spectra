@@ -1498,6 +1498,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			)}
 			{dialogStep?.type === 'settings' && (
 				<SettingsDialog
+					defaultTab={dialogStep.defaultTab}
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}

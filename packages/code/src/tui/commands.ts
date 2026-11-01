@@ -244,7 +244,7 @@ export function buildCmdItems(opts: {
 			| { type: 'usage' }
 			| { type: 'theme' }
 			| { type: 'permissions' }
-			| { type: 'settings' }
+			| { type: 'settings'; defaultTab?: import('../config/registry.js').SettingsTab }
 			| { type: 'memory' }
 			| { type: 'skills'; defaultTab?: 'pending' | 'all' }
 			| null,
@@ -951,7 +951,7 @@ export function buildCmdItems(opts: {
 			cat: 'Config',
 			slashName: 'theme',
 			action: () => {
-				showToast('Theme switching is not implemented yet', 'info');
+				setDialogStep({ type: 'settings', defaultTab: 'appearance' });
 			},
 		},
 		{
@@ -961,7 +961,7 @@ export function buildCmdItems(opts: {
 			cat: 'Config',
 			slashName: 'permissions',
 			action: () => {
-				showToast('Permissions UI is not implemented yet', 'info');
+				setDialogStep({ type: 'settings', defaultTab: 'interaction' });
 			},
 		},
 		{
@@ -970,6 +970,7 @@ export function buildCmdItems(opts: {
 			desc: 'Open settings panel',
 			cat: 'Config',
 			slashName: 'settings',
+			slashAliases: ['config'],
 			action: () => {
 				setDialogStep({ type: 'settings' });
 			},
