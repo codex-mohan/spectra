@@ -128,7 +128,7 @@ async function main() {
 				if (entry.contextWindow) obj.contextWindow = entry.contextWindow;
 				return obj;
 			})
-			.sort((a, b) => a.name.localeCompare(b.name));
+			.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 		sorted[provider] = models;
 	}
 
