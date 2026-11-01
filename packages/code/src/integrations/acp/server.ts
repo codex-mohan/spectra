@@ -11,6 +11,7 @@ import { connectAllServers, shutdownAllServers } from '../mcp/index.js';
 import { readAll } from '../../services/auth-store.js';
 import { resolveProviderHeaders } from '../../services/model-service.js';
 import { APP_VERSION } from '../../services/app-version.js';
+import { safetyUpdate } from './safety.js';
 
 
 export function buildAcpSystemPrompt(cwd?: string, options: Omit<ContextComposeOptions, 'cwd'> = {}): string {
@@ -210,6 +211,10 @@ export class ACPAdapter {
 
 	private emitEvent(sessionId: string, event: AgentEvent): void {
 		switch (event.type) {
+			case 'safety':
+				notify('session/update', safetyUpdate(sessionId, event));
+				break;
+
 			case 'turn_start':
 				notify('session/update', { sessionId, status: 'thinking' });
 				break;

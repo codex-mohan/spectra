@@ -9,6 +9,7 @@ import type {
 	ProviderErrorDetails,
 } from '@mohanscodex/spectra-ai';
 import { normalizeProviderError, stream, EventStream } from '@mohanscodex/spectra-ai';
+import { RepetitionDetector, type RepetitionDetection } from './repetition.js';
 import type {
 	AgentTool,
 	ToolResult,
@@ -171,6 +172,9 @@ export class Agent {
 	private pauseRequested = false;
 	private provenanceConfig: ResolvedProvenanceConfig;
 	private onRetryHook?: (context: RetryContext) => RetryDecision | void;
+	private repetitionDetector?: RepetitionDetector;
+	private repetitionWarnOnly = false;
+	private outputWarnBytes?: number;
 
 	constructor(config: AgentConfig) {
 		this.model = config.model;
@@ -189,6 +193,7 @@ export class Agent {
 		this.maxRetryDelayMs = config.maxRetryDelayMs ?? 30000;
 		this.provenanceConfig = resolveProvenanceConfig(config.provenance);
 		this.onRetryHook = config.onRetry;
+		this.applySafetyConfig(config.safety);
 		this.sessionId = config.sessionId;
 		this.replaceRuntimeConfig(config);
 	}
@@ -648,6 +653,56 @@ export class Agent {
 		await emit({ type: 'audit', eventType, details, timestamp: Date.now() });
 	}
 
+	private async stopForRepetition(
+		partial: AssistantMessage,
+		detection: RepetitionDetection,
+		emit: EmitFn,
+	): Promise<AssistantMessage | null> {
+		const message = `Repetition loop detected in ${detection.kind}: the same ${detection.unit.length}-character unit repeated ${detection.repeats} times.`;
+		await emit({
+			type: 'safety',
+			kind: 'repetition',
+			severity: this.repetitionWarnOnly ? 'warning' : 'interrupt',
+			message,
+			details: {
+				block: detection.kind,
+				repeats: detection.repeats,
+				unitChars: detection.unit.length,
+				unitPreview: detection.unit.slice(0, 200),
+			},
+		});
+		if (this.repetitionWarnOnly) return null;
+
+		const stopped: AssistantMessage = {
+			...partial,
+			content: [...partial.content],
+			stopReason: 'error',
+			errorMessage: message,
+		};
+		this._messages[this._messages.length - 1] = stopped;
+		this._streamingMessage = stopped;
+		await emit({ type: 'message_end', message: stopped });
+		this._streamingMessage = undefined;
+		this.abortController?.abort();
+		return stopped;
+	}
+
+	private async warnOnOutputBloat(toolName: string, result: ToolResult, emit: EmitFn): Promise<void> {
+		if (this.outputWarnBytes === undefined) return;
+		const bytes = Buffer.byteLength(
+			result.content.map((part) => part.type === 'text' ? part.text : '').join('\n'),
+			'utf8',
+		);
+		if (bytes < this.outputWarnBytes) return;
+		await emit({
+			type: 'safety',
+			kind: 'output_bloat',
+			severity: 'warning',
+			message: `${toolName} returned ${Math.round(bytes / 1024)} KiB of text (warning threshold ${Math.round(this.outputWarnBytes / 1024)} KiB).`,
+			details: { toolName, bytes, warnBytes: this.outputWarnBytes },
+		});
+	}
+
 	private async doStream(context: Context, opts: StreamOptions, emit: EmitFn): Promise<AssistantMessage> {
 		let partialMessage: AssistantMessage | null = null;
 		let addedPartial = false;
@@ -659,6 +714,7 @@ export class Agent {
 
 			switch (event.type) {
 				case 'start':
+					this.repetitionDetector?.reset();
 					partialMessage = event.partial;
 					this._streamingMessage = partialMessage;
 					this._messages.push(partialMessage);
@@ -680,6 +736,16 @@ export class Agent {
 						this._messages[this._messages.length - 1] = partialMessage;
 						this._streamingMessage = partialMessage;
 						await emit({ type: 'message_update', message: { ...partialMessage }, assistantMessageEvent: event });
+						if (event.type === 'text_delta' || event.type === 'thinking_delta') {
+							const detection = this.repetitionDetector?.push(
+								event.type === 'text_delta' ? 'text' : 'thinking',
+								event.delta,
+							);
+							if (detection) {
+								const stopped = await this.stopForRepetition(partialMessage, detection, emit);
+								if (stopped) return stopped;
+							}
+						}
 					}
 					break;
 
@@ -974,6 +1040,8 @@ export class Agent {
 			}
 		}
 
+		await this.warnOnOutputBloat(toolCall.name, result, emit);
+
 		const msg: ToolResultMessage = {
 			role: 'toolResult',
 			toolCallId: toolCall.id,
@@ -1006,7 +1074,24 @@ export class Agent {
 		this.toolExecution = config.toolExecution ?? 'parallel';
 		this.streamOptions = config.streamOptions;
 		this.tools = tools;
+		this.applySafetyConfig(config.safety);
 		this._contextMessages = config.contextMessages?.map((m) => ({ ...m }));
+	}
+
+	private applySafetyConfig(safety: AgentConfig['safety']): void {
+		const repetition = safety?.repetition;
+		this.repetitionWarnOnly = repetition === 'warn';
+		if (repetition === false) {
+			this.repetitionDetector = undefined;
+		} else {
+			const options = repetition && typeof repetition === 'object' ? repetition : undefined;
+			this.repetitionDetector = new RepetitionDetector({
+				minRepeats: options?.minRepeats,
+				minUnitChars: options?.minUnitChars,
+			});
+		}
+		const warnBytes = safety?.outputBloat?.warnBytes ?? 50000;
+		this.outputWarnBytes = warnBytes > 0 ? warnBytes : undefined;
 	}
 
 	private createBeforeModelCallContext(context: Context, iteration: number): BeforeModelCallContext {

@@ -34,10 +34,12 @@
 | `config.transformContext` / `beforeModelCall` | hook | no | Rewrite history before a turn; inject messages for one model call. |
 | `config.convertToLlm` | `(messages) => Message[]` | no | Applied immediately before each provider stream call. |
 | `config.getApiKey` | `(provider) => key` | no | Resolved each turn; when omitted, `streamOptions.apiKey` is used, and the provider falls back to its environment lookup. |
+| `config.safety` | `SafetyConfig` | no | Streaming repetition and tool-output warning thresholds. Repetition defaults on; bloat warning defaults to 50 KiB. |
 
 ## Outputs
 
-- `run()` yields `AgentEvent` variants: `agent_start`, `message_start`, `message_update`, `message_end`, `turn_start`, `turn_end`, `tool_execution_start`, `tool_execution_update`, `tool_execution_end`, `audit`, `agent_end`.
+- `run()` yields `AgentEvent` variants: `agent_start`, `message_start`, `message_update`, `message_end`, `turn_start`, `turn_end`, `tool_execution_start`, `tool_execution_update`, `tool_execution_end`, `safety`, `audit`, `agent_end`.
+- `safety` carries `kind` (`repetition` | `output_bloat`), `severity` (`warning` | `interrupt`), a human-readable message, and details.
 - Terminal `agent_end` carries the full `Message[]`; the internal `AgentEventStream` treats it as the completion event (`agent.ts:126-140`).
 - Subscribers registered with `subscribe()` receive the same events; listener exceptions are swallowed so one failing subscriber cannot break the run (`agent.ts:252-262`).
 - Tool results are appended as `ToolResultMessage` (role `toolResult`) with `content`, `details`, `isError`, `timestamp`, optional `provenance`, then emitted as `message_start`/`message_end` before `tool_execution_end` (`agent.ts:929-966`).
@@ -53,6 +55,13 @@
 6. Responses with tool calls run either `executeToolCallsSequential` or `executeToolCallsParallel`; parallel prepares every call (validation + `beforeToolCall`) sequentially, then runs them via `Promise.all` (`agent.ts:716-727`).
 7. Each prepared call emits `tool_execution_start`, executes with the abort signal and an `onUpdate` callback that emits `tool_execution_update`, then finalizes through `afterToolCall` and emits `tool_execution_end` (`agent.ts:757-926`).
 8. After `turn_end`, steering is drained; a non-empty queue resets the turn counter and loops. The `while` condition stops on abort (`agent.ts:341`, `agent.ts:433-440`).
+
+### Safety guards
+
+- **Streaming repetition** (`packages/agent/src/repetition.ts`): each `text_delta`/`thinking_delta` is appended to a bounded 8 KiB per-block tail. A prefix-function scan finds a repeated suffix of at least 4 × 24-character units. Units with no alphabetic content (numeric tables, hexdumps, whitespace) are ignored, and text/thinking never share a tail.
+- `safety.repetition.enabled` defaults to `true`: the turn stops with `stopReason: 'error'` and `errorMessage: 'Repetition loop detected…'`; the provider stream is aborted and the failure is not retried. `'warn'` emits one `safety` warning and lets generation continue. `false` disables the guard.
+- **Output bloat**: after tool hooks, text bytes are measured. At `safety.outputBloat.warnBytes` (default 50000) the loop emits `safety { kind: 'output_bloat', severity: 'warning' }`; the result itself is unchanged. Truncation belongs to the host tool wrapper (`docs/features/tool-registry.md`).
+- Both guards reset per assistant message; repeated text across turns is not treated as a loop.
 
 ## State / persistence
 
@@ -72,6 +81,8 @@
 
 | Condition | Result |
 | --- | --- |
+| Repetition detected (`enabled: true`) | Stream aborted; assistant message ends with `stopReason: 'error'` and the loop error message; exactly one `safety` event. |
+| Repetition detected (`'warn'`) | One `safety` warning; generation continues. |
 | `run()` called while `_isStreaming` | throws `Agent is already processing a prompt`. |
 | Provider throws before streaming | assistant error message pushed with `stopReason: 'error'` or `'aborted'`; `agent_end` emitted. |
 | Provider returns `stopReason` `error`/`aborted` | `_errorMessage` set from `errorMessage` or sanitized details; turn ends. |
@@ -83,6 +94,9 @@
 
 ## Limitations
 
+- Repetition detection is per assistant message; it does not flag a plan restated across turns.
+- Output warnings do not truncate. The host wrapper spills and trims; SDK embedders see the event and decide.
+- No turn-based “no progress” stop: read-only exploration is never interrupted.
 - One run per instance; concurrent prompts require separate `Agent` instances.
 - Abort stops the loop between steps and signals tools, but queued tool executions already started are awaited before the loop observes the stop.
 - The retry loop retries the same prepared context; it does not re-run context hooks, so `beforeModelCall` effects are not refreshed per attempt.
@@ -91,7 +105,10 @@
 
 ## Tests
 
-- `packages/agent/src/__tests__/agent.test.ts` — steering turns, follow-ups deferred until tool work finishes, queue clearing on reset.
+- `packages/agent/src/__tests__/safety.test.ts` — repetition unit matrix, interrupt vs warn, output warning.
+- `packages/code/src/__tests__/output-guard.test.ts` — spill/trim/exempt thresholds.
+- `packages/code/src/security/__tests__/doom-loop.test.ts` — identical-call stop and explicit-allow reset.
+ `packages/agent/src/__tests__/agent.test.ts` — steering turns, follow-ups deferred until tool work finishes, queue clearing on reset.
 - `packages/agent/src/__tests__/agent-edge-cases.test.ts` — maxTurns enforcement, non-retryable errors, abort during run, concurrent-run rejection.
 - `packages/agent/src/__tests__/e2e.test.ts` — event sequencing, parallel and sequential tools, unknown tools, hook and listener failure isolation, provenance/audit behavior.
 - `packages/agent/src/__tests__/agent-runtime-config.test.ts` — runtime reconfiguration, ephemeral context messages, retry without context re-preparation, provider failure metadata.

@@ -44,7 +44,7 @@
 ## Flow
 
 1. `spectraToolToAgentTool(tool, security)` calls `defineTool()`; without a `SecurityManager` the raw `execute` is used unchanged (`tools/index.ts:191-208`).
-2. At call time the wrapper first records the call with the doom-loop detector and returns its message when the loop says stop.
+2. At call time the wrapper records the call with the doom-loop detector. At the configured threshold it either returns the loop message (default) or — with `security.doomLoop.ask: true` — asks for approval, then clears the identical-call count.
 3. `security.extractToolPatterns(name, args)` derives tool and path patterns from the arguments.
 4. Tools in `SKIP_PERMISSION_CHECK` (`todo`, `memory`, `propose_skill`, `task`, `ask`, `web_fetch`) bypass the permission prompt because they touch no filesystem, shell, network, or external resource (`tools/index.ts:60`).
 5. File tools (`read`, `write`, `edit`, `grep`, `glob`, `bash`, `shell`) first request `external_directory` for each external path, then request the tool permission when no path pattern exists.
@@ -52,7 +52,8 @@
 7. `web_fetch` URLs pass through the SSRF guard before execution.
 8. The underlying tool executes; the result is recorded with the doom loop, and `edit`/`patch` successes and failures feed the patch-spiral detector.
 9. Read/write tracking records `capabilities.reads` paths and successful `capabilities.writes` paths.
-10. MCP tools bypass `wrapExecute`, so `createGatedMcpTools()` wraps them with an `mcp` permission check before delegation (`tools/index.ts:257-287`).
+10. `guardToolOutput()` measures text bytes; above `safety.outputBloat.truncateBytes` (default 200000) the full body is written to the artifact store and the inline result is replaced with a 40K head + 40K tail and an `artifact://<id>` marker. `read`/`grep`/`glob` are exempt.
+11. MCP tools bypass `wrapExecute`, so `createGatedMcpTools()` wraps them with an `mcp` permission check before delegation (`tools/index.ts:257-287`).
 
 ## State / persistence
 

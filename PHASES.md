@@ -39,6 +39,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 3 | LSP tool and edit diagnostics | L | done | 1 |
 | 3.5 | Permission approval model (tiers, modes, scoped grants) | M | done | 2 |
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | done | 1 |
+| 4.5 | Loop and output guards: repetition, bloat, identical calls | M | done | 4 |
 | 5 | Settings registry, tabbed UI, config CLI | L | planned | 1 |
 | 6 | Browser automation | L | planned | 5 |
 | 7 | Plugin system | XL | planned | 4, 5 |
@@ -413,6 +414,33 @@ Carried from the earlier plan: classification (retryable vs permanent), replay-s
 - Auto-background thresholds (`afterMs`, `outputThresholdBytes`) are not implemented; only message-driven promotion is active.
 - Job transcripts are read from the child session store; there is no separate in-memory buffer while running.
 - `wait` polls; no push notification.
+
+## Phase 4.5 — Loop and output guards
+
+**Goal:** stop runaway generation and unbounded tool output without imposing progress heuristics on legitimate exploration.
+
+### Delivered
+
+- `packages/agent/src/repetition.ts`: bounded-tail suffix repetition detector (4 × 24-character units, alphabetic content required, text/thinking separated).
+- Agent wiring: interrupt aborts the provider stream, ends the turn with a repetition error, and never retries; `'warn'` emits once and continues. Resets per assistant message.
+- Output warning: tool text ≥ `safety.outputBloat.warnBytes` (default 50000) emits a `safety` event; no behavior change to the result.
+- `security/output-guard.ts`: above `truncateBytes` (default 200000) the host stores the full body via `ArtifactStore`, then trims to 40K head + 40K tail with an `artifact://` marker. `read`/`grep`/`glob` exempt.
+- Existing `DoomLoopDetector`: thresholds configurable; `security.doomLoop.ask` opts into an approval prompt; explicit allow clears the identical-call count.
+- Safety events surfaced in the TUI as toasts and in ACP `session/update` payloads.
+
+### Acceptance
+
+- A repeated fixture stream fires exactly one `safety` event and one `agent_end`; provider called once.
+- Numeric/whitespace runs and cross-block text/thinking never fire.
+- Warn mode leaves the turn successful.
+- Oversized tool output leaves an artifact and a recoverable marker; small output and exempt tools are untouched.
+- No progress heuristic exists; read-only sessions are never paused.
+
+### Tests
+
+`packages/agent/src/__tests__/safety.test.ts`, `packages/code/src/__tests__/output-guard.test.ts`, `packages/code/src/security/__tests__/doom-loop.test.ts`, `packages/code/src/__tests__/acp-safety.test.ts`.
+
+**Non-goals:** no-progress hard stops, convergence enforcement, cross-turn narration detection.
 
 ## Phase 5 — Settings registry, tabbed UI, config CLI
 

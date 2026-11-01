@@ -32,7 +32,8 @@ import type { AgentRegistryConfig } from '../agents/registry.js';
 import { incrementUseCount, getEvolvingSkillId } from '../services/skill-store.js';
 import { loadAllSkills } from '../services/skill-catalog.js';
 import type { SessionStore } from '../services/session-store.js';
-import { dirname, resolve } from 'path';
+import { dirname, join, resolve } from 'path';
+import { guardToolOutput } from '../security/output-guard.js';
 import { fileURLToPath } from 'url';
 
 import { ReadSnapshotStore } from './read-snapshots.js';
@@ -116,7 +117,16 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 
 		const loopResult = doomLoop.recordToolCall(tool.name, args);
 		if (!loopResult.ok) {
-			return { content: [{ type: 'text', text: loopResult.message }], isError: true };
+			if (!loadConfig().security?.doomLoop?.ask) {
+				return { content: [{ type: 'text', text: loopResult.message }], isError: true };
+			}
+			try {
+				await security.checkPermission('doom_loop', [tool.name], tool.name, loopResult.message, { safety: 'prompt' });
+				doomLoop.clearCall(tool.name, args);
+			} catch (err) {
+				const reason = err instanceof Error ? err.message : String(err);
+				return { content: [{ type: 'text', text: `${loopResult.message} (${reason})` }], isError: true };
+			}
 		}
 
 		const patterns = security.extractToolPatterns(tool.name, args);
@@ -284,6 +294,23 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 	};
 }
 
+function withOutputGuard(tool: AgentTool): AgentTool {
+	if (tool.name === 'read' || tool.name === 'grep' || tool.name === 'glob') return tool;
+	const execute = tool.execute;
+	return {
+		...tool,
+		execute: async (toolCallId, args, signal, onUpdate, context) => {
+			const result = await execute(toolCallId, args, signal, onUpdate, context);
+			const bloat = loadConfig().safety?.outputBloat;
+			if (bloat?.truncateBytes === 0) return result;
+			return (await guardToolOutput(tool.name, result, {
+				truncateBytes: bloat?.truncateBytes ?? 200_000,
+				artifactDir: join(process.cwd(), '.spectra', 'artifacts'),
+			})).result;
+		},
+	};
+}
+
 export function spectraToolToAgentTool(specTool: SpectraTool, security?: SecurityManager): AgentTool {
 	const execute = security ? wrapExecute(specTool, security) : specTool.execute;
 
@@ -294,7 +321,15 @@ export function spectraToolToAgentTool(specTool: SpectraTool, security?: Securit
 		parameters: specTool.parameters,
 		promptGuidelines: specTool.promptGuidelines,
 		execute: async (args, ctx) => {
-			return execute(args, ctx);
+			let result = await execute(args, ctx);
+			const bloat = loadConfig().safety?.outputBloat;
+			if (bloat?.truncateBytes !== 0) {
+				result = (await guardToolOutput(specTool.name, result, {
+					truncateBytes: bloat?.truncateBytes ?? 200_000,
+					artifactDir: join(process.cwd(), '.spectra', 'artifacts'),
+				})).result;
+			}
+			return result;
 		},
 	});
 }
@@ -318,10 +353,11 @@ export async function createAllToolsWithMcp(): Promise<{
 		}
 	}
 
+	const guardedMcp = mcp.map(withOutputGuard);
 	return {
 		builtin,
-		mcp,
-		all: [...builtin, ...mcp],
+		mcp: guardedMcp,
+		all: [...builtin, ...guardedMcp],
 	};
 }
 
@@ -355,11 +391,13 @@ export async function createAllToolsWithExtensions(options: { includeSkillPropos
 
 	const custom = await loadCustomTools(process.cwd());
 
+	const guardedMcp = mcp.map(withOutputGuard);
+	const guardedCustom = custom.map(withOutputGuard);
 	return {
 		builtin,
-		mcp,
-		custom,
-		all: [...builtin, ...mcp, ...custom],
+		mcp: guardedMcp,
+		custom: guardedCustom,
+		all: [...builtin, ...guardedMcp, ...guardedCustom],
 	};
 }
 
@@ -390,7 +428,7 @@ function createGatedMcpTools(security: SecurityManager): AgentTool[] {
 			});
 		}
 	}
-	return gated;
+	return gated.map(withOutputGuard);
 }
 
 export function createAllToolsWithSecurity(

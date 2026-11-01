@@ -57,6 +57,15 @@ describe('DoomLoopDetector', () => {
 			expect(stop.action).toBe('stop');
 			expect(stop.message).toContain('Doom loop detected');
 		});
+
+		it('forgets the count after an explicit allow', () => {
+			const detector = new DoomLoopDetector({ writeRepeatThreshold: 2 });
+			const args = { path: 'foo.ts' };
+			detector.recordToolCall('write', args);
+			expect(detector.recordToolCall('write', args).ok).toBe(false);
+			detector.clearCall('write', args);
+			expect(detector.recordToolCall('write', args).ok).toBe(true);
+		});
 	});
 
 	describe('patch spiral warning', () => {

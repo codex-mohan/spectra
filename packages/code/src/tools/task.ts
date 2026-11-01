@@ -131,6 +131,7 @@ function createSubagentConfig(
 		...(signal ? { signal } : {}),
 		...(context.sessionId ? { sessionId: context.sessionId } : {}),
 		getApiKey: config.getApiKey,
+		...(config.safety ? { safety: config.safety } : {}),
 		...extra,
 	};
 }

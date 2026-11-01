@@ -74,6 +74,25 @@ export interface TasksConfig {
 	maxConcurrency?: number;
 }
 
+export interface RepetitionSafetyConfig {
+	/** `false` disables detection, `'warn'` emits without stopping, `true` stops the turn. */
+	enabled?: boolean | 'warn';
+	/** Consecutive identical units required to fire. Default 4. */
+	minRepeats?: number;
+	/** Minimum unit length in characters. Default 24. */
+	minUnitChars?: number;
+}
+
+export interface SafetyConfig {
+	repetition?: boolean | 'warn' | RepetitionSafetyConfig;
+	outputBloat?: {
+		/** Emit a warning when a tool result reaches this many bytes. Default 50000. */
+		warnBytes?: number;
+		/** Spill and trim results above this many bytes. Default 200000; 0 disables. */
+		truncateBytes?: number;
+	};
+}
+
 export interface ToolsConfig {
 	webSearch?: WebSearchConfig;
 	lsp?: LspConfig;
@@ -104,6 +123,7 @@ export interface SpectraConfig {
 	references?: ProjectReferenceConfig[];
 	tools?: ToolsConfig;
 	tasks?: TasksConfig;
+	safety?: SafetyConfig;
 }
 
 export interface ProjectReferenceConfig {

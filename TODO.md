@@ -11,13 +11,9 @@ Automatic context management that summarizes old conversation history when appro
 
 ## 2. Agent loop safety guards
 
-Defensive mechanisms in the agent loop to prevent common failure modes. Based on patterns from OwlCoda's conversation engine.
+Delivered in Phase 4.5 (`PHASES.md`): streaming repetition detection, output-bloat warnings, artifact-backed truncation, configurable identical-call thresholds with an optional ask mode, and `safety` events in the TUI/ACP.
 
-- [ ] Narration loop detection: detect repetitive output patterns (e.g., same sentence repeated 3+ times), interrupt and prompt user
-- [ ] Output bloat detection: warn when single tool output exceeds reasonable size (e.g., 50K chars), offer to truncate
-- [ ] Task no-progress hard stop: if agent makes N turns with no file writes or meaningful progress, pause and ask for direction
-- [ ] Convergence state machine: track whether agent is making forward progress or cycling between states
-- [ ] Surface safety events (interrupt, warning, hard-stop) through the agent event stream so TUI can render them
+Rejected: turn-based no-progress stops and convergence enforcement. Read-only exploration is not a failure signal.
 
 ## 3. Command system: slash invocation, templates, and plugin commands
 

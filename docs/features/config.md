@@ -19,6 +19,22 @@
 - Roots: `SPECTRA_HOME` if set (resolved), else `~/.spectra` (`paths.ts:5-8`). `getGlobalConfigDir`, `getGlobalDataDir`, and `getSpectraHomeDir` all return that same root; cache lives in `<root>/cache`, state in `<root>/state`.
 - Permission profile: read for loading; write for the MCP and permission helpers.
 
+## Safety settings
+
+```jsonc
+{
+  "safety": {
+    "repetition": { "enabled": true, "minRepeats": 4, "minUnitChars": 24 },
+    "outputBloat": { "warnBytes": 50000, "truncateBytes": 200000 }
+  }
+}
+```
+
+- `repetition` accepts `false`, `'warn'`, `true`, or an object with `enabled`, `minRepeats`, `minUnitChars`.
+- `outputBloat.warnBytes` controls the agent's warning event; `truncateBytes` controls the tool wrapper's artifact spill (0 disables). `read`, `grep`, and `glob` are exempt because they already bound output.
+- `security.doomLoop.ask: true` asks before continuing an identical-call loop; default `false` keeps the current block behavior.
+- These keys merge across global and project config like every other setting; no separate env override exists.
+
 ## Inputs
 
 | Field | Type | Required | Description |

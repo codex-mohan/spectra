@@ -61,6 +61,14 @@ export class DoomLoopDetector {
 		return { ok: true };
 	}
 
+	/** Forget the identical-call count after the user explicitly allows a repeat. */
+	clearCall(tool: string, args: Record<string, unknown>): void {
+		const argsKey = JSON.stringify(args);
+		const callKey = `${tool}:${argsKey}`;
+		this.callHistory = this.callHistory.filter((call) => !(call.tool === tool && call.args === argsKey));
+		if (this.lastCallKey === callKey) this.lastCallKey = null;
+	}
+
 	recordToolResult(tool: string, isSuccess: boolean): DoomLoopResult {
 		const writeTools = new Set(['edit', 'write', 'apply_patch', 'bash']);
 

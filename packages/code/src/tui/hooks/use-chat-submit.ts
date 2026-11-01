@@ -497,6 +497,18 @@ Return ONLY the title text, nothing else.`;
 						}
 						persistMessage(runSessionId, ev.message);
 					}
+					if (ev.type === 'safety') {
+						showToast(ev.message, ev.severity === 'warning' ? 'warn' : 'error');
+						if (ev.severity === 'warning') {
+							sessionState.addMessageTo(runSessionId, {
+								id: `safety-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+								role: 'user',
+								content: `[safety] ${ev.message}`,
+								hiddenSystem: true,
+								meta: `Safety: ${ev.kind}`,
+							});
+						}
+					}
 					if (ev.type === 'message_start' && ev.message.role === 'assistant') {
 						partialToolJson.current.clear();
 						const newId = genId();

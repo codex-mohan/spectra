@@ -96,6 +96,13 @@ export type AgentEvent =
 	| { type: 'tool_execution_start'; toolCallId: string; toolName: string; args: unknown }
 	| { type: 'tool_execution_update'; toolCallId: string; toolName: string; args: unknown; partialResult: ToolResult }
 	| { type: 'tool_execution_end'; toolCallId: string; toolName: string; result: ToolResult; isError: boolean }
+	| {
+			type: 'safety';
+			kind: 'repetition' | 'output_bloat';
+			severity: 'warning' | 'interrupt';
+			message: string;
+			details: Record<string, unknown>;
+	  }
 	| { type: 'audit'; eventType: string; details: Record<string, unknown>; timestamp: number };
 
 export type AgentEventListener = (event: AgentEvent, signal?: AbortSignal) => Promise<void> | void;
@@ -130,6 +137,7 @@ export interface AgentRuntimeConfig {
 	toolExecution?: ToolExecutionMode;
 	streamOptions?: StreamOptions;
 	contextMessages?: readonly ContextMessage[];
+	safety?: SafetyConfig;
 }
 export interface BeforeModelCallContext {
 	readonly model: Model;
@@ -143,6 +151,25 @@ export interface BeforeModelCallResult {
 	messages?: Message[];
 	contextMessages?: readonly ContextMessage[];
 }
+export interface RepetitionSafetyConfig {
+	/** `false` disables detection, `'warn'` emits without stopping, `true` stops the turn. */
+	enabled?: boolean | 'warn';
+	/** Consecutive identical units required to fire. Default 4. */
+	minRepeats?: number;
+	/** Minimum unit length in characters. Default 24. */
+	minUnitChars?: number;
+}
+
+export interface OutputBloatSafetyConfig {
+	/** Emit a warning when a tool result reaches this many bytes. Default 50000. */
+	warnBytes?: number;
+}
+
+export interface SafetyConfig {
+	repetition?: boolean | 'warn' | RepetitionSafetyConfig;
+	outputBloat?: OutputBloatSafetyConfig;
+}
+
 export interface AgentConfig {
 	sessionId?: string;
 	model: Model;
@@ -163,4 +190,5 @@ export interface AgentConfig {
 	onRetry?: (context: RetryContext) => RetryDecision | void;
 	provenance?: boolean | ProvenanceConfig;
 	contextMessages?: readonly ContextMessage[];
+	safety?: SafetyConfig;
 }

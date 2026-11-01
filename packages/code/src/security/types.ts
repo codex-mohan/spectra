@@ -49,6 +49,8 @@ export interface SecurityConfig {
 		writeRepeatThreshold?: number;
 		readOnlyRepeatThreshold?: number;
 		patchSpiralThreshold?: number;
+		/** Ask before continuing an identical-call loop instead of blocking. Default false. */
+		ask?: boolean;
 	};
 }
 

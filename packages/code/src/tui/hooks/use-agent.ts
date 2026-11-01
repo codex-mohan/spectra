@@ -126,6 +126,7 @@ export function useAgent(deps: UseAgentDeps) {
 					headers: resolvedHeaders,
 				},
 				getApiKey: (p: string) => getAuthKey(p),
+				safety: loadConfig(process.cwd()).safety,
 			};
 
 			const allTools = createAllToolsWithSecurity(manager, agentConfig, sessionStore.current, sid, requestAsk);
@@ -204,6 +205,7 @@ export function useAgent(deps: UseAgentDeps) {
 				tools: agentTools,
 				maxTurns: def?.maxTurns,
 				contextMessages,
+				safety: loadConfig(sessionStore.current?.get(sid)?.directory || process.cwd()).safety,
 				streamOptions: sThinkingEffort ? { thinkingEffort: sThinkingEffort } : undefined,
 			};
 		},
@@ -217,6 +219,7 @@ export function useAgent(deps: UseAgentDeps) {
 		maxTurns?: number;
 		streamOptions?: unknown;
 		contextMessages?: readonly ContextMessage[];
+		safety?: unknown;
 	}): string {
 		return JSON.stringify({
 			model: config.model,
@@ -225,6 +228,7 @@ export function useAgent(deps: UseAgentDeps) {
 			maxTurns: config.maxTurns,
 			streamOptions: config.streamOptions,
 			contextMessages: config.contextMessages,
+			safety: config.safety,
 		});
 	}
 
@@ -470,6 +474,7 @@ export function createSessionFactory(
 				headers: resolvedHeaders,
 			},
 			getApiKey: (p: string) => getAuthKey(p),
+			safety: loadConfig(process.cwd()).safety,
 		};
 
 		const allTools = createAllToolsWithSecurity(securityManager, agentConfig, undefined, sessionId);
