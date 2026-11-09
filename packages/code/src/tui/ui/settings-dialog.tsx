@@ -6,6 +6,8 @@ import { truncateMenuText } from '../utils/menu-text.js';
 import { hasNerdFont } from '../utils/nerd-font.js';
 import { SettingsWriter, SETTINGS, watchConfigFiles, type SettingScope, type SettingsTab } from '../../config/registry.js';
 import { loadConfig } from '../../services/config.js';
+import { effectiveSettingValue } from '../../config/registry.js';
+import { ModelSwitcher } from './model-switcher.js';
 import {
 	SETTINGS_TAB_META,
 	buildSettingRows,
@@ -25,7 +27,7 @@ interface SettingsDialogProps {
 	onClose: () => void;
 	termWidth: number;
 	termHeight: number;
-	registerHandler?: (fn: (key: any) => void) => void;
+	registerHandler?: (fn: ((key: any) => void) | null) => void;
 	defaultTab?: SettingsTab;
 }
 
@@ -39,6 +41,7 @@ interface EditingState {
 
 type DisplayItem =
 	| { type: 'section'; key: string; label: string; color: string }
+	| { type: 'spacer'; key: string }
 	| { type: 'row'; key: string; row: ReturnType<typeof buildSettingRows>[number]; index: number };
 
 const TYPE_GLYPHS: Record<string, string> = {
@@ -77,6 +80,9 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 	const [selected, setSelected] = useState(0);
 	const [scope, setScope] = useState<SettingScope>('project');
 	const [editing, setEditing] = useState<EditingState | null>(null);
+	const [focus, setFocus] = useState<'tabs' | 'rows'>('rows');
+	const [optionPicker, setOptionPicker] = useState<{ definition: ReturnType<typeof filterSettings>[number]; index: number } | null>(null);
+	const [modelPicker, setModelPicker] = useState(false);
 	const [version, setVersion] = useState(0);
 	const writer = useRef(new SettingsWriter());
 
@@ -111,6 +117,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 				? `${tabMeta(row.definition.tab).label} · ${row.definition.section}`
 				: row.definition.section;
 			if (sectionLabel !== previous) {
+				if (previous) items.push({ type: 'spacer', key: `spacer-${sectionLabel}-${index}` });
 				previous = sectionLabel;
 				items.push({ type: 'section', key: `section-${sectionLabel}-${index}`, label: sectionLabel, color: tabMeta(row.definition.tab).color });
 			}
@@ -123,6 +130,26 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 		const handler = (rawKey: any) => {
 			const key = rawKey && typeof rawKey === 'object' ? rawKey as { name?: string; ctrl?: boolean; meta?: boolean; shift?: boolean } : {};
 			const name = key.name ?? '';
+
+			if (modelPicker) return;
+			if (optionPicker) {
+				const options = optionPicker.definition.options ?? [];
+				if (name === 'escape') { setOptionPicker(null); return; }
+				if (name === 'up') { setOptionPicker({ ...optionPicker, index: (optionPicker.index - 1 + options.length) % options.length }); return; }
+				if (name === 'down') { setOptionPicker({ ...optionPicker, index: (optionPicker.index + 1) % options.length }); return; }
+				if (name === 'return' || name === 'enter') {
+					const value = options[optionPicker.index];
+					const result = commitSetting(optionPicker.definition, String(value), scope);
+					if (result.ok) {
+						setVersion((current) => current + 1);
+						showToast(`Saved ${optionPicker.definition.path} (${scope})`, 'success');
+						setOptionPicker(null);
+					} else {
+						showToast(result.error, 'error');
+					}
+				}
+				return;
+			}
 
 			if (editing) {
 				if (name === 'escape') { setEditing(null); return; }
@@ -156,12 +183,25 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 			}
 
 			if (name === 'escape') { onClose(); return; }
-			if (name === 'tab' || name === 'right') {
-				setTab((current) => nextTab(current, key.shift ? -1 : 1)); setQuery(''); setSelected(0); return;
+			if (name === 'tab') {
+				setTab((current) => nextTab(current, key.shift ? -1 : 1)); setQuery(''); setSelected(0); setFocus('rows'); return;
 			}
-			if (name === 'left') { setTab((current) => nextTab(current, -1)); setQuery(''); setSelected(0); return; }
-			if (name === 'up' && selected > 0) { setSelected(selected - 1); return; }
-			if (name === 'down' && selected < rows.length - 1) { setSelected(selected + 1); return; }
+			if (layout === 'sidebar') {
+				if (name === 'left' && focus === 'rows') { setFocus('tabs'); return; }
+				if (name === 'right' && focus === 'tabs') { setFocus('rows'); return; }
+				if ((name === 'up' || name === 'down') && focus === 'tabs') {
+					setTab((current) => nextTab(current, name === 'up' ? -1 : 1));
+					setQuery('');
+					setSelected(0);
+					return;
+				}
+				if ((name === 'return' || name === 'enter') && focus === 'tabs') { setFocus('rows'); return; }
+			} else {
+				if (name === 'right') { setTab((current) => nextTab(current, 1)); setQuery(''); setSelected(0); return; }
+				if (name === 'left') { setTab((current) => nextTab(current, -1)); setQuery(''); setSelected(0); return; }
+			}
+			if (name === 'up' && selected > 0) { setSelected(selected - 1); setFocus('rows'); return; }
+			if (name === 'down' && selected < rows.length - 1) { setSelected(selected + 1); setFocus('rows'); return; }
 			if (name === 's') { setScope((current) => toggleScope(current)); return; }
 			if (name === 'r') {
 				const row = rows[selected];
@@ -176,11 +216,30 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 			if (name === 'return' || name === 'enter') {
 				const row = rows[selected];
 				if (!row) return;
+				if (row.definition.type === 'boolean') {
+					const next = row.value !== true;
+					const result = commitSetting(row.definition, next ? 'true' : 'false', scope);
+					if (result.ok) {
+						setVersion((current) => current + 1);
+						showToast(`Saved ${row.definition.path} (${scope})`, 'success');
+					} else {
+						showToast(result.error, 'error');
+					}
+					return;
+				}
+				if (row.definition.type === 'enum' && row.definition.options?.length) {
+					setOptionPicker({ definition: row.definition, index: Math.max(0, row.definition.options.indexOf(String(row.value))) });
+					return;
+				}
+				if (row.definition.path === 'model' || row.definition.path === 'provider') {
+					setModelPicker(true);
+					return;
+				}
 				setEditing({ label: row.definition.label, path: row.definition.path, text: row.display === '(unset)' ? '' : row.display, definition: row.definition });
 			}
 		};
 		registerHandler?.(handler);
-	}, [editing, searching, rows, selected, scope, onClose, registerHandler]);
+	}, [editing, searching, rows, selected, scope, onClose, registerHandler, layout, focus, optionPicker, modelPicker]);
 
 	const mw = Math.min(layout === 'sidebar' ? 100 : 92, termWidth - 4);
 	const ml = Math.max(0, Math.floor((termWidth - mw) / 2));
@@ -205,6 +264,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 	const strip = tabStripRange(tabs.map((entry) => entry.label), activeIndex, Math.max(8, mw - 10), mw >= 72);
 
 	const renderRow = (item: DisplayItem) => {
+		if (item.type === 'spacer') return <box key={item.key} height={1} />;
 		if (item.type === 'section') {
 			const ruleWidth = Math.max(0, contentWidth - item.label.length - 5);
 			return (
@@ -325,12 +385,47 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 				<box height={1} paddingX={2} flexDirection="row" justifyContent="space-between" flexShrink={0} overflow="hidden">
 					<text fg={c.dim} overflow="hidden" wrapMode="none" truncate>
 						{mh >= 18
-							? `${glyph('↔', '←→')} tabs · ↑↓ nav · ${glyph('⏎', 'enter')} edit · s scope · r reset · / search · esc close`
+							? layout === 'sidebar'
+								? focus === 'tabs'
+									? '↑↓ tab · → rows · tab cycle · / search · esc close'
+									: '← rail · ↑↓ nav · enter edit · s scope · r reset · / search · esc close'
+								: `←→ tabs · ↑↓ nav · ${glyph('⏎', 'enter')} edit · s scope · r reset · / search · esc close`
 							: `↑↓ nav · enter edit · s scope · esc close`}
 					</text>
 					<text fg={c.dim}>{rows.length} shown</text>
 				</box>
 			</box>
+			{optionPicker && (
+				<box position="absolute" left={Math.max(0, Math.floor((termWidth - Math.min(54, termWidth - 6)) / 2))} top={Math.max(1, Math.floor(termHeight / 3))} width={Math.min(54, termWidth - 6)} height={Math.min(14, (optionPicker.definition.options?.length ?? 0) + 4)} backgroundColor={c.bgCard} border borderColor={accent} flexDirection="column" paddingX={1}>
+					<text fg={accent} attributes={1}>{glyph('\u{f0142}', '›')} {optionPicker.definition.label}</text>
+					{(optionPicker.definition.options ?? []).map((option, index) => (
+						<box key={option} height={1} backgroundColor={index === optionPicker.index ? c.bgSelect : c.bgCard} paddingX={1}>
+							<text fg={index === optionPicker.index ? accent : c.text} wrapMode="none" overflow="hidden">
+								{index === optionPicker.index ? '▸ ' : '  '}{option}
+								{String(option) === String(optionPicker.definition.default) ? '  ●' : ''}
+							</text>
+						</box>
+					))}
+					<text fg={c.dim}>↑↓ choose · enter save · esc cancel</text>
+				</box>
+			)}
+			{modelPicker && (
+				<ModelSwitcher
+					providerId={String(effectiveSettingValue('provider') ?? '')}
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onModelSelected={(modelId, providerId) => {
+						writer.current.stage(scope, 'model', modelId);
+						writer.current.stage(scope, 'provider', providerId);
+						void writer.current.flush();
+						setModelPicker(false);
+						setVersion((current) => current + 1);
+						showToast(`Saved model ${providerId}/${modelId} (${scope})`, 'success');
+					}}
+					onClose={() => setModelPicker(false)}
+					registerHandler={registerHandler ?? (() => {})}
+				/>
+			)}
 		</box>
 	);
 }

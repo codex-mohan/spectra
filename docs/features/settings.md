@@ -35,7 +35,7 @@ The registry covers appearance (`theme`, `logLevel`, `settingsLayout`), model (`
 
 - `SettingsWriter` → atomic writes: read under lock file, merge staged paths, write `<file>.<pid>.<ts>.tmp`, rename over the target.
 - CLI → human lines or JSON; `list` masks secrets and annotates each value with its owning scope (`project`, `global`, `default`).
-- TUI → responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, scope badge (`󰉋 P`/`󰋜 G`/`󰒓 ·`), changed dot, restart badge, section headers, and search.
+- TUI → responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, scope badge (`󰉋 P`/`󰋜 G`/`󰒓 ·`), changed dot, restart badge, section headers, and search. Enum picker and model picker replace raw text editing for those types.
 - Files: `<SPECTRA_HOME>/spectra.json`, `<cwd>/.spectra/spectra.json`.
 
 ## Flow
@@ -44,9 +44,11 @@ The registry covers appearance (`theme`, `logLevel`, `settingsLayout`), model (`
 2. TUI builds rows from the registry, reading project first, then global, then the registry default.
 3. `enter` opens an inline editor; `enter` again validates and writes; invalid values show the error and never touch disk.
 4. `s` toggles the write scope; `r` removes the key from that scope; `/` fuzzy-searches across all ten tabs.
-5. `resolveSettingsLayout` switches between the sidebar and top-tab shells from viewport size and `settingsLayout`; active tab, selection, search, and editor state survive a resize.
-6. `SettingsWriter` coalesces repeated edits for 100 ms per key and flushes once per scope, re-reading the file first so unrelated edits are preserved.
-7. `watchConfigFiles` watches both scope directories with a 100 ms debounce; invalid JSON is reported invalid and the UI keeps its last good rows.
+5. Sidebar navigation is focus-based: `left` focuses the rail, `up/down` change tabs there, `right` returns to rows. Top tabs use `left/right` for tabs and `up/down` for rows. `tab` cycles tabs in both layouts.
+6. Booleans toggle on `enter`; enums open a selection popup; `model`/`provider` open the existing model picker. Numbers, strings, and JSON open the text editor.
+7. `resolveSettingsLayout` switches between the sidebar and top-tab shells from viewport size and `settingsLayout`; active tab, selection, search, and editor state survive a resize.
+8. `SettingsWriter` coalesces repeated edits for 100 ms per key and flushes once per scope, re-reading the file first so unrelated edits are preserved.
+9. `watchConfigFiles` watches both scope directories with a 100 ms debounce; invalid JSON is reported invalid and the UI keeps its last good rows.
 
 ## State / persistence
 
