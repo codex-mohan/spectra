@@ -34,15 +34,24 @@ describe('SettingsDialog', () => {
 	it('renders ten tabs and the appearance settings', () => {
 		const tree = SettingsDialog({ onClose: () => {}, termWidth: 120, termHeight: 40 });
 		const text = collectText(tree).join(' ').replace(/\s+/g, ' ');
-		expect(text).toContain('Settings · Appearance');
+		expect(text).toContain('Settings');
 		expect(text).toContain('Theme');
-		for (const label of ['Appearance', 'Model', 'Interaction', 'Context', 'Memory', 'Files', 'Shell', 'Tools', 'Tasks', 'Providers']) {
+		for (const label of ['Theme', 'Model', 'Interaction', 'Context', 'Memory', 'Files', 'Shell', 'Tools', 'Tasks', 'Providers']) {
 			expect(text).toContain(label);
 		}
 	});
 
-	it('opens on a deep-linked tab', () => {
+	it('opens on a deep-linked tab in sidebar layout', () => {
 		const tree = SettingsDialog({ onClose: () => {}, termWidth: 120, termHeight: 40, defaultTab: 'tools' });
-		expect(collectText(tree).join(' ').replace(/\s+/g, ' ')).toContain('Settings · Tools');
+		const text = collectText(tree).join(' ').replace(/\s+/g, ' ');
+		expect(text).toContain('Settings');
+		expect(text).toContain('Tools');
+	});
+
+	it('uses top tabs on a narrow viewport', () => {
+		const tree = SettingsDialog({ onClose: () => {}, termWidth: 70, termHeight: 18, defaultTab: 'model' });
+		const text = collectText(tree).join(' ').replace(/\s+/g, ' ');
+		expect(text).toContain('Model');
+		expect(text).toContain('Settings');
 	});
 });

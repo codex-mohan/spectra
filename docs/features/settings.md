@@ -29,13 +29,13 @@
 | `scope` | `global \| project` | no | CLI option (`--scope`); TUI toggles with `s`; default `global` for CLI, `project` for the TUI |
 | `json` | boolean | no | CLI `--json` output |
 
-The registry covers appearance (`theme`, `logLevel`), model (`model`, `smallModel`, `provider`, `apiKey`), interaction (`agent`, approval mode/policy, permission rules), context (`safety.*`), memory (`memory.*`, deprecated `skills.*`), files (`security.writeGuard*`, blocked/allowed paths, references), shell (`shell`, `commands.shellExecution`), tools (web search, LSP, SSRF, doom loop), tasks (auto-background, concurrency, runtime), and providers (`providers`, `mcp`, `plugins`).
+The registry covers appearance (`theme`, `logLevel`, `settingsLayout`), model (`model`, `smallModel`, `provider`, `apiKey`), interaction (`agent`, approval mode/policy, permission rules), context (`safety.*`), memory (`memory.*`, deprecated `skills.*`), files (`security.writeGuard*`, blocked/allowed paths, references), shell (`shell`, `commands.shellExecution`), tools (web search, LSP, SSRF, doom loop), tasks (auto-background, concurrency, runtime), and providers (`providers`, `mcp`, `plugins`).
 
 ## Outputs
 
 - `SettingsWriter` → atomic writes: read under lock file, merge staged paths, write `<file>.<pid>.<ts>.tmp`, rename over the target.
 - CLI → human lines or JSON; `list` masks secrets and annotates each value with its owning scope (`project`, `global`, `default`).
-- TUI → editable rows with scope badge (`P`/`G`/`·`), changed (`*`) badge, restart badge, section labels, and search.
+- TUI → responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, scope badge (`󰉋 P`/`󰋜 G`/`󰒓 ·`), changed dot, restart badge, section headers, and search.
 - Files: `<SPECTRA_HOME>/spectra.json`, `<cwd>/.spectra/spectra.json`.
 
 ## Flow
@@ -44,8 +44,9 @@ The registry covers appearance (`theme`, `logLevel`), model (`model`, `smallMode
 2. TUI builds rows from the registry, reading project first, then global, then the registry default.
 3. `enter` opens an inline editor; `enter` again validates and writes; invalid values show the error and never touch disk.
 4. `s` toggles the write scope; `r` removes the key from that scope; `/` fuzzy-searches across all ten tabs.
-5. `SettingsWriter` coalesces repeated edits for 100 ms per key and flushes once per scope, re-reading the file first so unrelated edits are preserved.
-6. `watchConfigFiles` watches both scope directories with a 100 ms debounce; invalid JSON is reported invalid and the UI keeps its last good rows.
+5. `resolveSettingsLayout` switches between the sidebar and top-tab shells from viewport size and `settingsLayout`; active tab, selection, search, and editor state survive a resize.
+6. `SettingsWriter` coalesces repeated edits for 100 ms per key and flushes once per scope, re-reading the file first so unrelated edits are preserved.
+7. `watchConfigFiles` watches both scope directories with a 100 ms debounce; invalid JSON is reported invalid and the UI keeps its last good rows.
 
 ## State / persistence
 
@@ -77,11 +78,13 @@ The registry covers appearance (`theme`, `logLevel`), model (`model`, `smallMode
 - No profiles, no YAML migration, no ancestor discovery beyond the existing config loader.
 - `theme` persists but the palette is currently static.
 - Restart badges are advisory; services that cache configuration are not hot-restarted.
+- Sidebar needs at least 88×20; smaller terminals use the scrollable top-tab layout.
 - Interprocess locking is best-effort (lock file with a short retry window).
 
 ## Tests
 
-- `packages/code/src/config/__tests__/registry.test.ts` — registry invariants, scope routing, invalid-write rejection, debounce/preservation, secret masking, navigation/search, CLI actions, watcher.
+- `packages/code/src/config/__tests__/registry.test.ts` — registry invariants, scope routing, invalid-write rejection, debounce/preservation, secret masking, navigation/search, layout breakpoints, tab-strip windowing, CLI actions, watcher.
+- `packages/code/src/__tests__/settings-dialog-render.test.tsx` — sidebar and narrow top-tab render smoke.
 
 ## Related
 

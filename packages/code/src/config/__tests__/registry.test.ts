@@ -16,7 +16,7 @@ import {
 	watchConfigFiles,
 	writeSetting,
 } from '../registry.js';
-import { commitSetting, filterSettings, nextTab, scopeBadge } from '../../tui/ui/settings-state.js';
+import { commitSetting, filterSettings, nextTab, resolveSettingsLayout, scopeBadge, tabStripRange } from '../../tui/ui/settings-state.js';
 import { runConfigCommand } from '../../commands/config.js';
 
 let home: string;
@@ -105,6 +105,26 @@ describe('settings navigation', () => {
 		expect(nextTab('appearance', -1)).toBe('providers');
 		expect(scopeBadge('project')).toBe('P');
 		expect(scopeBadge('default')).toBe('·');
+	});
+
+	it('chooses a layout from viewport dimensions', () => {
+		expect(resolveSettingsLayout(120, 30)).toBe('sidebar');
+		expect(resolveSettingsLayout(90, 21)).toBe('sidebar');
+		expect(resolveSettingsLayout(80, 24)).toBe('tabs');
+		expect(resolveSettingsLayout(140, 16)).toBe('tabs');
+		expect(resolveSettingsLayout(70, 40)).toBe('tabs');
+		expect(resolveSettingsLayout(70, 40, 'sidebar')).toBe('tabs');
+		expect(resolveSettingsLayout(120, 30, 'tabs')).toBe('tabs');
+	});
+
+	it('keeps the active tab inside the visible strip window', () => {
+		const labels = ['Theme', 'Model', 'Interaction', 'Context', 'Memory', 'Files', 'Shell', 'Tools', 'Tasks', 'Providers'];
+		const range = tabStripRange(labels, 8, 40, false);
+		expect(range.start).toBeLessThanOrEqual(8);
+		expect(range.end).toBeGreaterThan(8);
+		expect(range.hasRight).toBe(true);
+		const start = tabStripRange(labels, 0, 40, true);
+		expect(start.start).toBe(0);
 	});
 
 	it('searches across tabs by subsequence', () => {

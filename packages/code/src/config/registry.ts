@@ -76,6 +76,16 @@ export const SETTINGS: readonly SettingDefinition[] = [
 		options: themeOptions,
 	},
 	{
+		path: 'settingsLayout',
+		type: 'enum',
+		tab: 'appearance',
+		section: 'Interface',
+		label: 'Settings layout',
+		description: 'auto picks sidebar for large terminals and top tabs otherwise',
+		default: 'auto',
+		options: ['auto', 'sidebar', 'tabs'],
+	},
+	{
 		path: 'logLevel',
 		type: 'enum',
 		tab: 'appearance',

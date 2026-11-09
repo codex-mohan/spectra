@@ -121,6 +121,7 @@ export interface SpectraConfig {
 	apiKey?: string;
 	agent?: string;
 	theme?: 'dark' | 'light';
+	settingsLayout?: 'auto' | 'sidebar' | 'tabs';
 	mcp?: McpConfig[];
 	plugins?: PluginConfig[];
 	permission?: PermissionConfig;

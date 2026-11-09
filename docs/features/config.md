@@ -26,7 +26,7 @@
 - `SETTINGS` enumerates every user-editable path with tab, section, type, default, options, secret/restart flags, and optional validator. Paths are compile-time checked against `SpectraConfig`.
 - `spectra config list` prints effective values with owning scope and masks secrets; `--json` emits the merged config.
 - `spectra config get <path>` reads the effective value; `set` and `reset` write one scope (`--scope global|project`, default global).
-- `/settings` opens the registry-driven TUI editor; edits write the project scope by default and can switch to global with `s`.
+- `/settings` opens the registry-driven TUI editor (responsive sidebar or top tabs); edits write the project scope by default and can switch to global with `s`. `settingsLayout` can force `auto`, `sidebar`, or `tabs`.
 - Writes are atomic (temp + rename) under a lock file and re-read the file first, so disjoint edits survive.
 
 ## Browser settings
