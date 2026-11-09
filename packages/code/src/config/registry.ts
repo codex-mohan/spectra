@@ -143,8 +143,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
 		tab: 'interaction',
 		section: 'Approval',
 		label: 'Approval mode',
-		description: 'Default approval policy for tool calls',
-		default: 'write',
+		description: 'Default approval policy: yolo auto-approves read/write/exec/network; critical shell blocks still apply',
+		default: 'yolo',
 		options: accessModeOptions,
 	},
 	{

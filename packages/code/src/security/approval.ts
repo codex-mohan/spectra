@@ -25,7 +25,7 @@ export interface ApprovalResult {
 	target?: string;
 }
 
-const DEFAULT_MODE: ApprovalMode = 'write';
+const DEFAULT_MODE: ApprovalMode = 'yolo';
 
 export function approvalModeFromConfig(value: unknown): ApprovalMode {
 	return value === 'always-ask' || value === 'write' || value === 'yolo' ? value : DEFAULT_MODE;

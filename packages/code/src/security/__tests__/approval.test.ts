@@ -7,6 +7,12 @@ function manager(mode: 'always-ask' | 'write' | 'yolo', extra: Parameters<typeof
 }
 
 describe('approval modes', () => {
+	it('defaults to yolo and still blocks critical shell patterns', async () => {
+		const security = createSecurityManager({ cwd: process.cwd() });
+		await expect(security.checkPermission('shell', ['echo hi'], 'shell', '', { tier: 'exec' })).resolves.toBeUndefined();
+		await expect(security.checkPermission('shell', ['rm -rf /*'], 'shell', '', { tier: 'exec' })).rejects.toThrow('Permission denied');
+	});
+
 	it('write mode allows read and write without a listener', async () => {
 		const security = manager('write');
 		await expect(security.checkPermission('read', ['a.ts'], 'read', '', { tier: 'read' })).resolves.toBeUndefined();

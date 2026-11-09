@@ -22,7 +22,7 @@
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `tools.approvalMode` | `always-ask \| write \| yolo` | Default `write`. |
+| `tools.approvalMode` | `always-ask \| write \| yolo` | Default `yolo`. |
 | `tools.approval.<tool>` | `allow \| deny \| prompt` | Per-tool override. `shell` aliases `bash`; `lsp_write` falls back to `lsp`. |
 | `permission` | map of tool → pattern → action | Map form; evaluated before the rule array. |
 | `permissions` | array of `{ name, pattern, allow }` | Rule-array form; also honored, evaluated after the map. |
@@ -33,7 +33,8 @@ Mode matrix:
 | Mode | Auto-approves | Prompts |
 | --- | --- | --- |
 | `always-ask` | read | write, exec, network |
-| `write` (default) | read, write | exec, network |
+| `write` | read, write | exec, network |
+| `yolo` (default) | read, write, exec, network | none; critical shell patterns still deny |
 | `yolo` | all tiers | nothing except explicit denies and safety overrides |
 
 ## Outputs
