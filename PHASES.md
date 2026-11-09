@@ -41,7 +41,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 4 | Subagent lifecycle: fan-out, background, steer, pause/resume/restart | L | done | 1 |
 | 4.5 | Loop and output guards: repetition, bloat, identical calls | M | done | 4 |
 | 5 | Settings registry, tabbed UI, config CLI | L | done | 1 |
-| 6 | Browser automation | L | planned | 5 |
+| 6 | Browser automation | L | done | 5 |
 | 7 | Plugin system | XL | planned | 4, 5 |
 
 Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (permission/settings surface). Phase 7 needs 4 (job lifecycle) and 5 (settings contributions).
@@ -551,6 +551,22 @@ Carried from the earlier plan: classification (retryable vs permanent), replay-s
 - Session close closes owned tabs only.
 
 **Non-goals:** relay, Tern/cmux, desktop computer-use, downloads, PDF.
+
+### Delivered
+
+- `puppeteer-core@25.16.0`; Chromium resolution via `SPECTRA_CHROME_PATH`, `browser.executablePath`, Chrome, Edge, then OS paths; optional CDP attach.
+- `BrowserManager`: one managed process, per-session browser contexts, named tabs, single-flight launch, crash recycle, idle close, session/app shutdown, temporary profile cleanup.
+- `BrowserTab`: numeric observe refs stored in page JS, navigation invalidation, click/type/extract/wait/screenshot, CDP lifecycle freeze.
+- 8 tools: open, observe, click, type, extract, wait, screenshot, close.
+- Host allowlist + SSRF on navigation and intercepted requests; `browser` permission with hostname patterns.
+- Screenshots saved to artifacts and returned as capped model images; TUI renders tool images.
+- `browser.*` settings (enabled, executable, CDP URL, headless, idle close, timeout, allowed domains, screenshot dir, persistent profile).
+- Tests for network policy, executable resolution, tab refs/invalidation, manager lifecycle, tool gates; real local Chromium smoke.
+
+### Remaining limitations
+
+- Relay/Tern/cmux, downloads, PDF, and persistent auth profiles are out of scope.
+- Allowlist is request filtering, not an OS sandbox.
 
 ---
 

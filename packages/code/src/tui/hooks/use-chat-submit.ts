@@ -23,6 +23,7 @@ import type { ContextUsageSnapshot } from '../../services/context-usage.js';
 import { formatAttachmentReferences } from '../utils/attachment-reference.js';
 import { getToolStreamingDisplay } from '../../tools/index.js';
 import { autoBackground } from '../../services/auto-background.js';
+import { browserManager } from '../../browser/manager.js';
 import { isRecord, parseToolArguments, toolResultText } from '../live-tool-streaming.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
@@ -668,6 +669,16 @@ Return ONLY the title text, nothing else.`;
 						const args = toolArgsMap.current.get(ev.toolCallId) || {};
 						const resultDetails = isRecord(ev.result?.details) ? ev.result.details : {};
 						const toolOutput = toolResultText(ev.result?.content).trim();
+						const images = Array.isArray(ev.result?.content)
+							? ev.result.content
+								.filter((block: unknown): block is { type: 'image'; data: string; mimeType: string } => (
+									typeof block === 'object' && block !== null
+									&& (block as { type?: string }).type === 'image'
+									&& typeof (block as { data?: unknown }).data === 'string'
+									&& typeof (block as { mimeType?: unknown }).mimeType === 'string'
+								))
+								.map((block: { type: 'image'; data: string; mimeType: string }) => ({ mimeType: block.mimeType, data: block.data }))
+							: [];
 						const toolMsg: Message = {
 							role: 'toolResult',
 							toolCallId: ev.toolCallId,
@@ -701,10 +712,12 @@ Return ONLY the title text, nothing else.`;
 								childSessionId,
 								background: isBackground,
 								todoState,
+								...(images.length > 0 ? { images } : {}),
 							});
 						}
 					}
 					if (ev.type === 'agent_end') {
+						void browserManager.freezeSession(runSessionId);
 						const errMsg = agent.errorMessage;
 						if (errMsg) {
 							sessionState.setStatusIn(runSessionId, 'Error');

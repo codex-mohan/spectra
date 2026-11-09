@@ -156,6 +156,7 @@ export class ACPAdapter {
 
 			const agent = new Agent({
 				model,
+				sessionId,
 				systemPrompt,
 				contextMessages: buildContextMessages(def.prompt),
 				getApiKey,

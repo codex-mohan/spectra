@@ -78,6 +78,7 @@ import { useSessionState } from './hooks/use-session-state.js';
 import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 import { jobRegistry } from '../services/job-registry.js';
+import { browserManager } from '../browser/manager.js';
 import { saveDraft, consumeDraft } from '../services/draft-store.js';
 import { createExitGate, type ExitReason } from './input/exit.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
@@ -383,6 +384,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const agentAccentColor = resolveAgentAccentColor(agentCatalog.definitions[selectedAgent]?.color);
 	const mcpCount = useMemo(() => listConnectedServers().length, [dialogStep]);
 	const customProviderCount = Object.keys(customProviders).length;
+
+	useEffect(() => () => {
+		void browserManager.closeAll();
+	}, []);
 
 	const { status: gitStatus } = useGitStatus(process.cwd(), isLoading);
 	const lspCount = useLspStatus();

@@ -73,7 +73,9 @@ describe('Custom Tools', () => {
 	it('merges into createAllToolsWithExtensions', async () => {
 		const { createAllToolsWithExtensions } = await import('../tools/index.js');
 		const result = await createAllToolsWithExtensions();
-		expect(result.builtin).toHaveLength((await import('../tools/index.js')).builtinTools.length);
+		const { builtinTools } = await import('../tools/index.js');
+		const { createBrowserTools } = await import('../tools/browser.js');
+		expect(result.builtin).toHaveLength(builtinTools.length + createBrowserTools().length);
 		expect(Array.isArray(result.custom)).toBe(true);
 		expect(result.all.length).toBeGreaterThanOrEqual(result.builtin.length);
 	}, 15_000);

@@ -83,6 +83,18 @@ export interface RepetitionSafetyConfig {
 	minUnitChars?: number;
 }
 
+export interface BrowserConfig {
+	enabled?: boolean;
+	executablePath?: string;
+	cdpUrl?: string;
+	headless?: boolean;
+	idleCloseSec?: number;
+	timeoutMs?: number;
+	allowedDomains?: string[];
+	screenshotDir?: string;
+	persistProfile?: boolean;
+}
+
 export interface SafetyConfig {
 	repetition?: boolean | 'warn' | RepetitionSafetyConfig;
 	outputBloat?: {
@@ -124,6 +136,7 @@ export interface SpectraConfig {
 	tools?: ToolsConfig;
 	tasks?: TasksConfig;
 	safety?: SafetyConfig;
+	browser?: BrowserConfig;
 }
 
 export interface ProjectReferenceConfig {

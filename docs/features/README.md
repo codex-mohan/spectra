@@ -26,7 +26,7 @@ Rules:
 | Web fetch | [web-fetch.md](web-fetch.md) | `packages/code/src/tools/web-fetch.ts` | 0 | documented |
 | Web search | [web-search.md](web-search.md) | `packages/code/src/tools/web-search/` | 2 | documented |
 | LSP | [lsp.md](lsp.md) | `packages/code/src/lsp/`, `packages/code/src/tools/lsp.ts` | 3 | documented |
-| Browser | `browser.md` | `packages/code/src/browser/` (new) | 6 | planned |
+| Browser | [browser.md](browser.md) | `packages/code/src/browser/`, `packages/code/src/tools/browser.ts` | 6 | documented |
 | MCP client | [mcp-client.md](mcp-client.md) | `packages/code/src/integrations/mcp/` | 0 | documented |
 | ACP server | [acp-server.md](acp-server.md) | `packages/code/src/integrations/acp/server.ts` | 0 | documented |
 | Permissions and security | [permissions.md](permissions.md) | `packages/code/src/security/` | 0 | documented |

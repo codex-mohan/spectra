@@ -29,6 +29,29 @@
 - `/settings` opens the registry-driven TUI editor; edits write the project scope by default and can switch to global with `s`.
 - Writes are atomic (temp + rename) under a lock file and re-read the file first, so disjoint edits survive.
 
+## Browser settings
+
+```jsonc
+{
+  "browser": {
+    "enabled": true,
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "cdpUrl": "",
+    "headless": true,
+    "idleCloseSec": 1800,
+    "timeoutMs": 30000,
+    "allowedDomains": ["example.com", "*.example.com"],
+    "screenshotDir": "",
+    "persistProfile": false
+  }
+}
+```
+
+- `executablePath` falls back to `SPECTRA_CHROME_PATH`, Chrome, then Edge.
+- `cdpUrl` attaches to an existing browser instead of launching.
+- `allowedDomains` is a request allowlist; an empty list permits public hosts subject to SSRF blocking.
+- See [Browser](browser.md) for lifecycle and tool contracts.
+
 ## Safety settings
 
 ```jsonc

@@ -17,6 +17,7 @@ import type { AssistantMessage, Context, Message, ContextMessage } from '@mohans
 import { Agent } from '@mohanscodex/spectra-agent';
 import type { AgentTool, BeforeModelCallContext } from '@mohanscodex/spectra-agent';
 import { createAllToolsWithSecurity, discoverAndCreateSkillTools } from '../../tools/index.js';
+import { browserManager } from '../../browser/manager.js';
 import type { AskHandler } from '../../tools/ask.js';
 import { buildContextMessages, loadContext } from '../../services/context.js';
 import {
@@ -381,6 +382,7 @@ export function useAgent(deps: UseAgentDeps) {
 	}, []);
 
 	const removeSessionAgent = useCallback((sessionId: string) => {
+		void browserManager.closeSession(sessionId);
 		const key = `${sessionId}:session`;
 		const agent = agentsMapRef.current.get(key);
 		if (agent) {

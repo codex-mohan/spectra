@@ -86,4 +86,6 @@ export interface ChatMessage {
 	background?: boolean;
 	/** Hierarchical todo state rendered inline for todo tool results */
 	todoState?: TodoState;
+	/** Images returned by a tool (browser screenshots). */
+	images?: Array<{ mimeType: string; data: string }>;
 }

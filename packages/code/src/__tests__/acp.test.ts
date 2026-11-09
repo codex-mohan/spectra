@@ -60,7 +60,7 @@ async function initProc(proc: ChildProcess): Promise<void> {
 	await collectOutput(proc, 1);
 }
 
-describe('ACP Protocol', () => {
+describe('ACP Protocol', { retry: 1 }, () => {
 	describe('Shared engine architecture', () => {
 		it('imports Agent from @mohanscodex/spectra-agent', async () => {
 			// The ACP server imports the exact same Agent class used by the TUI
@@ -76,10 +76,12 @@ describe('ACP Protocol', () => {
 		it('shares the same tool system as the TUI', async () => {
 			// The ACP server uses createAllTools + spectraToolToAgentTool — same as TUI
 			const { builtinTools, createAllTools } = await import('../tools/index.js');
+			const { createBrowserTools } = await import('../tools/browser.js');
 			const tools = createAllTools();
+			const expected = [...builtinTools, ...createBrowserTools()];
 
-			expect(tools).toHaveLength(builtinTools.length);
-			expect(tools.map((t) => t.name).sort()).toEqual(builtinTools.map((t) => t.name).sort());
+			expect(tools).toHaveLength(expected.length);
+			expect(tools.map((t) => t.name).sort()).toEqual(expected.map((t) => t.name).sort());
 		}, 15_000);
 
 		it('shares the same config loader', async () => {

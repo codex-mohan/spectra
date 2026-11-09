@@ -1414,6 +1414,16 @@ export function renderMessageView({
 				status={toolError ? 'error' : 'success'}
 			>
 				<TruncatedContent text={output} maxLines={MAX_GENERIC_LINES} color={toolError ? c.error : undefined} />
+				{msg.images?.map((image, index) => (
+					<box key={`tool-image-${index}`} marginTop={1} width={48} height={16}>
+						<image
+							source={Buffer.from(image.data, 'base64')}
+							width={48}
+							height={16}
+							fit="fit"
+						/>
+					</box>
+				))}
 			</BlockTool>
 		);
 	}

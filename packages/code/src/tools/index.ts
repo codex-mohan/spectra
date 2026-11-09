@@ -9,6 +9,7 @@ import { createWebFetchTool } from './web-fetch.js';
 import { createWebSearchTool } from './web-search/index.js';
 import { createLspTool, LSP_WRITE_ACTIONS } from './lsp.js';
 import { createJobTool, createIrcTool } from './job.js';
+import { createBrowserTools } from './browser.js';
 import { applyLspAfterWrite } from '../lsp/post-write.js';
 import { jobRegistry } from '../services/job-registry.js';
 import { autoBackground } from '../services/auto-background.js';
@@ -96,6 +97,15 @@ function approvalTier(toolName: string, action = ''): ApprovalTier {
 		case 'web_fetch':
 		case 'web_search':
 			return 'network';
+		case 'browser_open':
+		case 'browser_observe':
+		case 'browser_click':
+		case 'browser_type':
+		case 'browser_extract':
+		case 'browser_wait':
+		case 'browser_screenshot':
+		case 'browser_close':
+			return 'network';
 		default:
 			return 'exec';
 	}
@@ -153,16 +163,19 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 			}
 		}
 
-		const targets = tool.name === 'lsp'
-			? [action || 'lsp']
-			: patterns.pathPatterns.length > 0 ? patterns.pathPatterns : patterns.toolPatterns;
-		try {
-			await security.checkPermission(permission, targets, tool.name, detail, { tier });
-		} catch (err) {
-			if (err instanceof PermissionDeniedError) {
-				return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
+		const browserTool = tool.name.startsWith('browser_');
+		if (!browserTool) {
+			const targets = tool.name === 'lsp'
+				? [action || 'lsp']
+				: patterns.pathPatterns.length > 0 ? patterns.pathPatterns : patterns.toolPatterns;
+			try {
+				await security.checkPermission(permission, targets, tool.name, detail, { tier });
+			} catch (err) {
+				if (err instanceof PermissionDeniedError) {
+					return { content: [{ type: 'text', text: `Permission denied: ${err.message}` }], isError: true };
+				}
+				throw err;
 			}
-			throw err;
 		}
 
 		for (const pathPattern of patterns.pathPatterns) {
@@ -335,7 +348,7 @@ export function spectraToolToAgentTool(specTool: SpectraTool, security?: Securit
 }
 
 export function createAllTools(): SpectraTool[] {
-	return [...builtinTools];
+	return [...builtinTools, ...createBrowserTools()];
 }
 
 export async function createAllToolsWithMcp(): Promise<{
@@ -364,10 +377,11 @@ export async function createAllToolsWithMcp(): Promise<{
 export function getToolStats(): { builtin: number; mcp: number; total: number } {
 	const connected = listConnectedServers();
 	const mcpCount = connected.reduce((sum, s) => sum + s.tools.length, 0);
+	const browserCount = createBrowserTools().length;
 	return {
-		builtin: builtinTools.length,
+		builtin: builtinTools.length + browserCount,
 		mcp: mcpCount,
-		total: builtinTools.length + mcpCount,
+		total: builtinTools.length + browserCount + mcpCount,
 	};
 }
 
@@ -377,9 +391,12 @@ export async function createAllToolsWithExtensions(options: { includeSkillPropos
 	custom: AgentTool[];
 	all: AgentTool[];
 }> {
-	const builtin = builtinTools
-		.filter((tool) => options.includeSkillProposal !== false || tool.name !== 'propose_skill')
-		.map((tool) => spectraToolToAgentTool(tool));
+	const builtin = [
+		...builtinTools
+			.filter((tool) => options.includeSkillProposal !== false || tool.name !== 'propose_skill')
+			.map((tool) => spectraToolToAgentTool(tool)),
+		...createBrowserTools().map((tool) => spectraToolToAgentTool(tool)),
+	];
 
 	const connected = listConnectedServers();
 	const mcp: AgentTool[] = [];
@@ -450,6 +467,7 @@ export function createAllToolsWithSecurity(
 	}
 	tools.push(spectraToolToAgentTool(createJobTool(sessionStore, parentSessionId), security));
 	tools.push(spectraToolToAgentTool(createIrcTool(parentSessionId), security));
+	tools.push(...createBrowserTools({ security }).map((tool) => spectraToolToAgentTool(tool, security)));
 	tools.push(...createGatedMcpTools(security));
 	return tools;
 }
