@@ -3,6 +3,7 @@ import { createRoot } from '@opentui/react';
 import { parsers } from './parsers-config.js';
 import { App } from './app.js';
 import { initTuiStyles } from './theme.js';
+import { pluginHost } from '../plugins/host.js';
 
 export interface TuiOptions {
 	sessionId?: string;
@@ -28,6 +29,7 @@ export async function launchTui(_options: TuiOptions = {}): Promise<void> {
 	addDefaultParsers(parsers);
 
 	try {
+		await pluginHost.initialize(process.cwd());
 		const renderer = await createCliRenderer({
 			exitOnCtrlC: false,
 			targetFps: 30,

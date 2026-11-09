@@ -138,6 +138,7 @@ export interface SpectraConfig {
 	tasks?: TasksConfig;
 	safety?: SafetyConfig;
 	browser?: BrowserConfig;
+	pluginSettings?: Record<string, Record<string, unknown>>;
 }
 
 export interface ProjectReferenceConfig {
@@ -183,6 +184,7 @@ export interface PluginConfig {
 	name: string;
 	path?: string;
 	enabled?: boolean;
+	config?: Record<string, unknown>;
 }
 
 export interface PermissionRule {

@@ -461,6 +461,8 @@ async function main() {
 				.option('scope', { describe: 'Config scope (global or project)', type: 'string' })
 				.option('json', { describe: 'Emit JSON', type: 'boolean' }),
 		async (argv) => {
+			const { pluginHost } = await import('./plugins/host.js');
+			await pluginHost.initialize(process.cwd());
 			const { runConfigCommand } = await import('./commands/config.js');
 			const result = runConfigCommand({
 				action: argv.action as 'list' | 'get' | 'set' | 'reset' | 'path',

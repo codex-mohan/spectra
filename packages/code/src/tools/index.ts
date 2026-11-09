@@ -10,6 +10,7 @@ import { createWebSearchTool } from './web-search/index.js';
 import { createLspTool, LSP_WRITE_ACTIONS } from './lsp.js';
 import { createJobTool, createIrcTool } from './job.js';
 import { createBrowserTools } from './browser.js';
+import { pluginHost } from '../plugins/host.js';
 import { applyLspAfterWrite } from '../lsp/post-write.js';
 import { jobRegistry } from '../services/job-registry.js';
 import { autoBackground } from '../services/auto-background.js';
@@ -143,7 +144,11 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 
 		const action = typeof args?.action === 'string' ? args.action : '';
 		const lspWrite = tool.name === 'lsp' && LSP_WRITE_ACTIONS.has(action);
-		const permission = tool.name === 'lsp' ? (lspWrite ? 'lsp_write' : 'lsp') : tool.name;
+		const browserTool = tool.name.startsWith('browser_');
+		const permission = tool.name === 'lsp'
+			? (lspWrite ? 'lsp_write' : 'lsp')
+			: browserTool ? 'browser'
+			: tool.permission ?? tool.name;
 		const tier = approvalTier(tool.name, action);
 		const file = typeof args?.file === 'string' ? args.file : undefined;
 		const symbol = typeof args?.symbol === 'string' ? args.symbol : undefined;
@@ -163,7 +168,6 @@ function wrapExecute(tool: SpectraTool, security: SecurityManager): SpectraTool[
 			}
 		}
 
-		const browserTool = tool.name.startsWith('browser_');
 		if (!browserTool) {
 			const targets = tool.name === 'lsp'
 				? [action || 'lsp']
@@ -334,7 +338,18 @@ export function spectraToolToAgentTool(specTool: SpectraTool, security?: Securit
 		parameters: specTool.parameters,
 		promptGuidelines: specTool.promptGuidelines,
 		execute: async (args, ctx) => {
+			const before = await pluginHost.runToolBefore({ toolName: specTool.name, args: args as Record<string, unknown>, sessionId: ctx.sessionId });
+			if (before.block) {
+				return { content: [{ type: 'text', text: before.reason ?? `Blocked by plugin hook: ${specTool.name}` }], isError: true };
+			}
 			let result = await execute(args, ctx);
+			const after = await pluginHost.runToolAfter({
+				toolName: specTool.name,
+				args: args as Record<string, unknown>,
+				sessionId: ctx.sessionId,
+				result: { content: result.content as unknown as Array<{ type: string; [key: string]: unknown }>, isError: result.isError },
+			});
+			if (after) result = { ...result, content: after.content as unknown as typeof result.content, isError: after.isError ?? result.isError };
 			const bloat = loadConfig().safety?.outputBloat;
 			if (bloat?.truncateBytes !== 0) {
 				result = (await guardToolOutput(specTool.name, result, {
@@ -348,7 +363,7 @@ export function spectraToolToAgentTool(specTool: SpectraTool, security?: Securit
 }
 
 export function createAllTools(): SpectraTool[] {
-	return [...builtinTools, ...createBrowserTools()];
+	return [...builtinTools, ...createBrowserTools(), ...pluginHost.tools()];
 }
 
 export async function createAllToolsWithMcp(): Promise<{
@@ -391,11 +406,13 @@ export async function createAllToolsWithExtensions(options: { includeSkillPropos
 	custom: AgentTool[];
 	all: AgentTool[];
 }> {
+	await pluginHost.initialize(process.cwd());
 	const builtin = [
 		...builtinTools
 			.filter((tool) => options.includeSkillProposal !== false || tool.name !== 'propose_skill')
 			.map((tool) => spectraToolToAgentTool(tool)),
 		...createBrowserTools().map((tool) => spectraToolToAgentTool(tool)),
+		...pluginHost.tools().map((tool) => spectraToolToAgentTool(tool)),
 	];
 
 	const connected = listConnectedServers();
@@ -468,6 +485,7 @@ export function createAllToolsWithSecurity(
 	tools.push(spectraToolToAgentTool(createJobTool(sessionStore, parentSessionId), security));
 	tools.push(spectraToolToAgentTool(createIrcTool(parentSessionId), security));
 	tools.push(...createBrowserTools({ security }).map((tool) => spectraToolToAgentTool(tool, security)));
+	tools.push(...pluginHost.tools().map((tool) => spectraToolToAgentTool(tool, security)));
 	tools.push(...createGatedMcpTools(security));
 	return tools;
 }

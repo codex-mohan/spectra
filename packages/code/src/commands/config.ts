@@ -1,7 +1,7 @@
 import { loadConfig, type SpectraConfig } from '../services/config.js';
 import {
-	SETTINGS,
-	SETTINGS_BY_PATH,
+	getAllSettings,
+	getSettingByPath,
 	configPath,
 	effectiveSettingValue,
 	findSettingScope,
@@ -75,7 +75,7 @@ export function runConfigCommand(options: ConfigCommandOptions, cwd: string = pr
 			return { exitCode: 0, output: JSON.stringify(maskSecrets(loadConfig(cwd)), null, 2) };
 		}
 		const lines: string[] = [];
-		for (const definition of SETTINGS) {
+		for (const definition of getAllSettings()) {
 			const value = effectiveSettingValue(definition.path, cwd);
 			const owner = findSettingScope(definition.path, cwd);
 			const display = definition.secret && value !== undefined ? '••••' : formatSettingValue(value);
@@ -87,7 +87,7 @@ export function runConfigCommand(options: ConfigCommandOptions, cwd: string = pr
 	if (!options.key) return { exitCode: 1, output: `config ${options.action} requires a key` };
 	const key = options.key;
 	if (!isSettingPath(key)) return { exitCode: 1, output: `Unknown setting "${key}". Run "spectra config list".` };
-	const definition = SETTINGS_BY_PATH.get(key)!;
+	const definition = getSettingByPath(key)!;
 
 	if (options.action === 'get') {
 		const value = resolveValue(key, cwd);

@@ -9,6 +9,7 @@ import {
 import { getEnvironmentPrompt, getSystemPrompt } from '../utils/platform.js';
 import type { ProjectReferenceConfig } from './config.js';
 import type { ContextMessage } from '@mohanscodex/spectra-ai';
+import { pluginHost } from '../plugins/host.js';
 
 const DEFAULT_MAX_IMPORT_DEPTH = 5;
 const DEFAULT_MAX_FILE_CHARS = 1_000_000;
@@ -76,7 +77,8 @@ export function composeContext(options: ContextComposeOptions = {}): ContextResu
 		: '';
 	const referencePrompt = renderReferences(options.references ?? [], cwd, diagnostics);
 	const renderedSources = sources.map(renderSource);
-	const sections = [baseSystemPrompt, environment, referencePrompt, ...renderedSources].filter(Boolean);
+	const pluginSections = pluginHost.promptSections().map((section) => section.text).filter(Boolean);
+	const sections = [baseSystemPrompt, environment, referencePrompt, ...pluginSections, ...renderedSources].filter(Boolean);
 	const systemPrompt = sections.join('\n\n');
 	return {
 		systemPrompt,

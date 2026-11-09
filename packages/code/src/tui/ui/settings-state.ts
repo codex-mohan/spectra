@@ -1,7 +1,7 @@
 import { c } from '../tokens.js';
 import { hasNerdFont } from '../utils/nerd-font.js';
 import {
-	SETTINGS,
+	getAllSettings,
 	SETTINGS_TABS,
 	effectiveSettingValue,
 	findSettingScope,
@@ -121,8 +121,8 @@ export function fuzzyMatch(query: string, text: string): boolean {
 
 export function filterSettings(query: string, tab: SettingsTab): SettingDefinition[] {
 	const trimmed = query.trim();
-	if (!trimmed) return SETTINGS.filter((entry) => entry.tab === tab);
-	return SETTINGS.filter((entry) => fuzzyMatch(trimmed, [
+	if (!trimmed) return getAllSettings().filter((entry) => entry.tab === tab);
+	return getAllSettings().filter((entry) => fuzzyMatch(trimmed, [
 		entry.path,
 		entry.label,
 		entry.description,

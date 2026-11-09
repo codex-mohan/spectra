@@ -24,6 +24,7 @@ import { formatAttachmentReferences } from '../utils/attachment-reference.js';
 import { getToolStreamingDisplay } from '../../tools/index.js';
 import { autoBackground } from '../../services/auto-background.js';
 import { browserManager } from '../../browser/manager.js';
+import { pluginHost } from '../../plugins/host.js';
 import { isRecord, parseToolArguments, toolResultText } from '../live-tool-streaming.js';
 
 type SessionState = ReturnType<typeof useSessionState>;
@@ -719,6 +720,7 @@ Return ONLY the title text, nothing else.`;
 					if (ev.type === 'agent_end') {
 						void browserManager.freezeSession(runSessionId);
 						const errMsg = agent.errorMessage;
+						void pluginHost.runTurnEnd(runSessionId, errMsg);
 						if (errMsg) {
 							sessionState.setStatusIn(runSessionId, 'Error');
 							if (currentTurnMsgIdRef.current) {

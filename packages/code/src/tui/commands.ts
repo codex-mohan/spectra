@@ -245,6 +245,7 @@ export function buildCmdItems(opts: {
 			| { type: 'theme' }
 			| { type: 'permissions' }
 			| { type: 'settings'; defaultTab?: import('../config/registry.js').SettingsTab }
+			| { type: 'plugins' }
 			| { type: 'memory' }
 			| { type: 'skills'; defaultTab?: 'pending' | 'all' }
 			| null,
@@ -962,6 +963,17 @@ export function buildCmdItems(opts: {
 			slashName: 'permissions',
 			action: () => {
 				setDialogStep({ type: 'settings', defaultTab: 'interaction' });
+			},
+		},
+		{
+			id: 'plugins',
+			label: 'Plugins',
+			desc: 'Manage local plugins',
+			cat: 'Config',
+			slashName: 'plugins',
+			slashAliases: ['plugin'],
+			action: () => {
+				setDialogStep({ type: 'plugins' });
 			},
 		},
 		{

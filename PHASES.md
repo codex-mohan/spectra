@@ -42,7 +42,7 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 4.5 | Loop and output guards: repetition, bloat, identical calls | M | done | 4 |
 | 5 | Settings registry, tabbed UI, config CLI | L | done | 1 |
 | 6 | Browser automation | L | done | 5 |
-| 7 | Plugin system | XL | planned | 4, 5 |
+| 7 | Plugin system | XL | done (MVP) | 4, 5 |
 
 Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (permission/settings surface). Phase 7 needs 4 (job lifecycle) and 5 (settings contributions).
 
@@ -608,6 +608,24 @@ Carried from the earlier plan: classification (retryable vs permanent), replay-s
 - Plugin tools appear under the plugin name in permissions/settings.
 
 **Non-goals:** marketplace, remote install, Rust parity, sandboxing beyond the documented trust model.
+
+### Delivered (MVP)
+
+- Runtime kernel: disposables, typed service keys, plugin manifests, effects, hook bus, activation timeout.
+- Local discovery from `.spectra/plugins`, global plugins dir, and `plugins[]` config entries.
+- Contributions: tools, commands, prompt sections, settings entries, and 7 hook points.
+- Plugin tools use `plugin:<id>` permission identity and pass through the existing security wrapper.
+- Dynamic plugin settings under `pluginSettings`, rendered by the registry-driven settings UI and CLI.
+- `/plugins` manager: list active/failed/disabled, toggle enable, reload.
+- Session start/end and turn-end hook integration; command pre-execute gate.
+- Tests for discovery, contributions, unload/reload, settings, hook blocking, and throwing-plugin isolation.
+
+### Deferred to a later phase
+
+- Full Cordis-style dependency graph/invalidation, generated hook catalog, dispatch modes.
+- Arbitrary UI slots/components and browser halves.
+- Marketplace/remote install, capability enforcement, dynamic sandbox.
+- Migrating all built-ins into plugin packages.
 
 ---
 

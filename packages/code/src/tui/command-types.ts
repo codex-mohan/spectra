@@ -18,6 +18,7 @@ import {
 	type DispatcherResult,
 } from '../command/index.js';
 import { BUILTIN_TEMPLATE_COMMANDS } from '../command/index.js';
+import { pluginHost } from '../plugins/host.js';
 
 // ---------------------------------------------------------------------------
 // Re-export domain types for TUI consumers
@@ -101,6 +102,13 @@ export async function dispatchCommand(
 	resolved: ResolvedCommand,
 	ctx: CommandRunContext,
 ): Promise<DispatcherResult> {
+	const blocked = await pluginHost.runCommandBefore({ name: resolved.definition.name, args: ctx.args });
+	if (blocked.block) {
+		return {
+			ok: false,
+			actions: [{ type: 'show_toast', message: blocked.reason ?? `Command ${resolved.definition.name} blocked by plugin`, variant: 'warn' }],
+		};
+	}
 	const domainCtx: CommandContext = { source: ctx.source, args: ctx.args, invocation: resolved.invocation };
 	return dispatch(resolved, domainCtx);
 }

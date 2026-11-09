@@ -568,14 +568,30 @@ export const SETTINGS: readonly SettingDefinition[] = [
 	},
 ];
 
+let externalSettings: SettingDefinition[] = [];
+
 export const SETTINGS_BY_PATH = new Map(SETTINGS.map((entry) => [entry.path, entry]));
+
+/** Plugin-contributed settings replace as one atomic snapshot. */
+export function setExternalSettings(entries: readonly SettingDefinition[]): void {
+	externalSettings = [...entries];
+	for (const entry of entries) SETTINGS_BY_PATH.set(entry.path, entry);
+}
+
+export function getAllSettings(): readonly SettingDefinition[] {
+	return [...SETTINGS, ...externalSettings];
+}
+
+export function getSettingByPath(path: string): SettingDefinition | undefined {
+	return SETTINGS_BY_PATH.get(path as SettingPath);
+}
 
 export function isSettingPath(path: string): path is SettingPath {
 	return SETTINGS_BY_PATH.has(path as SettingPath);
 }
 
 export function settingsForTab(tab: SettingsTab): SettingDefinition[] {
-	return SETTINGS.filter((entry) => entry.tab === tab);
+	return getAllSettings().filter((entry) => entry.tab === tab);
 }
 
 export function sectionsForTab(tab: SettingsTab): string[] {

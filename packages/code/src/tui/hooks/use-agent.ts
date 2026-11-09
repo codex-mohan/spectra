@@ -18,6 +18,7 @@ import { Agent } from '@mohanscodex/spectra-agent';
 import type { AgentTool, BeforeModelCallContext } from '@mohanscodex/spectra-agent';
 import { createAllToolsWithSecurity, discoverAndCreateSkillTools } from '../../tools/index.js';
 import { browserManager } from '../../browser/manager.js';
+import { pluginHost } from '../../plugins/host.js';
 import type { AskHandler } from '../../tools/ask.js';
 import { buildContextMessages, loadContext } from '../../services/context.js';
 import {
@@ -332,6 +333,7 @@ export function useAgent(deps: UseAgentDeps) {
 
 			if (history && history.length > 0) agent.restoreHistory(history);
 			agentsMapRef.current.set(sessionKey, agent);
+			void pluginHost.runSessionStart(sessionId);
 			agentConfigFingerprintsRef.current.set(sessionKey, runtimeFingerprint(runtimeConfig));
 
 			return agent;
@@ -382,6 +384,7 @@ export function useAgent(deps: UseAgentDeps) {
 	}, []);
 
 	const removeSessionAgent = useCallback((sessionId: string) => {
+		void pluginHost.runSessionEnd(sessionId);
 		void browserManager.closeSession(sessionId);
 		const key = `${sessionId}:session`;
 		const agent = agentsMapRef.current.get(key);

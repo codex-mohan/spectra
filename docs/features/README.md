@@ -48,6 +48,6 @@ Rules:
 | Todo tool | [todo-tool.md](todo-tool.md) | `packages/code/src/tools/todo.ts` | 0 | documented |
 | Memory tool | [memory-tool.md](memory-tool.md) | `packages/code/src/tools/memory.ts` | 0 | documented |
 | Custom tools | [custom-tools.md](custom-tools.md) | `packages/code/src/integrations/custom-tools/` | 0 | documented |
-| Plugins | `plugins.md` | `packages/code/src/plugins/` (new; plan: `docs/plans/plugin-system-plan.md`) | 7 | planned |
+| Plugins | [plugins.md](plugins.md) | `packages/code/src/plugins/`, `packages/code/src/runtime/` | 7 | documented |
 
 Status values: `pending` (feature exists, page not written), `planned` (feature does not exist yet), `documented`.

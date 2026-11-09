@@ -4,7 +4,7 @@ import { showToast } from '../components/toast.js';
 import { getCenteredWindow } from '../utils/selection-window.js';
 import { truncateMenuText } from '../utils/menu-text.js';
 import { hasNerdFont } from '../utils/nerd-font.js';
-import { SettingsWriter, SETTINGS, watchConfigFiles, type SettingScope, type SettingsTab } from '../../config/registry.js';
+import { SettingsWriter, getAllSettings, watchConfigFiles, type SettingScope, type SettingsTab } from '../../config/registry.js';
 import { loadConfig } from '../../services/config.js';
 import { effectiveSettingValue } from '../../config/registry.js';
 import { ModelSwitcher } from './model-switcher.js';
@@ -100,7 +100,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 	const accent = meta.color;
 	const definitions = useMemo(() => filterSettings(query, tab), [query, tab]);
 	const rows = useMemo(() => buildSettingRows(definitions), [definitions, version]);
-	const allRows = useMemo(() => buildSettingRows(SETTINGS), [version]);
+	const allRows = useMemo(() => buildSettingRows(getAllSettings()), [version]);
 	const changedTotal = allRows.filter((row) => row.changed).length;
 	const changedTabs = new Set(allRows.filter((row) => row.changed).map((row) => row.definition.tab));
 

@@ -16,6 +16,8 @@ export interface SpectraTool<TArgs extends z.ZodType = z.ZodTypeAny> {
 	parameters: TArgs;
 	promptGuidelines?: string[];
 	capabilities?: ToolCapabilities;
+	/** Permission identity override, e.g. plugin:<id>. */
+	permission?: string;
 	streaming?: ToolStreamingDisplay;
 	execute: (args: z.infer<TArgs>, context: ToolContext) => Promise<ToolResult>;
 }

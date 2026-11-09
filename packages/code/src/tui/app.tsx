@@ -34,6 +34,7 @@ import { ContextUsageDialog } from './ui/context-usage-dialog.js';
 import { UsageDialog } from './ui/usage-dialog.js';
 import { MemoryDialog } from './ui/memory-dialog.js';
 import { SettingsDialog } from './ui/settings-dialog.js';
+import { PluginsDialog } from './ui/plugins-dialog.js';
 import { SkillsDialog } from './ui/skills-dialog.js';
 import { MessageControls } from './ui/message-controls.js';
 import { AskMenu } from './ui/ask-dialog.js';
@@ -79,6 +80,7 @@ import { cycleEffort } from './variant-cycle.js';
 import type { SecurityManager } from '../security/index.js';
 import { jobRegistry } from '../services/job-registry.js';
 import { browserManager } from '../browser/manager.js';
+import { pluginHost } from '../plugins/host.js';
 import { saveDraft, consumeDraft } from '../services/draft-store.js';
 import { createExitGate, type ExitReason } from './input/exit.js';
 import { loadTemplateDefinitions, templatesToCommands } from '../command/index.js';
@@ -123,6 +125,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
+	const [pluginRevision, setPluginRevision] = useState(0);
 	const [askRequest, setAskRequest] = useState<AskToolInput | null>(null);
 	const [updateVersion, setUpdateVersion] = useState<string | null>(null);
 	const [placeholderIdx, setPlaceholderIdx] = useState(0);
@@ -387,6 +390,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	useEffect(() => () => {
 		void browserManager.closeAll();
+		void pluginHost.shutdown();
 	}, []);
 
 	const { status: gitStatus } = useGitStatus(process.cwd(), isLoading);
@@ -607,7 +611,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		],
 	);
 
-	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems, templateDefinitions), [cmdItems, templateDefinitions]);
+	const commandRegistry = useMemo(() => buildCommandRegistry(cmdItems, [...templateDefinitions, ...pluginHost.commands()]), [cmdItems, templateDefinitions, pluginRevision]);
 	const resolvedEntries = commandRegistry.entries;
 
 	useEffect(() => {
@@ -1499,6 +1503,15 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					registerHandler={(fn: any) => {
 						dialogKeyHandler.current = fn;
 					}}
+				/>
+			)}
+			{dialogStep?.type === 'plugins' && (
+				<PluginsDialog
+					termWidth={termWidth}
+					termHeight={termHeight}
+					onClose={() => setDialogStep(null)}
+					onChanged={() => setPluginRevision((value) => value + 1)}
+					registerHandler={(fn) => { dialogKeyHandler.current = fn; }}
 				/>
 			)}
 			{dialogStep?.type === 'settings' && (

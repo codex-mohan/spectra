@@ -29,13 +29,15 @@
 | `scope` | `global \| project` | no | CLI option (`--scope`); TUI toggles with `s`; default `global` for CLI, `project` for the TUI |
 | `json` | boolean | no | CLI `--json` output |
 
+Active plugins may contribute settings under `pluginSettings.<id>.<key>`; they appear under Tools → `Plugins · <name>` and use the same validation, scope, and CLI paths.
+
 The registry covers appearance (`theme`, `logLevel`, `settingsLayout`), model (`model`, `smallModel`, `provider`, `apiKey`), interaction (`agent`, approval mode/policy, permission rules), context (`safety.*`), memory (`memory.*`, deprecated `skills.*`), files (`security.writeGuard*`, blocked/allowed paths, references), shell (`shell`, `commands.shellExecution`), tools (web search, LSP, SSRF, doom loop), tasks (auto-background, concurrency, runtime), and providers (`providers`, `mcp`, `plugins`).
 
 ## Outputs
 
 - `SettingsWriter` → atomic writes: read under lock file, merge staged paths, write `<file>.<pid>.<ts>.tmp`, rename over the target.
 - CLI → human lines or JSON; `list` masks secrets and annotates each value with its owning scope (`project`, `global`, `default`).
-- TUI → responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, scope badge (`󰉋 P`/`󰋜 G`/`󰒓 ·`), changed dot, restart badge, section headers, and search. Enum picker and model picker replace raw text editing for those types.
+- TUI → static registry entries plus dynamic plugin entries; responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, scope badge (`󰉋 P`/`󰋜 G`/`󰒓 ·`), changed dot, restart badge, section headers, and search. Enum picker and model picker replace raw text editing for those types.
 - Files: `<SPECTRA_HOME>/spectra.json`, `<cwd>/.spectra/spectra.json`.
 
 ## Flow
@@ -77,6 +79,7 @@ The registry covers appearance (`theme`, `logLevel`, `settingsLayout`), model (`
 ## Limitations
 
 - Arrays and objects (`providers`, `mcp`, `plugins`, `permissions`, LSP config) are edited as raw JSON, not as structured forms.
+- Plugin settings are dynamic; they are present only while the contributing plugin is active and the host has initialized.
 - No profiles, no YAML migration, no ancestor discovery beyond the existing config loader.
 - `theme` persists but the palette is currently static.
 - Restart badges are advisory; services that cache configuration are not hot-restarted.
