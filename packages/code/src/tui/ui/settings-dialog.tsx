@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { c } from '../theme.js';
 import { showToast } from '../components/toast.js';
 import { getCenteredWindow } from '../utils/selection-window.js';
@@ -55,7 +55,7 @@ const TYPE_GLYPHS: Record<string, string> = {
 const SCOPE_GLYPHS: Record<string, string> = {
 	project: '\u{f024b}',
 	global: '\u{f02dc}',
-	default: '\u{f0493}',
+	default: '',
 };
 
 function glyph(nerd: string, plain: string): string {
@@ -69,8 +69,9 @@ function scopeColor(scope: SettingScope | 'default'): string {
 }
 
 function scopeLabel(scope: SettingScope | 'default'): string {
-	const name = scope === 'default' ? 'default' : scope;
-	return `${glyph(SCOPE_GLYPHS[name] ?? '', '')} ${scope === 'default' ? '·' : scope === 'project' ? 'P' : 'G'}`;
+	const mark = scope === 'default' ? '·' : scope === 'project' ? 'P' : 'G';
+	const icon = glyph(SCOPE_GLYPHS[scope] ?? '', '');
+	return icon ? `${icon} ${mark}` : mark;
 }
 
 export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler, defaultTab }: SettingsDialogProps) {
@@ -110,6 +111,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 
 	const displayItems = useMemo<DisplayItem[]>(() => {
 		const items: DisplayItem[] = [];
+		if (rows.length > 0) items.push({ type: 'spacer', key: 'spacer-top' });
 		let previous = '';
 		for (let index = 0; index < rows.length; index++) {
 			const row = rows[index];
@@ -243,18 +245,22 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 
 	const mw = Math.min(layout === 'sidebar' ? 100 : 92, termWidth - 4);
 	const ml = Math.max(0, Math.floor((termWidth - mw) / 2));
-	const mh = Math.min(28, termHeight - 2);
+	const availableContent = Math.max(8, layout === 'sidebar' ? mw - 29 : mw - 6);
+	const contentWidth = Math.min(78, availableContent);
+	const editorHeight = editing ? 4 : 0;
+	const showSidebarGroups = layout === 'sidebar' && termHeight >= 30;
+	const sidebarRows = layout === 'sidebar' ? SETTINGS_TAB_META.length + (showSidebarGroups ? 3 : 0) : 0;
+	const maxListHeight = Math.max(3, termHeight - 18);
+	const listHeight = Math.max(3, Math.min(maxListHeight, Math.max(displayItems.length, sidebarRows)));
+	const chrome = 2 + (layout === 'tabs' ? 2 : 0) + 4 + editorHeight + 2;
+	const mh = Math.min(termHeight - 2, chrome + listHeight + 2);
 	const mt = Math.max(0, Math.floor((termHeight - mh) / 3));
 	const innerW = Math.max(1, mw - 4);
-	const contentWidth = Math.max(8, layout === 'sidebar' ? mw - 29 : mw - 6);
-	const editorHeight = editing ? 4 : 0;
-	const chrome = 2 + (layout === 'tabs' ? 2 : 0) + 3 + editorHeight;
-	const listHeight = Math.max(3, mh - chrome - 2);
 	const selectedDisplay = displayItems.findIndex((item) => item.type === 'row' && item.index === selected);
 	const window = getCenteredWindow(displayItems.length, selectedDisplay < 0 ? 0 : selectedDisplay, listHeight);
 	const activeRow = rows[selected];
-	const labelWidth = Math.max(14, Math.min(30, Math.floor(contentWidth * 0.38)));
-	const valueWidth = Math.max(8, contentWidth - labelWidth - 17);
+	const labelWidth = Math.min(24, Math.max(14, Math.floor(contentWidth * 0.34)));
+	const valueWidth = Math.min(22, Math.max(8, contentWidth - labelWidth - 14));
 
 	const scopePill = (
 		<text fg={scopeColor(scope)}>{scopeLabel(scope)}</text>
@@ -284,16 +290,14 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 		const value = truncateMenuText(row.display, valueWidth).padEnd(valueWidth);
 		const rowColor = selectedRow ? accent : c.text;
 		return (
-			<box key={item.key} height={1} backgroundColor={selectedRow ? c.bgSelect : c.bgCard} overflow="hidden">
-				<text width={contentWidth} height={1} wrapMode="none" overflow="hidden">
-					<span fg={selectedRow ? accent : c.dim}>{selectedRow ? '▸ ' : '  '}</span>
-					<span fg={selectedRow ? accent : c.dim}>{typeGlyph} </span>
-					<span fg={rowColor}>{label}</span>
-					<span fg={selectedRow ? c.text : c.subtext}>{value}</span>
-					<span fg={scopeColor(row.scope)}> {scopeLabel(row.scope)}</span>
-					{row.changed ? <span fg={c.warn}> ●</span> : null}
-					{definition.restart ? <span fg={c.warn}> ↻ restart</span> : null}
-				</text>
+			<box key={item.key} height={1} backgroundColor={selectedRow ? c.bgSelect : c.bgCard} flexDirection="row" overflow="hidden">
+				<box width={2} flexShrink={0}><text fg={selectedRow ? accent : c.dim}>{selectedRow ? '▸' : ' '}</text></box>
+				<box width={2} flexShrink={0}><text fg={selectedRow ? accent : c.dim}>{typeGlyph}</text></box>
+				<box width={labelWidth + 1} flexShrink={0}><text fg={rowColor} wrapMode="none" overflow="hidden">{label}</text></box>
+				<box width={valueWidth} flexShrink={0}><text fg={selectedRow ? c.text : c.subtext} wrapMode="none" overflow="hidden">{value}</text></box>
+				<box width={9} flexShrink={0}><text fg={scopeColor(row.scope)}> {scopeLabel(row.scope)}</text></box>
+				{row.changed && <box width={2} flexShrink={0}><text fg={c.warn}>●</text></box>}
+				{definition.restart && <box flexShrink={0}><text fg={c.warn}> ↻</text></box>}
 			</box>
 		);
 	};
@@ -335,16 +339,20 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 				<box flexGrow={1} flexDirection="row" minHeight={0} overflow="hidden">
 					{layout === 'sidebar' && (
 						<box width={22} flexDirection="column" flexShrink={0} border={['right']} borderColor={c.border} overflow="hidden">
-							{tabs.map((entry) => {
+							{tabs.map((entry, index) => {
 								const active = entry.id === tab;
 								const changed = changedTabs.has(entry.id);
 								return (
-									<box key={entry.id} height={1} flexDirection="row" backgroundColor={active ? c.bgSelect : c.bgCard} overflow="hidden">
-										<box width={2} backgroundColor={active ? entry.color : c.bgCard} flexShrink={0} />
-										<text fg={active ? entry.color : c.dim} height={1} wrapMode="none"> {tabGlyph(entry)}</text>
-										<text fg={active ? entry.color : c.subtext} height={1} wrapMode="none" overflow="hidden"> {entry.label}</text>
-										{changed && <text fg={c.warn} height={1}> ●</text>}
-									</box>
+									<Fragment key={entry.id}>
+										{showSidebarGroups && [3, 5, 8].includes(index) && <box height={1} />}
+										<box key={entry.id} height={1} paddingLeft={1} flexDirection="row" backgroundColor={active ? c.bgSelect : c.bgCard} overflow="hidden">
+											<box width={1} backgroundColor={active ? entry.color : c.bgCard} flexShrink={0} />
+											<box width={1} flexShrink={0} />
+											<text fg={active ? entry.color : c.dim} height={1} wrapMode="none">{tabGlyph(entry)}</text>
+											<text fg={active ? entry.color : c.subtext} height={1} wrapMode="none" overflow="hidden"> {entry.label}</text>
+											{changed && <text fg={c.warn} height={1}>  ●</text>}
+										</box>
+									</Fragment>
 								);
 							})}
 						</box>
@@ -352,8 +360,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 
 					<box flexGrow={1} flexDirection="column" paddingX={2} minWidth={0} overflow="hidden">
 						<box height={1} flexDirection="row" gap={1} flexShrink={0}>
-							<text fg={accent}>{tabGlyph(meta)} {meta.label}</text>
-							<text fg={c.dim} overflow="hidden" wrapMode="none" truncate>{query ? `search: ${query}` : (activeRow?.definition.description ?? '')}</text>
+							<text fg={c.dim} overflow="hidden" wrapMode="none" truncate>{query ? `Search results for “${query}”` : (activeRow?.definition.description ?? '')}</text>
 						</box>
 						<box height={1} flexDirection="row" flexShrink={0}>
 							{searching ? (
@@ -362,6 +369,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 								<text fg={c.dim}>{glyph('\u{f0349}', '/')} / search · {rows.length} setting{rows.length === 1 ? '' : 's'}</text>
 							)}
 						</box>
+						<box height={1} flexShrink={0} />
 						<box height={1} flexShrink={0}>
 							<text fg={c.border}>{'─'.repeat(contentWidth)}</text>
 						</box>
@@ -382,6 +390,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 					</box>
 				</box>
 
+				<box height={1} flexShrink={0} />
 				<box height={1} paddingX={2} flexDirection="row" justifyContent="space-between" flexShrink={0} overflow="hidden">
 					<text fg={c.dim} overflow="hidden" wrapMode="none" truncate>
 						{mh >= 18
