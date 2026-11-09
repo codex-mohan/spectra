@@ -1,7 +1,7 @@
 import { memo, useRef, useEffect, useState, useCallback } from 'react';
 import { SyntaxStyle } from '@opentui/core';
 import type { FileContent } from '@mohanscodex/spectra-ai';
-import { c } from './theme.js';
+import { c, promptSyntaxStyle } from './theme.js';
 import { titlecase } from './utils.js';
 import { formatAttachmentBadge, formatAttachmentMetadata, getFileVisual } from './utils/file-visuals.js';
 import { readLocalAttachment, readClipboardAttachment, readPastedBytesAttachment, resolvePastedFilePath } from './utils/local-attachment.js';
@@ -104,7 +104,7 @@ function getAttachmentTypeId(textarea: TextareaLike): number | null {
 }
 
 function getAttachmentStyleId(textarea: TextareaLike, attachment: PromptAttachment): number | undefined {
-	if (!textarea.syntaxStyle) textarea.syntaxStyle = SyntaxStyle.create();
+	if (!textarea.syntaxStyle) textarea.syntaxStyle = promptSyntaxStyle;
 	const style = textarea.syntaxStyle;
 	const styleName = `prompt-attachment-${attachment.badge.color.replace(/[^a-zA-Z0-9]/g, '')}`;
 	return style.getStyleId(styleName) ?? style.registerStyle(styleName, {

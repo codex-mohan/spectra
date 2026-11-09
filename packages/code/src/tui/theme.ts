@@ -1,10 +1,16 @@
-import { RGBA, SyntaxStyle } from '@opentui/core';
+import { RGBA, SyntaxStyle, type CliRenderer } from '@opentui/core';
 import { c } from './tokens.js';
 export { c } from './tokens.js';
 export { resolveAgentAccentColor, AGENT_COLOR_NAMES, isAgentColorName } from './utils/agent-color.js';
 export type { AgentColorName } from './utils/agent-color.js';
 
-export const mdStyle = SyntaxStyle.fromStyles({
+export let mdStyle!: SyntaxStyle;
+export let mdStyleMuted!: SyntaxStyle;
+export let promptSyntaxStyle!: SyntaxStyle;
+
+/** Native styles must be owned by the renderer's scene, so initialize after renderer creation. */
+export function initTuiStyles(renderer: CliRenderer): void {
+	mdStyle = SyntaxStyle.fromStyles({
 	'markup.heading.1': { fg: RGBA.fromHex(c.accent), bold: true },
 	'markup.heading.2': { fg: RGBA.fromHex(c.accent), bold: true },
 	'markup.heading.3': { fg: RGBA.fromHex(c.accent), bold: true },
@@ -25,9 +31,9 @@ export const mdStyle = SyntaxStyle.fromStyles({
 	function: { fg: RGBA.fromHex(c.user) },
 	type: { fg: RGBA.fromHex(c.accent) },
 	default: { fg: RGBA.fromHex(c.text) },
-});
+}, renderer.nativeScene);
 
-export const mdStyleMuted = SyntaxStyle.fromStyles({
+	mdStyleMuted = SyntaxStyle.fromStyles({
 	'markup.heading.1': { fg: RGBA.fromHex(c.dim), bold: true },
 	'markup.heading.2': { fg: RGBA.fromHex(c.dim), bold: true },
 	'markup.heading.3': { fg: RGBA.fromHex(c.dim), bold: true },
@@ -49,7 +55,9 @@ export const mdStyleMuted = SyntaxStyle.fromStyles({
 	type: { fg: RGBA.fromHex(c.dim) },
 	default: { fg: RGBA.fromHex(c.dim) },
 	code: { fg: RGBA.fromHex(c.dim) },
-});
+	}, renderer.nativeScene);
+	promptSyntaxStyle = SyntaxStyle.create(renderer.nativeScene);
+}
 
 export const SPINNER = [
 	'\u280B',

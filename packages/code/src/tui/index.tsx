@@ -2,6 +2,7 @@ import { createCliRenderer, addDefaultParsers } from '@opentui/core';
 import { createRoot } from '@opentui/react';
 import { parsers } from './parsers-config.js';
 import { App } from './app.js';
+import { initTuiStyles } from './theme.js';
 
 export interface TuiOptions {
 	sessionId?: string;
@@ -34,6 +35,7 @@ export async function launchTui(_options: TuiOptions = {}): Promise<void> {
 			screenMode: 'alternate-screen',
 		});
 
+		initTuiStyles(renderer);
 		const root = createRoot(renderer);
 		root.render(<App renderer={renderer} />);
 

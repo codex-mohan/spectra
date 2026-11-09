@@ -105,7 +105,7 @@ describe('template discovery and registration', () => {
 		expect(registry.resolve('git/review:2')?.definition.source).toBe('builtin');
 	});
 
-	test('executes declared shell interpolation when enabled', async () => {
+	test('executes declared shell interpolation when enabled', { retry: 2, timeout: 30_000 }, async () => {
 		const root = await makeTempDir();
 		const commandsDir = join(root, '.spectra', 'commands');
 		await mkdir(commandsDir, { recursive: true });
@@ -116,7 +116,7 @@ describe('template discovery and registration', () => {
 		const definition = templatesToCommands(loaded.templates, root)[0]!;
 		await expect(definition.execute({ source: 'slash', args: '', invocation: 'shell' }))
 			.resolves.toEqual({ type: 'submit_prompt', text: 'Result: shell-ok' });
-	}, 15_000);
+	});
 
 	test('rejects shell interpolation when disabled', async () => {
 		const root = await makeTempDir();

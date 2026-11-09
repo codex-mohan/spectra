@@ -43,7 +43,7 @@ const c = {
 // Markdown syntax style
 // ---------------------------------------------------------------------------
 
-const mdStyle = SyntaxStyle.fromStyles({
+const markdownStyles = {
 	'markup.heading.1': { fg: RGBA.fromHex(c.accent), bold: true },
 	'markup.heading.2': { fg: RGBA.fromHex(c.accent), bold: true },
 	'markup.heading.3': { fg: RGBA.fromHex(c.accent), bold: true },
@@ -63,7 +63,8 @@ const mdStyle = SyntaxStyle.fromStyles({
 	function: { fg: RGBA.fromHex(c.user) },
 	type: { fg: RGBA.fromHex(c.accent) },
 	default: { fg: RGBA.fromHex(c.text) },
-});
+};
+let mdStyle: SyntaxStyle;
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -945,4 +946,5 @@ function App() {
 // ---------------------------------------------------------------------------
 
 const renderer = await createCliRenderer({ exitOnCtrlC: false, useMouse: true });
+mdStyle = SyntaxStyle.fromStyles(markdownStyles, renderer.nativeScene);
 createRoot(renderer).render(<App />);
