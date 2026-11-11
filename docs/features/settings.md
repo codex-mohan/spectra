@@ -37,7 +37,7 @@ The registry covers appearance (`theme`, `logLevel`, `settingsLayout`), model (`
 
 - `SettingsWriter` → atomic writes: read under lock file, merge staged paths, write `<file>.<pid>.<ts>.tmp`, rename over the target.
 - CLI → human lines or JSON; `list` masks secrets and annotates each value with its owning scope (`project`, `global`, `default`).
-- TUI → static registry entries plus dynamic plugin entries; responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, scope badge (`󰉋 P`/`󰋜 G`/`󰒓 ·`), changed dot, restart badge, section headers, and search. Enum picker and model picker replace raw text editing for those types.
+- TUI → static registry entries plus dynamic plugin entries; responsive editor: vertical tab rail at ≥96×22 (or ≥88×20), scrollable top tabs below that. Nerd Font Material glyphs with plain fallbacks, per-tab accent colors, header write-scope badge (`󰉋 project`/`󰋜 global`) and compact row badges (`P`/`G`/`·`), changed dot, restart badge, section headers, and search. Enum picker and model picker replace raw text editing for those types. One blank row separates the title from the body, and the body keeps no extra blank rows above the first section rule.
 - Files: `<SPECTRA_HOME>/spectra.json`, `<cwd>/.spectra/spectra.json`.
 
 ## Flow

@@ -74,6 +74,12 @@ function scopeLabel(scope: SettingScope | 'default'): string {
 	return icon ? `${icon} ${mark}` : mark;
 }
 
+/** Header form: spell the write target out instead of a bare P/G letter. */
+function scopeTitle(scope: SettingScope): string {
+	const icon = glyph(SCOPE_GLYPHS[scope] ?? '', '');
+	return icon ? `${icon} ${scope}` : scope;
+}
+
 export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler, defaultTab }: SettingsDialogProps) {
 	const [tab, setTab] = useState<SettingsTab>(defaultTab ?? 'appearance');
 	const [query, setQuery] = useState('');
@@ -252,7 +258,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 	const sidebarRows = layout === 'sidebar' ? SETTINGS_TAB_META.length + (showSidebarGroups ? 3 : 0) : 0;
 	const maxListHeight = Math.max(3, termHeight - 18);
 	const listHeight = Math.max(3, Math.min(maxListHeight, Math.max(displayItems.length, sidebarRows)));
-	const chrome = 2 + (layout === 'tabs' ? 2 : 0) + 4 + editorHeight + 2;
+	const chrome = 2 + 1 + (layout === 'tabs' ? 2 : 0) + 2 + editorHeight + 2;
 	const mh = Math.min(termHeight - 2, chrome + listHeight + 2);
 	const mt = Math.max(0, Math.floor((termHeight - mh) / 3));
 	const innerW = Math.max(1, mw - 4);
@@ -263,7 +269,7 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 	const valueWidth = Math.min(22, Math.max(8, contentWidth - labelWidth - 14));
 
 	const scopePill = (
-		<text fg={scopeColor(scope)}>{scopeLabel(scope)}</text>
+		<text fg={scopeColor(scope)}>{scopeTitle(scope)}</text>
 	);
 	const tabs = SETTINGS_TAB_META;
 	const activeIndex = tabs.findIndex((entry) => entry.id === tab);
@@ -317,6 +323,8 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 					</box>
 				</box>
 
+				<box height={1} flexShrink={0} />
+
 				{layout === 'tabs' && (
 					<box height={2} paddingX={2} flexDirection="row" gap={0} flexShrink={0} overflow="hidden">
 						{strip.hasLeft && <text fg={c.dim} width={2}>‹</text>}
@@ -368,10 +376,6 @@ export function SettingsDialog({ onClose, termWidth, termHeight, registerHandler
 							) : (
 								<text fg={c.dim}>{glyph('\u{f0349}', '/')} / search · {rows.length} setting{rows.length === 1 ? '' : 's'}</text>
 							)}
-						</box>
-						<box height={1} flexShrink={0} />
-						<box height={1} flexShrink={0}>
-							<text fg={c.border}>{'─'.repeat(contentWidth)}</text>
 						</box>
 						<box flexGrow={1} flexDirection="column" overflow="hidden" minHeight={0}>
 							{displayItems.length === 0 ? (
