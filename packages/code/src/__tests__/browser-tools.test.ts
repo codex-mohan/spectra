@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createBrowserTools } from '../tools/browser.js';
+import { createBrowserTools, screenshotSessionDirName } from '../tools/browser.js';
 import { PermissionDeniedError } from '../security/index.js';
 import type { SecurityManager } from '../security/index.js';
 import type { BrowserManager } from '../browser/manager.js';
@@ -38,6 +38,12 @@ function tool(tools: ReturnType<typeof createBrowserTools>, name: string) {
 const context = { toolCallId: 'call-1', sessionId: 'session-1', signal: new AbortController().signal };
 
 describe('browser tools', () => {
+	it('turns the browser session key into a filesystem-safe directory', () => {
+		expect(screenshotSessionDirName('abc-123:session')).toBe('abc-123_session');
+		expect(screenshotSessionDirName('a:b/c\\d*e?f"g<h>i|j')).not.toMatch(/[<>:"/\\|?*\u0000-\u001f]/);
+		expect(screenshotSessionDirName('')).toBe('session');
+	});
+
 	it('requires a session id', async () => {
 		const { manager } = fakeManager();
 		const tools = createBrowserTools({ manager });

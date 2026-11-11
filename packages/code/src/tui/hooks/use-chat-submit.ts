@@ -1,5 +1,5 @@
 import { useRef, useCallback, useMemo } from 'react';
-import type { ChatMessage, ContentBlock } from '../types.js';
+import type { ChatMessage, ContentBlock, TodoState } from '../types.js';
 import type { Message, AssistantMessage, FileContent, TextContent } from '@mohanscodex/spectra-ai';
 import type { PromptSubmitPayload } from '../prompt-bar.js';
 import { stream } from '@mohanscodex/spectra-ai';
@@ -126,6 +126,7 @@ interface QueuedSteeringDisplay {
 	const shownToolCalls = useRef(new Set<string>());
 	const toolMsgMap = useRef(new Map<string, string>());
 	const toolArgsMap = useRef(new Map<string, unknown>());
+	const lastToolViewPatchAt = useRef(new Map<string, number>());
 	const partialToolJson = useRef(new Map<number, string>());
 	const streamingIdRef = useRef<string | null>(null);
 	const streamingSessionsRef = useRef(new Set<string>());
@@ -460,7 +461,11 @@ Return ONLY the title text, nothing else.`;
 					toolArgsMap.current.set(toolCallId, args);
 					const existingId = toolMsgMap.current.get(toolCallId);
 					const patch: Partial<ChatMessage> = {
-						meta: `${toolName}(${JSON.stringify(args)})`,
+						// Partial writes/edits can be large; stringifying every argument
+						// delta only to throw the string away is wasted work. The live
+						// card reads `toolArguments`, so the JSON meta is only needed
+						// once the call is complete.
+						meta: argumentsComplete ? `${toolName}(${JSON.stringify(args)})` : toolName,
 						streaming: true,
 						toolCallId,
 						toolName,
@@ -468,6 +473,12 @@ Return ONLY the title text, nothing else.`;
 						toolArgumentsComplete: argumentsComplete,
 					};
 					if (existingId) {
+						const now = Date.now();
+						if (!argumentsComplete && now - (lastToolViewPatchAt.current.get(existingId) ?? 0) < 100) {
+							return;
+						}
+						lastToolViewPatchAt.current.set(existingId, now);
+						if (argumentsComplete) lastToolViewPatchAt.current.delete(existingId);
 						queuePatch(runSessionId, existingId, patch);
 						return;
 					}
@@ -658,7 +669,7 @@ Return ONLY the title text, nothing else.`;
 						const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						if (tuiId) {
 							const partialDetails = isRecord(ev.partialResult.details) ? ev.partialResult.details : undefined;
-							sessionState.updateMessageIn(runSessionId, tuiId, {
+							queuePatch(runSessionId, tuiId, {
 								content: toolResultText(ev.partialResult.content),
 								streaming: true,
 								toolExecutionStarted: true,
@@ -693,13 +704,17 @@ Return ONLY the title text, nothing else.`;
 						persistMessage(runSessionId, toolMsg);
 						const tuiId = toolMsgMap.current.get(ev.toolCallId);
 						if (tuiId) {
+							// A partial frame may still be queued for this tool. Drop it
+							// before applying the final result so stale streaming content
+							// cannot overwrite the completed message on the next flush.
+							queuedPatches.current.delete(tuiId);
 							const exitCode = typeof resultDetails.exitCode === 'number' ? resultDetails.exitCode : undefined;
 							const wallTimeMs = typeof resultDetails.wallTimeMs === 'number' ? resultDetails.wallTimeMs : undefined;
 							const timeoutMs = typeof resultDetails.timeoutMs === 'number' ? resultDetails.timeoutMs : undefined;
 							const childSessionId = typeof resultDetails.childSessionId === 'string' ? resultDetails.childSessionId : undefined;
 							const isBackground = resultDetails.background === true ? true : undefined;
 							const todoState = ev.toolName === 'todo' && resultDetails.todoState && typeof resultDetails.todoState === 'object'
-								? resultDetails.todoState as any
+								? resultDetails.todoState as TodoState
 								: undefined;
 							sessionState.updateMessageIn(runSessionId, tuiId, {
 								content: toolOutput,

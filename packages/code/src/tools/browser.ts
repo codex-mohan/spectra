@@ -58,9 +58,22 @@ async function requireBrowserPermission(
 	await security.checkPermission('browser', [hostname], 'browser', `${action} ${hostname}`, { tier: 'network' });
 }
 
+/**
+ * Browser tool contexts use `${sessionId}:session` as an in-memory key. That
+ * colon is a legal map key but an illegal filename character on Windows, and
+ * the OS treats it as an alternate-data-stream separator, so never use the raw
+ * key as a directory name.
+ */
+export function screenshotSessionDirName(sessionId: string): string {
+	const sanitized = sessionId
+		.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+		.replace(/[. ]+$/g, '');
+	return sanitized || 'session';
+}
+
 function screenshotPath(sessionId: string, extension: string): string {
 	const configured = loadConfig().browser?.screenshotDir?.trim();
-	const directory = configured || join(getGlobalConfigDir(), 'artifacts', sessionId);
+	const directory = configured || join(getGlobalConfigDir(), 'artifacts', screenshotSessionDirName(sessionId));
 	mkdirSync(directory, { recursive: true });
 	return join(directory, `${Date.now()}-${randomUUID().slice(0, 8)}.${extension}`);
 }

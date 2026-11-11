@@ -42,7 +42,7 @@ All tools require `ctx.sessionId`. Tab names default to `main`.
 - Text summaries plus structured `details` for TUI cards.
 - `browser_observe` → `{ url, title, elements: [{ id, role, name, tag, value? }] }`.
 - `browser_screenshot` → text with the full-resolution path + an `image` content block capped for the model.
-- Files: full PNG under `browser.screenshotDir`, else `<SPECTRA_HOME>/artifacts/<sessionId>/`.
+- Files: full PNG under `browser.screenshotDir`, else `<SPECTRA_HOME>/artifacts/<sessionDir>/`, where `sessionDir` is the session key sanitized for the filesystem (`:` and other reserved characters become `_`). Browser tool contexts use `<sessionId>:session` as an in-memory key; that raw key is never used as a directory name.
 - Events: ordinary tool execution events; screenshots render through the tool message's image list.
 
 ## Flow
