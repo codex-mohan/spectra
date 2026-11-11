@@ -257,6 +257,8 @@ cargo test --workspace
 
 Spectra was deeply inspired by **pi-mono** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
+LSP server discovery, workspace diagnostics, and language-server lifecycle behavior reference **oh-my-pi** by **Stencil Labs** (MIT). No oh-my-pi source is vendored; if that changes, attribution will be recorded in `THIRD-PARTY-NOTICES.md` and in the derived files.
+
 ## License
 
 MIT © Mohana Krishna

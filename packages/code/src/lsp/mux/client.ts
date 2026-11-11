@@ -8,6 +8,7 @@ import {
 	MUX_PING_METHOD,
 	MUX_PING_RESULT,
 	MUX_ROOT_ENV,
+	MUX_SHUTDOWN_METHOD,
 	MUX_SOCKET_ENV,
 	muxSocketPath,
 	muxKey,
@@ -101,4 +102,29 @@ export async function connectMux(
 	};
 	await connection.request(MUX_CONNECT_METHOD, params, { timeoutMs });
 	return connection;
+}
+
+/**
+ * Stop every language server owned by this project's daemon. Used by reload
+ * and shutdown so no processes outlive the manager that started them.
+ * Returns the number of servers that were stopped (0 when no daemon runs).
+ */
+export async function shutdownSharedServers(root: string): Promise<number> {
+	const socketPath = process.env[MUX_SOCKET_ENV] ?? muxSocketPath(root);
+	const socket = await connectSocket(socketPath).catch(() => null);
+	if (!socket) return 0;
+	const connection = new StreamJsonRpcConnection(socket, {
+		onNotification: () => {},
+		onRequest: () => null,
+	});
+	try {
+		const result = await connection.request(MUX_SHUTDOWN_METHOD, {}, { timeoutMs: 2000 });
+		return typeof result === 'object' && result !== null && typeof (result as { stopped?: unknown }).stopped === 'number'
+			? (result as { stopped: number }).stopped
+			: 0;
+	} catch {
+		return 0;
+	} finally {
+		connection.dispose();
+	}
 }

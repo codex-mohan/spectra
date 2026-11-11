@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
+import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from 'child_process';
 import { createServer, type Server as NetServer, type Socket } from 'net';
 import { createFrameReader, writeMessage, type JsonRpcMessage } from '../framing.js';
 import {
@@ -7,6 +7,7 @@ import {
 	MUX_PING_RESULT,
 	MUX_RESTART_METHOD,
 	MUX_ROOT_ENV,
+	MUX_SHUTDOWN_METHOD,
 	MUX_SOCKET_ENV,
 	muxKey,
 	type MuxConnectParams,
@@ -33,11 +34,14 @@ class ServerInstance {
 	initializedSent = false;
 
 	constructor(readonly key: string, params: MuxConnectParams) {
-		this.proc = spawn(params.command, params.args, {
+		// Windows cannot execute `.cmd`/`.bat` directly; run them through the shell.
+		const needsShell = process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(params.command);
+		this.proc = spawn(needsShell ? `"${params.command}"` : params.command, params.args, {
 			cwd: params.cwd,
 			env: { ...process.env, ...(params.env ?? {}) },
 			stdio: ['pipe', 'pipe', 'pipe'],
 			windowsHide: true,
+			shell: needsShell,
 		});
 		this.proc.stdout.on('data', createFrameReader((message) => this.onMessage(message)));
 		this.proc.stderr.on('data', () => {});
@@ -51,6 +55,16 @@ class ServerInstance {
 	forward(session: Session, message: JsonRpcMessage): void {
 		const clientId = message.id;
 		this.lastUsed = Date.now();
+		if (!this.alive) {
+			if (clientId !== undefined) {
+				session.send({
+					jsonrpc: '2.0',
+					id: clientId,
+					error: { code: -32000, message: 'LSP server is not running' },
+				});
+			}
+			return;
+		}
 		if (clientId === undefined) {
 			if (message.method === 'initialized') {
 				if (this.initializedSent) return;
@@ -110,11 +124,31 @@ class ServerInstance {
 
 	kill(): void {
 		if (!this.alive) return;
+		killProcessTree(this.proc);
+	}
+}
+
+/**
+ * `ChildProcess.kill()` only signals the direct child. Language servers spawn
+ * helpers (tsserver, typingsInstaller), so kill the whole tree on Windows.
+ */
+function killProcessTree(proc: ChildProcessWithoutNullStreams): void {
+	const pid = proc.pid;
+	if (!pid) return;
+	if (process.platform === 'win32') {
 		try {
-			this.proc.kill();
+			// Synchronous so callers (reload/shutdown replies, tests) observe the
+			// processes as already gone instead of racing an async taskkill.
+			spawnSync('taskkill', ['/pid', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
+			return;
 		} catch {
-			// Already gone.
+			// Fall through to the direct signal.
 		}
+	}
+	try {
+		proc.kill();
+	} catch {
+		// Already gone.
 	}
 }
 
@@ -161,6 +195,11 @@ class Session {
 			this.server?.kill();
 			this.server = undefined;
 			if (message.id !== undefined) this.send({ jsonrpc: '2.0', id: message.id, result: { restarted: true } });
+			return;
+		}
+		if (message.method === MUX_SHUTDOWN_METHOD) {
+			const stopped = stopAllServers();
+			if (message.id !== undefined) this.send({ jsonrpc: '2.0', id: message.id, result: { stopped } });
 			return;
 		}
 
@@ -239,7 +278,10 @@ export function startMuxServer(socketPath: string): NetServer {
 			instance.kill();
 			servers.delete(key);
 		}
-		if (servers.size === 0 && now - lastActivity > DAEMON_IDLE_MS) process.exit(0);
+		if (servers.size === 0 && now - lastActivity > DAEMON_IDLE_MS) {
+			stopAllServers();
+			setTimeout(() => process.exit(0), 200).unref();
+		}
 	}, 60_000).unref();
 	return server;
 }
@@ -249,7 +291,14 @@ export function muxServerCount(): number {
 	return servers.size;
 }
 
-export async function shutdownMuxServers(): Promise<void> {
+/** Kill every server instance and clear the registry. Returns the count. */
+export function stopAllServers(): number {
+	const stopped = servers.size;
 	for (const instance of servers.values()) instance.kill();
 	servers.clear();
+	return stopped;
+}
+
+export async function shutdownMuxServers(): Promise<void> {
+	stopAllServers();
 }

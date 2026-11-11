@@ -14,7 +14,9 @@
 - Ledger: `packages/code/src/lsp/diagnostics-ledger.ts` — per-file dedupe and summary.
 - Inbox: `packages/code/src/services/diagnostics-inbox.ts` — late diagnostics delivery to the active session.
 - Linters: `packages/code/src/lsp/linters.ts` — Biome CLI diagnostics merged with LSP results.
-- Servers/config: `packages/code/src/lsp/servers.ts` — 14 language defaults, filetype/root routing, settings merge.
+- Servers/config: `packages/code/src/lsp/servers.ts` — 44 language defaults, filetype/root routing, settings merge.
+- Executable resolution: `packages/code/src/lsp/executable.ts` — project-local bins first (`node_modules/.bin`, Python venvs, Ruby binstubs, Go `bin`), then `$PATH`; Windows launcher suffixes.
+- Workspace checkers: `packages/code/src/lsp/checkers.ts` — project toolchain diagnostics when no language server is needed.
 - Edits: `packages/code/src/lsp/edits.ts` — WorkspaceEdit text edits, file operations, diffs.
 - Positions: `packages/code/src/lsp/positions.ts` — 1-based lines, `name#N` symbol columns.
 - Post-write: `packages/code/src/lsp/post-write.ts`; registration in `packages/code/src/tools/index.ts`.
@@ -49,7 +51,7 @@
       "requestTimeout": 20000,
       "diagnosticsOnWrite": true,
       "formatOnWrite": false,
-      "diagnostics": { "waitMs": 1500, "pull": true, "workspaceConcurrency": 4 },
+      "diagnostics": { "waitMs": 1500, "pull": true },
       "settings": {},
       "linters": { "biome": { "enabled": true, "command": "biome" } },
       "servers": {
@@ -70,13 +72,14 @@
 
 1. Resolve settings and return early when disabled.
 2. Read actions request the server directly; write actions are gated by `lsp_write`.
-3. Clients are lazy, keyed by `server:root`, shared through the mux daemon when available; the least recently used of four is disposed first.
-4. `diagnostics` prefers pull, then pushed diagnostics; `file:"*"` uses `workspace/diagnostic` when supported and otherwise sweeps configured files with bounded concurrency.
-5. `rename` calls `prepareRename`, then previews or applies a WorkspaceEdit (text edits plus file operations). `code_actions` resolves actions when needed.
-6. `format` requests formatting and applies the result.
-7. Every successful `write`/`edit` runs the writethrough: optional format, document refresh/save, `workspace/didChangeWatchedFiles`, then diagnostics with a 500 ms inline budget.
-8. Diagnostics that miss the budget are deduped per file and delivered to the inbox; the app appends them to the transcript and steers (streaming) or appends to agent history (idle).
-9. Biome diagnostics are collected per file and merged with server diagnostics before dedupe.
+3. Clients are lazy, keyed by `server:root`, shared through the mux daemon when available; the least recently used of four is disposed first. When several servers match a file (pyright/basedpyright/ty/ruff, `typescript-language-server`/deno), preference goes to one whose root markers apply, then to one whose binary is installed. Before spawning, the server command is resolved to an absolute executable: project-local bins are searched before `$PATH`, so a project-installed server works without a global install. A deterministic init failure is cached for three minutes; `reload` clears it.
+4. `diagnostics` prefers pull, then pushed diagnostics. A call that spawns a server waits through a 10s cold-start budget so the first result is not an empty pre-index snapshot; later calls use `waitMs`. An unversioned empty publish from a just-started server is treated as pre-analysis and never accepted for a versioned (post-write) check. `file:"*"` first runs the project's own toolchain checkers (`cargo check`, `npx tsc --noEmit`, `go build`, `pyright`) without needing a language server; if the workspace has no recognized marker it falls back to `workspace/diagnostic` and then to a single-window per-file sweep.
+5. `status` lists live clients and servers that are configured for the workspace (root marker present, executable resolvable) but not yet started, plus recent init failures.
+6. `rename` calls `prepareRename`, then previews or applies a WorkspaceEdit (text edits plus file operations). `code_actions` resolves actions when needed.
+7. `format` requests formatting and applies the result.
+8. Every successful `write`/`edit` runs the writethrough: optional format, document refresh/save, `workspace/didChangeWatchedFiles`, then diagnostics with a 500 ms inline budget.
+9. Diagnostics that miss the budget are deduped per file and delivered to the inbox; the app appends them to the transcript and steers (streaming) or appends to agent history (idle).
+10. Biome diagnostics are collected per file and merged with server diagnostics before dedupe.
 
 ## Transcript UI
 
@@ -95,12 +98,15 @@
 - Each client link binds to a server key (`command`, `args`, `cwd`); one server process serves every link.
 - Request ids are remapped per link; notifications are broadcast; server requests are forwarded to the first link.
 - `initialize` results are cached; a released server lingers 5 minutes, the daemon exits after 15 minutes idle.
+- A mux client owns only its socket, so `running` is derived from the socket connection and the daemon-owned server stays reusable: clients are not respawned between calls.
+- `reload` and shutdown send `spectra/muxShutdown` to the daemon, which kills every server for that project (whole process tree on Windows, including `tsserver`/`typingsInstaller` children) before replying. The daemon also stops its servers before exiting.
 - `tools.lsp.shared: false` or `SPECTRA_LSP_MUX_DISABLE=1` forces private servers.
 
 ## State / persistence
 
 - In-process clients/documents/diagnostics plus the mux daemon's server registry. No LSP state on disk.
-- Deferred diagnostics live in memory and are persisted as user messages when injected.
+- Diagnostics are keyed by the decoded filesystem path, not the raw URI. Servers differ in drive-letter case and percent-encoding (`file:///c%3A/...` vs `file:///C:/...`), so URI spellings and plain paths are normalized to one key before storage and lookup.
+- Deferred diagnostics live in memory and are persisted as hidden system notes (`metadata.hiddenSystem`) when injected; session restore keeps them compact instead of rendering them as user prompts.
 
 ## Security
 
@@ -114,8 +120,11 @@
 | Condition | Result |
 | --- | --- |
 | No server for extension | `No LSP server configured for <ext>` |
+| Executable missing | `<server> is not available: "<command>" was not found in project bins or on PATH. Install it or configure tools.lsp.servers.` |
+| Cached init failure | `<server> failed to initialize recently (<message>). Run lsp reload to retry.` |
+| Rustup proxy without component | `rust is not available (LSP server exited: error: Unknown binary 'rust-analyzer.exe' ...). Run "rustup component add rust-analyzer".` |
 | Binary/initialize failure | `<server> is not available (…). Install "<command>" or configure tools.lsp.servers.` |
-| Timeout | `<method> timed out after Ns` |
+| Timeout | `<method> timed out after Ns` (only when `timeout` is supplied; there is no implicit per-call deadline) |
 | Rename refused | `the server refuses to rename this symbol` |
 | Edit outside workspace | `Refusing to edit outside the workspace: <path>` |
 | Unknown action | `LSP <action>: Unknown action …` |
@@ -125,14 +134,14 @@
 - Multi-root workspaces are not supported; one root per client.
 - Document sync is full-text `didChange`, not incremental ranges.
 - Position encoding is advertised as UTF-16 only; servers that force UTF-8 are not converted.
-- Workspace pull diagnostics are used when advertised, but partial-result streaming is not implemented.
+- `file:"*"` prefers project toolchain checkers over LSP; partial-result streaming for `workspace/diagnostic` is not implemented. When the fallback LSP path advertises `workspace/diagnostic`, its result is authoritative: an empty workspace pull is reported as clean rather than falling back to a file sweep.
 - Semantic tokens, signature help, inlay hints, code lens, call hierarchy, and document links are editor features and are not surfaced in the TUI.
 - `rename_file` relies on `workspace/willRenameFiles` for reference updates; servers without it move the file without rewriting imports.
 - Linter adapters currently cover Biome only; SwiftLint is not wired.
 
 ## Tests
 
-- `packages/code/src/__tests__/lsp.test.ts` — navigation, hover, symbols, pull diagnostics, rename preview/apply, code actions, formatting, status/reload, writethrough inline/deferred/dedupe, Biome merge, mux server sharing, unsupported filetypes.
+- `packages/code/src/__tests__/lsp.test.ts` — navigation, hover, symbols, pull diagnostics, rename preview/apply, code actions, formatting, status/reload, writethrough inline/deferred/dedupe, Biome merge, mux server sharing, cold-start diagnostics, single-window workspace sweep, abort handling, provisional-publish rejection, executable discovery, project-checker detection, configured-vs-running status, init-failure backoff, unsupported filetypes.
 - `packages/code/src/__tests__/fixtures/fake-lsp.mjs` — framed fake server with diagnostics, navigation, rename, code actions, formatting, workspace pull, and shutdown.
 - `packages/code/src/__tests__/fixtures/fake-biome.mjs` — JSON reporter fixture.
 

@@ -50,7 +50,7 @@ export interface LspConfig {
 	/** Format files on write through LSP. Default false. */
 	formatOnWrite?: boolean;
 	/** Diagnostic freshness budget and pull preference. */
-	diagnostics?: { waitMs?: number; pull?: boolean; workspaceConcurrency?: number };
+	diagnostics?: { waitMs?: number; pull?: boolean };
 	/** Values returned for `workspace/configuration` sections. */
 	settings?: Record<string, unknown>;
 	/** External CLI linters merged with LSP diagnostics. */

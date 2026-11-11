@@ -56,7 +56,10 @@ diagnostics accepts a file or "*" for a workspace sweep.`,
 			const settings = resolveLspSettings(config);
 			if (!settings.enabled) return errorResult('LSP is disabled (tools.lsp.enabled=false).');
 
-			const timeoutMs = Math.min(300, Math.max(5, args.timeout ?? 0)) * 1000 || undefined;
+			// Only an explicit `timeout` arms the call deadline. The old
+			// `Math.max(5, args.timeout ?? 0)` gave every call an implicit 5s
+			// budget, aborting cold starts and workspace sweeps.
+			const timeoutMs = args.timeout === undefined ? undefined : Math.min(300, Math.max(5, args.timeout)) * 1000;
 			const signal = timeoutMs
 				? (context.signal ? AbortSignal.any([context.signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs))
 				: context.signal;

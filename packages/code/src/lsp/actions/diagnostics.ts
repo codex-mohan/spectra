@@ -1,5 +1,6 @@
 import { resolve } from 'path';
 import { spawnRg } from '../../tools/utils.js';
+import { runWorkspaceCheckers } from '../checkers.js';
 import { findServerForFile } from '../servers.js';
 import { formatDiagnostics } from '../format.js';
 import { requireFile, type ActionContext, type ActionResult } from './types.js';
@@ -20,6 +21,17 @@ async function workspaceFiles(context: ActionContext): Promise<string[]> {
 
 export async function runDiagnosticsAction(context: ActionContext): Promise<ActionResult> {
 	const file = requireFile(context.args);
+	// Workspace mode uses the project's own toolchain first; it works without
+	// any installed/healthy language server.
+	if (file === '*') {
+		const checked = await runWorkspaceCheckers(context.cwd, context.signal);
+		if (checked) {
+			return {
+				text: `Workspace diagnostics:\n${checked.text}`,
+				details: { action: 'diagnostics', success: checked.ok, source: 'checker' },
+			};
+		}
+	}
 	const allFiles = file === '*' || file.includes('*');
 	const files = allFiles ? await workspaceFiles(context) : [resolve(file)];
 

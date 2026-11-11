@@ -7,6 +7,7 @@ export const MUX_CONNECT_METHOD = 'spectra/muxConnect';
 export const MUX_PING_METHOD = 'spectra/muxPing';
 export const MUX_PING_RESULT = 'pong';
 export const MUX_RESTART_METHOD = 'spectra/muxRestartServer';
+export const MUX_SHUTDOWN_METHOD = 'spectra/muxShutdown';
 export const MUX_READY_PATTERN = /spectra lsp mux listening on /;
 
 export interface MuxConnectParams {

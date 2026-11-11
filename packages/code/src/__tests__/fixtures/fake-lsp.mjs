@@ -14,6 +14,12 @@ function location(uri, line = 0, character = 0) {
 
 function publish(uri, version, text) {
 	const diagnostics = [{ range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } }, severity: 2, message: 'Pushed warning', source: 'fake' }];
+	if (String(text).includes('PROVISIONAL')) {
+		// Pre-analysis placeholder: empty and unversioned, then the real publish.
+		send({ jsonrpc: '2.0', method: 'textDocument/publishDiagnostics', params: { uri, diagnostics: [] } });
+		setTimeout(() => send({ jsonrpc: '2.0', method: 'textDocument/publishDiagnostics', params: { uri, diagnostics } }), 250);
+		return;
+	}
 	const sendIt = () => send({ jsonrpc: '2.0', method: 'textDocument/publishDiagnostics', params: { uri, version, diagnostics } });
 	if (String(text).includes('SLOW')) setTimeout(sendIt, 300);
 	else sendIt();
@@ -25,7 +31,7 @@ function handle(message) {
 			case 'initialize':
 				return send({ jsonrpc: '2.0', id: message.id, result: { capabilities: {
 					textDocumentSync: 1,
-					diagnosticProvider: { interFileDependencies: false, workspaceDiagnostics: true },
+					diagnosticProvider: { interFileDependencies: false, workspaceDiagnostics: !process.argv.includes('--no-workspace-pull') },
 					definitionProvider: true,
 					referencesProvider: true,
 					hoverProvider: true,

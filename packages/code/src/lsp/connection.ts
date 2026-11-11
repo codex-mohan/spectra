@@ -14,6 +14,7 @@ export interface ConnectionHandlers {
 }
 
 export interface RpcConnection {
+	readonly closed: boolean;
 	request(method: string, params: unknown, options: RequestOptions): Promise<unknown>;
 	notify(method: string, params: unknown): void;
 	dispose(error?: Error): void;
@@ -32,11 +33,16 @@ abstract class BaseConnection implements RpcConnection {
 
 	constructor(protected readonly handlers: ConnectionHandlers) {}
 
+	get closed(): boolean {
+		return this.disposed;
+	}
+
 	protected abstract write(message: JsonRpcMessage): void;
 	protected abstract disposeTransport(): void;
 
 	request(method: string, params: unknown, options: RequestOptions): Promise<unknown> {
 		if (this.disposed) return Promise.reject(new Error('Connection closed'));
+		if (options.signal?.aborted) return Promise.reject(new Error(`${method} aborted`));
 		const id = this.nextId++;
 		const { promise, resolve, reject } = Promise.withResolvers<unknown>();
 		const timer = setTimeout(() => {
@@ -115,6 +121,8 @@ export class JsonRpcConnection extends BaseConnection {
 	) {
 		super(handlers);
 		child.stdout.on('data', createFrameReader((message) => this.feed(message)));
+		child.once('exit', () => this.dispose(new Error('LSP server exited')));
+		child.once('error', (error) => this.dispose(error instanceof Error ? error : new Error(String(error))));
 	}
 
 	protected write(message: JsonRpcMessage): void {
@@ -134,6 +142,8 @@ export class StreamJsonRpcConnection extends BaseConnection {
 	) {
 		super(handlers);
 		stream.on('data', createFrameReader((message) => this.feed(message)));
+		stream.once('close', () => this.dispose(new Error('LSP mux connection closed')));
+		stream.once('error', (error) => this.dispose(error instanceof Error ? error : new Error(String(error))));
 	}
 
 	protected write(message: JsonRpcMessage): void {

@@ -6,6 +6,22 @@ import { JsonRpcConnection, type RpcConnection } from './connection.js';
 import { connectMux } from './mux/client.js';
 import type { Diagnostic, ServerCapabilities } from './protocol.js';
 
+/** An unversioned empty publish this soon after startup is pre-analysis, not a clean file. */
+const PROVISIONAL_PUBLISH_WINDOW_MS = 12_000;
+
+/** Map URI/path spellings to one key; Windows drive-case and %3A differ. */
+function diagnosticsKey(value: string): string {
+	let filePath = value;
+	if (value.startsWith('file:')) {
+		try {
+			filePath = fileURLToPath(value);
+		} catch {
+			return value;
+		}
+	}
+	return process.platform === 'win32' ? filePath.toLowerCase() : filePath;
+}
+
 export interface LspClientOptions {
 	id: string;
 	name: string;
@@ -14,6 +30,8 @@ export interface LspClientOptions {
 	requestTimeout: number;
 	workspaceSettings?: Record<string, unknown>;
 	socketPath?: string;
+	/** Absolute executable resolved from project bins or `$PATH`. */
+	commandPath?: string;
 }
 
 export class LspClient {
@@ -24,6 +42,9 @@ export class LspClient {
 	private readonly requestTimeout: number;
 	private readonly workspaceSettings: Record<string, unknown>;
 	private readonly socketPath?: string;
+	private readonly commandPath?: string;
+	/** Server start time; used to reject pre-analysis empty publishes. */
+	readonly startedAt = Date.now();
 	private child: ChildProcessWithoutNullStreams | null = null;
 	private connection: RpcConnection | null = null;
 	private capabilities: ServerCapabilities = {};
@@ -43,6 +64,7 @@ export class LspClient {
 		this.requestTimeout = options.requestTimeout;
 		this.workspaceSettings = options.workspaceSettings ?? {};
 		this.socketPath = options.socketPath;
+		this.commandPath = options.commandPath;
 	}
 
 	async start(): Promise<void> {
@@ -51,18 +73,22 @@ export class LspClient {
 			onRequest: (method: string, params: unknown) => this.onRequest(method, params),
 		};
 
+		const command = this.commandPath ?? this.server.command;
 		let connection: RpcConnection;
 		if (this.socketPath) {
 			connection = await connectMux(this.socketPath, {
-				command: this.server.command,
+				command,
 				args: this.server.args ?? [],
 				cwd: this.root,
 			}, handlers, this.requestTimeout);
 		} else {
-			const child = spawn(this.server.command, this.server.args ?? [], {
+			// Windows cannot execute `.cmd`/`.bat` directly; run them through the shell.
+			const needsShell = process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(command);
+			const child = spawn(needsShell ? `"${command}"` : command, this.server.args ?? [], {
 				cwd: this.root,
 				stdio: ['pipe', 'pipe', 'pipe'],
 				windowsHide: true,
+				shell: needsShell,
 			});
 			this.child = child;
 			child.stderr.on('data', (chunk: Buffer) => {
@@ -129,7 +155,14 @@ export class LspClient {
 	}
 
 	get isRunning(): boolean {
-		return this.child !== null && !this.disposed;
+		if (this.disposed || !this.connection || this.connection.closed) return false;
+		// Mux clients own only the socket; the daemon owns the language server.
+		if (this.socketPath) return true;
+		return this.child !== null && this.child.exitCode === null && !this.child.killed;
+	}
+
+	get usesMux(): boolean {
+		return this.socketPath !== undefined;
 	}
 
 	async request(method: string, params: unknown, signal?: AbortSignal): Promise<unknown> {
@@ -182,7 +215,12 @@ export class LspClient {
 	}
 
 	getDiagnostics(path: string): Diagnostic[] {
-		return this.diagnostics.get(pathToFileURL(path).toString())?.diagnostics ?? [];
+		return this.diagnostics.get(diagnosticsKey(path))?.diagnostics ?? [];
+	}
+
+	/** True once the server has published diagnostics (empty or not) for this file. */
+	hasDiagnosticsEntry(path: string): boolean {
+		return this.diagnostics.has(diagnosticsKey(path));
 	}
 
 	documentVersion(path: string): number | undefined {
@@ -191,21 +229,37 @@ export class LspClient {
 
 	async waitForDiagnostics(
 		path: string,
-		options: { afterVersion?: number; timeoutMs: number },
+		options: { afterVersion?: number; timeoutMs: number; signal?: AbortSignal },
 	): Promise<Diagnostic[]> {
 		const uri = pathToFileURL(path).toString();
 		const deadline = Date.now() + options.timeoutMs;
 		const startedAt = Date.now();
 		for (;;) {
-			const entry = this.diagnostics.get(uri);
+			const entry = this.diagnostics.get(diagnosticsKey(uri));
 			if (entry) {
 				const freshByVersion = options.afterVersion === undefined
 					|| entry.version === undefined
 					|| entry.version >= options.afterVersion;
-				const freshByTime = entry.receivedAt >= startedAt;
-				if (freshByVersion && freshByTime) return entry.diagnostics;
+				// An explicit diagnostics request with no baseline should return what
+				// the server already published when the document opened. Freshness is
+				// only required for post-write checks that pass an afterVersion.
+				const freshByTime = options.afterVersion === undefined || entry.receivedAt >= startedAt;
+				// A newly started server often publishes an empty, unversioned
+				// placeholder before analysis. Never report that as a clean result
+				// for a versioned (post-write) check.
+				const provisional = options.afterVersion !== undefined
+					&& entry.version === undefined
+					&& entry.diagnostics.length === 0
+					&& Date.now() - this.startedAt < PROVISIONAL_PUBLISH_WINDOW_MS;
+				if (freshByVersion && freshByTime && !provisional) return entry.diagnostics;
 			}
-			if (Date.now() >= deadline) return entry?.diagnostics ?? [];
+			const provisionalPlaceholder = entry !== undefined
+				&& options.afterVersion !== undefined
+				&& entry.version === undefined
+				&& entry.diagnostics.length === 0
+				&& Date.now() - this.startedAt < PROVISIONAL_PUBLISH_WINDOW_MS;
+			if (options.signal?.aborted) return provisionalPlaceholder ? [] : entry?.diagnostics ?? [];
+			if (Date.now() >= deadline) return provisionalPlaceholder ? [] : entry?.diagnostics ?? [];
 			await new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 40));
 		}
 	}
@@ -247,7 +301,12 @@ export class LspClient {
 		}
 		if (!this.socketPath) {
 			try {
-				connection?.notify('shutdown', null);
+				// LSP shutdown is a request; exit is the follow-up notification.
+				await connection?.request('shutdown', null, { timeoutMs: 1000 });
+			} catch {
+				// Server already gone or did not answer.
+			}
+			try {
 				connection?.notify('exit', null);
 			} catch {
 				// Server already gone.
@@ -276,7 +335,7 @@ export class LspClient {
 			return;
 		}
 		if (method === 'textDocument/publishDiagnostics' && isRecord(params) && typeof params.uri === 'string') {
-			this.diagnostics.set(params.uri, {
+			this.diagnostics.set(diagnosticsKey(params.uri), {
 				diagnostics: Array.isArray(params.diagnostics) ? params.diagnostics as Diagnostic[] : [],
 				...(typeof params.version === 'number' ? { version: params.version } : {}),
 				receivedAt: Date.now(),

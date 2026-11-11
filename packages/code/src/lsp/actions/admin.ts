@@ -1,11 +1,24 @@
+import { relative } from 'path';
 import { requireFile, type ActionContext, type ActionResult } from './types.js';
 
 export async function runStatusAction(context: ActionContext): Promise<ActionResult> {
-	const clients = context.manager.describe();
-	const text = clients.length === 0
-		? 'No LSP servers running.'
-		: clients.map((client) => `${client.server}  ${client.root}${client.running ? '' : ' (stopped)'}`).join('\n');
-	return { text, details: { action: 'status', success: true, servers: clients } };
+	const servers = context.manager.status().map((server) => ({
+		...server,
+		root: relative(context.cwd, server.root) || '.',
+	}));
+	const text = servers.length === 0
+		? 'No LSP servers configured for this workspace.'
+		: servers
+			.map((server) => {
+				const state = server.running
+					? 'running'
+					: server.error
+						? `failed: ${server.error}`
+						: 'configured, not started';
+				return `${server.server}  ${server.root}  (${state})`;
+			})
+			.join('\n');
+	return { text, details: { action: 'status', success: true, servers } };
 }
 
 export async function runReloadAction(context: ActionContext): Promise<ActionResult> {
