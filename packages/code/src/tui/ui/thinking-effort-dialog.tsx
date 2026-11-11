@@ -84,7 +84,7 @@ export function ThinkingEffortDialog(props: ThinkingEffortDialogProps) {
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
 			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
 				<box
-					height={1}
+					height={2}
 					paddingX={2}
 					paddingTop={1}
 					flexDirection="row"
@@ -99,7 +99,6 @@ export function ThinkingEffortDialog(props: ThinkingEffortDialogProps) {
 						<text fg={c.dim}>esc</text>
 					</box>
 				</box>
-				<box height={1} />
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>

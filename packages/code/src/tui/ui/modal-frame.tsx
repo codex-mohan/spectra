@@ -50,10 +50,9 @@ export function ModalFrame({
 				{title !== undefined && (
 					<>
 						<box
-							height={1}
+							height={2}
 							paddingX={2}
 							paddingTop={1}
-							paddingBottom={1}
 							flexDirection="row"
 							justifyContent="space-between"
 							backgroundColor={c.bgCard}

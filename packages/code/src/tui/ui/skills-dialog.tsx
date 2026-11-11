@@ -117,7 +117,7 @@ export function SkillsDialog({ onClose, termWidth, termHeight, registerHandler, 
 	return (
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
 			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
-				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
+				<box height={2} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
 					<text fg={c.accent} attributes={1}>Skills</text>
 					<text fg={c.dim}>esc</text>
 				</box>

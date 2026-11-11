@@ -86,6 +86,64 @@ describe('session message hydration', () => {
 		expect(converted.messages[0].attachments?.[0].filename).toBe('example.ts');
 	});
 
+	it('restores hidden LSP diagnostics as compact system notes', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [
+				{
+					role: 'user',
+					content: [{ type: 'text', text: 'LSP diagnostics for src/broken.ts (1 error)\n1:7 error: bad type' }],
+					metadata: { hidden: true, hiddenSystem: true, meta: 'LSP diagnostics' },
+					timestamp: Date.now(),
+				},
+			],
+		});
+
+		expect(converted.messages).toHaveLength(1);
+		expect(converted.messages[0]).toMatchObject({
+			role: 'user',
+			hiddenSystem: true,
+			meta: 'LSP diagnostics',
+		});
+	});
+
+	it('recognizes legacy LSP notes that were saved as plain user messages', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [
+				{
+					role: 'user',
+					content: 'LSP diagnostics for src/broken.ts (1 error)\n1:7 error: bad type',
+					timestamp: Date.now(),
+				},
+			],
+		});
+
+		expect(converted.messages[0]).toMatchObject({
+			hiddenSystem: true,
+			meta: 'LSP diagnostics',
+		});
+	});
+
+	it('drops hidden background notes from the transcript', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [
+				{
+					role: 'user',
+					content: 'injected background result',
+					metadata: { hidden: true },
+					timestamp: Date.now(),
+				},
+			],
+		});
+
+		expect(converted.messages).toHaveLength(0);
+	});
+
 	it('hydrates delivered steering messages as normal user messages', async () => {
 		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
 		const converted = sdkMessagesToChatMessages({

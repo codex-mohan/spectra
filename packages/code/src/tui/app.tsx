@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
-import { useTerminalDimensions, useKeyboard } from '@opentui/react';
+import { useKeyboard } from '@opentui/react';
+import { useStableTerminalDimensions } from './hooks/use-stable-terminal-dimensions.js';
 import type { CliRenderer } from '@opentui/core';
 import { c, SPINNER } from './theme.js';
 import { ChatArea } from './components/chat-area.js';
@@ -104,7 +105,7 @@ function orderPaletteCommands(entries: readonly ResolvedCommand[]): ResolvedComm
 }
 
 export function App({ renderer }: { renderer: CliRenderer }) {
-	const { width: termWidth, height: termHeight } = useTerminalDimensions();
+	const { width: termWidth, height: termHeight } = useStableTerminalDimensions();
 
 	// --- State ---
 	const [savedConfig, setSavedConfig] = useState(loadSavedConfig);
@@ -523,6 +524,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		sessionStore.current.addMessage(activeSession, {
 			role: 'user',
 			content: [{ type: 'text', text }],
+			metadata: { hidden: true, hiddenSystem: true, meta: 'LSP diagnostics' },
 			timestamp: Date.now(),
 		});
 		if (isStreamingRef.current) agentsMapRef.current.get(activeSession)?.steer(text);

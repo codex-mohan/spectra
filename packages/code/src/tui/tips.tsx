@@ -37,7 +37,7 @@ export function Tips() {
 	}, []);
 
 	return (
-		<box height={1} paddingTop={1} flexDirection="row" gap={1}>
+		<box height={2} paddingTop={1} flexDirection="row" gap={1}>
 			<text fg={c.warn}>{'\u25CF'}</text>
 			<text fg={c.dim}>Tip</text>
 			{parts.map((p, i) => (

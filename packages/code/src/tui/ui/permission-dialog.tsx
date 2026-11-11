@@ -65,7 +65,7 @@ export function PermissionDialog({
 				backgroundColor={c.bg}
 			>
 				{/* Title */}
-				<box height={1} paddingTop={1} paddingX={2} flexDirection="row" justifyContent="center">
+				<box height={2} paddingTop={1} paddingX={2} flexDirection="row" justifyContent="center">
 					<text fg={c.accent} attributes={1}>
 						Spectra Permission
 					</text>
@@ -94,7 +94,7 @@ export function PermissionDialog({
 				</box>
 
 				{/* Separator */}
-				<box height={1} paddingX={2} paddingTop={1}>
+				<box height={2} paddingX={2} paddingTop={1}>
 					<text fg={c.border}>{'─'.repeat(innerWidth)}</text>
 				</box>
 
@@ -115,7 +115,7 @@ export function PermissionDialog({
 				</box>
 
 				{/* Footer */}
-				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="center">
+				<box height={2} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="center">
 					<text fg={c.dim}>← → select · enter confirm · esc close</text>
 				</box>
 			</box>

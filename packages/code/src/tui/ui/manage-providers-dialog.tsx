@@ -192,7 +192,7 @@ export function ManageProvidersDialog(props: {
 	const rows: any[] = [];
 	if (mode === 'list') {
 		rows.push(
-			<box paddingX={2} paddingTop={1} height={2} flexDirection="column" justifyContent="space-between">
+			<box paddingX={2} paddingTop={1} height={3} flexDirection="column" justifyContent="space-between">
 				<box flexDirection="row" gap={1} height={1}>
 					<text fg={c.accent}>{'>'}</text>
 					<text fg={c.text}>Manage Providers</text>
@@ -259,7 +259,7 @@ export function ManageProvidersDialog(props: {
 			);
 	} else if (mode === 'delete-confirm') {
 		rows.push(
-			<box paddingX={2} paddingTop={1} height={1}>
+			<box paddingX={2} paddingTop={1} height={2}>
 				<text fg={c.error} attributes={1}>
 					Delete Provider
 				</text>

@@ -49,7 +49,7 @@ export function sdkMessagesToChatMessages(data: {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- interfaces with untyped SQLite storage
 	const visible = data.messages.filter((m: Record<string, unknown>) => {
 		const meta = m.metadata as Record<string, unknown> | undefined;
-		return !meta?.hidden;
+		return !meta?.hidden || meta?.hiddenSystem === true;
 	});
 
 	const toolArgsById = new Map<string, Record<string, unknown>>();
@@ -98,12 +98,19 @@ export function sdkMessagesToChatMessages(data: {
 				content = textParts.join('\n');
 				if (fileAttachments.length > 0) attachments = fileAttachments;
 			}
+			// Older sessions stored deferred diagnostics as plain user
+			// messages. Recognize that exact generated prefix so reopening them
+			// does not turn a system note into a user prompt.
+			const hiddenSystem = metadata.hiddenSystem === true
+				|| content.startsWith('LSP diagnostics for ');
 			return {
 				id,
 				role: 'user' as const,
 				content: content || '',
 				attachments,
 				model: data.model,
+				...(hiddenSystem ? { hiddenSystem: true } : {}),
+				...(typeof metadata.meta === 'string' ? { meta: metadata.meta } : hiddenSystem ? { meta: 'LSP diagnostics' } : {}),
 			};
 		}
 		if (m.role === 'assistant') {

@@ -115,7 +115,7 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 	return (
 		<box position="absolute" left={0} right={0} top={0} bottom={0} backgroundColor={c.bgOverlay}>
 			<box position="absolute" left={ml} top={mt} width={mw} height={mh} backgroundColor={c.bgCard}>
-				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
+				<box height={2} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="space-between" backgroundColor={c.bgCard}>
 					<box height={1} flexDirection="row" gap={2}>
 						{TABS.map((t) => (
 							<text key={t.key} fg={tab === t.key ? c.accent : c.dim} attributes={tab === t.key ? 1 : 0}>
@@ -125,7 +125,6 @@ export function MemoryDialog({ onClose, termWidth, termHeight, registerHandler }
 					</box>
 					<text fg={c.dim}>esc</text>
 				</box>
-				<box height={1} />
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(innerW)}</text>
 				</box>

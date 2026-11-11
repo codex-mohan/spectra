@@ -73,7 +73,7 @@ export function AboutDialog({ onClose, termWidth, termHeight, registerHandler }:
 			title="About"
 			footer={<text fg={c.dim}>esc / enter close</text>}
 		>
-			<box flexDirection="row" paddingX={2} paddingTop={1}>
+			<box flexDirection="row" paddingX={2}>
 				<GradientMark />
 				<box width={3} flexShrink={0} />
 				<box flexDirection="column" flexGrow={1}>

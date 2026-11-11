@@ -171,7 +171,7 @@ function SelectDialog(props: {
 					flexDirection="row"
 					justifyContent="space-between"
 					alignItems="center"
-					height={1}
+					height={2}
 				>
 					<box flexDirection="row" gap={1}>
 						<text fg={c.accent}>{'>'}</text>
@@ -181,7 +181,6 @@ function SelectDialog(props: {
 						<text fg={c.dim}>esc</text>
 					</box>
 				</box>
-				<box height={1} />
 				<box height={1} paddingX={2}>
 					<text fg={c.border}>{'─'.repeat(mw - 4)}</text>
 				</box>
@@ -204,7 +203,7 @@ function SelectDialog(props: {
 						)}
 					</box>
 				</scrollbox>
-				<box height={1} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="center">
+				<box height={2} paddingX={2} paddingTop={1} flexDirection="row" justifyContent="center">
 					<text fg={c.dim}>
 						{'\u2191\u2193'} navigate · {'\u23CE'} select · esc close
 					</text>
