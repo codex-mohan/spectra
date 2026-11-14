@@ -1,5 +1,7 @@
 import { memo } from 'react';
+import { useRenderer } from '@opentui/react';
 import { c } from '../theme.js';
+import { openLinkAtPointer } from '../utils/link-open.js';
 import { MessageView } from './message.js';
 import type { ChatMessage } from '../types.js';
 
@@ -18,6 +20,7 @@ function ChatAreaImpl({
 	onMessageClick?: (msg: ChatMessage) => void;
 	onTaskClick?: (childSessionId: string) => void;
 }) {
+	const renderer = useRenderer();
 	const visible = messages.filter((msg) => {
 		if (msg.role === 'tool' && !showToolCalls) return false;
 		return true;
@@ -37,6 +40,7 @@ function ChatAreaImpl({
 	return (
 		<box flexDirection="column">
 			<scrollbox
+				onMouseUp={(event) => openLinkAtPointer(renderer, event)}
 				flexGrow={1}
 				stickyScroll={true}
 				stickyStart="bottom"

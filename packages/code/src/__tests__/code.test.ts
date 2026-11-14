@@ -1,6 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { pathToFileURL } from 'url';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import open from 'open';
-import { assertWebUrl, getPlatformInfo, openBrowser } from '../utils/platform.js';
+import { assertWebUrl, getPlatformInfo, openBrowser, openTarget } from '../utils/platform.js';
 import { getGlobalConfigDir } from '../utils/paths.js';
 
 vi.mock('open', () => ({ default: vi.fn(() => Promise.resolve()) }));
@@ -18,6 +22,38 @@ describe('spectra-code utilities', () => {
 		const dir = getGlobalConfigDir();
 		expect(dir).toBeTruthy();
 		expect(typeof dir).toBe('string');
+	});
+});
+
+describe('opening links and paths', () => {
+	let dir: string;
+
+	beforeEach(() => {
+		dir = mkdtempSync(join(tmpdir(), 'spectra-open-'));
+		vi.mocked(open).mockClear();
+	});
+
+	afterEach(() => {
+		rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+	});
+
+	it('opens an existing local file', async () => {
+		const file = join(dir, 'note.txt');
+		writeFileSync(file, 'hello');
+		await openTarget(file);
+		expect(open).toHaveBeenCalledWith(file);
+	});
+
+	it('opens a file URL through its filesystem path', async () => {
+		const file = join(dir, 'note.txt');
+		writeFileSync(file, 'hello');
+		await openTarget(pathToFileURL(file).toString());
+		expect(open).toHaveBeenCalledWith(file);
+	});
+
+	it('refuses unknown schemes and missing paths', async () => {
+		await expect(openTarget('vscode://file/secret')).rejects.toThrow('Unsupported link scheme');
+		await expect(openTarget(join(dir, 'missing.txt'))).rejects.toThrow('Path not found');
 	});
 });
 

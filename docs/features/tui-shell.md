@@ -10,6 +10,11 @@
 - Hooks: `packages/code/src/tui/hooks/use-agent.ts` — per-session `Agent` construction/configuration/restore/abort; `packages/code/src/tui/hooks/use-chat-submit.ts` — submit, steering, `agent.run()` event projection.
 - Chrome: `packages/code/src/tui/footer-status.ts` — pure footer status precedence and width budget; `packages/code/src/tui/ui/modal-frame.tsx` — absolute overlay frame.
 - Home footer: `packages/code/src/tui/components/git-status.tsx` — `GitStatusSegment`; `packages/code/src/tui/utils/git-status-layout.ts` — pure layout/priority rules; `packages/code/src/tui/hooks/use-git-status.ts` — polling and dedupe; `packages/code/src/services/git-status.ts` — porcelain v2 reader.
+- Links and math:
+  - `packages/code/src/tui/utils/link-open.ts` — plain-left-click opens the link under the pointer; modified clicks are left to the terminal.
+  - `packages/code/src/utils/platform.ts` — `openTarget` validates HTTP(S) URLs and existing files before handing them to the OS opener.
+  - `packages/code/src/tui/utils/math.ts` — LaTeX-in-markdown to Unicode/terminal text.
+  - `packages/code/src/tui/utils/markdown-render.ts` — Mermaid fences to ASCII diagrams, then LaTeX conversion; uses `beautiful-mermaid` (MIT).
 - Collaborators:
   - `packages/code/src/tui/hooks/use-session-state.ts` — per-session UI state store (messages, loading, tokens, cost, pending queues).
   - `packages/code/src/tui/hooks/use-app-keyboard.ts` — key routing, including `dialogKeyHandler` ownership.
@@ -47,6 +52,8 @@
 - Terminal title is set at mount and on session load/switch (`setTerminalTitle`, `formatSessionTitle`).
 - Home footer left segment: folder glyph + path (home shortened to `~`, separator-normalized), `›`, branch glyph + branch, ahead/behind, then `!conflicts`, `*changed`, `?untracked`. Refresh runs on mount, every 5 s, and when a turn finishes; it is asynchronous and never blocks the render loop. Transient git failures keep the last good status and only clear after three consecutive misses.
 - Clipboard writes occur on terminal selection and when installing an update copies `UPDATE_COMMAND`.
+- Markdown links and auto-detected URLs carry OpenTUI link metadata. A plain left click resolves the link under the pointer and opens it with the OS default browser/file handler; Ctrl/Cmd/Shift/Alt clicks are not intercepted.
+- LaTeX math (`$…$`, `$$…$$`, `\(…\)`, `\[…\]`) is converted to Unicode before markdown rendering; fenced and inline code are left untouched.
 
 ## Flow
 
@@ -103,6 +110,10 @@
 
 ## Limitations
 
+- Math rendering is a Unicode approximation, not a layout engine: fractions become `(a)/(b)`, roots use `√(…)`, scripts use Unicode super/subscripts with `^(…)`/`_(…)` fallbacks. Matrices, aligned environments, and macros are not rendered.
+- Link opening is user-gesture only. Bare URLs rely on the terminal's own link detection; markdown links use OpenTUI link metadata. Unknown URL schemes and nonexistent paths are refused.
+- Mermaid fences render through `beautiful-mermaid` for flowcharts, state, sequence, class, ER, and XY charts. Unsupported or malformed diagrams fall back to the original fence. Diagram rendering is source-bounded (20k chars) and does not support interactive diagram features.
+
 - `TuiOptions.sessionId` is accepted but ignored; there is no startup flag to open a specific session.
 - The home stats row hardcodes the tool count (`'7 tools'`), so it does not track the actual registry (`app.tsx:958`).
 - Only one session is visible. Background sessions continue streaming but their events are applied to that session's state, not the visible one.
@@ -118,6 +129,10 @@
 - `packages/code/src/__tests__/prompt-bar-layout.test.ts` — explicit width keeps `rootWidth`/`bodyWidth`; omitted width stays `'auto'`.
 - `packages/code/src/__tests__/prompt-submit-lifecycle.test.tsx` — extmarks are cleared before synchronous teardown, and the submitted payload is `{ text, attachments }`.
 - `packages/code/src/__tests__/tui-input-lifecycle.test.ts` — permission dialogs own navigation keys ahead of stale message-control handlers; drafts typed during a stream survive completed, errored, and interrupted outcomes.
+- `packages/code/src/__tests__/link-open.test.ts` — plain left clicks open the link under the pointer; modified clicks, drags, right clicks, and non-link cells are ignored.
+- `packages/code/src/__tests__/math.test.ts` — fractions, roots, Greek symbols, super/subscripts, inline/display delimiters, currency protection, and code-block preservation.
+- `packages/code/src/__tests__/markdown-render.test.ts` — Mermaid fences render to terminal diagrams, non-Mermaid/invalid fences stay intact, and math conversion still applies.
+- `packages/code/src/__tests__/code.test.ts` — `openTarget` opens existing files and file URLs and refuses unknown schemes or missing paths.
 
 ## Related
 

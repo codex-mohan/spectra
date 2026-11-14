@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import open from 'open';
 
 function resolveShell(): string {
@@ -30,6 +31,32 @@ export function assertWebUrl(url: string): void {
 export async function openBrowser(url: string): Promise<void> {
 	assertWebUrl(url);
 	await open(url);
+}
+
+/**
+ * Hand a URL or local path to the operating system's default handler.
+ * Browser URLs are limited to HTTP(S); local paths must already exist.
+ */
+export async function openTarget(target: string): Promise<void> {
+	const value = target.trim();
+	if (!value) throw new Error('Nothing to open');
+	if (/^https?:/i.test(value)) {
+		assertWebUrl(value);
+		await open(value);
+		return;
+	}
+	if (/^file:/i.test(value)) {
+		const localPath = fileURLToPath(value);
+		if (!existsSync(localPath)) throw new Error(`Path not found: ${localPath}`);
+		await open(localPath);
+		return;
+	}
+	const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(value)?.[1];
+	// A single letter is a Windows drive (`C:\...`), not a URL scheme.
+	if (scheme && scheme.length > 1) throw new Error(`Unsupported link scheme: ${scheme}`);
+	const localPath = resolve(value);
+	if (!existsSync(localPath)) throw new Error(`Path not found: ${localPath}`);
+	await open(localPath);
 }
 
 export function getPlatformInfo(): {

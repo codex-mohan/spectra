@@ -9,6 +9,7 @@ import { filetype } from '../utils/filetype.js';
 import { formatAttachmentBadge, formatAttachmentMetadata, getDisplayIcon, getFileIcon, getFileVisual } from '../utils/file-visuals.js';
 import { askToolDetailsSchema, type AskQuestionResult } from '../../tools/ask.js';
 import { showToast } from './toast.js';
+import { prepareMarkdown } from '../utils/markdown-render.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -607,7 +608,7 @@ function LspToolView(props: {
 					<text fg={c.error}>{props.output || 'LSP request failed'}</text>
 				) : action === 'hover' && props.output ? (
 					<markdown
-						content={props.output}
+						content={prepareMarkdown(props.output)}
 						syntaxStyle={mdStyle}
 						conceal={true}
 						width="100%"
@@ -940,7 +941,7 @@ export function renderMessageView({
 										thinkBlocks.map((block, i) => (
 											<markdown
 												key={`think-${i}`}
-												content={block.content}
+												content={prepareMarkdown(block.content)}
 												syntaxStyle={mdStyleMuted}
 												streaming={!!msg.streaming}
 												conceal={true}
@@ -951,7 +952,7 @@ export function renderMessageView({
 										))}
 									{mdContent ? (
 										<markdown
-											content={mdContent}
+											content={prepareMarkdown(mdContent)}
 											syntaxStyle={mdStyle}
 											streaming={!!msg.streaming}
 											conceal={true}
@@ -1167,7 +1168,7 @@ export function renderMessageView({
 					</box>
 					<box paddingLeft={2}>
 						<markdown
-							content={output}
+							content={prepareMarkdown(output)}
 							syntaxStyle={mdStyle}
 							conceal={true}
 							width="100%"
