@@ -43,6 +43,8 @@ Do not port mechanisms that assume another harness's runtime: model-role chains,
 | 5 | Settings registry, tabbed UI, config CLI | L | done | 1 |
 | 6 | Browser automation | L | done | 5 |
 | 7 | Plugin system | XL | done (MVP) | 4, 5 |
+| 8 | Adaptive agent profiles (recursive refinement) | XL | in progress | 5, 7 |
+| 9 | Trust, distribution, and evidence | XL | planned | 8 |
 
 Parallel lanes after Phase 1: {2, 3, 4, 5} are independent. Phase 6 needs 5 (permission/settings surface). Phase 7 needs 4 (job lifecycle) and 5 (settings contributions).
 
@@ -626,6 +628,83 @@ Carried from the earlier plan: classification (retryable vs permanent), replay-s
 - Arbitrary UI slots/components and browser halves.
 - Marketplace/remote install, capability enforcement, dynamic sandbox.
 - Migrating all built-ins into plugin packages.
+
+---
+
+## Phase 8 — Adaptive agent profiles (recursive refinement)
+
+**Goal:** an agent improves its own runtime profile from execution evidence, without changing model weights and without relying on ground-truth labels. The mechanism is inspired by the Harness² paper (arXiv 2610.14224, Apache-2.0 reference code), but the vocabulary, file layout, prompts, and runtime are Spectra's own. No file names, stage prompts, or orchestrator code are copied.
+
+### Spectra vocabulary (adaptation, not translation)
+
+| Spectra term | Meaning | Deliberately not |
+|---|---|---|
+| **Profile** | The editable bundle around a frozen model, declared by `profile.json` and mapped onto existing Spectra surfaces | `c1..c8` tree, `system_prompt.md`, `EXPERIENCE.md` |
+| **Run** | One task execution under a profile | benchmark cell |
+| **Trial record** | Trajectory, artifacts, cost, exit state, and behavior deltas for one run | `RunView` / `e = (τ, y)` |
+| **Sketch → Trial → Weave** | Propose general and task-scoped edits; run them under matched conditions; selectively combine supported edits | Propose–Probe–Compose |
+| **Wide / Deep** | Parallel candidate passes / chained passes, bounded by `passes` | parallel / sequential recursion, `k` |
+| **Tuner** | The Spectra agent that edits a profile in an isolated workspace | Harness Editor |
+| **Chooser** | Anonymized output selection with a baseline fallback | Selector model |
+| **Fieldbook** | Per-domain lessons plus adopted profile snapshots, retrieved on demand | improvement harness / library |
+| **Lesson** | `when`, `change`, `evidence`, `confidence` | `cue, lesson, evidence, confidence` |
+
+### Reference (behavior only)
+
+- Paper: `Harness²: Recursive Agent Harnessing for an Open World`, arXiv 2610.14224.
+- Reference implementation: `google-research/harness2` (Apache-2.0). Read for invariants: contrastive evidence, evidence-gated retention, domain-scoped experience, invisible-baseline fallback, leakage controls.
+- Do **not** port its Python layout, `context/` tree, stage prompts, channel plumbing, or OpenCode/Codex substrates. Spectra's agent loop, skills, plugins, subagents, permissions, and snapshots are the substrate.
+
+### Current state
+
+- Agents, skills, plugins, subagents/jobs, permissions, snapshots, session store, and structured events already exist.
+- There is no profile bundle, no runner seam that executes a task against an arbitrary profile, no trial capture, no fieldbook, and no refinement loop.
+
+### Steps
+
+1. **Profile contract.** `profile.json` declares an agent name, instruction file, guardrail/approval overrides, memory file, skill directories, tool guidance, scripts, delegates, and extension set. Resolve it onto existing Spectra config surfaces instead of duplicating them. Validate: skill frontmatter, script parse/typecheck where possible, plugin load, caps, permission invariants. Include content hash, diff, apply, and snapshot rollback.
+2. **Runner seam.** `ProfileRunner.run(task, profileDir, runId)` executes Spectra's agent loop in an isolated worktree/snapshot. Capture trial records: event trajectory, tool calls, artifacts, cost, exit state, and a path-safe delta against the baseline profile. No rubric/grader paths in the record.
+3. **Sketch.** A Tuner session receives an evidence package (task, trial records, artifacts, current profile, relevant fieldbook entries) and returns two candidate profiles: **general** edits for recurring agentic weaknesses and **task** edits for this task's domain. Validate before use; one retry, then inherit the current profile.
+4. **Trial.** Run baseline and candidates on the same task under matched model/settings/sandbox conditions. Record behavior deltas, not scores. Treat missing artifacts and failed runs as evidence, never as neutral.
+5. **Weave.** Compose a successor from supported edits only. May merge, revise conflicts, adopt one candidate, or keep the baseline. Every decision records the observation it depends on. A `passes > 1` budget supports **Wide** (multiple candidate pairs, one population update) and **Deep** (chained passes carrying trial history).
+6. **Chooser.** When more than one final exists, anonymize outputs, choose one with a Spectra agent, and fall back to a delivered baseline on failure. The chooser may not synthesize new output.
+7. **Fieldbook.** Retain an adopted profile snapshot plus a Lesson only when supported by trial evidence. Index by domain; retrieve on demand. Lessons do not carry benchmark/rubric text. `reload`/retention must be reversible.
+8. **Surfaces.** CLI (`spectra profile run|refine|fieldbook`), config (`profile.refine.passes`, `mode: wide|deep`, budget, approval), and a TUI view for baseline → candidates → weave decision, diffs, cost, and rollback.
+9. **Safety.** Profile edits require approval unless explicitly allowed; guardrail/permission files are read-only to the Tuner in v1; every adopted profile is snapshotted and rollbackable.
+
+### Verification
+
+- Deterministic demo with a fake Tuner/Chooser and the real runner: one pass produces a validated diff, trial records, a weave decision, and a fieldbook entry; a second run retrieves the lesson. No model credentials.
+- One real refinement pass on a small repo task: no rubric leakage, budget enforced, baseline fallback observed, rollback restores the prior profile.
+- `bun run lint`, `bun run test`, `bun run build`; deterministic tests for validation, leakage, cost caps, retention gates, and profile rollback.
+- Feature page update and changeset.
+
+### Acceptance
+
+- A profile is diffable, validated, snapshotted, and rollbackable.
+- A failed Sketch or Trial leaves the baseline profile intact.
+- Weave decisions are tied to recorded observations; no score claim is made without evidence.
+- Fieldbook entries are evidence-backed and domain-scoped; no rubric/grader text.
+- CLI/TUI expose the loop and its cost without leaking internal prompts.
+- No Spectra file, term, or prompt is a direct copy of the reference implementation.
+
+**Non-goals:** model training, public leaderboard, marketplace, multi-substrate support, porting the reference orchestrator or its benchmark harness, automatic profile edits without approval.
+
+---
+
+## Phase 9 — Trust, distribution, and evidence (planned)
+
+**Goal:** close the gaps that decide daily use, after profiles land.
+
+- Sandboxed execution (Linux/macOS first, Windows follow-up) and `write` as the default approval mode.
+- Standalone per-platform binaries; signed/notarized release path.
+- Terminal-Bench baseline plus a reproducible report.
+- Gemini/Vertex provider; bundled `ripgrep`.
+- Hashline regression corpus; LSP `$/progress` readiness gating.
+
+**Reference:** `openai/codex` (sandbox), `google-gemini/gemini-cli` (provider), `laude-institute/terminal-bench` (evidence), `@vscode/ripgrep` (packaging), `oh-my-pi` (LSP readiness, hashline tests). Apache-2.0/MIT reuse requires headers, `THIRD-PARTY-NOTICES.md`, and README credit.
+
+**Non-goals:** leaderboard marketing before a reproducible harness exists.
 
 ---
 

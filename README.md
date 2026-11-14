@@ -257,6 +257,8 @@ cargo test --workspace
 
 Spectra was deeply inspired by **pi-mono** by **Mario Zechner** — a beautifully minimal AI stack that proved an agent framework doesn't need layers of abstraction to be powerful.
 
+Adaptive-profile refinement takes mechanism-level inspiration from **Harness²: Recursive Agent Harnessing for an Open World** (Xu et al., arXiv 2610.14224, Apache-2.0 reference code); Spectra's profile model, vocabulary, runtime, and file layout are its own, and no reference code is vendored.
+
 LSP server discovery, workspace diagnostics, and language-server lifecycle behavior reference **oh-my-pi** by **Stencil Labs** (MIT). No oh-my-pi source is vendored; if that changes, attribution will be recorded in `THIRD-PARTY-NOTICES.md` and in the derived files.
 
 ## License
