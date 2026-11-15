@@ -19,7 +19,6 @@ export function defineService<T>(id: string, description?: string): ServiceKey<T
 export type HookName =
 	| 'tool.beforeExecute'
 	| 'tool.afterExecute'
-	| 'prompt.sections'
 	| 'session.start'
 	| 'session.end'
 	| 'agent.turnEnd'
@@ -38,7 +37,6 @@ export interface ToolAfterHookInput extends ToolBeforeHookInput {
 export interface HookInputMap {
 	'tool.beforeExecute': ToolBeforeHookInput;
 	'tool.afterExecute': ToolAfterHookInput;
-	'prompt.sections': { existing: readonly string[] };
 	'session.start': { sessionId: string };
 	'session.end': { sessionId: string };
 	'agent.turnEnd': { sessionId: string; error?: string };
@@ -48,7 +46,6 @@ export interface HookInputMap {
 export interface HookResultMap {
 	'tool.beforeExecute': { block?: boolean; reason?: string };
 	'tool.afterExecute': { result?: ToolAfterHookInput['result'] };
-	'prompt.sections': { text: string; order?: number };
 	'session.start': void;
 	'session.end': void;
 	'agent.turnEnd': void;

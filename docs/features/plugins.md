@@ -54,7 +54,6 @@ export default {
 | --- | --- |
 | `tool.beforeExecute` | `{ block?, reason? }` |
 | `tool.afterExecute` | `{ result? }` |
-| `prompt.sections` | `{ text, order? }` |
 | `session.start` / `session.end` | observe |
 | `agent.turnEnd` | observe |
 | `command.beforeExecute` | `{ block?, reason? }` |
@@ -62,10 +61,10 @@ export default {
 ## Flow
 
 1. `launchTui` awaits `pluginHost.initialize()` before rendering.
-2. Each enabled plugin is imported with a cache-busting URL, `setup(ctx)` runs with a 10 s activation timeout.
-3. Registrations are effects; disposal runs in reverse order.
-4. A throwing hook is contained, the plugin is marked `failed`, and its hooks are removed; the turn continues.
-5. `setEnabled` disposes/reloads the plugin and writes `plugins[].enabled` to the project config.
+2. Each enabled plugin is imported with a cache-busting URL. Import **and** `setup(ctx)` share one 10 s activation deadline; on timeout the plugin is aborted, disposed, and marked `failed`.
+3. Registrations are effects; disposal runs in reverse order. Registrations attempted after abort are rejected.
+4. A throwing or hung hook is contained. The plugin is marked `failed` and **all** contributions (tools, commands, prompts, settings, hooks) are disposed; the settings registry is refreshed. Hooks have a 5 s per-handler timeout.
+5. `setEnabled` disposes/reloads the plugin and writes `plugins[].enabled` to the project config. `reload` does not re-enable a disabled plugin.
 6. `shutdown` disposes all plugins and clears dynamic settings.
 
 ## State / persistence
@@ -77,10 +76,12 @@ export default {
 
 ## Security
 
-- Plugins are trusted in-process code; there is no sandbox.
+- Plugins are trusted in-process code; there is no sandbox. Their own module body can read files, environment variables, and the network; permissions apply only to registered tools.
 - Plugin tools go through the normal security wrapper and use `plugin:<id>` as their permission identity.
 - Declared `capabilities` are documentation-only in this MVP.
-- Hook errors are contained per handler.
+- Plugin-provided services must use `plugin:<id>:<name>`; `spectra.*` core services cannot be replaced.
+- Manifest `entry` must stay inside the plugin directory.
+- Hook errors and timeouts are contained per handler; the offending plugin is fully disposed.
 
 ## Errors
 
@@ -88,14 +89,16 @@ export default {
 | --- | --- |
 | Missing/invalid `plugin.json` | plugin listed as `failed` with a diagnostic |
 | Missing entry/module | `failed` with the import error |
-| Setup throws/times out | `failed`, no contributions retained |
-| Hook throws | plugin disabled, error recorded once, hook removed |
+| Setup throws/times out | `failed`, no contributions retained; late registrations are aborted |
+| Hook throws/times out | plugin fully disposed, error recorded once |
+| Entry escapes plugin directory | `failed`, no import |
 | Missing required service | `failed` with the missing ids |
 
 ## Limitations
 
 - Local plugins only; no marketplace, remote install, or signatures.
-- No service dependency reactivation graph; `requires` is checked once at activation.
+- No service dependency reactivation graph; `requires` is checked once at activation, so a provider loaded later is not seen.
+- No per-plugin capability enforcement; `capabilities` remain documentation-only.
 - No arbitrary UI components or slot registry; plugin UI is limited to settings, commands, and prompts.
 - No browser-half or dynamic model-written plugins.
 - Capabilities are not enforced.

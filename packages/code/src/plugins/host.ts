@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
-import { dirname, isAbsolute, join, resolve } from 'path';
+import { dirname, isAbsolute, join, relative, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { getGlobalConfigDir } from '../utils/paths.js';
 import { loadConfig, type PluginConfig } from '../services/config.js';
@@ -36,12 +36,33 @@ interface PluginRecord {
 	commands: CommandDefinition[];
 	prompts: PromptSection[];
 	settings: SettingDefinition[];
+	hookCount: number;
 	diagnostics: PluginDiagnostic[];
 	error?: string;
 }
 
 const ACTIVATION_TIMEOUT_MS = 10_000;
-const CORE_SERVICES = ['spectra.tools', 'spectra.commands', 'spectra.prompts', 'spectra.settings', 'spectra.hooks', 'spectra.sessions'];
+const HOOK_TIMEOUT_MS = 5_000;
+const CORE_SERVICES: Record<string, true> = {
+	'spectra.tools': true,
+	'spectra.commands': true,
+	'spectra.prompts': true,
+	'spectra.settings': true,
+	'spectra.hooks': true,
+	'spectra.sessions': true,
+};
+
+export interface PluginHostOptions {
+	activationTimeoutMs?: number;
+	hookTimeoutMs?: number;
+}
+
+function resolveContainedEntry(pluginDir: string, entry: string): string | null {
+	const target = resolve(pluginDir, entry);
+	const rel = relative(pluginDir, target);
+	if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return null;
+	return target;
+}
 
 function readManifest(directory: string): PluginManifest | string {
 	const path = join(directory, 'plugin.json');
@@ -72,30 +93,22 @@ function isPluginExport(value: unknown): value is SpectraPlugin | ((ctx: PluginC
 export class PluginHost {
 	private readonly records = new Map<string, PluginRecord>();
 	private readonly services = new Map<string, unknown>();
-	private readonly hooks = new HookBus();
+	private readonly hooks: HookBus;
+	private readonly activationTimeoutMs: number;
 	private initialized: Promise<void> | null = null;
 	private cwd = process.cwd();
 	private active = false;
 
-	constructor() {
+	constructor(options: PluginHostOptions = {}) {
+		this.activationTimeoutMs = options.activationTimeoutMs ?? ACTIVATION_TIMEOUT_MS;
+		this.hooks = new HookBus({ handlerTimeoutMs: options.hookTimeoutMs ?? HOOK_TIMEOUT_MS });
 		this.services.set('spectra.tools', { register: (tool: SpectraTool, pluginId?: string) => this.registerTool(pluginId ?? 'unknown', tool) });
 		this.services.set('spectra.commands', { register: (command: CommandDefinition, pluginId?: string) => this.registerCommand(pluginId ?? 'unknown', command) });
 		this.services.set('spectra.prompts', { section: (section: Omit<PromptSection, 'pluginId'>, pluginId?: string) => this.registerPrompt(pluginId ?? 'unknown', section) });
 		this.services.set('spectra.settings', { register: (setting: PluginSettingInput, pluginId?: string) => this.registerSetting(pluginId ?? 'unknown', setting) });
 		this.services.set('spectra.hooks', this.hooks);
 		this.services.set('spectra.sessions', {});
-		this.hooks.onError((pluginId, event, error) => {
-			const record = this.records.get(pluginId);
-			if (!record) return;
-			record.diagnostics.push({
-				at: Date.now(),
-				level: 'error',
-				message: `Hook ${event} failed and the plugin was disabled: ${error instanceof Error ? error.message : String(error)}`,
-			});
-			record.state = 'failed';
-			record.error = error instanceof Error ? error.message : String(error);
-			this.hooks.disposePlugin(pluginId);
-		});
+		this.hooks.onError((pluginId, event, error) => this.failPlugin(pluginId, event, error));
 	}
 
 	async initialize(cwd = process.cwd()): Promise<void> {
@@ -133,7 +146,12 @@ export class PluginHost {
 					this.addBroken(child.name, manifestOrError);
 					continue;
 				}
-				this.addDiscovered(manifestOrError, join(pluginDir, manifestOrError.entry), configured.get(manifestOrError.id) ?? configured.get(child.name));
+				const entryPath = resolveContainedEntry(pluginDir, manifestOrError.entry);
+				if (!entryPath) {
+					this.addBroken(child.name, `Plugin entry escapes its directory: ${manifestOrError.entry}`);
+					continue;
+				}
+				this.addDiscovered(manifestOrError, entryPath, configured.get(manifestOrError.id) ?? configured.get(child.name));
 			}
 		}
 
@@ -152,8 +170,28 @@ export class PluginHost {
 				this.addBroken(name, manifestOrError);
 				continue;
 			}
-			this.addDiscovered(manifestOrError, join(path, manifestOrError.entry), entry);
+			const entryPath = resolveContainedEntry(directory, manifestOrError.entry);
+			if (!entryPath) {
+				this.addBroken(name, `Plugin entry escapes its directory: ${manifestOrError.entry}`);
+				continue;
+			}
+			this.addDiscovered(manifestOrError, entryPath, entry);
 		}
+	}
+
+	private async failPlugin(pluginId: string, event: string, error: unknown): Promise<void> {
+		const record = this.records.get(pluginId);
+		if (!record || record.state === 'failed') return;
+		record.diagnostics.push({
+			at: Date.now(),
+			level: 'error',
+			message: `Hook ${event} failed and the plugin was disabled: ${error instanceof Error ? error.message : String(error)}`,
+		});
+		record.state = 'failed';
+		record.error = error instanceof Error ? error.message : String(error);
+		await this.disposeRecord(record);
+		record.state = 'failed';
+		this.refreshSettings();
 	}
 
 	private addBroken(id: string, message: string): void {
@@ -169,6 +207,7 @@ export class PluginHost {
 			commands: [],
 			prompts: [],
 			settings: [],
+			hookCount: 0,
 			diagnostics: [{ at: Date.now(), level: 'error', message }],
 			error: message,
 		});
@@ -188,13 +227,14 @@ export class PluginHost {
 			commands: [],
 			prompts: [],
 			settings: [],
+			hookCount: 0,
 			diagnostics: [],
 		});
 	}
 
 	private async activate(record: PluginRecord): Promise<void> {
 		if (record.state === 'active' || record.state === 'loading') return;
-		const missing = (record.manifest.requires ?? []).filter((name) => !this.services.has(name) && !CORE_SERVICES.includes(name));
+		const missing = (record.manifest.requires ?? []).filter((name) => !this.services.has(name) && CORE_SERVICES[name] !== true);
 		if (missing.length > 0) {
 			record.state = 'failed';
 			record.error = `Missing required services: ${missing.join(', ')}`;
@@ -204,18 +244,19 @@ export class PluginHost {
 		record.state = 'loading';
 		const controller = new AbortController();
 		const context = this.createContext(record, controller.signal);
+		const deadline = Date.now() + this.activationTimeoutMs;
+		let setupPromise: Promise<unknown> | null = null;
 		try {
-			const module = await Promise.race([
+			const module = await this.withinDeadline(
 				import(`${pathToFileURL(record.entryPath).href}?v=${Date.now()}`),
-				new Promise<never>((_, reject) => {
-					const timer = setTimeout(() => reject(new Error(`Plugin activation timed out after ${ACTIVATION_TIMEOUT_MS}ms`)), ACTIVATION_TIMEOUT_MS);
-					timer.unref?.();
-				}),
-			]) as { default?: unknown };
+				deadline,
+				'import',
+			) as { default?: unknown };
 			const exported = module.default;
 			if (!isPluginExport(exported)) throw new Error('Plugin default export must be definePlugin(...) or a setup function');
 			const setup = typeof exported === 'function' ? exported : exported.setup.bind(exported);
-			const result = await setup(context, record.config);
+			setupPromise = Promise.resolve(setup(context, record.config));
+			const result = await this.withinDeadline(setupPromise, deadline, 'setup');
 			if (result && typeof (result as Disposable).dispose === 'function') record.disposables.push(result as Disposable);
 			record.state = 'active';
 			record.error = undefined;
@@ -225,13 +266,36 @@ export class PluginHost {
 			record.state = 'failed';
 			record.error = message;
 			record.diagnostics.push({ at: Date.now(), level: 'error', message });
-			await this.disposeRecord(record);
 			controller.abort();
+			await this.disposeRecord(record);
+			record.state = 'failed';
+			void setupPromise?.then((late) => {
+				if (late && typeof (late as Disposable).dispose === 'function') void (late as Disposable).dispose();
+			}).catch(() => {});
+		}
+	}
+
+	private async withinDeadline<T>(work: Promise<T>, deadline: number, phase: string): Promise<T> {
+		const remaining = deadline - Date.now();
+		if (remaining <= 0) throw new Error(`Plugin activation timed out during ${phase}`);
+		const { promise, resolve, reject } = Promise.withResolvers<T>();
+		const timer = setTimeout(() => {
+			reject(new Error(`Plugin activation timed out during ${phase} after ${this.activationTimeoutMs}ms`));
+		}, remaining);
+		timer.unref?.();
+		work.then(resolve, reject);
+		try {
+			return await promise;
+		} finally {
+			clearTimeout(timer);
 		}
 	}
 
 	private createContext(record: PluginRecord, signal: AbortSignal): PluginContext {
 		const disposables = record.disposables;
+		const assertActive = (): void => {
+			if (signal.aborted) throw new Error('Plugin activation aborted');
+		};
 		const add = (disposable: Disposable): Disposable => {
 			let active = true;
 			const wrapped: Disposable = {
@@ -251,6 +315,7 @@ export class PluginHost {
 			config: record.config,
 			signal,
 			effect: (fn, label) => {
+				assertActive();
 				void label;
 				const pending = Promise.resolve(fn()).catch((error: unknown) => {
 					record.diagnostics.push({ at: Date.now(), level: 'error', message: `Effect failed: ${error instanceof Error ? error.message : String(error)}` });
@@ -264,6 +329,10 @@ export class PluginHost {
 				});
 			},
 			provide: <T>(key: ServiceKey<T>, value: T) => {
+				assertActive();
+				if (CORE_SERVICES[key.id]) throw new Error(`Plugins cannot provide core service ${key.id}`);
+				const prefix = `plugin:${record.id}:`;
+				if (!key.id.startsWith(prefix)) throw new Error(`Plugin services must use "${prefix}<name>"`);
 				this.services.set(key.id, value);
 				return add({ dispose: () => { if (this.services.get(key.id) === value) this.services.delete(key.id); } });
 			},
@@ -273,11 +342,23 @@ export class PluginHost {
 				if (value === undefined) throw new Error(`Required service unavailable: ${key.id}`);
 				return value;
 			},
-			tools: { register: (tool) => add(this.registerTool(record.id, tool)) },
-			commands: { register: (command) => add(this.registerCommand(record.id, command)) },
-			prompts: { section: (section) => add(this.registerPrompt(record.id, section)) },
-			settings: { register: (setting) => add(this.registerSetting(record.id, setting)) },
-			hooks: { on: (event, handler, priority) => add(this.hooks.on(record.id, event, handler, priority)) },
+			tools: { register: (tool) => { assertActive(); return add(this.registerTool(record.id, tool)); } },
+			commands: { register: (command) => { assertActive(); return add(this.registerCommand(record.id, command)); } },
+			prompts: { section: (section) => { assertActive(); return add(this.registerPrompt(record.id, section)); } },
+			settings: { register: (setting) => { assertActive(); return add(this.registerSetting(record.id, setting)); } },
+			hooks: {
+				on: (event, handler, priority) => {
+					assertActive();
+					record.hookCount++;
+					const disposable = this.hooks.on(record.id, event, handler, priority);
+					return add({
+						dispose: () => {
+							record.hookCount = Math.max(0, record.hookCount - 1);
+							disposable.dispose();
+						},
+					});
+				},
+			},
 		};
 	}
 
@@ -349,8 +430,8 @@ export class PluginHost {
 	async reload(id: string): Promise<void> {
 		const record = this.records.get(id);
 		if (!record) return;
+		if (!record.enabled) return;
 		await this.disposeRecord(record);
-		record.enabled = true;
 		await this.activate(record);
 		this.refreshSettings();
 	}
@@ -401,7 +482,7 @@ export class PluginHost {
 				commands: record.commands.length,
 				prompts: record.prompts.length,
 				settings: record.settings.length,
-				hooks: 0,
+				hooks: record.hookCount,
 			},
 			diagnostics: record.diagnostics.slice(-20),
 			disposables: [],

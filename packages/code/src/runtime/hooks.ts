@@ -8,13 +8,39 @@ interface HookEntry {
 	handler: AnyHookHandler;
 }
 
-/** Ordered hook bus. A throwing handler is contained and recorded by the host. */
+export interface HookBusOptions {
+	/** Per-handler deadline. A hung hook must not block every tool call. */
+	handlerTimeoutMs?: number;
+}
+
+const DEFAULT_HOOK_TIMEOUT_MS = 5_000;
+
+/** Ordered hook bus. A throwing or hung handler is contained and recorded by the host. */
 export class HookBus {
 	private readonly entries = new Map<HookName, HookEntry[]>();
-	private errorListener: ((pluginId: string, event: string, error: unknown) => void) | null = null;
+	private readonly handlerTimeoutMs: number;
+	private errorListener: ((pluginId: string, event: string, error: unknown) => void | Promise<void>) | null = null;
 
-	onError(listener: (pluginId: string, event: string, error: unknown) => void): void {
+	constructor(options: HookBusOptions = {}) {
+		this.handlerTimeoutMs = options.handlerTimeoutMs ?? DEFAULT_HOOK_TIMEOUT_MS;
+	}
+
+	onError(listener: (pluginId: string, event: string, error: unknown) => void | Promise<void>): void {
 		this.errorListener = listener;
+	}
+
+	private async invoke(entry: HookEntry, event: HookName, payload: unknown): Promise<unknown> {
+		const { promise, resolve, reject } = Promise.withResolvers<unknown>();
+		const timer = setTimeout(() => {
+			reject(new Error(`Hook ${event} timed out after ${this.handlerTimeoutMs}ms`));
+		}, this.handlerTimeoutMs);
+		timer.unref?.();
+		Promise.resolve(entry.handler(payload)).then(resolve, reject);
+		try {
+			return await promise;
+		} finally {
+			clearTimeout(timer);
+		}
 	}
 
 	on<E extends HookName>(
@@ -45,10 +71,10 @@ export class HookBus {
 		const results: Array<HookResultMap[E]> = [];
 		for (const entry of [...(this.entries.get(event) ?? [])]) {
 			try {
-				const result = await entry.handler(payload) as HookResultMap[E] | undefined;
+				const result = await this.invoke(entry, event, payload) as HookResultMap[E] | undefined;
 				if (result) results.push(result);
 			} catch (error) {
-				this.errorListener?.(entry.pluginId, event, error);
+				await this.errorListener?.(entry.pluginId, event, error);
 			}
 		}
 		return results;
@@ -58,12 +84,12 @@ export class HookBus {
 		const results: Array<HookResultMap[E]> = [];
 		for (const entry of [...(this.entries.get(event) ?? [])]) {
 			try {
-				const result = await entry.handler(payload) as HookResultMap[E] | undefined;
+				const result = await this.invoke(entry, event, payload) as HookResultMap[E] | undefined;
 				if (!result) continue;
 				results.push(result);
 				if ((result as { block?: boolean }).block === true) break;
 			} catch (error) {
-				this.errorListener?.(entry.pluginId, event, error);
+				await this.errorListener?.(entry.pluginId, event, error);
 			}
 		}
 		return results;

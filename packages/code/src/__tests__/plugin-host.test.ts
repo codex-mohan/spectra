@@ -66,6 +66,7 @@ describe('PluginHost', () => {
 		expect(host.commands().map((command) => command.name)).toEqual(['hello']);
 		expect(host.commands()[0]?.source).toBe('plugin');
 		expect(host.promptSections().map((section) => section.text)).toContain('Sample prompt section');
+		expect(listed.find((plugin) => plugin.id === 'sample')?.contributions.hooks).toBe(1);
 		expect(getAllSettings().some((setting) => setting.path === 'pluginSettings.sample.enabled')).toBe(true);
 		await expect(host.runToolBefore({ toolName: 'blocked', args: {}, sessionId: 's' })).resolves.toMatchObject({ block: true, reason: 'blocked by sample' });
 	});
@@ -107,6 +108,112 @@ describe('PluginHost', () => {
 		expect(plugin?.state).toBe('failed');
 		expect(plugin?.error).toContain('boom');
 		expect(plugin?.diagnostics.some((entry) => entry.message.includes('boom'))).toBe(true);
+	});
+
+	it('enforces the activation deadline on setup()', async () => {
+		const fast = new PluginHost({ activationTimeoutMs: 50, hookTimeoutMs: 50 });
+		writePlugin('slow', `
+			export default {
+				setup() {
+					return new Promise(() => {});
+				},
+			};
+		`);
+		await fast.initialize(cwd);
+		const plugin = fast.list().find((entry) => entry.id === 'slow');
+		expect(plugin?.state).toBe('failed');
+		expect(plugin?.error).toContain('timed out');
+		await fast.shutdown();
+	});
+
+	it('disposes every contribution when a hook fails', async () => {
+		writePlugin('bad', `
+			export default {
+				setup(ctx) {
+					ctx.tools.register({ name: 'bad_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+					ctx.settings.register({ key: 'value', type: 'string', description: 'bad setting' });
+					ctx.hooks.on('tool.beforeExecute', () => { throw new Error('hook boom'); });
+				},
+			};
+		`);
+		await host.initialize(cwd);
+		await host.runToolBefore({ toolName: 'any', args: {}, sessionId: 's' });
+		const plugin = host.list().find((entry) => entry.id === 'bad');
+		expect(plugin?.state).toBe('failed');
+		expect(host.tools()).toHaveLength(0);
+		expect(getAllSettings().some((setting) => setting.path.startsWith('pluginSettings.bad.'))).toBe(false);
+	});
+
+	it('times out a hung hook without blocking the caller', async () => {
+		const fast = new PluginHost({ activationTimeoutMs: 200, hookTimeoutMs: 30 });
+		writePlugin('hang', `
+			export default {
+				setup(ctx) {
+					ctx.hooks.on('tool.beforeExecute', () => new Promise(() => {}));
+				},
+			};
+		`);
+		await fast.initialize(cwd);
+		const started = Date.now();
+		await expect(fast.runToolBefore({ toolName: 'any', args: {}, sessionId: 's' })).resolves.toEqual({});
+		expect(Date.now() - started).toBeLessThan(1000);
+		expect(fast.list().find((entry) => entry.id === 'hang')?.error).toContain('timed out');
+		await fast.shutdown();
+	});
+
+	it('forbids plugins from replacing core services', async () => {
+		writePlugin('shadow', `
+			export default {
+				setup(ctx) {
+					ctx.provide({ id: 'spectra.tools' }, {});
+				},
+			};
+		`);
+		await host.initialize(cwd);
+		const plugin = host.list().find((entry) => entry.id === 'shadow');
+		expect(plugin?.state).toBe('failed');
+		expect(plugin?.error).toContain('core service');
+	});
+
+	it('allows namespaced plugin services', async () => {
+		writePlugin('svc', `
+			export default {
+				setup(ctx) {
+					ctx.provide({ id: 'plugin:svc:weather' }, { temp: 20 });
+					if (ctx.require({ id: 'plugin:svc:weather' }).temp !== 20) throw new Error('service missing');
+				},
+			};
+		`);
+		await host.initialize(cwd);
+		expect(host.list().find((entry) => entry.id === 'svc')?.state).toBe('active');
+	});
+
+	it('rejects an entry path outside the plugin directory', async () => {
+		const dir = join(cwd, '.spectra', 'plugins', 'escape');
+		mkdirSync(dir, { recursive: true });
+		writeFileSync(join(dir, 'plugin.json'), JSON.stringify({ id: 'escape', entry: '../evil.mjs' }));
+		writeFileSync(join(cwd, '.spectra', 'plugins', 'evil.mjs'), 'export default { setup() {} };');
+		await host.initialize(cwd);
+		const plugin = host.list().find((entry) => entry.id === 'escape');
+		expect(plugin?.state).toBe('failed');
+		expect(plugin?.error).toContain('escapes');
+	});
+
+	it('does not re-enable a disabled plugin on reload', async () => {
+		writePlugin('sample', `
+			export default {
+				setup(ctx) {
+					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+				},
+			};
+		`);
+		await host.initialize(cwd);
+		await host.setEnabled('sample', false);
+		await host.reload('sample');
+		const plugin = host.list().find((entry) => entry.id === 'sample');
+		expect(plugin?.enabled).toBe(false);
+		expect(plugin?.state).toBe('disabled');
+		expect(host.tools()).toHaveLength(0);
 	});
 
 	it('reloads a plugin without duplicating contributions', async () => {
