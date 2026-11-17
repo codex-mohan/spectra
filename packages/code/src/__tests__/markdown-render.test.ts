@@ -17,6 +17,17 @@ describe('markdown preparation', () => {
 		expect(prepareMarkdown(invalid)).toBe(invalid);
 	});
 
+	it('normalizes prose without touching code', () => {
+		expect(prepareMarkdown('cafe\u0301')).toBe('café');
+		expect(prepareMarkdown('`e\u0301`')).toBe('`e\u0301`');
+	});
+
+	it('closes an open fence while streaming and does not render it as a diagram', () => {
+		const output = prepareMarkdown('```ts\nconst x = 1', { streaming: true });
+		expect(output.endsWith('```')).toBe(true);
+		expect(output).toContain('const x = 1');
+	});
+
 	it('combines diagram and math conversion', () => {
 		const output = prepareMarkdown('```mermaid\ngraph LR\n  A --> B\n```\n\nthen $x^2$');
 		expect(output).toContain('┌───┐');

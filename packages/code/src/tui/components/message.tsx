@@ -941,7 +941,7 @@ export function renderMessageView({
 										thinkBlocks.map((block, i) => (
 											<markdown
 												key={`think-${i}`}
-												content={prepareMarkdown(block.content)}
+												content={prepareMarkdown(block.content, { streaming: !!msg.streaming })}
 												syntaxStyle={mdStyleMuted}
 												streaming={!!msg.streaming}
 												conceal={true}
@@ -952,7 +952,7 @@ export function renderMessageView({
 										))}
 									{mdContent ? (
 										<markdown
-											content={prepareMarkdown(mdContent)}
+											content={prepareMarkdown(mdContent, { streaming: !!msg.streaming })}
 											syntaxStyle={mdStyle}
 											streaming={!!msg.streaming}
 											conceal={true}

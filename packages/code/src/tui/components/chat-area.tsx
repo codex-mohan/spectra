@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { useRenderer } from '@opentui/react';
 import { c } from '../theme.js';
 import { openLinkAtPointer } from '../utils/link-open.js';
+import { needsStableRepaint } from '../utils/display-text.js';
 import { MessageView } from './message.js';
 import type { ChatMessage } from '../types.js';
 
@@ -25,6 +26,7 @@ function ChatAreaImpl({
 		if (msg.role === 'tool' && !showToolCalls) return false;
 		return true;
 	});
+	const stableRepaint = needsStableRepaint(visible);
 
 	// Find the last assistant message's turn status for the interrupted/error indicator
 	let lastTurnStatus: ChatMessage['turnStatus'] = undefined;
@@ -46,7 +48,7 @@ function ChatAreaImpl({
 				stickyStart="bottom"
 				scrollY={true}
 				backgroundColor={c.bg}
-				viewportCulling={true}
+				viewportCulling={!stableRepaint}
 				focusable={false}
 				paddingRight={2}
 				verticalScrollbarOptions={{ trackOptions: { backgroundColor: c.sbTrack, foregroundColor: c.sbThumb } }}
