@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { useRenderer } from '@opentui/react';
 import { c } from '../theme.js';
 import { openLinkAtPointer } from '../utils/link-open.js';
@@ -27,6 +27,20 @@ function ChatAreaImpl({
 		return true;
 	});
 	const stableRepaint = needsStableRepaint(visible);
+	const repaintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const requestStableRepaint = useCallback(() => {
+		if (!stableRepaint) return;
+		if (repaintTimer.current) clearTimeout(repaintTimer.current);
+		repaintTimer.current = setTimeout(() => {
+			repaintTimer.current = null;
+			// Same-size resize forces a full scene repaint, clearing terminal cells
+			// left behind by complex-script glyph widths after a scroll.
+			renderer.resize(renderer.width, renderer.height);
+		}, 40);
+	}, [stableRepaint, renderer]);
+	useEffect(() => () => {
+		if (repaintTimer.current) clearTimeout(repaintTimer.current);
+	}, []);
 
 	// Find the last assistant message's turn status for the interrupted/error indicator
 	let lastTurnStatus: ChatMessage['turnStatus'] = undefined;
@@ -43,6 +57,7 @@ function ChatAreaImpl({
 		<box flexDirection="column">
 			<scrollbox
 				onMouseUp={(event) => openLinkAtPointer(renderer, event)}
+				onMouseScroll={requestStableRepaint}
 				flexGrow={1}
 				stickyScroll={true}
 				stickyStart="bottom"

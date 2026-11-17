@@ -1,6 +1,6 @@
 import { c, mdStyle, mdStyleMuted } from '../theme.js';
 import React from 'react';
-import { prepareMarkdown, splitComplexCodeFences } from '../utils/markdown-render.js';
+import { prepareMarkdown, splitComplexBlocks } from '../utils/markdown-render.js';
 
 interface MarkdownContentProps {
 	content: string;
@@ -14,7 +14,7 @@ interface MarkdownContentProps {
  * whose terminal cell width OpenTUI mismeasures (Tamil, Arabic, CJK, …).
  */
 export function MarkdownContent({ content, muted = false, streaming = false, marginTop }: MarkdownContentProps) {
-	const segments = splitComplexCodeFences(content);
+	const segments = splitComplexBlocks(content);
 	return (
 		<box flexDirection="column" marginTop={marginTop}>
 			{segments.map((segment, index) => segment.kind === 'pre' ? (

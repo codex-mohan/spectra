@@ -1,4 +1,5 @@
 import { renderMermaidASCII } from 'beautiful-mermaid';
+import stringWidth from 'string-width';
 import { renderMathInText } from './math.js';
 import { hasComplexScript } from './display-text.js';
 
@@ -32,6 +33,73 @@ export interface MarkdownSegment {
 	text: string;
 }
 
+function isTableSeparator(line: string): boolean {
+	return /^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(line) && line.includes('-');
+}
+
+function splitCells(line: string): string[] {
+	const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+	return trimmed.split('|').map((cell) => cell.trim());
+}
+
+function cleanCell(value: string): string {
+	return value.replace(/\*\*|__|`/g, '');
+}
+
+function renderTable(header: string[], rows: string[][]): string {
+	const columns = Math.max(header.length, ...rows.map((row) => row.length));
+	const widths = Array.from({ length: columns }, (_, index) => Math.max(1, ...[header, ...rows].map((row) => stringWidth(cleanCell(row[index] ?? '')))));
+	const border = (left: string, middle: string, right: string): string =>
+		`${left}${widths.map((width) => '─'.repeat(width + 2)).join(middle)}${right}`;
+	const line = (cells: string[]): string =>
+		`│ ${widths.map((width, index) => {
+			const cell = cleanCell(cells[index] ?? '');
+			return `${cell}${' '.repeat(width - stringWidth(cell))}`;
+		}).join(' │ ')} │`;
+	return [border('┌', '┬', '┐'), line(header), border('├', '┼', '┤'), ...rows.map(line), border('└', '┴', '┘')].join('\n');
+}
+
+/** Split Markdown pipe tables containing complex scripts into preformatted text. */
+function splitComplexTables(source: string): MarkdownSegment[] {
+	const lines = source.split('\n');
+	const segments: MarkdownSegment[] = [];
+	let markdown: string[] = [];
+	const flush = (): void => {
+		if (markdown.length > 0) {
+			segments.push({ kind: 'markdown', text: markdown.join('\n') });
+			markdown = [];
+		}
+	};
+	for (let index = 0; index < lines.length; index++) {
+		const headerLine = lines[index] ?? '';
+		const separator = lines[index + 1];
+		if (!headerLine.includes('|') || separator === undefined || !isTableSeparator(separator)) {
+			markdown.push(headerLine);
+			continue;
+		}
+		const header = splitCells(headerLine);
+		const rows: string[][] = [];
+		let cursor = index + 2;
+		while (cursor < lines.length) {
+			const row = lines[cursor] ?? '';
+			if (!row.includes('|') || row.trim().length === 0) break;
+			rows.push(splitCells(row));
+			cursor++;
+		}
+		const complex = [header, ...rows].some((row) => row.some((cell) => hasComplexScript(cell)));
+		if (!complex) {
+			markdown.push(headerLine, separator, ...rows.map((row) => lines[index + 2 + rows.indexOf(row)] ?? ''));
+			index = cursor - 1;
+			continue;
+		}
+		flush();
+		segments.push({ kind: 'pre', text: renderTable(header, rows) });
+		index = cursor - 1;
+	}
+	flush();
+	return segments;
+}
+
 /**
  * Split fenced code blocks that contain complex scripts out of markdown.
  * OpenTUI's code/table text buffers mis-measure combining marks and wide
@@ -53,6 +121,16 @@ export function splitComplexCodeFences(source: string): MarkdownSegment[] {
 	}
 	if (cursor === 0) return [{ kind: 'markdown', text: source }];
 	if (cursor < source.length) segments.push({ kind: 'markdown', text: source.slice(cursor) });
+	return segments;
+}
+
+/** Split complex-script code fences and Markdown tables into preformatted segments. */
+export function splitComplexBlocks(source: string): MarkdownSegment[] {
+	const segments: MarkdownSegment[] = [];
+	for (const segment of splitComplexCodeFences(source)) {
+		if (segment.kind === 'pre') segments.push(segment);
+		else segments.push(...splitComplexTables(segment.text));
+	}
 	return segments;
 }
 
