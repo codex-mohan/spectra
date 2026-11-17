@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { prepareMarkdown } from '../tui/utils/markdown-render.js';
+import { prepareMarkdown, splitComplexCodeFences } from '../tui/utils/markdown-render.js';
 
 describe('markdown preparation', () => {
 	it('renders mermaid fences as terminal diagrams', () => {
@@ -26,6 +26,14 @@ describe('markdown preparation', () => {
 		const output = prepareMarkdown('```ts\nconst x = 1', { streaming: true });
 		expect(output.endsWith('```')).toBe(true);
 		expect(output).toContain('const x = 1');
+	});
+
+	it('extracts complex-script code fences for preformatted rendering', () => {
+		const segments = splitComplexCodeFences('intro\n```\nஉஜ்ஜயினி 123\n```\noutro');
+		expect(segments.map((segment) => segment.kind)).toEqual(['markdown', 'pre', 'markdown']);
+		expect(segments[1].text).toContain('உஜ்ஜயினி');
+		const ascii = splitComplexCodeFences('```ts\nconst x = 1;\n```');
+		expect(ascii).toEqual([{ kind: 'markdown', text: '```ts\nconst x = 1;\n```' }]);
 	});
 
 	it('combines diagram and math conversion', () => {

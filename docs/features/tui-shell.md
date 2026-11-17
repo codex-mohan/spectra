@@ -16,6 +16,7 @@
   - `packages/code/src/tui/utils/math.ts` — LaTeX-in-markdown to Unicode/terminal text.
   - `packages/code/src/tui/utils/markdown-render.ts` — display normalization, streaming fence stabilization, Mermaid fences to ASCII diagrams, then LaTeX conversion; uses `beautiful-mermaid` (MIT).
   - `packages/code/src/tui/utils/display-text.ts` — detects scripts whose terminal cell widths/shaping can leave stale cells, disabling scrollbox viewport culling for those transcripts.
+  - `packages/code/src/tui/components/markdown-content.tsx` — renders complex-script fenced code blocks as preformatted text instead of OpenTUI code/table buffers.
 - Collaborators:
   - `packages/code/src/tui/hooks/use-session-state.ts` — per-session UI state store (messages, loading, tokens, cost, pending queues).
   - `packages/code/src/tui/hooks/use-app-keyboard.ts` — key routing, including `dialogKeyHandler` ownership.
@@ -114,6 +115,7 @@
 
 - Math rendering is a Unicode approximation, not a layout engine: fractions become `(a)/(b)`, roots use `√(…)`, scripts use Unicode super/subscripts with `^(…)`/`_(…)` fallbacks. Matrices, aligned environments, and macros are not rendered.
 - Link opening is user-gesture only. Bare URLs rely on the terminal's own link detection; markdown links use OpenTUI link metadata. Unknown URL schemes and nonexistent paths are refused.
+- Fenced code blocks containing Tamil, Arabic, CJK, or other complex scripts render as preformatted `<text>` lines rather than OpenTUI code/table buffers, whose width measurement misplaces combining marks and wide glyphs.
 - Mermaid fences render through `beautiful-mermaid` for flowcharts, state, sequence, class, ER, and XY charts. Unsupported or malformed diagrams fall back to the original fence. Diagram rendering is source-bounded (20k chars) and does not support interactive diagram features.
 
 - `TuiOptions.sessionId` is accepted but ignored; there is no startup flag to open a specific session.

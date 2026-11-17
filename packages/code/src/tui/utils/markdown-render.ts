@@ -1,5 +1,6 @@
 import { renderMermaidASCII } from 'beautiful-mermaid';
 import { renderMathInText } from './math.js';
+import { hasComplexScript } from './display-text.js';
 
 const MAX_DIAGRAM_SOURCE = 20_000;
 
@@ -24,6 +25,35 @@ function renderMermaidBlocks(source: string, skip: boolean): string {
 			return block;
 		}
 	});
+}
+
+export interface MarkdownSegment {
+	kind: 'markdown' | 'pre';
+	text: string;
+}
+
+/**
+ * Split fenced code blocks that contain complex scripts out of markdown.
+ * OpenTUI's code/table text buffers mis-measure combining marks and wide
+ * scripts; rendering those blocks as plain preformatted text avoids the
+ * stale-cell trail they leave when the transcript scrolls.
+ */
+export function splitComplexCodeFences(source: string): MarkdownSegment[] {
+	const segments: MarkdownSegment[] = [];
+	const fence = /```([A-Za-z0-9_-]*)\r?\n([\s\S]*?)```/g;
+	let cursor = 0;
+	for (const match of source.matchAll(fence)) {
+		const index = match.index ?? 0;
+		const language = (match[1] ?? '').toLowerCase();
+		const body = match[2] ?? '';
+		if (language === 'mermaid' || !hasComplexScript(body)) continue;
+		if (index > cursor) segments.push({ kind: 'markdown', text: source.slice(cursor, index) });
+		segments.push({ kind: 'pre', text: body.trimEnd() });
+		cursor = index + match[0].length;
+	}
+	if (cursor === 0) return [{ kind: 'markdown', text: source }];
+	if (cursor < source.length) segments.push({ kind: 'markdown', text: source.slice(cursor) });
+	return segments;
 }
 
 /**

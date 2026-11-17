@@ -10,6 +10,7 @@ import { formatAttachmentBadge, formatAttachmentMetadata, getDisplayIcon, getFil
 import { askToolDetailsSchema, type AskQuestionResult } from '../../tools/ask.js';
 import { showToast } from './toast.js';
 import { prepareMarkdown } from '../utils/markdown-render.js';
+import { MarkdownContent } from './markdown-content.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -939,25 +940,18 @@ export function renderMessageView({
 								<>
 									{hasThinking &&
 										thinkBlocks.map((block, i) => (
-											<markdown
+											<MarkdownContent
 												key={`think-${i}`}
-												content={prepareMarkdown(block.content, { streaming: !!msg.streaming })}
-												syntaxStyle={mdStyleMuted}
+												content={block.content}
+												muted
 												streaming={!!msg.streaming}
-												conceal={true}
-												width="100%"
-												tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
 												marginTop={i === 0 ? 0 : 1}
 											/>
 										))}
 									{mdContent ? (
-										<markdown
-											content={prepareMarkdown(mdContent, { streaming: !!msg.streaming })}
-											syntaxStyle={mdStyle}
+										<MarkdownContent
+											content={mdContent}
 											streaming={!!msg.streaming}
-											conceal={true}
-											width="100%"
-											tableOptions={{ style: 'grid', borders: true, borderStyle: 'single' }}
 											marginTop={hasThinking ? 1 : 0}
 										/>
 									) : null}
