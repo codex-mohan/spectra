@@ -31,7 +31,7 @@ Plugin module:
 ```js
 export default {
   setup(ctx) {
-    ctx.tools.register({ name: 'echo', description: 'Echo', parameters: {}, execute: async () => ({ content: [] }) });
+    ctx.tools.register({ name: 'echo', description: 'Echo', parameters: ctx.zod.object({ text: ctx.zod.string() }), execute: async () => ({ content: [] }) });
     ctx.commands.register({ id: 'demo:hello', name: 'hello', aliases: [], title: 'Hello', description: 'Demo', source: 'plugin', execute: () => ({ type: 'show_toast', message: 'hi' }) });
     ctx.prompts.section({ id: 'demo', order: 120, text: 'Use the echo tool when asked.' });
     ctx.settings.register({ key: 'enabled', type: 'boolean', default: true, description: 'Demo setting' });
@@ -78,6 +78,7 @@ export default {
 
 - Plugins are trusted in-process code; there is no sandbox. Their own module body can read files, environment variables, and the network; permissions apply only to registered tools.
 - Plugin tools go through the normal security wrapper and use `plugin:<id>` as their permission identity.
+- Tool schemas must be Zod schemas (`ctx.zod`); plain JSON Schema objects are rejected at registration. Duplicate and built-in-colliding names are rejected.
 - Declared `capabilities` are documentation-only in this MVP.
 - Plugin-provided services must use `plugin:<id>:<name>`; `spectra.*` core services cannot be replaced.
 - Manifest `entry` must stay inside the plugin directory.

@@ -83,6 +83,8 @@ export interface PluginContext {
 	readonly pluginId: string;
 	readonly config: Record<string, unknown>;
 	readonly signal: AbortSignal;
+	/** Host-owned Zod so local plugins can declare validated tool schemas. */
+	readonly zod: typeof z;
 	effect(fn: () => void | Promise<void> | Disposable, label?: string): Disposable;
 	provide<T>(key: ServiceKey<T>, value: T): Disposable;
 	get<T>(key: ServiceKey<T>): T | undefined;

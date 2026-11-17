@@ -49,5 +49,6 @@ Rules:
 | Memory tool | [memory-tool.md](memory-tool.md) | `packages/code/src/tools/memory.ts` | 0 | documented |
 | Custom tools | [custom-tools.md](custom-tools.md) | `packages/code/src/integrations/custom-tools/` | 0 | documented |
 | Plugins | [plugins.md](plugins.md) | `packages/code/src/plugins/`, `packages/code/src/runtime/` | 7 | documented |
+| Hot reload | [hot-reload.md](hot-reload.md) | `packages/code/src/runtime/` | 8 | documented |
 
 Status values: `pending` (feature exists, page not written), `planned` (feature does not exist yet), `documented`.

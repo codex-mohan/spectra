@@ -32,6 +32,7 @@ import type {
 	PreparedContextSnapshot,
 } from '../../services/context-usage.js';
 import { createTransformContextFn } from '../../services/compaction.js';
+import { runtimeRegistry } from '../../runtime/registry.js';
 import type { CompactionModelInfo } from '../../services/compaction.js';
 
 
@@ -51,6 +52,14 @@ export function useAgent(deps: UseAgentDeps) {
 	const agentsMapRef = useRef(new Map<string, Agent>());
 	const compactionModelsRef = useRef(new Map<string, CompactionModelInfo>());
 	const agentConfigFingerprintsRef = useRef(new Map<string, string>());
+	const sessionInputsRef = useRef(new Map<string, {
+		sessionId: string;
+		model: string;
+		provider: string;
+		agent: string;
+		customProviders: Record<string, CustomProviderConfig>;
+		effort: string | undefined;
+	}>());
 	const contextAttributionRef = useRef(new Map<string, ContextAttribution>());
 	const preparedContextRef = useRef(new Map<string, PreparedContextSnapshot>());
 	const contextUsageRef = useRef(new Map<string, ContextUsageSnapshot>());
@@ -224,6 +233,7 @@ export function useAgent(deps: UseAgentDeps) {
 		safety?: unknown;
 	}): string {
 		return JSON.stringify({
+			revision: runtimeRegistry.revision,
 			model: config.model,
 			systemPrompt: config.systemPrompt,
 			tools: config.tools.map((tool) => ({ name: tool.name, description: tool.description, parameters: tool.parameters })),
@@ -252,6 +262,14 @@ export function useAgent(deps: UseAgentDeps) {
 			if (!selectedModel || !provider) return null;
 
 			const sessionKey = `${sessionId}:session`;
+			sessionInputsRef.current.set(sessionKey, {
+				sessionId,
+				model: selectedModel,
+				provider,
+				agent: selectedAgent,
+				customProviders,
+				effort: thinkingEffort,
+			});
 
 			// --- Existing agent for this session ---
 			const existing = agentsMapRef.current.get(sessionKey);
@@ -341,6 +359,26 @@ export function useAgent(deps: UseAgentDeps) {
 		[initSecurityManager, sessionStore, resolveAgentConfig],
 	);
 
+	/** Re-apply the current runtime registry to every idle agent; streaming agents wait for the next turn. */
+	const refreshAgents = useCallback(async () => {
+		for (const [key, inputs] of sessionInputsRef.current) {
+			const agent = agentsMapRef.current.get(key);
+			if (!agent || agent.isStreaming) continue;
+			try {
+				await getOrCreateAgent(
+					inputs.sessionId,
+					inputs.model,
+					inputs.provider,
+					inputs.agent,
+					inputs.customProviders,
+					inputs.effort,
+				);
+			} catch {
+				// A failed reconfigure keeps the previous agent config.
+			}
+		}
+	}, [getOrCreateAgent]);
+
 	// Restore a session's message history into its agent (called when loading a session)
 	const restoreSessionHistory = useCallback(
 		async (
@@ -396,12 +434,14 @@ export function useAgent(deps: UseAgentDeps) {
 			contextAttributionRef.current.delete(key);
 			preparedContextRef.current.delete(key);
 			contextUsageRef.current.delete(key);
+			sessionInputsRef.current.delete(key);
 		}
 	}, []);
 
 	return {
 		agentsMapRef,
 		getOrCreateAgent,
+		refreshAgents,
 		restoreSessionHistory,
 		abortSession,
 		removeSessionAgent,

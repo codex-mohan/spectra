@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
+import { z } from 'zod';
 import { dirname, isAbsolute, join, relative, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { getGlobalConfigDir } from '../utils/paths.js';
@@ -93,6 +94,7 @@ function isPluginExport(value: unknown): value is SpectraPlugin | ((ctx: PluginC
 export class PluginHost {
 	private readonly records = new Map<string, PluginRecord>();
 	private readonly services = new Map<string, unknown>();
+	private readonly reservedToolNames = new Set<string>();
 	private readonly hooks: HookBus;
 	private readonly activationTimeoutMs: number;
 	private initialized: Promise<void> | null = null;
@@ -109,6 +111,10 @@ export class PluginHost {
 		this.services.set('spectra.hooks', this.hooks);
 		this.services.set('spectra.sessions', {});
 		this.hooks.onError((pluginId, event, error) => this.failPlugin(pluginId, event, error));
+	}
+
+	setReservedToolNames(names: Iterable<string>): void {
+		for (const name of names) this.reservedToolNames.add(name);
 	}
 
 	async initialize(cwd = process.cwd()): Promise<void> {
@@ -314,6 +320,7 @@ export class PluginHost {
 			pluginId: record.id,
 			config: record.config,
 			signal,
+			zod: z,
 			effect: (fn, label) => {
 				assertActive();
 				void label;
@@ -363,6 +370,23 @@ export class PluginHost {
 	}
 
 	private registerTool(pluginId: string, tool: SpectraTool): Disposable {
+		if (!/^[a-z][a-z0-9_]*$/.test(tool.name)) {
+			throw new Error(`Plugin tool name must be lowercase letters, digits, or underscores: ${tool.name}`);
+		}
+		if (!tool.description?.trim()) throw new Error(`Plugin tool "${tool.name}" needs a description`);
+		if (typeof tool.execute !== 'function') throw new Error(`Plugin tool "${tool.name}" needs an execute function`);
+		const parameters = tool.parameters as { parse?: unknown; safeParse?: unknown } | undefined;
+		if (!parameters || typeof parameters.parse !== 'function' || typeof parameters.safeParse !== 'function') {
+			throw new Error(`Plugin tool "${tool.name}" parameters must be a Zod schema (use ctx.zod)`);
+		}
+		if (this.reservedToolNames.has(tool.name)) {
+			throw new Error(`Plugin tool "${tool.name}" collides with a built-in tool`);
+		}
+		for (const other of this.records.values()) {
+			if (other.id !== pluginId && other.tools.some((entry) => entry.name === tool.name)) {
+				throw new Error(`Plugin tool "${tool.name}" is already registered by plugin ${other.id}`);
+			}
+		}
 		const record = this.records.get(pluginId);
 		const normalized: SpectraTool = { ...tool, permission: tool.permission ?? `plugin:${pluginId}` };
 		record?.tools.push(normalized);
@@ -425,6 +449,13 @@ export class PluginHost {
 		this.active = false;
 		this.initialized = null;
 		setExternalSettings([]);
+	}
+
+	async reloadAll(): Promise<void> {
+		for (const record of this.records.values()) {
+			if (!record.enabled || record.state !== 'active') continue;
+			await this.reload(record.id);
+		}
 	}
 
 	async reload(id: string): Promise<void> {

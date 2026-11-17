@@ -5,6 +5,7 @@ import { titlecase } from './utils.js';
 import type { Message } from '@mohanscodex/spectra-ai';
 import { showToast } from './components/toast.js';
 import { jobRegistry } from '../services/job-registry.js';
+import { reloadRuntime } from '../runtime/reload.js';
 import type { AgentCatalog } from '../agents/index.js';
 import type { TodoPhase, TodoState, TodoStatus, TodoTask } from './types.js';
 import { genId } from './utils.js';
@@ -1021,6 +1022,20 @@ export function buildCmdItems(opts: {
 			slashName: 'about',
 			action: () => {
 				setDialogStep({ type: 'about' });
+			},
+		},
+		{
+			id: 'reload',
+			label: 'Reload',
+			desc: 'Reload agents, skills, plugins, and commands',
+			cat: 'System',
+			slashName: 'reload',
+			action: async () => {
+				const result = await reloadRuntime();
+				showToast(
+					result.errors.length > 0 ? `Reload failed: ${result.errors[0]}` : `Reloaded ${result.domains.join(', ')}`,
+					result.errors.length > 0 ? 'warn' : 'success',
+				);
 			},
 		},
 		{

@@ -43,7 +43,7 @@ describe('PluginHost', () => {
 					ctx.tools.register({
 						name: 'sample_echo',
 						description: 'Echo from a plugin',
-						parameters: { type: 'object', properties: {} },
+						parameters: ctx.zod.object({}),
 						execute: async () => ({ content: [{ type: 'text', text: 'echo' }] }),
 					});
 					ctx.commands.register({
@@ -75,7 +75,7 @@ describe('PluginHost', () => {
 		writePlugin('sample', `
 			export default {
 				setup(ctx) {
-					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: ctx.zod.object({}), execute: async () => ({ content: [] }) });
 					ctx.commands.register({ id: 'sample:cmd', name: 'sample-cmd', aliases: [], title: 'Sample', description: 'x', source: 'plugin', execute: () => undefined });
 					ctx.prompts.section({ id: 'sample', text: 'sample prompt' });
 					ctx.settings.register({ key: 'value', type: 'string', description: 'sample' });
@@ -130,7 +130,7 @@ describe('PluginHost', () => {
 		writePlugin('bad', `
 			export default {
 				setup(ctx) {
-					ctx.tools.register({ name: 'bad_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+					ctx.tools.register({ name: 'bad_tool', description: 'x', parameters: ctx.zod.object({}), execute: async () => ({ content: [] }) });
 					ctx.settings.register({ key: 'value', type: 'string', description: 'bad setting' });
 					ctx.hooks.on('tool.beforeExecute', () => { throw new Error('hook boom'); });
 				},
@@ -203,7 +203,7 @@ describe('PluginHost', () => {
 		writePlugin('sample', `
 			export default {
 				setup(ctx) {
-					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: ctx.zod.object({}), execute: async () => ({ content: [] }) });
 				},
 			};
 		`);
@@ -216,11 +216,40 @@ describe('PluginHost', () => {
 		expect(host.tools()).toHaveLength(0);
 	});
 
+	it('rejects plain-object tool schemas and reserved names', async () => {
+		writePlugin('plain', `
+			export default {
+				setup(ctx) {
+					ctx.tools.register({ name: 'plain_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+				},
+			};
+		`);
+		await host.initialize(cwd);
+		const plain = host.list().find((entry) => entry.id === 'plain');
+		expect(plain?.state).toBe('failed');
+		expect(plain?.error).toContain('must be a Zod schema');
+	});
+
+	it('rejects a tool name reserved by a built-in', async () => {
+		host.setReservedToolNames(['shell']);
+		writePlugin('reserved', `
+			export default {
+				setup(ctx) {
+					ctx.tools.register({ name: 'shell', description: 'x', parameters: ctx.zod.object({}), execute: async () => ({ content: [] }) });
+				},
+			};
+		`);
+		await host.initialize(cwd);
+		const reserved = host.list().find((entry) => entry.id === 'reserved');
+		expect(reserved?.state).toBe('failed');
+		expect(reserved?.error).toContain('built-in');
+	});
+
 	it('reloads a plugin without duplicating contributions', async () => {
 		writePlugin('sample', `
 			export default {
 				setup(ctx) {
-					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: { type: 'object' }, execute: async () => ({ content: [] }) });
+					ctx.tools.register({ name: 'sample_tool', description: 'x', parameters: ctx.zod.object({}), execute: async () => ({ content: [] }) });
 				},
 			};
 		`);

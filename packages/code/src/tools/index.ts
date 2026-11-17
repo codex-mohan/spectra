@@ -65,6 +65,7 @@ function createBuiltinTools(
 }
 
 export const builtinTools: SpectraTool<any>[] = createBuiltinTools();
+pluginHost.setReservedToolNames(builtinTools.map((tool) => tool.name));
 
 const builtinToolByName = new Map(builtinTools.map((tool) => [tool.name, tool]));
 

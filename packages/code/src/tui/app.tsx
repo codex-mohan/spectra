@@ -72,6 +72,7 @@ import { useGitStatus } from './hooks/use-git-status.js';
 import { useLspStatus } from './hooks/use-lsp-status.js';
 import { shouldCommitDraft } from './utils/draft-commit.js';
 import { diagnosticsInbox, formatDiagnosticsEntry } from '../services/diagnostics-inbox.js';
+import { runtimeRegistry } from '../runtime/registry.js';
 import { useLazyRef } from './utils/lazy-ref.js';
 import { GitStatusSegment } from './components/git-status.js';
 import { glyphFor } from './utils/icons.js';
@@ -123,6 +124,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 	const [showThinking, setShowThinking] = useState(true);
 	const [showToolCalls, setShowToolCalls] = useState(true);
 	const [activeJobs, setActiveJobs] = useState(0);
+	const [runtimeRevision, setRuntimeRevision] = useState(0);
 
 	const [submitKey, setSubmitKey] = useState(0);
 	const [dialogStep, setDialogStep] = useState<any>(null);
@@ -380,7 +382,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			}
 		}).catch(() => {});
 		return () => { cancelled = true; };
-	}, []);
+	}, [runtimeRevision]);
 
 	// --- Derived ---
 	const provider = selectedProvider;
@@ -455,7 +457,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 				if (!stale) showToast(`Template loading failed: ${error instanceof Error ? error.message : String(error)}`, 'error');
 			});
 		return () => { stale = true; };
-	}, []);
+	}, [runtimeRevision]);
 
 	useEffect(() => {
 		if (!isLoading) return;
@@ -491,7 +493,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 
 	const { permissionRequest, enqueuePermission, resolvePermission } = usePermissionQueue(securityRef);
 
-	const { agentsMapRef, getOrCreateAgent, restoreSessionHistory, abortSession, removeSessionAgent, recordContextUsage } = useAgent({
+	const { agentsMapRef, getOrCreateAgent, refreshAgents, restoreSessionHistory, abortSession, removeSessionAgent, recordContextUsage } = useAgent({
 		securityRef,
 		securityConfig,
 		enqueuePermission,
@@ -499,6 +501,11 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 		sessionId,
 		requestAsk,
 	});
+
+	useEffect(() => runtimeRegistry.subscribe(() => {
+		setRuntimeRevision((value) => value + 1);
+		void refreshAgents();
+	}), [refreshAgents]);
 
 	const { revertedMessagesRef, revertDraftRef, runRevert, runRedo, discardRevert } = useRevert({
 		sessionStore,
@@ -610,6 +617,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			setNavKey,
 			setDialogStep,
 			securityRef,
+			runtimeRevision,
 		],
 	);
 
@@ -646,7 +654,7 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 			})
 			.catch(() => {});
 		return () => { cancelled = true; };
-	}, []);
+	}, [runtimeRevision]);
 
 	const { handleSubmit, executeResolvedCommand, updateLastAssistantMeta } = useChatSubmit({
 		sessionStore,
@@ -1512,7 +1520,10 @@ export function App({ renderer }: { renderer: CliRenderer }) {
 					termWidth={termWidth}
 					termHeight={termHeight}
 					onClose={() => setDialogStep(null)}
-					onChanged={() => setPluginRevision((value) => value + 1)}
+					onChanged={() => {
+						setPluginRevision((value) => value + 1);
+						runtimeRegistry.mark(['plugins']);
+					}}
 					registerHandler={(fn) => { dialogKeyHandler.current = fn; }}
 				/>
 			)}
