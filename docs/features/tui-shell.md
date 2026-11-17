@@ -14,9 +14,8 @@
   - `packages/code/src/tui/utils/link-open.ts` — plain-left-click opens the link under the pointer; modified clicks are left to the terminal.
   - `packages/code/src/utils/platform.ts` — `openTarget` validates HTTP(S) URLs and existing files before handing them to the OS opener.
   - `packages/code/src/tui/utils/math.ts` — LaTeX-in-markdown to Unicode/terminal text.
-  - `packages/code/src/tui/utils/markdown-render.ts` — display normalization, streaming fence stabilization, Mermaid fences to ASCII diagrams, then LaTeX conversion; uses `beautiful-mermaid` (MIT).
-  - `packages/code/src/tui/utils/display-text.ts` — detects scripts whose terminal cell widths/shaping can leave stale cells, disabling scrollbox viewport culling for those transcripts.
-  - `packages/code/src/tui/components/markdown-content.tsx` — renders complex-script fenced code blocks as preformatted text instead of OpenTUI code/table buffers.
+  - `packages/code/src/tui/utils/markdown-render.ts` — Mermaid fences to ASCII diagrams, then LaTeX conversion; uses `beautiful-mermaid` (MIT).
+  - `packages/code/src/tui/components/message.tsx` — assistant Markdown uses `internalBlockMode="top-level"` with explicit `fg`/`bg`; thinking uses the `code` renderable with `filetype="markdown"`.
 - Collaborators:
   - `packages/code/src/tui/hooks/use-session-state.ts` — per-session UI state store (messages, loading, tokens, cost, pending queues).
   - `packages/code/src/tui/hooks/use-app-keyboard.ts` — key routing, including `dialogKeyHandler` ownership.
@@ -67,7 +66,6 @@
 6. `submitPrompt` snapshots the turn configuration from refs, creates a session on first send, persists the user message, marks the session loading, routes to chat, and resolves the per-session agent (`use-chat-submit.ts:234-450`).
 7. Streaming projects `agent.run()` events into UI messages: assistant placeholder on `message_start`, text/blocks and partial tool arguments on `message_update`, final usage/duration/cost on assistant `message_end`, tool rows on `tool_execution_start|update|end`, and `Ready`/`Error` on `agent_end` (`use-chat-submit.ts:451-680`).
 8. While `isLoading`, an 80 ms spinner interval advances `SPINNER` and calls `renderer.requestLive()`; cleanup calls `renderer.dropLive()` (`app.tsx:382-391`). Streaming deltas are coalesced into one state commit per animation frame; the renderer runs at 60 fps while a turn streams and returns to 30 fps when idle. Markdown renders live throughout.
-9. Markdown display text is NFC-normalized outside code. While streaming, an open code fence is closed for rendering so it stays in code style, incomplete Mermaid is not converted, and thinking-block tokens carry an explicit background. Transcripts containing Tamil, Arabic, CJK, or other complex scripts disable scrollbox viewport culling and force a full same-size repaint after wheel scrolling, so terminal cells left behind by mis-measured glyph widths are cleared.
 9. Overlays are gated by state: `showCmd`, `dialogStep`, `updateVersion`, `msgControls`, `permissionRequest`, `askRequest`; the prompt is unfocused while `showCmd`, `dialogStep`, `msgControls`, `permissionRequest`, or `askRequest` is set, and `updateVersion` does not affect focus (`app.tsx:922`, `:1039`).
 10. Child view: `ChatArea.onTaskClick` calls `handleViewChildSession`, which records the parent id and `switchToChildSession` loads the child transcript/state, restores its agent history, resets read/doom-loop trackers, and retitles the terminal (`app.tsx:637-696`).
 11. Child-view keys are handled before the main keyboard hook: `Esc` exits (ignored while streaming), `p` moves to the parent, `[`/`]` cycle siblings; overlay states suppress child keys (`app.tsx:699-752`).
@@ -115,7 +113,6 @@
 
 - Math rendering is a Unicode approximation, not a layout engine: fractions become `(a)/(b)`, roots use `√(…)`, scripts use Unicode super/subscripts with `^(…)`/`_(…)` fallbacks. Matrices, aligned environments, and macros are not rendered.
 - Link opening is user-gesture only. Bare URLs rely on the terminal's own link detection; markdown links use OpenTUI link metadata. Unknown URL schemes and nonexistent paths are refused.
-- Fenced code blocks containing Tamil, Arabic, CJK, or other complex scripts render as preformatted `<text>` lines rather than OpenTUI code/table buffers, whose width measurement misplaces combining marks and wide glyphs.
 - Mermaid fences render through `beautiful-mermaid` for flowcharts, state, sequence, class, ER, and XY charts. Unsupported or malformed diagrams fall back to the original fence. Diagram rendering is source-bounded (20k chars) and does not support interactive diagram features.
 
 - `TuiOptions.sessionId` is accepted but ignored; there is no startup flag to open a specific session.
