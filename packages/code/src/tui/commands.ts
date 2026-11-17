@@ -6,6 +6,7 @@ import type { Message } from '@mohanscodex/spectra-ai';
 import { showToast } from './components/toast.js';
 import { jobRegistry } from '../services/job-registry.js';
 import { reloadRuntime } from '../runtime/reload.js';
+import { ALL_RELOAD_DOMAINS, type ReloadDomain } from '../runtime/registry.js';
 import type { AgentCatalog } from '../agents/index.js';
 import type { TodoPhase, TodoState, TodoStatus, TodoTask } from './types.js';
 import { genId } from './utils.js';
@@ -1030,8 +1031,14 @@ export function buildCmdItems(opts: {
 			desc: 'Reload agents, skills, plugins, and commands',
 			cat: 'System',
 			slashName: 'reload',
-			action: async () => {
-				const result = await reloadRuntime();
+			action: async (ctx) => {
+				const requested = ctx.args.trim().split(/[\s,]+/).filter(Boolean);
+				const invalid = requested.filter((name) => !ALL_RELOAD_DOMAINS.includes(name as ReloadDomain));
+				if (invalid.length > 0) {
+					showToast(`Unknown reload domain: ${invalid.join(', ')}`, 'warn');
+					return;
+				}
+				const result = await reloadRuntime(requested as ReloadDomain[]);
 				showToast(
 					result.errors.length > 0 ? `Reload failed: ${result.errors[0]}` : `Reloaded ${result.domains.join(', ')}`,
 					result.errors.length > 0 ? 'warn' : 'success',

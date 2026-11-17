@@ -16,6 +16,7 @@ export const ALL_RELOAD_DOMAINS: readonly ReloadDomain[] = [
 	'commands',
 	'context',
 	'tools',
+	'mcp',
 ];
 
 export interface RuntimeChange {

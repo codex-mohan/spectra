@@ -1,6 +1,8 @@
 import { invalidateAgentCatalog, loadAgentCatalog } from '../agents/index.js';
 import { invalidateSkillCatalog, loadAllSkills } from '../services/skill-catalog.js';
 import { pluginHost } from '../plugins/host.js';
+import { loadConfig } from '../services/config.js';
+import { connectAllServers, listConnectedServers, shutdownAllServers } from '../integrations/mcp/index.js';
 import { ALL_RELOAD_DOMAINS, runtimeRegistry, type ReloadDomain, type RuntimeChange } from './registry.js';
 
 export interface ReloadResult extends RuntimeChange {
@@ -24,6 +26,16 @@ export async function reloadRuntime(
 	}
 	if (selected.includes('plugins')) {
 		try { await pluginHost.reloadAll(); } catch (error) { errors.push(`plugins: ${message(error)}`); }
+	}
+	if (selected.includes('mcp')) {
+		try {
+			const connected = new Set(listConnectedServers().map((server) => server.name));
+			const configs = (loadConfig(cwd).mcp ?? []).filter((server) => server.enabled !== false && (connected.size === 0 || connected.has(server.name)));
+			await shutdownAllServers();
+			await connectAllServers(configs);
+		} catch (error) {
+			errors.push(`mcp: ${message(error)}`);
+		}
 	}
 	const change = runtimeRegistry.mark(selected);
 	return { ...change, errors };

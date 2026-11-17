@@ -28,8 +28,9 @@
 | `commands` | Invalidate command/template-derived UI state |
 | `context` | Re-read instruction files on the next agent configure |
 | `tools` | Refresh custom/plugin tools on the next agent configure |
+| `mcp` | Disconnect and reconnect configured MCP servers; new tools appear on the next agent configure |
 
-`mcp`, `providers`, and `settings` are accepted domain names but not yet reloaded by the coordinator.
+`/reload mcp` is the supported manual MCP refresh. `providers` and `settings` are accepted domain names but not yet reloaded by the coordinator.
 
 ## Flow
 
@@ -65,7 +66,8 @@
 ## Limitations
 
 - No file watcher; reload is manual.
-- MCP reconnection, custom providers, and settings re-registration are not part of the coordinator yet.
+- MCP is manual only (`/reload mcp`); there is no watcher for MCP config changes.
+- Custom providers and settings re-registration are not part of the coordinator yet.
 - Removed agent definitions are not automatically remapped to a fallback in this iteration.
 - Running subagent/job turns keep their config until their next turn.
 
