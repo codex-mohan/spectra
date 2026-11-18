@@ -816,6 +816,136 @@ function FindSkillsToolView({ args, output, isError, marginTop }: { args: Record
 	);
 }
 
+
+const JOB_OP_LABELS: Record<string, string> = {
+	status: 'Job status',
+	probe: 'Job status',
+	list: 'Background jobs',
+	wait: 'Wait for jobs',
+	transcript: 'Job transcript',
+	send: 'Send to job',
+	pause: 'Pause job',
+	resume: 'Resume job',
+	restart: 'Restart job',
+	cancel: 'Cancel job',
+};
+
+function shortJobId(id: string): string {
+	return id.length > 14 ? `…${id.slice(-8)}` : id;
+}
+
+function jobElapsed(job: Record<string, unknown>): string | null {
+	const queuedAt = typeof job.queuedAt === 'number' ? job.queuedAt : undefined;
+	const finishedAt = typeof job.finishedAt === 'number' ? job.finishedAt : undefined;
+	if (queuedAt == null) return null;
+	return `${(((finishedAt ?? Date.now()) - queuedAt) / 1000).toFixed(1)}s`;
+}
+
+function jobStateColor(state: string): string {
+	if (state === 'running') return c.accent;
+	if (state === 'completed') return c.success;
+	if (state === 'failed') return c.error;
+	if (state === 'paused') return c.warn;
+	return c.dim;
+}
+
+function jobRow(job: Record<string, unknown>): { id: string; agent: string; state: string; elapsed: string | null; description: string } {
+	return {
+		id: typeof job.id === 'string' ? job.id : '',
+		agent: typeof job.agent === 'string' ? job.agent : 'job',
+		state: typeof job.state === 'string' ? job.state : 'unknown',
+		elapsed: jobElapsed(job),
+		description: typeof job.description === 'string' ? job.description : '',
+	};
+}
+
+function JobToolView({ args, details, output, isError, streaming, marginTop }: {
+	args: Record<string, unknown>;
+	details?: Record<string, unknown>;
+	output: string;
+	isError: boolean;
+	streaming: boolean;
+	marginTop: number;
+}) {
+	const op = typeof args.op === 'string' ? args.op : 'status';
+	const job = details && isRecord(details.job) ? details.job : undefined;
+	const listed = details && Array.isArray(details.jobs) ? details.jobs.filter(isRecord) : [];
+	const row = job ? jobRow(job) : undefined;
+	const argId = typeof args.id === 'string' ? args.id : '';
+	const id = row?.id || argId;
+	const header = JOB_OP_LABELS[op] ?? `Job ${op}`;
+	const borderColor = isError ? c.error : c.tool;
+	const lines = output ? output.split('\n').filter((line) => line.trim().length > 0) : [];
+	const activity = job && typeof job.activity === 'string'
+		? job.activity
+		: lines.find((line) => line.startsWith('activity: '))?.slice('activity: '.length);
+	const generation = job && typeof job.generation === 'number' ? job.generation : 0;
+	const retries = job && typeof job.retryAttempts === 'number' ? job.retryAttempts : 0;
+	const result = job && typeof job.result === 'string' ? job.result : '';
+	const error = job && typeof job.error === 'string' ? job.error : '';
+
+	return (
+		<box
+			flexDirection="column"
+			paddingTop={1}
+			paddingBottom={1}
+			paddingLeft={2}
+			marginTop={marginTop}
+			gap={1}
+			backgroundColor={c.bgTool}
+			border={['left']}
+			customBorderChars={SB}
+			borderColor={borderColor}
+		>
+			<box flexDirection="row" paddingLeft={1} gap={1} overflow="hidden">
+				<text fg={borderColor} flexShrink={0}>◈</text>
+				<text fg={borderColor} attributes={1} flexShrink={0}>{header}</text>
+				{row?.description ? <text fg={c.dim} wrapMode="none" truncate flexShrink={1}>· {row.description}</text> : id ? <text fg={c.dim} flexShrink={0}>· {shortJobId(id)}</text> : null}
+				<text fg={isError ? c.error : c.success} flexShrink={0}>{isError ? '✗' : '✓'}</text>
+			</box>
+			<box flexDirection="column" paddingLeft={2} gap={0}>
+				{row ? (
+					<>
+						<box flexDirection="row" gap={1}>
+							<text fg={c.dim}>{shortJobId(row.id)}</text>
+							<text fg={c.dim}>·</text>
+							<text fg={c.text}>{row.agent}</text>
+							<text fg={c.dim}>·</text>
+							<text fg={jobStateColor(row.state)}>{row.state}</text>
+							{row.elapsed ? <><text fg={c.dim}>·</text><text fg={c.subtext}>{row.elapsed}</text></> : null}
+							{op === 'status' || op === 'probe' ? <><text fg={c.dim}>·</text><text fg={c.dim}>gen {generation} · retries {retries}</text></> : null}
+						</box>
+						{activity ? <text fg={c.subtext}>↳ {activity}</text> : null}
+						{error ? <text fg={c.error}>{error}</text> : null}
+						{result ? <TruncatedContent text={result} maxLines={4} /> : null}
+					</>
+				) : listed.length > 0 ? (
+					listed.slice(0, 8).map((entry, index) => {
+						const item = jobRow(entry);
+						return (
+							<box key={`${item.id}-${index}`} flexDirection="row" gap={1} overflow="hidden">
+								<text fg={jobStateColor(item.state)} flexShrink={0}>{item.state}</text>
+								<text fg={c.subtext} flexShrink={0}>{item.agent}</text>
+								<text fg={c.dim} flexShrink={0}>{shortJobId(item.id)}</text>
+								{item.elapsed ? <text fg={c.dim} flexShrink={0}>{item.elapsed}</text> : null}
+								<text fg={c.text} wrapMode="none" truncate flexShrink={1}>{item.description}</text>
+							</box>
+						);
+					})
+				) : lines.length > 0 ? (
+					<TruncatedContent
+						text={lines.slice(0, 6).join('\n').split(id).join(shortJobId(id))}
+						maxLines={4}
+						color={isError ? c.error : undefined}
+					/>
+				) : (
+					<text fg={c.dim}>{streaming ? 'Working...' : 'No output'}</text>
+				)}
+			</box>
+		</box>
+	);
+}
+
 export function renderMessageView({
 	msg,
 	showThinking = true,
@@ -1216,7 +1346,7 @@ export function renderMessageView({
 							) : null}
 							<box flexDirection="row" gap={0}>
 								<text fg={shellColor}>$ </text>
-								<code content={command} syntaxStyle={mdStyle} filetype="bash" streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={true} />
+								<code content={command} syntaxStyle={mdStyle} filetype="bash" streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={false} />
 							</box>
 						</box>
 						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
@@ -1278,7 +1408,7 @@ export function renderMessageView({
 									{...(ft ? { filetype: ft } : {})}
 									streaming={!msg.toolArgumentsComplete}
 									conceal={true}
-									drawUnstyledText={true}
+									drawUnstyledText={false}
 									maxHeight={12}
 								/>
 							) : <text fg={c.dim}>Receiving file content...</text>
@@ -1325,13 +1455,13 @@ export function renderMessageView({
 							{oldString ? (
 								<box flexDirection="column">
 									<text fg={c.dim}>Match</text>
-									<code content={oldString} syntaxStyle={mdStyle} {...(ft ? { filetype: ft } : {})} streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={true} maxHeight={8} />
+									<code content={oldString} syntaxStyle={mdStyle} {...(ft ? { filetype: ft } : {})} streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={false} maxHeight={8} />
 								</box>
 							) : null}
 							{newString ? (
 								<box flexDirection="column">
 									<text fg={c.dim}>Replacement</text>
-									<code content={newString} syntaxStyle={mdStyle} {...(ft ? { filetype: ft } : {})} streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={true} maxHeight={8} />
+									<code content={newString} syntaxStyle={mdStyle} {...(ft ? { filetype: ft } : {})} streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={false} maxHeight={8} />
 								</box>
 							) : null}
 							{!oldString && !newString ? <text fg={c.dim}>Receiving edit...</text> : null}
@@ -1344,6 +1474,19 @@ export function renderMessageView({
 						<text fg={toolError ? c.error : c.dim} paddingLeft={1}>{toolError ? 'Edit failed with no output' : 'Edit applied'}</text>
 					)}
 				</box>
+			);
+		}
+
+		if (tName === 'job') {
+			return (
+				<JobToolView
+					args={argsObj}
+					details={msg.toolDetails}
+					output={output}
+					isError={toolError}
+					streaming={msg.streaming === true}
+					marginTop={mt}
+				/>
 			);
 		}
 

@@ -69,6 +69,40 @@ describe('live tool streaming', () => {
 		expect(getToolStreamingDisplay('read')).toBeUndefined();
 	});
 
+	it('renders job status as a structured card with a display title', () => {
+		const view = renderMessageView({
+			msg: {
+				id: 'job-1',
+				role: 'tool',
+				content: 'tool-call_abcdefghijklmnopqrstuvwxyz  bash  running  7.9s  Bash port control\nstate: running\ngeneration: 0\nretries: 0',
+				streaming: false,
+				toolName: 'job',
+				toolCallId: 'job-1',
+				toolArguments: { op: 'status', id: 'tool-call_abcdefghijklmnopqrstuvwxyz' },
+				toolDetails: {
+					job: {
+						id: 'tool-call_abcdefghijklmnopqrstuvwxyz',
+						agent: 'bash',
+						state: 'running',
+						description: 'Bash port control',
+						queuedAt: Date.now() - 7900,
+						generation: 0,
+						retryAttempts: 0,
+					},
+				},
+			},
+		});
+		const rendered = typeof view.type === 'function' ? (view.type as (props: unknown) => ReactNode)(view.props) : view;
+		const text = findIntrinsic(rendered, 'text')
+			.map((node) => Children.toArray(elementProps(node).children).join(''))
+			.join(' ');
+		expect(text).toContain('Job status');
+		expect(text).toContain('Bash port control');
+		expect(text).toContain('running');
+		expect(text).not.toContain('state: running');
+		expect(text).not.toContain('tool-call_abcdefghijklmnopqrstuvwxyz');
+	});
+
 	it('renders partial write content through the streaming code view', () => {
 		const view = renderMessageView({
 			msg: {
@@ -89,7 +123,30 @@ describe('live tool streaming', () => {
 			content: 'export const answer =',
 			filetype: 'typescript',
 			streaming: true,
+			drawUnstyledText: false,
 		});
+	});
+
+	it('disables unstyled preview for streaming bash commands', () => {
+		const view = renderMessageView({
+			msg: {
+				id: 'bash-1',
+				role: 'tool',
+				content: '',
+				streaming: true,
+				toolName: 'bash',
+				toolCallId: 'bash-1',
+				toolArguments: { command: 'Get-Process' },
+				toolArgumentsComplete: false,
+			},
+		});
+		const code = findIntrinsic(view, 'code').map(elementProps);
+		expect(code).toContainEqual(expect.objectContaining({
+			content: 'Get-Process',
+			filetype: 'bash',
+			streaming: true,
+			drawUnstyledText: false,
+		}));
 	});
 
 	it('renders partial edit match and replacement as streaming code', () => {
@@ -113,8 +170,8 @@ describe('live tool streaming', () => {
 
 		expect(code).toHaveLength(2);
 		expect(code).toEqual(expect.arrayContaining([
-			expect.objectContaining({ content: 'const oldValue = 1;', filetype: 'typescript', streaming: true }),
-			expect.objectContaining({ content: 'const newValue', filetype: 'typescript', streaming: true }),
+			expect.objectContaining({ content: 'const oldValue = 1;', filetype: 'typescript', streaming: true, drawUnstyledText: false }),
+			expect.objectContaining({ content: 'const newValue', filetype: 'typescript', streaming: true, drawUnstyledText: false }),
 		]));
 	});
 });
