@@ -2,4 +2,4 @@
 "@mohanscodex/spectra-code": patch
 ---
 
-Remove extra vertical padding and header/body indent from background job cards so status details sit directly under the title.
+Render job calls as compact single-line entries instead of padded cards; job lists render one line per job.

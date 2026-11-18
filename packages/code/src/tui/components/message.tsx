@@ -880,72 +880,58 @@ function JobToolView({ args, details, output, isError, streaming, marginTop }: {
 	const argId = typeof args.id === 'string' ? args.id : '';
 	const id = row?.id || argId;
 	const header = JOB_OP_LABELS[op] ?? `Job ${op}`;
-	const borderColor = isError ? c.error : c.tool;
+	const statusColor = isError ? c.error : c.success;
+	const statusMark = streaming ? '…' : isError ? '✗' : '✓';
 	const lines = output ? output.split('\n').filter((line) => line.trim().length > 0) : [];
-	const activity = job && typeof job.activity === 'string'
-		? job.activity
-		: lines.find((line) => line.startsWith('activity: '))?.slice('activity: '.length);
+	const firstLine = lines[0] ? lines[0].split(id).join(shortJobId(id)) : '';
 	const generation = job && typeof job.generation === 'number' ? job.generation : 0;
 	const retries = job && typeof job.retryAttempts === 'number' ? job.retryAttempts : 0;
-	const result = job && typeof job.result === 'string' ? job.result : '';
 	const error = job && typeof job.error === 'string' ? job.error : '';
 
-	return (
-		<box
-			flexDirection="column"
-			paddingLeft={2}
-			marginTop={marginTop}
-			gap={0}
-			backgroundColor={c.bgTool}
-			border={['left']}
-			customBorderChars={SB}
-			borderColor={borderColor}
-		>
-			<box flexDirection="row" paddingLeft={1} gap={1} overflow="hidden">
-				<text fg={jobIcon.color} flexShrink={0}>{jobIcon.glyph}</text>
-				<text fg={borderColor} attributes={1} flexShrink={0}>{header}</text>
-				{row?.description ? <text fg={c.dim} wrapMode="none" truncate flexShrink={1}>· {row.description}</text> : id ? <text fg={c.dim} flexShrink={0}>· {shortJobId(id)}</text> : null}
-				<text fg={isError ? c.error : c.success} flexShrink={0}>{isError ? '✗' : '✓'}</text>
-			</box>
-			<box flexDirection="column" paddingLeft={1} gap={0}>
-				{row ? (
-					<>
-						<box flexDirection="row" gap={1}>
-							<text fg={c.dim}>{shortJobId(row.id)}</text>
-							<text fg={c.dim}>·</text>
-							<text fg={c.text}>{row.agent}</text>
-							<text fg={c.dim}>·</text>
-							<text fg={jobStateColor(row.state)}>{row.state}</text>
-							{row.elapsed ? <><text fg={c.dim}>·</text><text fg={c.subtext}>{row.elapsed}</text></> : null}
-							{op === 'status' || op === 'probe' ? <><text fg={c.dim}>·</text><text fg={c.dim}>gen {generation} · retries {retries}</text></> : null}
+	if (listed.length > 0) {
+		return (
+			<box flexDirection="column" marginTop={marginTop} gap={0}>
+				<box flexDirection="row" paddingLeft={3} overflow="hidden">
+					<text fg={jobIcon.color} flexShrink={0}>{jobIcon.glyph} </text>
+					<text fg={c.tool} attributes={1} flexShrink={0}>{header}</text>
+					<text fg={c.dim} flexShrink={0}> · {listed.length} job{listed.length === 1 ? '' : 's'}</text>
+					<text fg={statusColor} flexShrink={0}> {statusMark}</text>
+				</box>
+				{listed.slice(0, 8).map((entry, index) => {
+					const item = jobRow(entry);
+					return (
+						<box key={`${item.id}-${index}`} flexDirection="row" paddingLeft={5} overflow="hidden">
+							<text fg={c.dim} flexShrink={0}>{shortJobId(item.id)}</text>
+							<text fg={c.dim} flexShrink={0}> · {item.agent} · </text>
+							<text fg={jobStateColor(item.state)} flexShrink={0}>{item.state}</text>
+							{item.elapsed ? <text fg={c.dim} flexShrink={0}> · {item.elapsed}</text> : null}
+							<text fg={c.text} wrapMode="none" truncate flexShrink={1}> · {item.description}</text>
 						</box>
-						{activity ? <text fg={c.subtext}>↳ {activity}</text> : null}
-						{error ? <text fg={c.error}>{error}</text> : null}
-						{result ? <TruncatedContent text={result} maxLines={4} /> : null}
-					</>
-				) : listed.length > 0 ? (
-					listed.slice(0, 8).map((entry, index) => {
-						const item = jobRow(entry);
-						return (
-							<box key={`${item.id}-${index}`} flexDirection="row" gap={1} overflow="hidden">
-								<text fg={jobStateColor(item.state)} flexShrink={0}>{item.state}</text>
-								<text fg={c.subtext} flexShrink={0}>{item.agent}</text>
-								<text fg={c.dim} flexShrink={0}>{shortJobId(item.id)}</text>
-								{item.elapsed ? <text fg={c.dim} flexShrink={0}>{item.elapsed}</text> : null}
-								<text fg={c.text} wrapMode="none" truncate flexShrink={1}>{item.description}</text>
-							</box>
-						);
-					})
-				) : lines.length > 0 ? (
-					<TruncatedContent
-						text={lines.slice(0, 6).join('\n').split(id).join(shortJobId(id))}
-						maxLines={4}
-						color={isError ? c.error : undefined}
-					/>
-				) : (
-					<text fg={c.dim}>{streaming ? 'Working...' : 'No output'}</text>
-				)}
+					);
+				})}
 			</box>
+		);
+	}
+
+	const primary = row
+		? (error || row.description || shortJobId(row.id))
+		: (firstLine || shortJobId(id) || (streaming ? 'Working...' : 'No output'));
+
+	return (
+		<box flexDirection="row" marginTop={marginTop} paddingLeft={3} overflow="hidden">
+			<text fg={jobIcon.color} flexShrink={0}>{jobIcon.glyph} </text>
+			<text fg={c.tool} attributes={1} flexShrink={0}>{header}</text>
+			<text fg={c.dim} wrapMode="none" truncate flexShrink={1}> · {primary}</text>
+			{row ? (
+				<>
+					<text fg={c.dim} flexShrink={0}> · {row.agent} · </text>
+					<text fg={jobStateColor(row.state)} flexShrink={0}>{row.state}</text>
+					{row.elapsed ? <text fg={c.dim} flexShrink={0}> · {row.elapsed}</text> : null}
+					{generation > 0 ? <text fg={c.dim} flexShrink={0}> · gen {generation}</text> : null}
+					{retries > 0 ? <text fg={c.dim} flexShrink={0}> · retries {retries}</text> : null}
+				</>
+			) : null}
+			<text fg={statusColor} flexShrink={0}> {statusMark}</text>
 		</box>
 	);
 }

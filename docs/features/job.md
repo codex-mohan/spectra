@@ -27,7 +27,7 @@
 - Result text listing each job's `id`, `state`, `agent`, duration, error, and result.
 - `wait` returns the first/all settled job ids.
 - `consume` marks results delivered and suppresses future completion injection.
-- TUI transcript: job calls render as a structured card keyed by operation (`Job status`, `Wait for jobs`, `Cancel job`, …), with the job description as the display title, agent/state/elapsed, generation/retries, and activity. Long ids are shortened in the header and body. The card uses compact spacing: no vertical padding between the header and the detail rows, and the detail rows align with the header icon. The card uses the Material Design console glyph (`md-console`), falling back to a laptop emoji when Nerd Font coverage is unavailable.
+- TUI transcript: job calls render as a structured card keyed by operation (`Job status`, `Wait for jobs`, `Cancel job`, …), with the job description as the display title, agent/state/elapsed, generation/retries, and activity. Long ids are shortened. Each job call renders as a single inline line; job lists render one line per job, without the tool-card background or vertical padding. The card uses the Material Design console glyph (`md-console`), falling back to a laptop emoji when Nerd Font coverage is unavailable.
 
 ## Flow
 
