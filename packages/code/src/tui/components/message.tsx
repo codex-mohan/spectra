@@ -10,6 +10,7 @@ import { formatAttachmentBadge, formatAttachmentMetadata, getDisplayIcon, getFil
 import { askToolDetailsSchema, type AskQuestionResult } from '../../tools/ask.js';
 import { showToast } from './toast.js';
 import { prepareMarkdown } from '../utils/markdown-render.js';
+import { iconForJob } from '../utils/icons.js';
 
 // OpenCode-style SplitBorder — only vertical bar on the left
 const SB = {
@@ -868,6 +869,7 @@ function JobToolView({ args, details, output, isError, streaming, marginTop }: {
 	marginTop: number;
 }) {
 	const op = typeof args.op === 'string' ? args.op : 'status';
+	const jobIcon = iconForJob();
 	const job = details && isRecord(details.job) ? details.job : undefined;
 	const listed = details && Array.isArray(details.jobs) ? details.jobs.filter(isRecord) : [];
 	const row = job ? jobRow(job) : undefined;
@@ -898,7 +900,7 @@ function JobToolView({ args, details, output, isError, streaming, marginTop }: {
 			borderColor={borderColor}
 		>
 			<box flexDirection="row" paddingLeft={1} gap={1} overflow="hidden">
-				<text fg={borderColor} flexShrink={0}>◈</text>
+				<text fg={jobIcon.color} flexShrink={0}>{jobIcon.glyph}</text>
 				<text fg={borderColor} attributes={1} flexShrink={0}>{header}</text>
 				{row?.description ? <text fg={c.dim} wrapMode="none" truncate flexShrink={1}>· {row.description}</text> : id ? <text fg={c.dim} flexShrink={0}>· {shortJobId(id)}</text> : null}
 				<text fg={isError ? c.error : c.success} flexShrink={0}>{isError ? '✗' : '✓'}</text>

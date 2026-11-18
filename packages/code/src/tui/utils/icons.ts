@@ -54,6 +54,13 @@ const ICON_BY_ID: Record<string, IconSpec> = {
 	quit: { nerd: '\u{f0425}', emoji: '🚪', color: c.error }, // md-power
 };
 
+/** Job tool: background shell/subagent process control. */
+const JOB_ICON: IconSpec = {
+	nerd: '\u{f018d}', // md-console, same Material Design family as file badges
+	emoji: '💻',
+	color: c.execTool,
+};
+
 /** Icon by command source when no id mapping exists. */
 const ICON_BY_SOURCE: Record<string, IconSpec> = {
 	skill: { nerd: '\u{f1844}', emoji: '✨', color: c.accent }, // md-magic_staff
@@ -97,4 +104,12 @@ export function iconForCommand(
 	const spec = byName ?? byId ?? bySource ?? FALLBACK_ICON;
 	const glyph = hasNerdFont() && spec.nerd ? spec.nerd : spec.emoji;
 	return { glyph, color: spec.color };
+}
+
+/** Resolve the job card glyph, falling back to a console emoji without Nerd Font coverage. */
+export function iconForJob(): { glyph: string; color: string } {
+	return {
+		glyph: hasNerdFont() ? JOB_ICON.nerd! : JOB_ICON.emoji,
+		color: JOB_ICON.color,
+	};
 }

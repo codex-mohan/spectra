@@ -9,7 +9,7 @@ vi.mock('@opentui/core', () => ({
 	},
 }));
 
-import { iconForCommand } from '../tui/utils/icons.js';
+import { iconForCommand, iconForJob } from '../tui/utils/icons.js';
 
 const previousNerdFont = process.env.SPECTRA_NERD_FONT;
 
@@ -58,6 +58,14 @@ describe('command icons', () => {
 		const icon = iconForCommand({ id: 'builtin:new' });
 		expect(icon.glyph).toBe('➕');
 		expect(icon.color).toBeTruthy();
+	});
+
+	it('uses the console glyph for jobs with an emoji fallback', () => {
+		process.env.SPECTRA_NERD_FONT = '1';
+		expect(iconForJob().glyph).toBe('\u{f018d}');
+		process.env.SPECTRA_NERD_FONT = '0';
+		expect(iconForJob().glyph).toBe('💻');
+		expect(iconForJob().color).toMatch(/^#/);
 	});
 
 	it('keeps a flat palette color for every icon', () => {
