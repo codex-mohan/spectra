@@ -127,6 +127,30 @@ describe('live tool streaming', () => {
 		});
 	});
 
+	it('keeps the exit badge on one line and truncates the description', () => {
+		const view = renderMessageView({
+			msg: {
+				id: 'bash-exit',
+				role: 'tool',
+				content: 'done',
+				streaming: false,
+				toolName: 'bash',
+				toolCallId: 'bash-exit',
+				toolArguments: { command: 'Get-Process', description: 'Live check of Cloudflare ports' },
+				toolArgumentsComplete: true,
+				exitCode: 0,
+			},
+		});
+		const texts = findIntrinsic(view, 'text').map((node) => ({
+			content: Children.toArray(elementProps(node).children).join(''),
+			props: elementProps(node),
+		}));
+		const exit = texts.find((text) => text.content.includes('Exit 0'));
+		const description = texts.find((text) => text.content === 'Live check of Cloudflare ports');
+		expect(exit?.props).toMatchObject({ wrapMode: 'none', flexShrink: 0 });
+		expect(description?.props).toMatchObject({ wrapMode: 'none', truncate: true });
+	});
+
 	it('disables unstyled preview for streaming bash commands', () => {
 		const view = renderMessageView({
 			msg: {

@@ -33,12 +33,12 @@ function ToolTitleRow({ icon, toolName, toolColor, fileName }: {
 	const fileVisual = fileName ? getFileVisual({ filename: fileName, mime: 'application/octet-stream' }) : undefined;
 	const fileIcon = fileName ? getDisplayIcon({ filename: fileName, mime: 'application/octet-stream' }) : undefined;
 	return (
-		<box flexDirection="row" gap={0}>
-			<text fg={toolColor}>{icon} {toolName}</text>
+		<box flexDirection="row" gap={0} flexShrink={1} overflow="hidden">
+			<text fg={toolColor} flexShrink={0}>{icon} {toolName}</text>
 			{fileName && fileVisual && fileIcon ? (
 				<>
-					<text fg={fileVisual.color}> {fileIcon}</text>
-					<text fg={fileVisual.color}> {fileName}</text>
+					<text fg={fileVisual.color} flexShrink={0}> {fileIcon}</text>
+					<text fg={fileVisual.color} wrapMode="none" truncate flexShrink={1}> {fileName}</text>
 				</>
 			) : null}
 		</box>
@@ -76,10 +76,12 @@ function InlineTool(props: { icon: string; title: string; titleContent?: any; me
 	const statusIcon = props.status === 'success' ? ' ✓' : props.status === 'error' ? ' ✗' : '';
 	const statusColor = props.status === 'success' ? c.success : props.status === 'error' ? c.error : undefined;
 	return (
-		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0}>
-			{props.titleContent || <><text fg={props.titleColor || c.tool}>{props.icon} </text><text fg={props.titleColor || c.tool}>{props.title}</text></>}
-			{props.meta ? <text fg={props.color || c.dim}> {props.meta}</text> : null}
-			{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
+		<box flexDirection="row" paddingLeft={3} marginTop={props.marginTop ?? 0} overflow="hidden">
+			<box flexDirection="row" flexShrink={1} overflow="hidden">
+				{props.titleContent || <><text fg={props.titleColor || c.tool} flexShrink={0}>{props.icon} </text><text fg={props.titleColor || c.tool} wrapMode="none" truncate flexShrink={1}>{props.title}</text></>}
+			</box>
+			{props.meta ? <text fg={props.color || c.dim} flexShrink={0} wrapMode="none"> {props.meta}</text> : null}
+			{statusIcon ? <text fg={statusColor} flexShrink={0} wrapMode="none">{statusIcon}</text> : null}
 		</box>
 	);
 }
@@ -100,9 +102,11 @@ function BlockTool(props: { title: string; titleContent?: any; titleColor?: stri
 			customBorderChars={SB}
 			borderColor={props.borderColor || c.tool}
 		>
-			<box flexDirection="row" paddingLeft={1} gap={0}>
-				{props.titleContent || <text fg={props.titleColor || c.tool}>{props.title}</text>}
-				{statusIcon ? <text fg={statusColor}>{statusIcon}</text> : null}
+			<box flexDirection="row" paddingLeft={1} gap={0} overflow="hidden">
+				<box flexDirection="row" flexGrow={1} flexShrink={1} overflow="hidden">
+					{props.titleContent || <text fg={props.titleColor || c.tool} wrapMode="none" truncate flexShrink={1}>{props.title}</text>}
+				</box>
+				{statusIcon ? <text fg={statusColor} flexShrink={0} wrapMode="none">{statusIcon}</text> : null}
 			</box>
 			<box paddingLeft={2}>{props.children}</box>
 		</box>
@@ -1265,8 +1269,8 @@ export function renderMessageView({
 						{...(clickable ? { onMouseUp: () => onTaskClick!(childSessionId!) } : {})}
 					>
 						<box flexDirection="row" gap={1} paddingLeft={1}>
-							<text fg={borderColor}>{toolError ? '!' : '◆'}</text>
-							<text fg={c.dim}>{title}</text>
+							<text fg={borderColor} flexShrink={0}>{toolError ? '!' : '◆'}</text>
+							<text fg={c.dim} wrapMode="none" truncate flexShrink={1}>{title}</text>
 							{isRunningInBackground ? (
 								<text fg={c.accent}>(running in background...)</text>
 							) : (
@@ -1297,9 +1301,9 @@ export function renderMessageView({
 					{...(clickable ? { onMouseUp: () => onTaskClick!(childSessionId!) } : {})}
 				>
 					<box flexDirection="row" gap={1} paddingLeft={1}>
-						<text fg={borderColor}>{toolError ? '!' : '◆'}</text>
-						<text fg={c.dim}>{title}</text>
-						<text fg={statusColor}>{toolError ? '(failed)' : '(done)'}</text>
+						<text fg={borderColor} flexShrink={0}>{toolError ? '!' : '◆'}</text>
+						<text fg={c.dim} wrapMode="none" truncate flexShrink={1}>{title}</text>
+						<text fg={statusColor} flexShrink={0} wrapMode="none">{toolError ? '(failed)' : '(done)'}</text>
 						{clickable && <text fg={c.accent}>· click to open</text>}
 					</box>
 					<box paddingLeft={2}>
@@ -1339,20 +1343,20 @@ export function renderMessageView({
 					customBorderChars={SB}
 					borderColor={shellColor}
 				>
-					<box flexDirection="row" justifyContent="space-between" alignItems="flex-start" paddingLeft={1}>
-						<box flexDirection="column" gap={1}>
+					<box flexDirection="row" justifyContent="space-between" alignItems="flex-start" paddingLeft={1} gap={1} overflow="hidden">
+						<box flexDirection="column" gap={1} flexGrow={1} flexShrink={1} minWidth={0} overflow="hidden">
 							{description ? (
-								<text fg={c.subtext} attributes={2}>
+								<text fg={c.subtext} attributes={2} wrapMode="none" truncate>
 									{description}
 								</text>
 							) : null}
-							<box flexDirection="row" gap={0}>
-								<text fg={shellColor}>$ </text>
-								<code content={command} syntaxStyle={mdStyle} filetype="bash" streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={false} />
+							<box flexDirection="row" gap={0} flexShrink={1} overflow="hidden">
+								<text fg={shellColor} flexShrink={0}>$ </text>
+								<code content={command} syntaxStyle={mdStyle} filetype="bash" streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={false} flexShrink={1} />
 							</box>
 						</box>
-						{exitCode !== null && <text fg={exitColor}>{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
-						{exitCode === null && toolError && <text fg={c.error}>✗ Failed</text>}
+						{exitCode !== null && <text fg={exitColor} flexShrink={0} wrapMode="none">{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
+						{exitCode === null && toolError && <text fg={c.error} flexShrink={0} wrapMode="none">✗ Failed</text>}
 					</box>
 					<box paddingLeft={2}>
 						{output ? (
@@ -1395,10 +1399,10 @@ export function renderMessageView({
 					customBorderChars={SB}
 					borderColor={writeColor}
 				>
-					<box flexDirection="row" gap={0}>
-						<text fg={writeColor}>{toolError ? 'Write failed' : 'Write'}</text>
-						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : <text fg={c.dim}> ...</text>}
-						<text fg={writeColor}>{toolError ? ' ✗' : msg.streaming ? ' …' : ' ✓'}</text>
+					<box flexDirection="row" gap={0} overflow="hidden">
+						<text fg={writeColor} flexShrink={0}>{toolError ? 'Write failed' : 'Write'}</text>
+						{fileName ? <text fg={c.text} wrapMode="none" truncate flexShrink={1}> {getFileIcon(fileName)} {fileName}</text> : <text fg={c.dim} flexShrink={0}> ...</text>}
+						<text fg={writeColor} flexShrink={0}>{toolError ? ' ✗' : msg.streaming ? ' …' : ' ✓'}</text>
 					</box>
 					<box flexDirection="column" paddingLeft={1}>
 						{dirPath ? <text fg={c.dim}>{dirPath}</text> : null}
@@ -1446,11 +1450,11 @@ export function renderMessageView({
 					customBorderChars={SB}
 					borderColor={editColor}
 				>
-					<box flexDirection="row" gap={0}>
-						<text height={1} fg={editColor}>{toolError ? 'Edit failed' : 'Edit'}</text>
-						{fileName ? <text fg={c.text}> {getFileIcon(fileName)} {fileName}</text> : <text fg={c.dim}> ...</text>}
-						{dirPath ? <text fg={c.dim}> {dirPath}</text> : null}
-						<text fg={editColor}>{toolError ? ' ✗' : msg.streaming ? ' …' : ' ✓'}</text>
+					<box flexDirection="row" gap={0} overflow="hidden">
+						<text height={1} fg={editColor} flexShrink={0}>{toolError ? 'Edit failed' : 'Edit'}</text>
+						{fileName ? <text fg={c.text} wrapMode="none" truncate flexShrink={1}> {getFileIcon(fileName)} {fileName}</text> : <text fg={c.dim} flexShrink={0}> ...</text>}
+						{dirPath ? <text fg={c.dim} wrapMode="none" truncate flexShrink={1}> {dirPath}</text> : null}
+						<text fg={editColor} flexShrink={0}>{toolError ? ' ✗' : msg.streaming ? ' …' : ' ✓'}</text>
 					</box>
 					{msg.streaming ? (
 						<box flexDirection="column" paddingLeft={1} gap={1}>
@@ -1537,9 +1541,9 @@ export function renderMessageView({
 				title={toolError ? `${raw} failed` : raw}
 				titleContent={
 					<box flexDirection="row" gap={0}>
-						<text fg={genericColor}>⚙ {tName}</text>
-						{argsStr ? <text fg={c.text}> {argsStr}</text> : null}
-						{toolError ? <text fg={c.error}> failed</text> : null}
+						<text fg={genericColor} flexShrink={0}>⚙ {tName}</text>
+						{argsStr ? <text fg={c.text} wrapMode="none" truncate flexShrink={1}> {argsStr}</text> : null}
+						{toolError ? <text fg={c.error} flexShrink={0}> failed</text> : null}
 					</box>
 				}
 				color={genericColor}
@@ -1553,9 +1557,9 @@ export function renderMessageView({
 				title={displayTitle}
 				titleContent={
 					<box flexDirection="row" gap={0}>
-						<text fg={genericColor}>⚙ {tName}</text>
-						{argsStr ? <text fg={c.text}> {argsStr}</text> : null}
-						{toolError ? <text fg={c.error}> failed</text> : null}
+						<text fg={genericColor} flexShrink={0}>⚙ {tName}</text>
+						{argsStr ? <text fg={c.text} wrapMode="none" truncate flexShrink={1}> {argsStr}</text> : null}
+						{toolError ? <text fg={c.error} flexShrink={0}> failed</text> : null}
 					</box>
 				}
 				titleColor={genericColor}
