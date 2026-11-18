@@ -128,6 +128,15 @@ export function sdkMessagesToChatMessages(data: {
 			const textContent = blocks.filter((b) => b.type === 'text').map((b) => b.content).join('\n');
 			const metadata = (m.metadata || {}) as Record<string, unknown>;
 			const usage = m.usage as Record<string, unknown> | undefined;
+			const rawTotals = metadata.turnTotals as Record<string, unknown> | undefined;
+			const turnTotals = rawTotals && typeof rawTotals.input === 'number' && typeof rawTotals.output === 'number'
+				? {
+					input: rawTotals.input,
+					output: rawTotals.output,
+					cacheRead: typeof rawTotals.cacheRead === 'number' ? rawTotals.cacheRead : 0,
+					cacheWrite: typeof rawTotals.cacheWrite === 'number' ? rawTotals.cacheWrite : 0,
+				}
+				: undefined;
 			const rawTokens = metadata.turnTokens as Record<string, unknown> | undefined;
 			const turnTokens = rawTokens && typeof rawTokens.input === 'number' && typeof rawTokens.output === 'number'
 				? {
@@ -153,6 +162,7 @@ export function sdkMessagesToChatMessages(data: {
 				model: (m.model as string) || data.model,
 				turnDurationMs: metadata.turnDurationMs as number | undefined,
 				turnTokens,
+				turnTotals,
 				agent: typeof metadata.agent === 'string' ? metadata.agent : data.agent,
 			};
 		}

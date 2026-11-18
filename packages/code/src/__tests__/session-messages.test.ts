@@ -42,6 +42,30 @@ describe('session cost hydration', () => {
 		expect(converted.tokenUsage).toEqual({ input: 20, output: 15 });
 	});
 
+	it('hydrates aggregated turn totals separately from per-message usage', async () => {
+		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
+		const converted = sdkMessagesToChatMessages({
+			model: 'test-model',
+			messages: [{
+				role: 'assistant',
+				content: 'Final',
+				timestamp: Date.now(),
+				usage: { input: 20, output: 10, cacheRead: 0, cacheWrite: 0, totalTokens: 30 },
+				metadata: {
+					turnStatus: 'completed',
+					turnTokens: { input: 20, output: 10, cacheRead: 0, cacheWrite: 0 },
+					turnTotals: { input: 120, output: 40, cacheRead: 0, cacheWrite: 0 },
+				},
+			}],
+		});
+
+		expect(converted.messages[0]).toMatchObject({
+			turnStatus: 'completed',
+			turnTokens: { input: 20, output: 10 },
+			turnTotals: { input: 120, output: 40 },
+		});
+	});
+
 	it('keeps legacy turns without stored cost at zero', async () => {
 		const { sdkMessagesToChatMessages } = await import('../tui/utils/session-messages.js');
 		const converted = sdkMessagesToChatMessages({

@@ -429,6 +429,7 @@ Return ONLY the title text, nothing else.`;
 
 			const start = performance.now();
 			let currentAssistantId: string | null = null;
+			const turnTotals = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
 			currentTurnStartRef.current = start;
 
 			try {
@@ -577,6 +578,10 @@ Return ONLY the title text, nothing else.`;
 					}
 					if (ev.type === 'message_end' && ev.message.role === 'assistant' && currentAssistantId) {
 						const m = ev.message as AssistantMessage;
+						turnTotals.input += m.usage.input;
+						turnTotals.output += m.usage.output;
+						turnTotals.cacheRead += m.usage.cacheRead;
+						turnTotals.cacheWrite += m.usage.cacheWrite;
 						const contextUsage = recordContextUsage(runSessionId, m);
 						const blocks = getMessageBlocks(m);
 						const isError = m.stopReason === 'error' || m.stopReason === 'aborted';
@@ -739,15 +744,15 @@ Return ONLY the title text, nothing else.`;
 						if (errMsg) {
 							sessionState.setStatusIn(runSessionId, 'Error');
 							if (currentTurnMsgIdRef.current) {
-								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error' });
+								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error', turnTotals });
 							}
-							updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
+							updateLastAssistantMeta(runSessionId, { turnStatus: 'error', turnTotals });
 						} else {
 							sessionState.setStatusIn(runSessionId, 'Ready');
 							if (currentTurnMsgIdRef.current) {
-								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'completed' });
+								sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'completed', turnTotals });
 							}
-							updateLastAssistantMeta(runSessionId, { turnStatus: 'completed' });
+							updateLastAssistantMeta(runSessionId, { turnStatus: 'completed', turnTotals });
 						}
 					}
 			}
@@ -787,9 +792,9 @@ Return ONLY the title text, nothing else.`;
 				}
 				persistMessage(runSessionId, errorAssistant);
 				if (currentTurnMsgIdRef.current) {
-					sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error', streaming: false });
+					sessionState.updateMessageIn(runSessionId, currentTurnMsgIdRef.current, { turnStatus: 'error', streaming: false, turnTotals });
 				}
-				updateLastAssistantMeta(runSessionId, { turnStatus: 'error' });
+				updateLastAssistantMeta(runSessionId, { turnStatus: 'error', turnTotals });
 				sessionState.setStatusIn(runSessionId, 'Error');
 			} finally {
 				flushQueuedPatches();

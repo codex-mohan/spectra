@@ -68,8 +68,10 @@ export interface ChatMessage {
 	turnStatus?: 'completed' | 'interrupted' | 'error';
 	/** Turn duration in milliseconds */
 	turnDurationMs?: number;
-	/** Token usage for this turn */
+	/** Token usage reported by the provider for this assistant message. */
 	turnTokens?: { input: number; output: number; cacheRead?: number; cacheWrite?: number };
+	/** Aggregated usage for the whole user turn, attached to the final assistant message. */
+	turnTotals?: { input: number; output: number; cacheRead?: number; cacheWrite?: number };
 	/** Exit code for shell tool results (structured, no regex parsing needed) */
 	exitCode?: number;
 	/** Whether a tool result reported an error */

@@ -147,8 +147,42 @@ describe('live tool streaming', () => {
 		}));
 		const exit = texts.find((text) => text.content.includes('Exit 0'));
 		const description = texts.find((text) => text.content === 'Live check of Cloudflare ports');
-		expect(exit?.props).toMatchObject({ wrapMode: 'none', flexShrink: 0 });
+		expect(exit?.props).toMatchObject({ wrapMode: 'none', flexShrink: 0, paddingRight: 1 });
 		expect(description?.props).toMatchObject({ wrapMode: 'none', truncate: true });
+	});
+
+	it('shows the assistant footer only on the turn-ending message', () => {
+		const intermediate = renderMessageView({
+			msg: {
+				id: 'assistant-1',
+				role: 'assistant',
+				content: 'Waiting on the tool.',
+				streaming: false,
+				turnTokens: { input: 900, output: 90 },
+			},
+		});
+		const intermediateText = findIntrinsic(intermediate, 'text')
+			.map((node) => Children.toArray(elementProps(node).children).join(''))
+			.join(' ');
+		expect(intermediateText).not.toContain('↑900');
+
+		const final = renderMessageView({
+			msg: {
+				id: 'assistant-2',
+				role: 'assistant',
+				content: 'Done.',
+				streaming: false,
+				turnStatus: 'completed',
+				turnTokens: { input: 900, output: 90 },
+				turnTotals: { input: 2400, output: 210 },
+				turnDurationMs: 12_000,
+			},
+		});
+		const finalText = findIntrinsic(final, 'text')
+			.map((node) => Children.toArray(elementProps(node).children).join(''))
+			.join(' ');
+		expect(finalText).toContain('↑2400 ↓210');
+		expect(finalText).not.toContain('↑900');
 	});
 
 	it('disables unstyled preview for streaming bash commands', () => {

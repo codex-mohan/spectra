@@ -49,7 +49,8 @@
 - Render tree: OpenTUI `box`/`text`/`textarea`/`scrollbox` nodes; the shell writes UI through the renderer rather than stdout.
 - Overlays emitted in JSX order after the route body: command palette, slash/arg/file autocomplete, one `dialogStep` dialog, update dialog, message controls, permission dialog, ask menu, toast container (`app.tsx:1069-1492`).
 - `MessageView` is memoized; only the message whose object changed re-renders. The transcript's scrollbox uses viewport culling.
-- Transcript messages are persisted through `SessionStore.addMessage`/`save`; assistant metadata gains `turnDurationMs`, `turnTokens`, `patch`, `contextUsage`, `turnStatus` (`use-chat-submit.ts:540-590`).
+- Transcript messages are persisted through `SessionStore.addMessage`/`save`; assistant metadata gains `turnDurationMs`, `turnTokens`, `turnTotals`, `patch`, `contextUsage`, `turnStatus` (`use-chat-submit.ts:540-635`).
+- The assistant footer (agent · model · duration · tokens · done) renders only on the assistant message carrying `turnStatus`, which is set at `agent_end`. Intermediate tool-loop assistant messages keep their per-call usage but render no footer. The final footer uses aggregated `turnTotals` when present.
 - Terminal title is set at mount and on session load/switch (`setTerminalTitle`, `formatSessionTitle`).
 - Home footer left segment: folder glyph + path (home shortened to `~`, separator-normalized), `›`, branch glyph + branch, ahead/behind, then `!conflicts`, `*changed`, `?untracked`. Refresh runs on mount, every 5 s, and when a turn finishes; it is asynchronous and never blocks the render loop. Transient git failures keep the last good status and only clear after three consecutive misses.
 - Clipboard writes occur on terminal selection and when installing an update copies `UPDATE_COMMAND`.

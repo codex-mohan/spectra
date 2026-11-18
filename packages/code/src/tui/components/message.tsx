@@ -1026,7 +1026,7 @@ export function renderMessageView({
 	if (msg.role === 'assistant') {
 		// Build turn footer: agent · model · duration · status
 		const agentName = msg.agent || 'build';
-		const showFooter = !msg.streaming && (msg.turnStatus || msg.turnTokens);
+		const showFooter = !msg.streaming && msg.turnStatus != null;
 		const isInterrupted = msg.turnStatus === 'interrupted';
 		const isError = msg.turnStatus === 'error';
 		const durationStr =
@@ -1035,7 +1035,8 @@ export function renderMessageView({
 				: msg.turnDurationMs
 					? `${msg.turnDurationMs}ms`
 					: null;
-		const tokensStr = msg.turnTokens ? `↑${msg.turnTokens.input} ↓${msg.turnTokens.output}` : null;
+		const footerTokens = msg.turnTotals ?? msg.turnTokens;
+		const tokensStr = footerTokens ? `↑${footerTokens.input} ↓${footerTokens.output}` : null;
 
 		return (
 			<box flexDirection="column" marginTop={mt}>
@@ -1339,8 +1340,8 @@ export function renderMessageView({
 								<code content={command} syntaxStyle={mdStyle} filetype="bash" streaming={!msg.toolArgumentsComplete} conceal={true} drawUnstyledText={false} flexShrink={1} />
 							</box>
 						</box>
-						{exitCode !== null && <text fg={exitColor} flexShrink={0} wrapMode="none">{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
-						{exitCode === null && toolError && <text fg={c.error} flexShrink={0} wrapMode="none">✗ Failed</text>}
+						{exitCode !== null && <text fg={exitColor} flexShrink={0} wrapMode="none" paddingRight={1}>{exitCode === 0 && !toolError ? '✓' : '✗'} Exit {exitCode}</text>}
+						{exitCode === null && toolError && <text fg={c.error} flexShrink={0} wrapMode="none" paddingRight={1}>✗ Failed</text>}
 					</box>
 					<box paddingLeft={2}>
 						{output ? (
