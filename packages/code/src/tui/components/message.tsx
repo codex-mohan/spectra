@@ -893,11 +893,9 @@ function JobToolView({ args, details, output, isError, streaming, marginTop }: {
 	return (
 		<box
 			flexDirection="column"
-			paddingTop={1}
-			paddingBottom={1}
 			paddingLeft={2}
 			marginTop={marginTop}
-			gap={1}
+			gap={0}
 			backgroundColor={c.bgTool}
 			border={['left']}
 			customBorderChars={SB}
@@ -909,7 +907,7 @@ function JobToolView({ args, details, output, isError, streaming, marginTop }: {
 				{row?.description ? <text fg={c.dim} wrapMode="none" truncate flexShrink={1}>· {row.description}</text> : id ? <text fg={c.dim} flexShrink={0}>· {shortJobId(id)}</text> : null}
 				<text fg={isError ? c.error : c.success} flexShrink={0}>{isError ? '✗' : '✓'}</text>
 			</box>
-			<box flexDirection="column" paddingLeft={2} gap={0}>
+			<box flexDirection="column" paddingLeft={1} gap={0}>
 				{row ? (
 					<>
 						<box flexDirection="row" gap={1}>
